@@ -1,0 +1,20 @@
+name: Feature request / Wunsch
+description: Suggest an idea (German or English welcome)
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Which problem should it solve? / Welches Problem soll es lösen?
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: Proposed solution / Vorschlag
+  - type: checkboxes
+    id: ai
+    attributes:
+      label: AI
+      options:
+        - label: This issue was written with AI help / Mit KI-Hilfe geschrieben

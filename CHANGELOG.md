@@ -9,3 +9,5 @@ All notable changes to Kasmin are documented in this file. The format is based o
 ### Added
 
 - Laravel 13 application skeleton, licence (AGPL-3.0), contribution and security guidelines, versioning rules.
+- Docker-based development environment (PHP 8.5, MariaDB 11, Mailpit), static analysis with Larastan (level 8).
+- Kasmin logo, favicons and web manifest.

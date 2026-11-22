@@ -167,7 +167,7 @@ jobs:
       - uses: actions/download-artifact@v4
         with: { name: image, path: /tmp }
       - run: docker load -i /tmp/kasmin-image.tar
-      - uses: aquasecurity/trivy-action@0.28.0
+      - uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           image-ref: kasmin:ci
           severity: CRITICAL,HIGH

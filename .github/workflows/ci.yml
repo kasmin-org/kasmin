@@ -119,6 +119,9 @@ jobs:
             | grep -q "Kasmin is installed"
           curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8090/ | grep -q 200
           php artisan kasmin:status
+      - name: Show logs on failure
+        if: ${{ failure() }}
+        run: tail -n 60 /tmp/kasmin/storage/logs/laravel.log /tmp/server.log 2>/dev/null || true
       - name: Tampered package is rejected
         run: |
           echo x >> /tmp/pkg/kasmin.zip

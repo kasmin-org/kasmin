@@ -195,6 +195,21 @@ class AutomationsTest extends TestCase
         $engine->decide($third, $outsider, true);
     }
 
+    public function test_mail_link_is_invalid_once_someone_decided_elsewhere(): void
+    {
+        $this->family('Alpha');
+        $run = app(Engine::class)->trigger($this->automation('deposit_invoices'), 'scheduled', $this->event, 'x');
+        $this->assertNotNull($run);
+        $html = (string) OutgoingMail::query()->where('to_address', 'board@example.org')->latest('id')->value('html');
+        $this->assertSame(1, preg_match('#/approvals/([A-Za-z0-9]+)#', $html, $m));
+        $token = $m[1] ?? '';
+
+        app(Engine::class)->decide($run, $this->board, false, [], 'decided in the inbox');
+        $this->get('/approvals/'.$token)->assertOk()->assertSee('Link no longer valid')->assertDontSee('Yes, run it');
+        $this->post('/approvals/'.$token, ['decision' => 'approve'])->assertRedirect('/approvals/'.$token);
+        $this->assertSame('denied', $run->refresh()->status);
+    }
+
     public function test_pending_requests_expire_and_are_reminded(): void
     {
         $this->family('Alpha');

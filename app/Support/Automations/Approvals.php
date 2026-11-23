@@ -25,8 +25,8 @@ class Approvals
         $today = now()->toDateString();
 
         return User::query()->whereHas('person.roleAssignments', fn ($q) => $q->whereIn('role_id', $roleIds)
-            ->where(fn ($q) => $q->whereNull('starts_on')->orWhere('starts_on', '<=', $today))
-            ->where(fn ($q) => $q->whereNull('ends_on')->orWhere('ends_on', '>=', $today)))->get();
+            ->where(fn ($q) => $q->whereNull('starts_on')->orWhereDate('starts_on', '<=', $today))
+            ->where(fn ($q) => $q->whereNull('ends_on')->orWhereDate('ends_on', '>=', $today)))->get();
     }
 
     public function request(AutomationRun $run, bool $reminder = false): int
@@ -50,7 +50,7 @@ class Approvals
     {
         $model = AutomationApprovalToken::query()->where('token_hash', hash('sha256', $token))->with('run.automation', 'run.event', 'user')->first();
 
-        return $model !== null && $model->used_at === null && $model->expires_at->isFuture() ? $model : null;
+        return $model !== null && $model->used_at === null && $model->expires_at->isFuture() && $model->run?->isPending() ? $model : null;
     }
 
     /** Expire undecided runs (nothing happens, approvers are told) and remind once halfway (AT05). */

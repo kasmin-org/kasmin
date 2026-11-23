@@ -24,6 +24,12 @@ All notable changes to Kasmin are documented in this file. The format is based o
 ### Changed
 
 - All login links except the long-lived links in mails can now be used only once.
+### Fixed
+
+- SQLite: roles that start today were not active yet (date compared as text); role periods are now compared as dates.
+
+### Changed (deployment)
+
 - Demo deployment: concurrency per instance on the job level, so a skipped run cannot cancel a pending release
   deployment.
 

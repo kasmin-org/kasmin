@@ -46,8 +46,8 @@ class SystemNotifications
         $today = now()->toDateString();
 
         return User::query()->whereHas('person.roleAssignments', fn ($q) => $q->where('role_id', $roleId)
-            ->where(fn ($q) => $q->whereNull('starts_on')->orWhere('starts_on', '<=', $today))
-            ->where(fn ($q) => $q->whereNull('ends_on')->orWhere('ends_on', '>=', $today)))->get();
+            ->where(fn ($q) => $q->whereNull('starts_on')->orWhereDate('starts_on', '<=', $today))
+            ->where(fn ($q) => $q->whereNull('ends_on')->orWhereDate('ends_on', '>=', $today)))->get();
     }
 
     /** @return Collection<int, SystemNotification> notifications the user has not dismissed yet */

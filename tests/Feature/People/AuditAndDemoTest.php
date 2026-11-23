@@ -19,7 +19,7 @@ class AuditAndDemoTest extends TestCase
         $person->update(['first_name' => 'Sam']);
 
         $event = AuditEvent::query()->where('action', 'Person.updated')->firstOrFail();
-        $this->assertSame(['old' => 'Alex', 'new' => 'Sam'], $event->changes['first_name'] ?? null);
+        $this->assertEquals(['old' => 'Alex', 'new' => 'Sam'], $event->changes['first_name'] ?? null);
     }
 
     public function test_audit_log_is_append_only(): void

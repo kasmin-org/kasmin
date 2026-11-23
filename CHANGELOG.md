@@ -6,6 +6,19 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ## [Unreleased]
 
+### Added
+
+- Mail: SMTP/IMAP accounts with rate limits and connection test, sender profiles, mail queue with retries, copy of
+  sent mails via IMAP, replies and bounces read from IMAP and assigned to people.
+- Mail templates in German and English with a formatted editor, sandboxed placeholders (no confidential fields),
+  versions and preview; default templates (registration confirmation with waitlist position, safety sheet request
+  and reminder, event information, newsletter).
+- Mailings: recipients from groups and events, to legal guardians/the person/both, one mail per family, opt-outs,
+  prepare → review/edit single mails → send; mail log with resend.
+- Footer links in every mail: e-mail settings, unsubscribe, no more information, deletion request (signed links,
+  action only after a button press).
+- Admin notifications immediately or as daily/weekly digest; registration confirmation mails; mails in the portal.
+
 ### Changed
 
 - Docker image now based on **Alpine Linux 3.24** with its PHP 8.5 packages and Apache (345 MB instead of about 1 GB);

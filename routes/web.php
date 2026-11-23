@@ -38,6 +38,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/two-factor', [TwoFactorController::class, 'verify'])->middleware('throttle:10,1')->name('two-factor.verify');
     Route::middleware(RequireSecondFactor::class)->prefix('portal')->group(function () {
         Route::get('/', [PortalController::class, 'index'])->name('portal');
+        Route::get('/mails/{uuid}', [PortalController::class, 'mail'])->name('portal.mail');
         Route::get('/children/new', [PortalChildController::class, 'create'])->name('portal.child.create');
         Route::post('/children', [PortalChildController::class, 'store'])->name('portal.child.store');
         Route::get('/children/{child}', [PortalChildController::class, 'show'])->name('portal.child');

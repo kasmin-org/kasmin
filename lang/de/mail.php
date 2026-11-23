@@ -1,0 +1,32 @@
+<?php
+
+return [
+    'footer_preferences' => 'Benachrichtigungen und Daten',
+    'footer_link' => 'Einstellungen',
+    'preferences_title' => 'E-Mail-Einstellungen',
+    'preferences_intro' => 'Einstellungen für :name. Wählen Sie, was Sie ändern möchten.',
+    'preferences_saved' => 'Ihre Auswahl wurde gespeichert.',
+    'preferences_note' => 'Mitteilungen zu Ihren Anmeldungen und Rechnungen erhalten Sie weiterhin.',
+    'confirm_deletion' => 'Wollen Sie wirklich die Löschung Ihrer Daten beantragen?',
+    'choices' => [
+        'newsletter_off' => 'Newsletter abbestellen',
+        'newsletter_on' => 'Newsletter wieder erhalten',
+        'optout_all' => 'Keine weiteren Informationen zu Veranstaltungen erhalten',
+        'deletion_request' => 'Löschung meiner Daten beantragen',
+    ],
+    'notify_failed' => 'Mail an :to konnte nicht zugestellt werden.',
+    'notify_bounce' => 'Mail an :to kam zurück (Unzustellbar).',
+    'notify_deletion' => 'Löschantrag von :name',
+    'digest_subject' => 'Kasmin: :count neue Ereignisse',
+    'topics' => [
+        'registrations' => 'Neue Registrierungen und Anmeldungen',
+        'profile_updates' => 'Geänderte Angaben',
+        'safety_updates' => 'Sicherheitsblätter',
+        'waitlist' => 'Warteliste',
+        'payments' => 'Zahlungen',
+        'bounces' => 'Unzustellbare Mails',
+        'approvals' => 'Freigaben',
+        'deletion_requests' => 'Löschanträge',
+        'automation_errors' => 'Fehler in Automatisierungen',
+    ],
+];

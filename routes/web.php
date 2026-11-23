@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\TwoFactorController;
 use App\Http\Controllers\InstallController;
+use App\Http\Controllers\MailPreferencesController;
 use App\Http\Controllers\PortalChildController;
 use App\Http\Controllers\PortalController;
 use App\Http\Controllers\PortalFormController;
@@ -16,6 +17,9 @@ Route::get('/', function () {
 
 Route::get('/install', [InstallController::class, 'show'])->name('install');
 Route::post('/install', [InstallController::class, 'store'])->middleware('throttle:10,1');
+
+Route::get('/mail/preferences/{person}', [MailPreferencesController::class, 'show'])->middleware('signed')->name('mail.preferences');
+Route::post('/mail/preferences/{person}', [MailPreferencesController::class, 'update'])->middleware(['signed', 'throttle:10,1'])->name('mail.preferences.update');
 
 Route::middleware('guest')->group(function () {
     Route::get('/register', [PublicRegistrationController::class, 'show'])->name('register');
@@ -34,6 +38,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/two-factor', [TwoFactorController::class, 'verify'])->middleware('throttle:10,1')->name('two-factor.verify');
     Route::middleware(RequireSecondFactor::class)->prefix('portal')->group(function () {
         Route::get('/', [PortalController::class, 'index'])->name('portal');
+        Route::get('/mails/{uuid}', [PortalController::class, 'mail'])->name('portal.mail');
         Route::get('/children/new', [PortalChildController::class, 'create'])->name('portal.child.create');
         Route::post('/children', [PortalChildController::class, 'store'])->name('portal.child.store');
         Route::get('/children/{child}', [PortalChildController::class, 'show'])->name('portal.child');

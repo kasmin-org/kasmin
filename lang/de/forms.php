@@ -21,4 +21,5 @@ return [
     'contact_n' => 'Kontakt :n', 'contact_name' => 'Name', 'contact_relation' => 'Beziehung (z. B. Großmutter)', 'contact_phone' => 'Telefon',
     'legal_guardian' => 'erziehungsberechtigt',
     'no_phone' => 'keine Telefonnummer hinterlegt',
+    'notify_changed' => ':form von :name geändert: :fields – siehe Portal',
 ];

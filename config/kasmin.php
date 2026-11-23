@@ -17,6 +17,11 @@ return [
     'hook_token' => env('KASMIN_HOOK_TOKEN'),
 
     /*
+     * Time of the daily notification digest (weekly digests go out on Mondays at the same time), NT04.
+     */
+    'digest_time' => env('KASMIN_DIGEST_TIME', '07:00'),
+
+    /*
      * Demo instances (APP_ENV=demo): language of the demo data, first administrator and e-mail domain of the
      * fictitious people (a catch-all mailbox makes their login links readable).
      */

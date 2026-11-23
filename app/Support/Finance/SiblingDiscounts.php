@@ -24,11 +24,11 @@ class SiblingDiscounts
     public function compute(Event $event, Collection $participations): array
     {
         $roles = $event->roles->keyBy('role_key');
-        $counting = $participations->filter(fn (Participation $p) => ($roles[$p->role_key] ?? null)?->counts_as_sibling ?? false);
+        $counting = $participations->filter(fn (Participation $p) => ($roles[$p->role_key] ?? null)->counts_as_sibling ?? false);
         $ordered = match ($event->sibling_order) {
-            'highest_price' => $counting->sortByDesc(fn (Participation $p) => $roles[$p->role_key]?->price_cents ?? 0),
+            'highest_price' => $counting->sortByDesc(fn (Participation $p) => $roles[$p->role_key]->price_cents ?? 0),
             'registration' => $counting->sortBy('registered_at'),
-            default => $counting->sortBy(fn (Participation $p) => $p->person?->birth_date?->timestamp ?? PHP_INT_MAX),
+            default => $counting->sortBy(fn (Participation $p) => $p->person->birth_date->timestamp ?? PHP_INT_MAX),
         };
 
         $result = [];
@@ -54,7 +54,7 @@ class SiblingDiscounts
         foreach ($participations as $p) {
             if (! isset($result[$p->id])) {
                 $role = $roles[$p->role_key] ?? null;
-                $result[$p->id] = ['position' => 0, 'discount' => $role?->role_discount_cents ?? 0, 'kind' => ($role?->role_discount_cents ?? 0) > 0 ? 'role' : null];
+                $result[$p->id] = ['position' => 0, 'discount' => $role->role_discount_cents ?? 0, 'kind' => ($role->role_discount_cents ?? 0) > 0 ? 'role' : null];
             }
         }
 

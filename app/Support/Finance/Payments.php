@@ -7,6 +7,7 @@ use App\Models\Invoice;
 use App\Models\Payment;
 use App\Support\Mail\Composer;
 use App\Support\Mail\Notifier;
+use App\Support\Settings;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use OpenSpout\Reader\CSV\Options as CsvOptions;
@@ -124,10 +125,8 @@ class Payments
     {
         $payer = $invoice->payer;
         if ($payer !== null) {
-            $mail = app(Composer::class)->queue('payment_confirmation', $payer, ['household' => $invoice->household, 'event' => $invoice->event]);
-            if ($mail !== null && (bool) config('kasmin.attach_paid_invoice', true)) {
-                $mail->forceFill(['attachments' => [['invoice_id' => $invoice->id, 'paid' => true]]])->save();
-            }
+            app(Composer::class)->queue('payment_confirmation', $payer, ['household' => $invoice->household, 'event' => $invoice->event, 'invoice' => $invoice],
+                attachments: Settings::bool('invoice_attach_paid') ? [['invoice_id' => $invoice->id, 'paid' => true]] : null);
         }
         app(Notifier::class)->event('payments', trans('finance.notify_paid', ['number' => $invoice->number, 'amount' => Invoice::money($invoice->total_cents, $invoice->currency)]), url('/admin/invoices/'.$invoice->id));
     }

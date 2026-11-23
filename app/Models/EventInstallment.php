@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\Auditable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 
 /**
  * One instalment of an event's payment plan (PR03), e.g. deposit (fixed) and balance (rest).
@@ -13,7 +14,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property array<string, string> $label
  * @property string $kind
  * @property int|null $amount_cents
- * @property \Illuminate\Support\Carbon|null $due_date
+ * @property Carbon|null $due_date
  * @property int|null $due_days
  * @property bool $refundable
  * @property bool $discounts_apply

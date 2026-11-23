@@ -9,6 +9,8 @@ use App\Models\Household;
 use App\Models\Invoice;
 use App\Models\Participation;
 use App\Models\Person;
+use App\Support\Mail\Composer;
+use App\Support\Settings;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
@@ -31,7 +33,7 @@ class Invoices
         $participations = Participation::query()->where('event_id', $event->id)
             ->whereIn('status', ['registered', 'confirmed', 'offered', 'attended'])->with(['person.guardians', 'person.households'])->get();
 
-        $byHousehold = $participations->groupBy(fn (Participation $p) => $p->person?->households->first()?->id ?? 'p'.$p->person_id);
+        $byHousehold = $participations->groupBy(fn (Participation $p) => $p->person?->households->first()->id ?? 'p'.$p->person_id);
         $created = 0;
         foreach ($byHousehold as $group) {
             /** @var Participation $first */
@@ -100,13 +102,13 @@ class Invoices
         }
 
         return DB::transaction(function () use ($invoice) {
-            $next = (int) (DB::table('system_meta')->where('key', 'invoice_next_number')->lockForUpdate()->value('value') ?? 1);
-            DB::table('system_meta')->updateOrInsert(['key' => 'invoice_next_number'], ['value' => (string) ($next + 1), 'updated_at' => now(), 'created_at' => now()]);
-            $format = (string) (DB::table('system_meta')->where('key', 'invoice_number_format')->value('value') ?? 'R{number}');
-            $number = str_replace(['{number}', '{year}'], [(string) $next, now()->format('Y')], $format);
+            DB::table('system_meta')->insertOrIgnore(['key' => 'invoice_next_number', 'value' => Settings::get('invoice_next_number'), 'created_at' => now(), 'updated_at' => now()]);
+            $next = max(1, (int) DB::table('system_meta')->where('key', 'invoice_next_number')->lockForUpdate()->value('value'));
+            Settings::set('invoice_next_number', (string) ($next + 1));
+            $number = str_replace(['{number}', '{year}'], [(string) $next, now()->format('Y')], (string) Settings::get('invoice_number_format'));
 
             $installment = $invoice->event?->installments()->where('key', $invoice->installment_key)->first();
-            $due = $installment?->due_date ?? now()->addDays($installment->due_days ?? 14);
+            $due = $installment->due_date ?? now()->addDays($installment->due_days ?? Settings::int('invoice_due_days'));
             $invoice->forceFill([
                 'number' => $number, 'reference' => self::creditorReference($number), 'status' => $invoice->total_cents > 0 ? 'issued' : 'paid',
                 'issued_on' => now()->toDateString(), 'due_on' => $due->toDateString() < now()->toDateString() ? now()->addDays(14)->toDateString() : $due->toDateString(),
@@ -114,6 +116,18 @@ class Invoices
 
             return $invoice;
         });
+    }
+
+    /** Queues the invoice mail with the PDF to the payer (IN06). */
+    public function send(Invoice $invoice): bool
+    {
+        if ($invoice->payer === null || $invoice->status === 'draft') {
+            return false;
+        }
+
+        return app(Composer::class)->queue('invoice', $invoice->payer, [
+            'household' => $invoice->household, 'event' => $invoice->event, 'invoice' => $invoice,
+        ], attachments: [['invoice_id' => $invoice->id, 'paid' => false]]) !== null;
     }
 
     /** Cancels an issued invoice with a credit note (IN10). */

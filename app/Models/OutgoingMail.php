@@ -18,6 +18,7 @@ use Illuminate\Support\Carbon;
  * @property int|null $mailing_id
  * @property string $to_address
  * @property string|null $to_name
+ * @property list<array<string, mixed>>|null $attachments
  * @property string $subject
  * @property string $html
  * @property string $text

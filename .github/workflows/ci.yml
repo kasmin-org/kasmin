@@ -1,0 +1,211 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+    tags: ["v*.*.*"]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Code style, static analysis, audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with: { php-version: "8.5", extensions: "intl, zip, gd, bcmath, pdo_mysql", coverage: none }
+      - run: composer install --no-interaction --prefer-dist
+      - run: vendor/bin/pint --test
+      - run: vendor/bin/phpstan analyse --no-progress --memory-limit=1G
+      - run: composer audit
+
+  tests:
+    name: Tests (PHP ${{ matrix.php }}, ${{ matrix.db }})
+    runs-on: ubuntu-latest
+    continue-on-error: ${{ matrix.experimental }}
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ["8.3", "8.4", "8.5"]
+        db: ["mariadb:11", "mysql:8.4"]
+        experimental: [false]
+        include:
+          - { php: "8.6", db: "mariadb:11", experimental: true }
+    services:
+      db:
+        image: ${{ matrix.db }}
+        env:
+          MYSQL_DATABASE: kasmin
+          MYSQL_USER: kasmin
+          MYSQL_PASSWORD: kasmin
+          MYSQL_ROOT_PASSWORD: root
+          MARIADB_DATABASE: kasmin
+          MARIADB_USER: kasmin
+          MARIADB_PASSWORD: kasmin
+          MARIADB_ROOT_PASSWORD: root
+        ports: ["3306:3306"]
+        options: >-
+          --health-cmd="${{ startsWith(matrix.db, 'mariadb') && 'healthcheck.sh --connect --innodb_initialized' || 'mysqladmin ping -h 127.0.0.1 -proot' }}"
+          --health-interval=5s --health-timeout=5s --health-retries=20
+    env:
+      DB_CONNECTION: ${{ startsWith(matrix.db, 'mariadb') && 'mariadb' || 'mysql' }}
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_DATABASE: kasmin
+      DB_USERNAME: kasmin
+      DB_PASSWORD: kasmin
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: "intl, zip, gd, bcmath, pdo_mysql"
+          coverage: ${{ matrix.php == '8.5' && startsWith(matrix.db, 'mariadb') && 'pcov' || 'none' }}
+      - run: composer install --no-interaction --prefer-dist
+      - run: cp .env.example .env && php artisan key:generate
+      - run: php artisan migrate --force
+      - name: Run tests
+        if: ${{ !(matrix.php == '8.5' && startsWith(matrix.db, 'mariadb')) }}
+        run: php artisan test
+      - name: Run tests with coverage
+        if: ${{ matrix.php == '8.5' && startsWith(matrix.db, 'mariadb') }}
+        run: php artisan test --coverage-clover=coverage/clover.xml
+      - uses: actions/upload-artifact@v4
+        if: ${{ matrix.php == '8.5' && startsWith(matrix.db, 'mariadb') }}
+        with: { name: coverage, path: coverage/clover.xml }
+
+  semgrep:
+    name: Security scan (Semgrep)
+    runs-on: ubuntu-latest
+    container: semgrep/semgrep
+    steps:
+      - uses: actions/checkout@v4
+      - run: semgrep scan --config p/php --config p/secrets --error --exclude vendor --exclude node_modules
+
+  docker:
+    name: Docker image
+    needs: [quality, tests]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/metadata-action@v5
+        id: meta
+        with:
+          images: ghcr.io/${{ github.repository }}
+          flavor: latest=false
+          tags: |
+            type=ref,event=branch
+            type=sha,prefix=sha-,format=short
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}},enable=${{ !startsWith(github.ref, 'refs/tags/v0.') }}
+            type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/v') && !contains(github.ref, '-') }}
+      - uses: docker/login-action@v3
+        if: ${{ github.event_name != 'pull_request' }}
+        with: { registry: ghcr.io, username: "${{ github.actor }}", password: "${{ secrets.GITHUB_TOKEN }}" }
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: KASMIN_VERSION=${{ github.ref_name }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          load: ${{ github.event_name == 'pull_request' }}
+      - name: Save image for GUI tests
+        run: |
+          docker buildx build --load -t kasmin:ci --cache-from type=gha . >/dev/null
+          docker save kasmin:ci -o /tmp/kasmin-image.tar
+      - uses: actions/upload-artifact@v4
+        with: { name: image, path: /tmp/kasmin-image.tar, retention-days: 1 }
+
+  gui:
+    name: GUI tests (phone and desktop)
+    needs: [docker]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: { name: image, path: /tmp }
+      - name: Start Kasmin
+        run: |
+          docker load -i /tmp/kasmin-image.tar
+          docker run -d --name kasmin -p 8080:80 \
+            -e APP_KEY="base64:$(openssl rand -base64 32)" -e APP_ENV=production \
+            -e DB_CONNECTION=sqlite -e DB_DATABASE=/tmp/kasmin.sqlite \
+            -e SESSION_DRIVER=file -e CACHE_STORE=file kasmin:ci
+          for i in $(seq 1 30); do curl -sf http://127.0.0.1:8080/up && break; sleep 1; done
+      - uses: actions/setup-node@v4
+        with: { node-version: "24" }
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test --trace off
+        env: { KASMIN_URL: "http://127.0.0.1:8080", CI: "true" }
+      - uses: actions/upload-artifact@v4
+        if: ${{ failure() }}
+        with: { name: playwright-report, path: playwright-report, retention-days: 7 }
+
+  security:
+    name: Container scan (Trivy)
+    needs: [docker]
+    runs-on: ubuntu-latest
+    outputs:
+      findings: ${{ steps.count.outputs.findings }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with: { name: image, path: /tmp }
+      - run: docker load -i /tmp/kasmin-image.tar
+      - uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: kasmin:ci
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          format: json
+          output: trivy.json
+          exit-code: "0"
+      - id: count
+        run: echo "findings=$(jq '[.Results[]?.Vulnerabilities // [] | length] | add // 0' trivy.json)" >> "$GITHUB_OUTPUT"
+
+  badges:
+    name: Update badges
+    if: ${{ github.event_name == 'push' && (github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main') }}
+    needs: [tests, semgrep, security, gui]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with: { name: coverage, path: coverage }
+      - name: Write badge files
+        run: |
+          mkdir -p out
+          pct=$(python3 -c "import xml.etree.ElementTree as E;m=E.parse('coverage/clover.xml').getroot().find('project/metrics');s=int(m.get('statements'));c=int(m.get('coveredstatements'));print(round(100*c/s) if s else 0)")
+          color=$([ $pct -ge 80 ] && echo brightgreen || ([ $pct -ge 60 ] && echo yellow || echo red))
+          echo "{\"schemaVersion\":1,\"label\":\"coverage\",\"message\":\"${pct}%\",\"color\":\"$color\"}" > out/coverage-${GITHUB_REF_NAME}.json
+          n=${{ needs.security.outputs.findings }}
+          scolor=$([ "$n" = "0" ] && echo brightgreen || echo red)
+          smsg=$([ "$n" = "0" ] && echo "no high/critical findings" || echo "$n high/critical")
+          echo "{\"schemaVersion\":1,\"label\":\"security scan\",\"message\":\"$smsg\",\"color\":\"$scolor\"}" > out/security-${GITHUB_REF_NAME}.json
+      - name: Push to badges branch
+        run: |
+          git init -q -b badges repo && cd repo
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git remote add origin "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git"
+          if git fetch -q origin badges; then git reset -q --hard FETCH_HEAD; fi
+          cp -f ../out/*.json .
+          git add -A
+          git commit -q -m "Update badges for ${GITHUB_REF_NAME}" || exit 0
+          git push -q origin HEAD:badges

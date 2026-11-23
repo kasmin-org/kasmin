@@ -1,0 +1,36 @@
+name: Bug report / Fehlerbericht
+description: Something does not work as expected (German or English welcome)
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened? / Was ist passiert?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce / Schritte zum Nachstellen
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour / Erwartetes Verhalten
+  - type: input
+    id: version
+    attributes:
+      label: Kasmin version
+  - type: dropdown
+    id: device
+    attributes:
+      label: Device / Gerät
+      options: [Phone, Tablet, Desktop]
+  - type: checkboxes
+    id: ai
+    attributes:
+      label: AI
+      options:
+        - label: This issue was written with AI help / Mit KI-Hilfe geschrieben
+  - type: markdown
+    attributes:
+      value: "Security problems: please do not report them here, see SECURITY.md."

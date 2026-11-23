@@ -1,0 +1,32 @@
+# Local development: docker compose -f compose.dev.yaml up -d
+services:
+  app:
+    build: { context: docker/dev }
+    user: "${KASMIN_UID:-1000}:${KASMIN_GID:-1000}"
+    environment:
+      COMPOSER_HOME: /tmp/composer
+      DB_CONNECTION: mariadb
+      DB_HOST: db
+      DB_DATABASE: kasmin
+      DB_USERNAME: kasmin
+      DB_PASSWORD: kasmin
+      MAIL_MAILER: smtp
+      MAIL_HOST: mail
+      MAIL_PORT: 1025
+    volumes: [".:/app"]
+    command: php artisan serve --host=0.0.0.0 --port=8000
+    ports: ["127.0.0.1:8000:8000"]
+    depends_on: [db, mail]
+  db:
+    image: mariadb:11
+    environment:
+      MARIADB_DATABASE: kasmin
+      MARIADB_USER: kasmin
+      MARIADB_PASSWORD: kasmin
+      MARIADB_ROOT_PASSWORD: root
+    volumes: ["dbdata:/var/lib/mysql"]
+  mail:
+    image: axllent/mailpit:latest
+    ports: ["127.0.0.1:8025:8025"]
+volumes:
+  dbdata:

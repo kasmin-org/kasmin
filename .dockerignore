@@ -1,0 +1,15 @@
+.git
+.github
+node_modules
+vendor
+public/build
+storage/logs/*
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
+.env
+database/*.sqlite
+compose.dev.yaml
+docker/dev
+coverage
+bootstrap/cache/*.php

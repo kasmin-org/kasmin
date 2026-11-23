@@ -1,0 +1,19 @@
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+
+@theme {
+    --font-sans: 'Lexend', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
+
+    /* Kasmin brand colours (resources/brand/README.md) */
+    --color-kasmin-50: #f3faf3;
+    --color-kasmin-100: #dcf1dd;
+    --color-kasmin-200: #b6e3b9;
+    --color-kasmin-500: #26b533;
+    --color-kasmin-600: #1da029;
+    --color-kasmin-700: #187f22;
+    --color-kasmin-900: #14501c;
+    --color-summer-500: #f5a524;
+}

@@ -6,6 +6,15 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ## [Unreleased]
 
+### Changed
+
+- Docker image now based on **Alpine Linux 3.24** with its PHP 8.5 packages and Apache (345 MB instead of about 1 GB);
+  all packages upgraded during the build, no package cache in the image; bash and vim included for maintenance.
+
+## [0.4.0] - 2026-11-23
+
+First public pre-release for testing. Not ready for production use.
+
 ### Added
 
 - Laravel 13 application skeleton, licence (AGPL-3.0), contribution and security guidelines, versioning rules.
@@ -52,3 +61,6 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 - Docker image: system packages updated and build packages removed after compiling the PHP extensions – the
   container scan reports no high or critical findings any more (previously 75 in Debian packages).
+
+[Unreleased]: https://github.com/kasmin-org/kasmin/compare/v0.4.0...develop
+[0.4.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.4.0

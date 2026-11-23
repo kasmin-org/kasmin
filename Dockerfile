@@ -1,5 +1,4 @@
-# Production image of Kasmin: Apache + PHP, dependencies and built assets included.
-ARG PHP_VERSION=8.5
+# Production image of Kasmin: Alpine Linux with Apache + PHP, dependencies and built assets included.
 
 FROM node:24-slim AS assets
 WORKDIR /app
@@ -14,24 +13,25 @@ RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist --no-in
 COPY . .
 RUN composer dump-autoload --optimize --no-dev --no-scripts
 
-FROM php:${PHP_VERSION}-apache
-# Build the PHP extensions, then remove the build packages (headers, compilers) so the image only contains runtime
-# libraries; apt-get upgrade pulls the latest security fixes of the base image.
-RUN apt-get update \
- && apt-get upgrade -y \
- && savedAptMark="$(apt-mark showmanual)" \
- && apt-get install -y --no-install-recommends libicu-dev libzip-dev libpng-dev libjpeg-dev libfreetype6-dev \
- && docker-php-ext-configure gd --with-freetype --with-jpeg \
- && docker-php-ext-install -j"$(nproc)" pdo_mysql intl zip gd bcmath exif \
- && apt-mark auto '.*' > /dev/null && apt-mark manual $savedAptMark > /dev/null \
- && find /usr/local -type f -executable -exec ldd '{}' ';' 2>/dev/null | awk '/=>/ { so = $(NF-1); if (index(so, "/usr/local/") == 1) next; gsub("^/(usr/)?", "", so); print so }' \
-    | sort -u | xargs -r -n1 sh -c 'dpkg-query --search "$0" 2>/dev/null || true' | grep -v '^diversion' \
-    | cut -d: -f1 | tr ',' '\n' | tr -d ' ' | grep -v '^$' | sort -u | xargs -r apt-mark manual > /dev/null \
- && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
- && rm -rf /var/lib/apt/lists/* \
- && a2enmod rewrite headers \
- && sed -ri 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available/000-default.conf \
- && mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
+FROM alpine:3.24
+# Small image: Alpine Linux with its PHP 8.5 packages and Apache (mod_php); bash and vim for maintenance.
+# apk upgrade pulls all security fixes at build time; --no-cache keeps no package index in the image.
+RUN apk upgrade --no-cache \
+ && apk add --no-cache bash vim ca-certificates tzdata apache2 php85-apache2 \
+    php85 php85-pdo_mysql php85-pdo_sqlite php85-intl php85-zip php85-gd php85-bcmath php85-mbstring \
+    php85-xml php85-dom php85-xmlwriter php85-simplexml php85-tokenizer php85-fileinfo php85-curl php85-openssl \
+    php85-session php85-ctype php85-iconv php85-phar \
+ && ln -sf /usr/bin/php85 /usr/bin/php \
+ && mkdir -p /var/www/html /run/apache2 \
+ && sed -ri -e 's#^DocumentRoot .*#DocumentRoot "/var/www/html/public"#' \
+            -e 's#^<Directory "/var/www/localhost/htdocs">#<Directory "/var/www/html/public">#' \
+            -e 's#AllowOverride None#AllowOverride All#' \
+            -e 's#^\#(LoadModule rewrite_module .*)#\1#' \
+            -e 's#^ErrorLog .*#ErrorLog /dev/stderr#' -e 's#CustomLog .* combined#CustomLog /dev/stdout combined#' \
+            -e 's#^User apache#User www-data#' -e 's#^Group apache#Group www-data#' \
+            -e 's#^\#ServerName .*#ServerName localhost#' /etc/apache2/httpd.conf \
+ && (addgroup -S www-data 2>/dev/null || true) && (adduser -S -G www-data -H -s /sbin/nologin www-data 2>/dev/null || true) \
+ && cp /etc/php85/php.ini /etc/php85/php.ini.orig
 WORKDIR /var/www/html
 COPY --from=vendor /app /var/www/html
 COPY --from=assets /app/public/build /var/www/html/public/build
@@ -42,3 +42,4 @@ LABEL org.opencontainers.image.source="https://github.com/kasmin-org/kasmin" \
       org.opencontainers.image.licenses="AGPL-3.0-only" \
       org.opencontainers.image.title="Kasmin"
 EXPOSE 80
+CMD ["httpd", "-D", "FOREGROUND"]

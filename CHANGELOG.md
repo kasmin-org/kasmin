@@ -6,6 +6,10 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-11-23
+
+First public pre-release for testing. Not ready for production use.
+
 ### Added
 
 - Laravel 13 application skeleton, licence (AGPL-3.0), contribution and security guidelines, versioning rules.
@@ -52,3 +56,6 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 - Docker image: system packages updated and build packages removed after compiling the PHP extensions – the
   container scan reports no high or critical findings any more (previously 75 in Debian packages).
+
+[Unreleased]: https://github.com/kasmin-org/kasmin/compare/v0.4.0...develop
+[0.4.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.4.0

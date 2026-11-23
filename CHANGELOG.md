@@ -44,3 +44,11 @@ All notable changes to Kasmin are documented in this file. The format is based o
   family-wide emergency contacts after the legal guardians.
 - Encrypted answers; confidential values never in the audit log; safety data in the admin interface only for the
   safety role and administrators, with logged views.
+- HTTP hooks for hosting without a command line: upgrade after deployment, web cron, demo set-up (disabled without
+  `KASMIN_HOOK_TOKEN`); `kasmin:demo --email-domain`.
+- Deployment of the latest release to demo instances (German and English) via FTPS.
+
+### Security
+
+- Docker image: system packages updated and build packages removed after compiling the PHP extensions – the
+  container scan reports no high or critical findings any more (previously 75 in Debian packages).

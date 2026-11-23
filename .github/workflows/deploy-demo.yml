@@ -1,0 +1,122 @@
+name: Deploy demo instances
+
+# Deploys the latest release (no pre-releases) to the demo instances demo-de.kasmin.org and demo-en.kasmin.org
+# (shared hosting): download the release ZIP, verify the checksum, write .env from the environment secrets, upload
+# via FTPS, then run the demo set-up (only if the database is empty) and the upgrade through the HTTP hooks.
+# Runs after every release build and on demand. Requires valid HTTPS on the target – no unencrypted fallback.
+
+on:
+  workflow_run:
+    workflows: ["Release packages"]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-demo
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Find the latest release
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && startsWith(github.event.workflow_run.head_branch, 'v')) }}
+    outputs:
+      tag: ${{ steps.latest.outputs.tag }}
+    steps:
+      - id: latest
+        env: { GH_TOKEN: "${{ github.token }}" }
+        run: |
+          tag=$(gh api "/repos/${GITHUB_REPOSITORY}/releases/latest" --jq .tag_name 2>/dev/null || true)
+          echo "Latest release: ${tag:-none}"
+          echo "tag=${tag}" >> "$GITHUB_OUTPUT"
+
+  deploy:
+    name: Deploy ${{ needs.release.outputs.tag }} to demo-${{ matrix.lang }}
+    needs: release
+    if: ${{ needs.release.outputs.tag != '' }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        lang: [de, en]
+    environment:
+      name: demo-${{ matrix.lang }}
+      url: https://demo-${{ matrix.lang }}.kasmin.org
+    env:
+      TAG: ${{ needs.release.outputs.tag }}
+      HOST: demo-${{ matrix.lang }}.kasmin.org
+    steps:
+      - name: Download and verify the release package
+        env: { GH_TOKEN: "${{ github.token }}" }
+        run: |
+          gh release download "$TAG" -R "$GITHUB_REPOSITORY" --pattern "kasmin-${TAG}.zip*" --dir /tmp/pkg
+          cd /tmp/pkg && sha256sum -c "kasmin-${TAG}.zip.sha256"
+          mkdir -p /tmp/app && unzip -q "kasmin-${TAG}.zip" -d /tmp/app
+      - name: Write configuration
+        run: |
+          cat > /tmp/app/.env <<ENV
+          APP_NAME="Kasmin Demo"
+          APP_ENV=demo
+          APP_DEBUG=false
+          APP_URL=https://${HOST}
+          APP_LOCALE=${{ matrix.lang }}
+          APP_FALLBACK_LOCALE=en
+          APP_KEY=${{ secrets.APP_KEY }}
+          LOG_CHANNEL=daily
+          LOG_LEVEL=warning
+          DB_CONNECTION=mysql
+          DB_HOST=localhost
+          DB_PORT=3306
+          DB_DATABASE=${{ secrets.DB_DATABASE }}
+          DB_USERNAME=${{ secrets.DB_USERNAME }}
+          DB_PASSWORD="${{ secrets.DB_PASSWORD }}"
+          SESSION_DRIVER=database
+          SESSION_SECURE_COOKIE=true
+          CACHE_STORE=database
+          QUEUE_CONNECTION=database
+          MAIL_MAILER=smtp
+          MAIL_SCHEME=smtps
+          MAIL_HOST=${{ secrets.MAIL_HOST }}
+          MAIL_PORT=465
+          MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}
+          MAIL_PASSWORD="${{ secrets.MAIL_PASSWORD }}"
+          MAIL_FROM_ADDRESS=demo@demo.kasmin.org
+          MAIL_FROM_NAME="Kasmin Demo"
+          KASMIN_HOOK_TOKEN=${{ secrets.HOOK_TOKEN }}
+          KASMIN_DEMO_LOCALE=${{ matrix.lang }}
+          KASMIN_DEMO_ADMIN_EMAIL=admin@demo.kasmin.org
+          KASMIN_DEMO_EMAIL_DOMAIN=demo.kasmin.org
+          ENV
+          sed -i 's/^ *//' /tmp/app/.env
+      - name: Upload via FTPS
+        uses: SamKirkland/FTP-Deploy-Action@110f9186c050f71550953127052e77650219c287 # v4.4.0
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftps
+          local-dir: /tmp/app/
+          server-dir: ./
+          exclude: |
+            **/.git*
+            **/.git*/**
+            storage/logs/**
+            storage/framework/sessions/**
+            storage/framework/cache/data/**
+            storage/app/backups/**
+      - name: Wait for valid HTTPS
+        run: |
+          for i in $(seq 1 20); do
+            if curl -sf -o /dev/null "https://${HOST}/up"; then echo "HTTPS ok"; exit 0; fi
+            sleep 15
+          done
+          echo "::error::https://${HOST} is not reachable with a valid certificate. Activate Let's Encrypt for ${HOST} in the hosting panel."
+          exit 1
+      - name: Demo set-up (only if empty) and upgrade
+        run: |
+          curl -sf -X POST -H "Authorization: Bearer ${{ secrets.HOOK_TOKEN }}" "https://${HOST}/system/hooks/demo"; echo
+          curl -sf -X POST -H "Authorization: Bearer ${{ secrets.HOOK_TOKEN }}" "https://${HOST}/system/hooks/upgrade"; echo
+          curl -sf -o /dev/null -w "start page: %{http_code}\n" "https://${HOST}/"

@@ -81,6 +81,49 @@ jobs:
         if: ${{ matrix.php == '8.5' && startsWith(matrix.db, 'mariadb') }}
         with: { name: coverage, path: coverage/clover.xml }
 
+  installer:
+    name: Installer (bootstrap script + web installer)
+    needs: [quality]
+    runs-on: ubuntu-latest
+    services:
+      db:
+        image: mariadb:11
+        env: { MARIADB_DATABASE: kasmin, MARIADB_USER: kasmin, MARIADB_PASSWORD: kasmin, MARIADB_ROOT_PASSWORD: root }
+        ports: ["3306:3306"]
+        options: --health-cmd="healthcheck.sh --connect --innodb_initialized" --health-interval=5s --health-retries=20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with: { php-version: "8.3", extensions: "intl, zip, gd, bcmath, pdo_mysql", coverage: none }
+      - uses: actions/setup-node@v4
+        with: { node-version: "24" }
+      - name: Build the package like a release
+        run: |
+          composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader --no-scripts
+          npm ci --ignore-scripts --no-audit --no-fund && npm run build && rm -rf node_modules
+          mkdir -p /tmp/pkg && zip -qr /tmp/pkg/kasmin.zip . -x ".git/*" ".github/*" "tests/*" ".env" "bootstrap/cache/*.php"
+          cd /tmp/pkg && sha256sum kasmin.zip > kasmin.zip.sha256
+      - name: Unpack with the bootstrap script
+        run: php installer/kasmin-setup.php --source=/tmp/pkg/kasmin.zip --target=/tmp/kasmin --db-host=127.0.0.1 --db-name=kasmin --db-user=kasmin --db-password=kasmin --app-url=http://127.0.0.1:8090
+      - name: Web installer
+        working-directory: /tmp/kasmin
+        run: |
+          php -S 127.0.0.1:8090 -t public >/tmp/server.log 2>&1 &
+          sleep 2
+          curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8090/ | grep -q 302
+          curl -s -c /tmp/c -b /tmp/c http://127.0.0.1:8090/install -o /tmp/form.html
+          token=$(grep -o 'name="_token" value="[^"]*"' /tmp/form.html | sed 's/.*value="//;s/"//')
+          curl -s -c /tmp/c -b /tmp/c -X POST http://127.0.0.1:8090/install \
+            --data-urlencode "_token=$token" --data-urlencode "organisation=Example Camp" \
+            -d locale=en -d defaults=en --data-urlencode "admin_name=Alex Example" -d admin_email=admin@example.org \
+            | grep -q "Kasmin is installed"
+          curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8090/ | grep -q 200
+          php artisan kasmin:status
+      - name: Tampered package is rejected
+        run: |
+          echo x >> /tmp/pkg/kasmin.zip
+          ! php installer/kasmin-setup.php --source=/tmp/pkg/kasmin.zip --target=/tmp/kasmin2 --db-host=127.0.0.1 --db-name=kasmin --db-user=kasmin --db-password=kasmin
+
   semgrep:
     name: Security scan (Semgrep)
     runs-on: ubuntu-latest

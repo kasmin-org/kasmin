@@ -17,3 +17,7 @@ All notable changes to Kasmin are documented in this file. The format is based o
 - Database version lock: Kasmin stops if the database is newer than the code; `kasmin:upgrade` (with PHP-only
   database backup and lock) and `kasmin:status`; backward migration commands disabled in production.
 - Release packages: installable ZIP with checksum for every release tag and a rolling development build per branch.
+- Installer: one-file bootstrap script (releases fetched live from GitHub, last 10 with date and changelog link,
+  development mode per branch, SHA-256 verification, access code, writes `.env`), web installer (organisation,
+  language, default content German/English/none, first administrator) and `kasmin:install`; tested in CI.
+- Kasmin colours in the Tailwind theme; simple start page.

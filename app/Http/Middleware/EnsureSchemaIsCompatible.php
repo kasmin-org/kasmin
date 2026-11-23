@@ -23,6 +23,13 @@ class EnsureSchemaIsCompatible
             return $next($request);
         }
 
+        if ($status === SchemaStatus::NotInstalled) {
+            // Before installation there are no session/cache tables yet.
+            config(['session.driver' => 'file', 'cache.default' => 'file']);
+
+            return $request->is('install') ? $next($request) : redirect('/install');
+        }
+
         return response()->view('system.schema', [
             'status' => $status,
             'codeVersion' => $this->guard->codeVersion(),

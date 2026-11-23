@@ -26,4 +26,6 @@ return [
     'register_submit' => 'Registrieren und Anmeldelink erhalten',
     'privacy_consent' => 'Ich habe die Datenschutzerklärung gelesen und bin mit der Verarbeitung meiner Daten zur Verwaltung der Anmeldungen einverstanden.',
     'have_account' => 'Schon registriert? Hier anmelden',
+    'notify_signup' => 'Neue Registrierung: :name',
+    'mails' => 'Ihre E-Mails',
 ];

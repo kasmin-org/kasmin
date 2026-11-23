@@ -36,4 +36,14 @@
         <p>{{ __('portal.no_family') }}</p>
     @endforelse
     <a href="{{ route('portal.child.create') }}" class="mt-2 block w-full rounded-lg bg-kasmin-600 px-4 py-3 text-center font-semibold text-white">{{ __('portal.add_child') }}</a>
+    @if ($mails->isNotEmpty())
+        <section class="mt-8">
+            <h2 class="mb-2 text-lg font-semibold">{{ __('portal.mails') }}</h2>
+            <ul class="divide-y divide-kasmin-100 text-sm">
+                @foreach ($mails as $mail)
+                    <li class="py-2"><a class="underline" href="{{ route('portal.mail', $mail->uuid) }}">{{ $mail->subject }}</a> <span class="text-kasmin-700">· {{ $mail->created_at->isoFormat('LLL') }}</span></li>
+                @endforeach
+            </ul>
+        </section>
+    @endif
 @endsection

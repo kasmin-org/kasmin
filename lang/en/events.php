@@ -22,4 +22,5 @@ return [
     'waitlist_position' => 'Position :position of :total on the waitlist',
     'places_left' => ':count places left',
     'waitlist_only' => 'Waitlist only',
+    'notify_registration' => ':name – :event: :status',
 ];

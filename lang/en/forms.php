@@ -21,4 +21,5 @@ return [
     'contact_n' => 'Contact :n', 'contact_name' => 'Name', 'contact_relation' => 'Relation (e.g. grandmother)', 'contact_phone' => 'Phone',
     'legal_guardian' => 'legal guardian',
     'no_phone' => 'no phone number on file',
+    'notify_changed' => ':form of :name changed: :fields – see portal',
 ];

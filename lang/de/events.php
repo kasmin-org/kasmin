@@ -22,4 +22,5 @@ return [
     'waitlist_position' => 'Platz :position von :total auf der Warteliste',
     'places_left' => ':count Plätze frei',
     'waitlist_only' => 'Nur noch Warteliste',
+    'notify_registration' => ':name – :event: :status',
 ];

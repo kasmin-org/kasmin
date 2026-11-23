@@ -91,22 +91,20 @@ jobs:
           KASMIN_DEMO_EMAIL_DOMAIN=demo.kasmin.org
           ENV
           sed -i 's/^ *//' /tmp/app/.env
-      - name: Upload via FTPS
-        uses: SamKirkland/FTP-Deploy-Action@110f9186c050f71550953127052e77650219c287 # v4.4.0
-        with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          protocol: ftps
-          local-dir: /tmp/app/
-          server-dir: ./
-          exclude: |
-            **/.git*
-            **/.git*/**
-            storage/logs/**
-            storage/framework/sessions/**
-            storage/framework/cache/data/**
-            storage/app/backups/**
+      - name: Upload via FTPS (lftp mirror, TLS enforced, certificate checked)
+        env:
+          LFTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+          FTP_SERVER: ${{ secrets.FTP_SERVER }}
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+        run: |
+          sudo apt-get install -y -qq lftp >/dev/null
+          lftp --env-password -u "$FTP_USERNAME" "$FTP_SERVER" -e "
+            set ftp:ssl-force true; set ftp:ssl-protect-data true; set ssl:verify-certificate yes;
+            set net:max-retries 5; set net:reconnect-interval-base 5; set net:timeout 30;
+            mirror -R --parallel=4 --only-newer --no-perms \
+              --exclude-glob .git* --exclude storage/logs/ --exclude storage/framework/sessions/ \
+              --exclude storage/framework/cache/data/ --exclude storage/app/backups/ /tmp/app/ ./;
+            quit"
       - name: Wait for valid HTTPS
         run: |
           for i in $(seq 1 20); do

@@ -9,6 +9,7 @@ use App\Models\Person;
 use App\Models\User;
 use App\Support\Audit\Audit;
 use App\Support\Auth\LoginLinks;
+use App\Support\Mail\Notifier;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -53,6 +54,7 @@ class PublicRegistrationController extends Controller
                 $household->members()->attach($person->id, ['role' => 'guardian']);
                 $household->update(['invoice_recipient_id' => $person->id]);
                 Audit::record('registration.guardian', $person, null, ['source' => 'public_form']);
+                app(Notifier::class)->event('registrations', __('portal.notify_signup', ['name' => $person->fullName()]), url('/admin/people/'.$person->id));
 
                 return User::query()->create(['name' => $person->fullName(), 'email' => $email, 'password' => Str::password(64), 'person_id' => $person->id]);
             });

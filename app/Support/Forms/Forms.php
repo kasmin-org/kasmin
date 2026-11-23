@@ -7,6 +7,7 @@ use App\Models\FormField;
 use App\Models\FormResponse;
 use App\Models\Person;
 use App\Support\Audit\Audit;
+use App\Support\Mail\Notifier;
 use Illuminate\Validation\Rule;
 
 /**
@@ -134,6 +135,13 @@ class Forms
         Audit::record($action ?? ($changed === [] ? 'form.confirmed_unchanged' : 'form.saved'), $person, null, [
             'form' => $form->key, 'response_id' => $response->id, 'changed_fields' => $changed,
         ]);
+
+        // Admin notification with field labels only, never values (NT03).
+        if ($changed !== []) {
+            $labels = $form->fields->whereIn('key', $changed)->map(fn (FormField $f) => $f->labelText())->implode(', ');
+            app(Notifier::class)->event($form->key === 'safety_sheet' ? 'safety_updates' : 'profile_updates',
+                __('forms.notify_changed', ['form' => $form->label(), 'name' => $person->fullName(), 'fields' => $labels]), url('/admin/people/'.$person->id));
+        }
 
         return $response;
     }

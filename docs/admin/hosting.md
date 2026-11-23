@@ -1,3 +1,31 @@
+# Cron job and hosting without a command line
+
+## The cron job (required)
+
+Kasmin needs **one cron job that runs every minute**. It sends the mail queue, reminders, digests and
+automations. If it is missing, administrators get the notification "Cron job not configured" and the system
+status page shows an error.
+
+**Linux server with crontab** (`crontab -e` as the user that owns the Kasmin files):
+
+```
+* * * * * cd /path/to/kasmin && php artisan schedule:run >> /dev/null 2>&1
+```
+
+**Docker:** run the scheduler in the container, e.g. with a second service that executes
+`php artisan schedule:work`, or a host cron job `docker exec kasmin php artisan schedule:run`.
+
+**Web hosting whose cron jobs can only call URLs** (e.g. all-inkl.com): set `KASMIN_HOOK_TOKEN` in `.env` (at
+least 32 random characters) and create a cron job that calls this URL every minute:
+
+```
+https://your-kasmin-domain.example/system/cron?token=YOUR_TOKEN
+```
+
+At all-inkl.com: KAS → *Tools* → *Cronjobs* → *Neuen Cronjob anlegen*: protocol `https`, the URL above (without
+`https://`), interval "every minute" (`*` for minute, hour, day, month and weekday), a description such as
+"Kasmin scheduler". The answer of the URL is a short JSON text with `"ok":true`.
+
 # Hosting without a command line
 
 Many web hosting packages offer no SSH access and run cron jobs only as HTTP calls. Kasmin therefore offers

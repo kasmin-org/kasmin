@@ -1,0 +1,51 @@
+<?php
+
+namespace App\Filament\Resources\Mailings\RelationManagers;
+
+use App\Models\OutgoingMail;
+use App\Support\Mail\TemplateRenderer;
+use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
+use Filament\Forms\Components\RichEditor;
+use Filament\Forms\Components\TextInput;
+use Filament\Resources\RelationManagers\RelationManager;
+use Filament\Schemas\Schema;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
+
+/**
+ * Single mails of a mailing: page through them and edit them before sending (MM05, MM06, TP06).
+ */
+class MailsRelationManager extends RelationManager
+{
+    protected static string $relationship = 'mails';
+
+    public static function getTitle(Model $ownerRecord, string $pageClass): string
+    {
+        return __('admin.mail.mails');
+    }
+
+    public function form(Schema $schema): Schema
+    {
+        return $schema->components([
+            TextInput::make('subject')->label(__('admin.mail.subject'))->required()->columnSpanFull(),
+            RichEditor::make('html')->label(__('admin.mail.body'))->required()->columnSpanFull(),
+        ]);
+    }
+
+    public function table(Table $table): Table
+    {
+        return $table->columns([
+            TextColumn::make('to_name')->label(__('admin.mail.to'))->description(fn (OutgoingMail $r) => $r->to_address)->searchable(['to_name', 'to_address']),
+            TextColumn::make('subject')->label(__('admin.mail.subject'))->limit(50),
+            TextColumn::make('status')->label(__('admin.event.status'))->formatStateUsing(fn ($state) => __('admin.mail.statuses.'.$state))->badge(),
+            IconColumn::make('edited')->label(__('admin.mail.edited'))->boolean(),
+        ])->recordActions([
+            ViewAction::make(),
+            EditAction::make()->visible(fn (OutgoingMail $r) => $r->status === 'held')
+                ->mutateDataUsing(fn (array $data) => $data + ['edited' => true, 'text' => TemplateRenderer::toText((string) $data['html'])]),
+        ]);
+    }
+}

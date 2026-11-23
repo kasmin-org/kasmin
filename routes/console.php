@@ -1,8 +1,11 @@
 <?php
 
-use Illuminate\Foundation\Inspiring;
-use Illuminate\Support\Facades\Artisan;
+use App\Support\System\SystemStatus;
+use Illuminate\Support\Facades\Schedule;
 
-Artisan::command('inspire', function () {
-    $this->comment(Inspiring::quote());
-})->purpose('Display an inspiring quote');
+// Runs via cron ("php artisan schedule:run" every minute) or the web cron hook (GET /system/cron).
+Schedule::command('kasmin:mail:send')->everyMinute()->withoutOverlapping();
+Schedule::command('kasmin:mail:fetch')->everyFiveMinutes()->withoutOverlapping();
+Schedule::command('kasmin:notifications:digest')->dailyAt((string) config('kasmin.digest_time', '07:00'));
+Schedule::call(fn () => SystemStatus::heartbeat())->everyMinute()->name('kasmin-heartbeat');
+Schedule::command('kasmin:system:check')->hourly();

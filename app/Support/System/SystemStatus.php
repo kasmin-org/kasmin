@@ -51,12 +51,11 @@ class SystemStatus
 
     public static function runsInDocker(): bool
     {
-        return env('KASMIN_RUNTIME') === 'docker' || is_file('/.dockerenv');
+        return config('kasmin.runtime') === 'docker' || is_file('/.dockerenv');
     }
 
     /**
-     * @return list<array{key: string, status: string, label: string, detail: string, url?: string}>
-     *                                                                                           status: ok, warning, error, info
+     * @return list<array<string, mixed>> each with key, status (ok, warning, error, info), label, detail and an optional url
      */
     public function checks(): array
     {

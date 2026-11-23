@@ -50,6 +50,9 @@ return [
         ],
     ],
     'mail' => [
+        'delivery' => 'Delivery', 'delivery_smtp' => 'Via SMTP server', 'delivery_direct' => 'Directly to the mail servers of the recipients',
+        'dkim_hint' => 'With direct delivery Kasmin signs with DKIM itself. When sending via an SMTP server the provider usually signs; enter its selector so the DNS check finds it.', 'dkim_domain' => 'DKIM domain', 'dkim_selector' => 'DKIM selector',
+        'dkim_generate' => 'Generate DKIM key', 'dkim_generate_hint' => 'A new key replaces the previous one. Then you have to publish the DNS record shown.', 'dkim_generated' => 'Key generated – please publish this DNS record:',
         'account' => 'Mail account', 'account_plural' => 'Mail accounts',
         'sender_profile' => 'Sender profile', 'sender_profile_plural' => 'Sender profiles',
         'template' => 'Mail template', 'template_plural' => 'Mail templates',

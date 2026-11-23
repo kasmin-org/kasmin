@@ -52,7 +52,7 @@ class PhpSupport
     public function isLowestSupported(): bool
     {
         $supported = array_keys(array_filter($this->branches(), fn (string $eol) => Carbon::parse($eol)->isFuture()));
-        usort($supported, 'version_compare');
+        usort($supported, fn (string $a, string $b) => version_compare($a, $b));
 
         return ($supported[0] ?? null) === $this->currentBranch();
     }

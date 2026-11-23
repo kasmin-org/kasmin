@@ -4,6 +4,7 @@ namespace App\Support\System;
 
 use App\Support\Backup\DatabaseBackup;
 use App\Support\Install\Requirements;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
@@ -25,7 +26,7 @@ class Updater
 
     public const MIN_FREE_BYTES = 400 * 1024 * 1024;
 
-    public function __construct(private readonly Releases $releases, private readonly Requirements $requirements) {}
+    public function __construct(private readonly Releases $releases) {}
 
     public function available(): bool
     {
@@ -143,10 +144,13 @@ class Updater
         }
         @unlink($file);
 
-        return \Illuminate\Support\Facades\Artisan::call('kasmin:upgrade', ['--no-backup' => true]) === 0;
+        return Artisan::call('kasmin:upgrade', ['--no-backup' => true]) === 0;
     }
 
-    /** @param array<string, mixed>|null $release @return array{php: string, extensions: list<string>} */
+    /**
+     * @param  array<string, mixed>|null  $release
+     * @return array{php: string, extensions: list<string>}
+     */
     private function targetRequirements(?array $release): array
     {
         $fallback = ['php' => Requirements::MIN_PHP, 'extensions' => Requirements::EXTENSIONS];

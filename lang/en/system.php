@@ -16,7 +16,7 @@ return [
         'spf_missing' => 'No SPF record – mails may be classified as spam.',
         'dkim_direct' => 'PHP can sign with DKIM; the public key must be in DNS.',
         'dkim_unsupported' => 'PHP cannot sign with DKIM here (OpenSSL missing) – direct delivery not recommended.',
-        'dkim_relay' => 'No DKIM record found. Enter your provider's selector at the mail account.',
+        'dkim_relay' => 'No DKIM record found. Enter the selector of your provider at the mail account.',
         'dmarc_missing' => 'No DMARC record.', 'dmarc_not_reject' => 'DMARC policy is :policy, reject (strict) is recommended.',
     ],
     'update' => [

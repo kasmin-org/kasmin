@@ -3,11 +3,14 @@
 namespace App\Http\Controllers\System;
 
 use App\Http\Controllers\Controller;
+use App\Support\Audit\Audit;
 use App\Support\Demo\DemoData;
 use App\Support\Install\Installer;
 use App\Support\Schema\SchemaGuard;
+use App\Support\System\Updater;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schema;
 
@@ -63,11 +66,11 @@ class HookController extends Controller
         return response()->json(['ok' => true, 'output' => trim(Artisan::output())]);
     }
 
-    public function finishUpdate(Request $request): \Illuminate\Http\Response
+    public function finishUpdate(Request $request): Response
     {
-        $ok = app(\App\Support\System\Updater::class)->finish((string) $request->query('token'));
+        $ok = app(Updater::class)->finish((string) $request->query('token'));
         abort_unless($ok, 404);
-        \App\Support\Audit\Audit::record('system.updated', null, null, ['version' => config('kasmin.version')], 'system');
+        Audit::record('system.updated', null, null, ['version' => config('kasmin.version')], 'system');
 
         return response()->view('system.updated', ['version' => config('kasmin.version')]);
     }

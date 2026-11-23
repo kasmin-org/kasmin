@@ -5,6 +5,7 @@ namespace App\Support\Mail;
 use App\Models\MailAccount;
 use App\Models\SenderProfile;
 use Illuminate\Support\Str;
+use Symfony\Component\Mime\Crypto\DkimSigner;
 
 /**
  * DNS check of the sender domains (ST02): SPF, DKIM and DMARC with concrete suggestions; warning if DMARC is not
@@ -77,12 +78,12 @@ class MailDns
                 break;
             }
         }
-        $expected = $direct ? $account?->dkimRecord() : null;
+        $expected = $direct ? $account?->dkimRecord() : null; // @phpstan-ignore nullsafe.neverNull
         $dkimOk = $dkim !== null && ($expected === null || str_replace(' ', '', $dkim) === str_replace(' ', '', $expected));
         $checks[] = [
             'record' => 'DKIM', 'status' => $dkimOk ? 'ok' : ($direct ? 'error' : 'warning'),
             'found' => $dkim ? $dkimSelector.'._domainkey: '.Str::limit($dkim, 80) : null,
-            'suggestion' => $expected && ! $dkimOk ? "{$account?->dkim_selector}._domainkey.{$domain}. TXT \"{$expected}\"" : null,
+            'suggestion' => $expected && ! $dkimOk ? ($account->dkim_selector ?? '')."._domainkey.{$domain}. TXT \"{$expected}\"" : null,
             'detail' => $direct
                 ? (self::canSignDkim() ? __('system.dns.dkim_direct') : __('system.dns.dkim_unsupported'))
                 : ($dkim ? '' : __('system.dns.dkim_relay')),
@@ -103,7 +104,7 @@ class MailDns
 
     public static function canSignDkim(): bool
     {
-        return extension_loaded('openssl') && class_exists(\Symfony\Component\Mime\Crypto\DkimSigner::class);
+        return extension_loaded('openssl') && class_exists(DkimSigner::class);
     }
 
     /** First TXT record of a name matching the filter. */

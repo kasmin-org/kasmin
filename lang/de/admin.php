@@ -50,6 +50,9 @@ return [
         ],
     ],
     'mail' => [
+        'delivery' => 'Zustellung', 'delivery_smtp' => 'Über SMTP-Server', 'delivery_direct' => 'Direkt an den Mailserver der Empfänger',
+        'dkim_hint' => 'Bei direkter Zustellung signiert Kasmin selbst mit DKIM. Beim Versand über einen SMTP-Server signiert meist der Anbieter; geben Sie dann dessen Selektor an, damit der DNS-Check ihn findet.', 'dkim_domain' => 'DKIM-Domain', 'dkim_selector' => 'DKIM-Selektor',
+        'dkim_generate' => 'DKIM-Schlüssel erzeugen', 'dkim_generate_hint' => 'Ein neuer Schlüssel ersetzt den bisherigen. Danach müssen Sie den angezeigten DNS-Eintrag setzen.', 'dkim_generated' => 'Schlüssel erzeugt – bitte diesen DNS-Eintrag setzen:',
         'account' => 'Mailkonto', 'account_plural' => 'Mailkonten',
         'sender_profile' => 'Absenderprofil', 'sender_profile_plural' => 'Absenderprofile',
         'template' => 'Mailvorlage', 'template_plural' => 'Mailvorlagen',

@@ -9,11 +9,15 @@ use App\Support\Audit\Audit;
 use DirectoryTree\ImapEngine\Mailbox;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
+use Symfony\Component\Mailer\Envelope;
 use Symfony\Component\Mailer\Mailer;
 use Symfony\Component\Mailer\Transport;
+use Symfony\Component\Mailer\Transport\Smtp\EsmtpTransport;
 use Symfony\Component\Mailer\Transport\TransportInterface;
 use Symfony\Component\Mime\Address;
+use Symfony\Component\Mime\Crypto\DkimSigner;
 use Symfony\Component\Mime\Email;
+use Symfony\Component\Mime\Message;
 use Throwable;
 
 /**
@@ -56,7 +60,7 @@ class Sender
         try {
             $email = $this->build($mail, $mail->senderProfile, $account);
             if ($account !== null && $account->dkim_private_key && MailDns::canSignDkim()) {
-                $email = (new \Symfony\Component\Mime\Crypto\DkimSigner($account->dkim_private_key, (string) ($account->dkim_domain ?: \Illuminate\Support\Str::after($mail->senderProfile->from_address ?? '', '@')), (string) $account->dkim_selector))->sign($email);
+                $email = (new DkimSigner($account->dkim_private_key, (string) ($account->dkim_domain ?: Str::after($mail->senderProfile->from_address ?? '', '@')), (string) $account->dkim_selector))->sign($email);
             }
             $account?->isDirect() ? $this->sendDirect($email, $mail->to_address) : $this->transport($account)->send($email);
             $mail->forceFill(['status' => 'sent', 'sent_at' => now(), 'last_error' => null])->save();
@@ -121,7 +125,7 @@ class Sender
      * Direct delivery to the mail server of the recipient's domain (MX), STARTTLS required with a verified
      * certificate – no unencrypted fallback.
      */
-    protected function sendDirect(\Symfony\Component\Mime\Message $email, string $to): void
+    protected function sendDirect(Message $email, string $to): void
     {
         $domain = Str::after($to, '@');
         $mx = [];
@@ -131,10 +135,10 @@ class Sender
         $last = null;
         foreach ($mx as $host) {
             try {
-                $transport = new \Symfony\Component\Mailer\Transport\Smtp\EsmtpTransport($host, 25, false);
+                $transport = new EsmtpTransport($host, 25, false);
                 $transport->setAutoTls(true);
                 $transport->setRequireTls(true);
-                $transport->send($email, \Symfony\Component\Mailer\Envelope::create($email));
+                $transport->send($email, Envelope::create($email));
 
                 return;
             } catch (Throwable $e) {
@@ -179,7 +183,7 @@ class Sender
             && ($account->rate_per_day === null || $count(1440) < $account->rate_per_day);
     }
 
-    private function copyToImap(MailAccount $account, Email $email, OutgoingMail $mail): void
+    private function copyToImap(MailAccount $account, Message $email, OutgoingMail $mail): void
     {
         try {
             $mailbox = new Mailbox([

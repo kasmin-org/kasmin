@@ -90,6 +90,18 @@ class Person extends Model
         return $this->belongsToMany(Household::class, 'household_members')->withPivot('role')->withTimestamps();
     }
 
+    /** @return HasMany<Participation, $this> */
+    public function participations(): HasMany
+    {
+        return $this->hasMany(Participation::class);
+    }
+
+    /** @return BelongsToMany<Group, $this> */
+    public function groups(): BelongsToMany
+    {
+        return $this->belongsToMany(Group::class, 'group_memberships')->withPivot(['starts_on', 'ends_on', 'source'])->withTimestamps();
+    }
+
     /** @return HasMany<Membership, $this> */
     public function memberships(): HasMany
     {

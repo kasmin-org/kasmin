@@ -1,0 +1,54 @@
+@extends('layouts.plain')
+@section('title', $child->fullName())
+@section('content')
+    <p class="mb-4 text-sm"><a class="underline" href="{{ route('portal') }}">← {{ __('portal.title') }}</a></p>
+    @if (session('status'))<div class="mb-4 rounded-lg bg-kasmin-100 p-3 text-sm" role="status">{{ session('status') }}</div>@endif
+    @if ($errors->any())<div class="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-800" role="alert">{{ $errors->first() }}</div>@endif
+    <h1 class="text-2xl font-semibold">{{ $child->fullName() }}</h1>
+    <p class="mb-6 text-sm text-kasmin-700">{{ $child->birth_date?->isoFormat('LL') }} · {{ __('portal.age', ['age' => $child->ageAt()]) }}</p>
+
+    <h2 class="mb-2 text-lg font-semibold">{{ __('portal.registrations') }}</h2>
+    <div class="mb-6 grid gap-3">
+        @forelse ($participations as $p)
+            <article class="rounded-xl border border-kasmin-100 p-4">
+                <div class="flex flex-wrap items-baseline justify-between gap-2">
+                    <h3 class="font-semibold">{{ $p->event->title }}</h3>
+                    <span class="rounded-full bg-kasmin-100 px-2 py-0.5 text-xs font-semibold">{{ __('events.status.'.$p->status) }}</span>
+                </div>
+                <p class="text-sm text-kasmin-700">{{ $p->event->starts_at->isoFormat('LL') }} – {{ $p->event->ends_at->isoFormat('LL') }}</p>
+                @if ($p->status === 'waitlist')
+                    @php($role = $p->event->roles()->where('role_key', $p->role_key)->first())
+                    <p class="mt-2 font-medium">{{ __('events.waitlist_position', ['position' => $p->waitlistPosition(), 'total' => $role?->waitlistLength()]) }}</p>
+                @endif
+                @if (! in_array($p->status, ['cancelled', 'declined', 'attended', 'no_show'], true))
+                    <form method="post" action="{{ route('portal.child.cancel', [$child->public_id, $p->id]) }}" class="mt-2" onsubmit="return confirm('{{ __('portal.cancel_confirm') }}')">
+                        @csrf<button class="text-sm underline">{{ __('portal.cancel') }}</button>
+                    </form>
+                @endif
+            </article>
+        @empty
+            <p class="text-sm">{{ __('portal.no_registrations') }}</p>
+        @endforelse
+    </div>
+
+    <h2 class="mb-2 text-lg font-semibold">{{ __('portal.open_events') }}</h2>
+    <div class="grid gap-3">
+        @forelse ($open as $item)
+            @continue(in_array($item['event']->id, $registeredIds, true))
+            <article class="rounded-xl border border-kasmin-100 p-4">
+                <h3 class="font-semibold">{{ $item['event']->title }}</h3>
+                <p class="text-sm text-kasmin-700">{{ $item['event']->starts_at->isoFormat('LL') }} – {{ $item['event']->ends_at->isoFormat('LL') }}@if ($item['event']->location) · {{ $item['event']->location }}@endif</p>
+                @php($left = $item['role']->bookableLeft())
+                <p class="mt-1 text-sm">{{ $left === null || $left > 0 ? __('events.places_left', ['count' => $left ?? '∞']) : __('events.waitlist_only') }}</p>
+                <form method="post" action="{{ route('portal.child.register', $child->public_id) }}" class="mt-3">
+                    @csrf
+                    <input type="hidden" name="event" value="{{ $item['event']->public_id }}">
+                    <input type="hidden" name="role" value="{{ $item['role']->role_key }}">
+                    <button class="w-full rounded-lg bg-kasmin-600 px-4 py-3 font-semibold text-white sm:w-auto">{{ $left === 0 ? __('portal.join_waitlist') : __('portal.register_child') }}</button>
+                </form>
+            </article>
+        @empty
+            <p class="text-sm">{{ __('portal.no_open_events') }}</p>
+        @endforelse
+    </div>
+@endsection

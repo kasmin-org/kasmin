@@ -31,6 +31,13 @@ test('requesting a link leads to the code page without revealing whether the add
     await noHorizontalScroll(page);
 });
 
+test('public sign-up form for legal guardians fits the screen', async ({ page }) => {
+    await page.goto('/register');
+    await expect(page.locator('input[name=first_name]')).toBeVisible();
+    await expect(page.locator('input[name=privacy]')).toBeVisible();
+    await noHorizontalScroll(page);
+});
+
 test('admin interface requires a login', async ({ page }) => {
     await page.goto('/admin');
     await expect(page).toHaveURL(/\/login/);

@@ -30,3 +30,10 @@ All notable changes to Kasmin are documented in this file. The format is based o
 - Append-only audit log for all changes (old/new values) and all login events (method, token ID).
 - Admin interface (Filament 5) with people and families; portal start page for legal guardians with their children.
 - Demo data generator `kasmin:demo` (German and English, fictitious, reproducible).
+- Groups, event series and events with status, participant roles with places, reserve places, age limits (at event
+  start or a reference date) and who registers; registrations binding immediately or as requests.
+- Registration with waitlist (position and total length), cancellation, reserve places assigned by the team with a
+  reason; participants board in the admin interface.
+- Public sign-up for legal guardians (name, e-mail, privacy consent, honeypot) with login link; portal: add
+  children, see matching open events, register or join the waitlist, cancel.
+- Demo data now includes a camp series and an alumni series with an open camp and a waitlist.

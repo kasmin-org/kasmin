@@ -1,0 +1,93 @@
+<?php
+
+namespace App\Support\Events;
+
+use App\Models\Event;
+use App\Models\EventRole;
+use App\Models\Participation;
+use App\Models\Person;
+use App\Support\Audit\Audit;
+use Illuminate\Support\Facades\DB;
+
+/**
+ * Registers people for events: age rule, capacity, reserve places, waitlist (RG05, EE03, EE04, WL04–WL07).
+ */
+class Registrations
+{
+    public function register(Event $event, Person $person, string $roleKey = 'child', ?Person $registeredBy = null): Participation
+    {
+        if (! $event->isOpenForRegistration()) {
+            throw RegistrationException::because('not_open');
+        }
+        $role = $event->roles()->where('role_key', $roleKey)->first();
+        if ($role === null) {
+            throw RegistrationException::because('no_role');
+        }
+        if (! $role->allowsAge($person->ageAt($event->ageReferenceDate()))) {
+            throw RegistrationException::because('age');
+        }
+
+        return DB::transaction(function () use ($event, $person, $role, $registeredBy) {
+            // Lock the role row so two registrations at the same moment cannot both take the last place.
+            EventRole::query()->whereKey($role->id)->lockForUpdate()->first();
+
+            $existing = Participation::query()->where('event_id', $event->id)->where('person_id', $person->id)->where('role_key', $role->role_key)->first();
+            if ($existing !== null && ! in_array($existing->status, ['cancelled', 'declined'], true)) {
+                throw RegistrationException::because('already');
+            }
+
+            $left = $role->bookableLeft();
+            $status = ($left === null || $left > 0) ? ($event->registration_binding ? 'registered' : 'requested') : 'waitlist';
+
+            $participation = $existing ?? new Participation(['event_id' => $event->id, 'person_id' => $person->id, 'role_key' => $role->role_key]);
+            $participation->fill(['status' => $status, 'registered_at' => now(), 'registered_by_id' => $registeredBy?->id, 'reserve_place' => false, 'reserve_reason' => null])->save();
+
+            return $participation;
+        });
+    }
+
+    /**
+     * Gives a free reserve place to someone on the waitlist (only administrators; reason required, WL05).
+     */
+    public function assignReservePlace(Participation $participation, string $reason): Participation
+    {
+        $role = EventRole::query()->where('event_id', $participation->event_id)->where('role_key', $participation->role_key)->firstOrFail();
+        if (trim($reason) === '') {
+            throw RegistrationException::because('reason');
+        }
+        if ($role->reserveLeft() < 1) {
+            throw RegistrationException::because('no_reserve');
+        }
+        $participation->fill(['status' => 'registered', 'reserve_place' => true, 'reserve_reason' => $reason])->save();
+        Audit::record('participation.reserve_place_assigned', $participation, null, ['reason' => $reason]);
+
+        return $participation;
+    }
+
+    public function cancel(Participation $participation): Participation
+    {
+        $participation->fill(['status' => 'cancelled'])->save();
+
+        return $participation;
+    }
+
+    /**
+     * Events a person can register for now, with the role that fits (age and who registers).
+     *
+     * @return list<array{event: Event, role: EventRole}>
+     */
+    public function openFor(Person $person, string $registeredBy = 'guardian'): array
+    {
+        $result = [];
+        foreach (Event::query()->where('status', 'open')->orderBy('starts_at')->with('roles')->get() as $event) {
+            foreach ($event->roles as $role) {
+                if ($role->registered_by === $registeredBy && $role->allowsAge($person->ageAt($event->ageReferenceDate()))) {
+                    $result[] = ['event' => $event, 'role' => $role];
+                    break;
+                }
+            }
+        }
+
+        return $result;
+    }
+}

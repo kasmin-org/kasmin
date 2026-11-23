@@ -20,6 +20,9 @@ versions).
 
 ## With Docker
 
+The image is based on Ubuntu LTS (currently 26.04) with Apache and PHP 8.5; every build installs all available
+security updates.
+
 Images: `ghcr.io/kasmin-org/kasmin:<version>` (and `latest` for the newest release; `<branch>` and `sha-<commit>`
 for test builds). Pass the database settings as environment variables (`DB_CONNECTION`, `DB_HOST`, `DB_DATABASE`,
 `DB_USERNAME`, `DB_PASSWORD`, `APP_KEY`, `APP_URL`) and open `/install`.

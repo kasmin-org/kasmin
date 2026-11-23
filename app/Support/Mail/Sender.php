@@ -55,7 +55,10 @@ class Sender
         $mail->forceFill(['status' => 'sending', 'attempts' => $mail->attempts + 1])->save();
         try {
             $email = $this->build($mail, $mail->senderProfile, $account);
-            $this->transport($account)->send($email);
+            if ($account !== null && $account->dkim_private_key && MailDns::canSignDkim()) {
+                $email = (new \Symfony\Component\Mime\Crypto\DkimSigner($account->dkim_private_key, (string) ($account->dkim_domain ?: \Illuminate\Support\Str::after($mail->senderProfile->from_address ?? '', '@')), (string) $account->dkim_selector))->sign($email);
+            }
+            $account?->isDirect() ? $this->sendDirect($email, $mail->to_address) : $this->transport($account)->send($email);
             $mail->forceFill(['status' => 'sent', 'sent_at' => now(), 'last_error' => null])->save();
             if ($account?->canReceive() && $account->imap_sent_folder) {
                 $this->copyToImap($account, $email, $mail);
@@ -112,6 +115,33 @@ class Sender
     private function preferencesUrl(OutgoingMail $mail): ?string
     {
         return preg_match('#https?://[^"\s]+/mail/preferences/[^"\s]+#', $mail->html, $m) ? html_entity_decode($m[0]) : null;
+    }
+
+    /**
+     * Direct delivery to the mail server of the recipient's domain (MX), STARTTLS required with a verified
+     * certificate – no unencrypted fallback.
+     */
+    protected function sendDirect(\Symfony\Component\Mime\Message $email, string $to): void
+    {
+        $domain = Str::after($to, '@');
+        $mx = [];
+        $weights = [];
+        getmxrr($domain, $mx, $weights) ?: $mx = [$domain];
+        array_multisort($weights, $mx);
+        $last = null;
+        foreach ($mx as $host) {
+            try {
+                $transport = new \Symfony\Component\Mailer\Transport\Smtp\EsmtpTransport($host, 25, false);
+                $transport->setAutoTls(true);
+                $transport->setRequireTls(true);
+                $transport->send($email, \Symfony\Component\Mailer\Envelope::create($email));
+
+                return;
+            } catch (Throwable $e) {
+                $last = $e;
+            }
+        }
+        throw $last ?? new MailException("No mail server found for {$domain}");
     }
 
     public function transport(?MailAccount $account): TransportInterface

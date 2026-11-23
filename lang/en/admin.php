@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'nav' => ['people' => 'People', 'events' => 'Events', 'forms' => 'Forms', 'communication' => 'Communication'],
+    'nav' => ['people' => 'People', 'events' => 'Events', 'forms' => 'Forms', 'communication' => 'Communication', 'system' => 'System'],
     'person' => [
         'singular' => 'Person', 'plural' => 'People',
         'section_person' => 'Person', 'section_contacts' => 'Contact data',
@@ -81,6 +81,7 @@ return [
         'kinds' => ['transactional' => 'Single mail', 'mailing' => 'Mailing', 'newsletter' => 'Newsletter', 'notification' => 'Notification'],
         'hints' => [
             'is_default' => 'Used for mails without their own sender profile.',
+            'delivery' => 'Direct delivery needs outgoing port 25 and correct SPF/DKIM/DMARC records; on ordinary web hosting an SMTP server is usually more reliable.',
             'sent_folder' => 'E.g. Sent. Empty = no copy.',
             'rate_limits' => 'Limits of your mail provider; anything above them goes out in the next run.',
             'sender_profile' => 'Empty = default account.',

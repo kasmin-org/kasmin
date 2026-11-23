@@ -32,6 +32,7 @@ class AdminPanelProvider extends PanelProvider
             ->darkModeBrandLogo(fn () => asset('brand/kasmin-logo-horizontal-on-dark.svg'))
             ->brandLogoHeight('2rem')
             ->favicon(asset('favicon.svg'))
+            ->renderHook(\Filament\View\PanelsRenderHook::CONTENT_START, fn () => \Livewire\Livewire::mount(\App\Livewire\SystemNotificationsPopup::class))
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->pages([

@@ -63,6 +63,15 @@ class HookController extends Controller
         return response()->json(['ok' => true, 'output' => trim(Artisan::output())]);
     }
 
+    public function finishUpdate(Request $request): \Illuminate\Http\Response
+    {
+        $ok = app(\App\Support\System\Updater::class)->finish((string) $request->query('token'));
+        abort_unless($ok, 404);
+        \App\Support\Audit\Audit::record('system.updated', null, null, ['version' => config('kasmin.version')], 'system');
+
+        return response()->view('system.updated', ['version' => config('kasmin.version')]);
+    }
+
     private function authorizeHook(Request $request): void
     {
         $expected = (string) config('kasmin.hook_token');

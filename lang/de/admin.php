@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'nav' => ['people' => 'Personen', 'events' => 'Veranstaltungen', 'forms' => 'Formulare', 'communication' => 'Kommunikation'],
+    'nav' => ['people' => 'Personen', 'events' => 'Veranstaltungen', 'forms' => 'Formulare', 'communication' => 'Kommunikation', 'system' => 'System'],
     'person' => [
         'singular' => 'Person', 'plural' => 'Personen',
         'section_person' => 'Person', 'section_contacts' => 'Kontaktdaten',
@@ -81,6 +81,7 @@ return [
         'kinds' => ['transactional' => 'Einzelmail', 'mailing' => 'Aussendung', 'newsletter' => 'Newsletter', 'notification' => 'Benachrichtigung'],
         'hints' => [
             'is_default' => 'Wird für Mails ohne eigenes Absenderprofil verwendet.',
+            'delivery' => 'Direkte Zustellung braucht offenen Port 25 und korrekte SPF/DKIM/DMARC-Einträge; auf normalem Webhosting ist ein SMTP-Server meist zuverlässiger.',
             'sent_folder' => 'Z. B. Sent oder Gesendet. Leer = keine Kopie.',
             'rate_limits' => 'Grenzen Ihres Mailanbieters; was darüber liegt, geht beim nächsten Durchlauf hinaus.',
             'sender_profile' => 'Leer = Standardkonto.',

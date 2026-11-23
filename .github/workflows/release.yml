@@ -50,6 +50,7 @@ jobs:
             -x ".git/*" ".github/*" "tests/*" "docker/dev/*" "compose.dev.yaml" "playwright.config.ts" \
                ".env" "database/*.sqlite" "storage/logs/*.log" "storage/framework/cache/data/[!.]*" \
                "storage/framework/sessions/[!.]*" "storage/framework/views/*.php" "bootstrap/cache/*.php"
+          php artisan kasmin:requirements > /tmp/pkg/requirements.json || echo '{}' > /tmp/pkg/requirements.json
           cd /tmp/pkg && sha256sum "${name}.zip" > "${name}.zip.sha256"
       - name: Release notes
         run: |

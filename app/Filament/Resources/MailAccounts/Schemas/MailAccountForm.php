@@ -18,8 +18,14 @@ class MailAccountForm
             Section::make(__('admin.mail.account'))->columns(2)->schema([
                 TextInput::make('name')->label(__('admin.mail.name'))->required()->maxLength(120),
                 Toggle::make('is_default')->label(__('admin.mail.is_default'))->hintIcon(...$hint('is_default')),
+                Select::make('delivery')->label(__('admin.mail.delivery'))->options(['smtp' => __('admin.mail.delivery_smtp'), 'direct' => __('admin.mail.delivery_direct')])
+                    ->default('smtp')->required()->live()->hintIcon(...$hint('delivery')),
             ]),
-            Section::make('SMTP')->columns(2)->schema([
+            Section::make('DKIM')->description(__('admin.mail.dkim_hint'))->columns(2)->schema([
+                TextInput::make('dkim_domain')->label(__('admin.mail.dkim_domain')),
+                TextInput::make('dkim_selector')->label(__('admin.mail.dkim_selector'))->alphaDash(),
+            ]),
+            Section::make('SMTP')->columns(2)->visible(fn ($get) => $get('delivery') !== 'direct')->schema([
                 TextInput::make('smtp_host')->label(__('admin.mail.host'))->required(),
                 TextInput::make('smtp_port')->label(__('admin.mail.port'))->numeric()->default(465)->required(),
                 Select::make('smtp_encryption')->label(__('admin.mail.encryption'))->options(['ssl' => 'SSL/TLS (465)', 'tls' => 'STARTTLS (587)'])->default('ssl')->required(),

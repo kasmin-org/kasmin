@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\TwoFactorController;
 use App\Http\Controllers\InstallController;
+use App\Http\Controllers\InvoicePdfController;
 use App\Http\Controllers\MailPreferencesController;
 use App\Http\Controllers\PortalChildController;
 use App\Http\Controllers\PortalController;
@@ -36,9 +37,11 @@ Route::middleware('auth')->group(function () {
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
     Route::get('/two-factor', [TwoFactorController::class, 'show'])->name('two-factor');
     Route::post('/two-factor', [TwoFactorController::class, 'verify'])->middleware('throttle:10,1')->name('two-factor.verify');
+    Route::get('/admin/invoices/{invoice}/pdf', [InvoicePdfController::class, 'admin'])->middleware(RequireSecondFactor::class)->name('admin.invoices.pdf');
     Route::middleware(RequireSecondFactor::class)->prefix('portal')->group(function () {
         Route::get('/', [PortalController::class, 'index'])->name('portal');
         Route::get('/mails/{uuid}', [PortalController::class, 'mail'])->name('portal.mail');
+        Route::get('/invoices/{invoice}.pdf', [InvoicePdfController::class, 'portal'])->name('portal.invoice.pdf');
         Route::get('/children/new', [PortalChildController::class, 'create'])->name('portal.child.create');
         Route::post('/children', [PortalChildController::class, 'store'])->name('portal.child.store');
         Route::get('/children/{child}', [PortalChildController::class, 'show'])->name('portal.child');

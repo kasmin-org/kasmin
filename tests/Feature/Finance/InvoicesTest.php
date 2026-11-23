@@ -2,12 +2,17 @@
 
 namespace Tests\Feature\Finance;
 
+use App\Filament\Pages\OrganisationSettingsPage;
+use App\Filament\Resources\Invoices\Pages\ListInvoices;
+use App\Filament\Resources\Invoices\Pages\ViewInvoice;
 use App\Models\Event;
 use App\Models\Household;
 use App\Models\Invoice;
 use App\Models\OutgoingMail;
 use App\Models\Participation;
 use App\Models\Person;
+use App\Models\Role;
+use App\Models\User;
 use App\Support\Finance\InvoicePdf;
 use App\Support\Finance\Invoices;
 use App\Support\Finance\Payments;
@@ -16,8 +21,10 @@ use App\Support\Finance\SiblingDiscounts;
 use App\Support\Install\Defaults;
 use App\Support\Install\MailTemplateDefaults;
 use App\Support\Settings;
+use Filament\Http\Middleware\AuthenticateSession;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class InvoicesTest extends TestCase
@@ -232,6 +239,66 @@ class InvoicesTest extends TestCase
         app(Payments::class)->record($invoice->fresh() ?? $invoice, 10000, Carbon::now());
         $this->travel(20)->days();
         $this->assertSame(0, $reminders->run(), 'paid invoices get no reminders');
+    }
+
+    public function test_admin_pages_respect_finance_roles(): void
+    {
+        $this->child('Ann', '2014-01-01');
+        $invoice = $this->issuedDeposit();
+        $this->withoutMiddleware(AuthenticateSession::class);
+        $make = function (string $role): User {
+            $person = Person::factory()->create();
+            $person->roleAssignments()->create(['role_id' => Role::query()->where('key', $role)->value('id')]);
+
+            return User::query()->create(['name' => $role, 'email' => $role.'@example.org', 'password' => 'x', 'person_id' => $person->id]);
+        };
+        $treasurer = $make('treasurer');
+        $leader = $make('camp_leader');
+
+        foreach (['/admin/invoices', '/admin/invoices/'.$invoice->id, '/admin/payments', '/admin/settings/organisation', '/admin/events/'.$this->event->id.'/edit'] as $page) {
+            $this->actingAs($treasurer)->withSession(['two_factor_passed' => true])->get($page)->assertOk();
+        }
+        $this->actingAs($treasurer)->withSession(['two_factor_passed' => true])->get('/admin/invoices/'.$invoice->id.'/pdf')
+            ->assertOk()->assertHeader('Content-Type', 'application/pdf');
+        $this->actingAs($leader)->withSession(['two_factor_passed' => true])->get('/admin/invoices')->assertForbidden();
+        $this->actingAs($leader)->withSession(['two_factor_passed' => true])->get('/admin/invoices/'.$invoice->id.'/pdf')->assertForbidden();
+    }
+
+    public function test_invoice_run_issue_payment_and_settings_through_the_admin_interface(): void
+    {
+        $this->child('Ann', '2014-01-01');
+        $person = Person::factory()->create();
+        $person->roleAssignments()->create(['role_id' => Role::query()->where('key', 'treasurer')->value('id')]);
+        $this->actingAs(User::query()->create(['name' => 't', 'email' => 't@example.org', 'password' => 'x', 'person_id' => $person->id]));
+        $deposit = $this->event->installments()->where('key', 'deposit')->firstOrFail();
+
+        Livewire::test(ListInvoices::class)->callAction('run', data: ['event_id' => $this->event->id, 'installment_id' => $deposit->id])->assertHasNoActionErrors();
+        $invoice = Invoice::query()->firstOrFail();
+        $this->assertSame('draft', $invoice->status);
+
+        Livewire::test(ViewInvoice::class, ['record' => $invoice->id])->callAction('issue')->assertHasNoActionErrors();
+        $this->assertSame('issued', $invoice->fresh()?->status);
+        $this->assertSame(1, OutgoingMail::query()->where('subject', 'like', 'Invoice%')->count());
+
+        Livewire::test(ViewInvoice::class, ['record' => $invoice->id])->callAction('payment', data: ['amount' => '100.00', 'paid_on' => now()->toDateString(), 'method' => 'cash'])->assertHasNoActionErrors();
+        $this->assertSame('paid', Invoice::query()->findOrFail($invoice->id)->status);
+
+        Livewire::test(OrganisationSettingsPage::class)->fillForm(['organisation_iban' => 'AT00 1234'])->call('save')->assertHasFormErrors(['organisation_iban']);
+        Livewire::test(OrganisationSettingsPage::class)->fillForm(['organisation_iban' => 'de89 3704 0044 0532 0130 00', 'invoice_number_format' => '{year}-{number}'])->call('save')->assertHasNoFormErrors();
+        $this->assertSame('DE89370400440532013000', Settings::get('organisation_iban'));
+    }
+
+    public function test_portal_shows_own_invoices_only(): void
+    {
+        $this->child('Ann', '2014-01-01');
+        $invoice = $this->issuedDeposit();
+        $user = User::query()->create(['name' => 'Alex', 'email' => 'alex@example.org', 'password' => 'x', 'person_id' => $this->guardian->id]);
+        $other = User::query()->create(['name' => 'Other', 'email' => 'other@example.org', 'password' => 'x', 'person_id' => Person::factory()->create()->id]);
+
+        $this->actingAs($user)->get('/portal')->assertOk()->assertSee((string) $invoice->number)->assertSee((string) $invoice->reference);
+        $this->actingAs($user)->get('/portal/invoices/'.$invoice->id.'.pdf')->assertOk()->assertHeader('Content-Type', 'application/pdf');
+        $this->actingAs($other)->get('/portal/invoices/'.$invoice->id.'.pdf')->assertNotFound();
+        $this->actingAs($other)->get('/portal')->assertDontSee((string) $invoice->reference);
     }
 
     private function draftRun(string $installment): int

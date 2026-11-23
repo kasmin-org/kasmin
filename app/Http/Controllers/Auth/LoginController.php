@@ -63,7 +63,9 @@ class LoginController extends Controller
             return redirect()->route('login')->withErrors(['email' => __('auth_link.invalid')]);
         }
 
-        return $this->login($request, $this->links->consume($model), $model->purpose === 'mail_link' ? 'mail_link' : 'magic_link');
+        return $this->login($request, $this->links->consume($model), match ($model->purpose) {
+            'mail_link' => 'mail_link', 'cli' => 'cli_link', default => 'magic_link',
+        });
     }
 
     public function showCode(): View

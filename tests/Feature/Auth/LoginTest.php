@@ -70,6 +70,24 @@ class LoginTest extends TestCase
         $this->assertGuest();
     }
 
+    public function test_cli_login_link_works_once_and_is_audited(): void
+    {
+        $user = User::query()->create(['name' => 'Robin', 'email' => 'robin@example.org', 'password' => 'x', 'person_id' => Person::factory()->create()->id]);
+        $this->artisan('kasmin:login-link', ['email' => 'nobody@example.org'])->assertExitCode(1);
+        $this->artisan('kasmin:login-link', ['email' => 'Robin@Example.org'])->assertExitCode(0);
+        $token = $user->loginTokens()->latest('id')->firstOrFail();
+        $this->assertSame('cli', $token->purpose);
+        $this->assertTrue(AuditEvent::query()->where('action', 'login.token_issued')->exists());
+
+        // The plain token is only printed; issue a known one the same way to test the flow.
+        ['token' => $plain] = app(LoginLinks::class)->issue($user, 'cli');
+        $this->post('/login/link/'.$plain)->assertRedirect();
+        $this->assertAuthenticatedAs($user);
+        auth()->logout();
+        $this->post('/login/link/'.$plain)->assertRedirect('/login');
+        $this->assertGuest();
+    }
+
     public function test_code_login_and_brute_force_protection(): void
     {
         $user = $this->guardian();

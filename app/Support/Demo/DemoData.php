@@ -5,11 +5,14 @@ namespace App\Support\Demo;
 use App\Models\Event;
 use App\Models\EventSeries;
 use App\Models\Household;
+use App\Models\Invoice;
 use App\Models\MembershipType;
 use App\Models\Person;
 use App\Models\Role;
 use App\Models\User;
 use App\Support\Events\Registrations;
+use App\Support\Finance\Invoices;
+use App\Support\Settings;
 use Faker\Factory as Faker;
 use Faker\Generator;
 use Illuminate\Support\Str;
@@ -98,11 +101,16 @@ class DemoData
             'event_series_id' => $camp->id, 'title' => ($de ? 'Sommerlager ' : 'Summer camp ').$year,
             'starts_at' => now()->addYear()->setDate($year, 8, 15)->setTime(9, 0), 'ends_at' => now()->addYear()->setDate($year, 8, 22)->setTime(16, 0),
             'location' => $this->faker->city(), 'meeting_point' => $this->faker->streetAddress(), 'status' => 'open',
+            'sibling_mode' => 'staggered', 'sibling_amount_cents' => 2500, 'sibling_cap_position' => 3,
         ]);
         $next->roles()->createMany([
-            ['role_key' => 'child', 'capacity' => 20, 'reserve_places' => 1, 'min_age' => 8, 'max_age' => 13],
-            ['role_key' => 'junior_counsellor', 'capacity' => 4, 'min_age' => 14, 'max_age' => 15],
-            ['role_key' => 'staff', 'capacity' => null, 'min_age' => 16, 'registered_by' => 'admin'],
+            ['role_key' => 'child', 'capacity' => 20, 'reserve_places' => 1, 'min_age' => 8, 'max_age' => 13, 'price_cents' => 42000],
+            ['role_key' => 'junior_counsellor', 'capacity' => 4, 'min_age' => 14, 'max_age' => 15, 'price_cents' => 42000, 'role_discount_cents' => 15000],
+            ['role_key' => 'staff', 'capacity' => null, 'min_age' => 16, 'registered_by' => 'admin', 'counts_as_sibling' => false],
+        ]);
+        $next->installments()->createMany([
+            ['key' => 'deposit', 'label' => ['de' => 'Anzahlung', 'en' => 'Deposit'], 'kind' => 'fixed', 'amount_cents' => 10000, 'due_days' => 14, 'discounts_apply' => false, 'sort' => 1],
+            ['key' => 'balance', 'label' => ['de' => 'Restbetrag', 'en' => 'Balance'], 'kind' => 'rest', 'due_date' => now()->addYear()->setDate($year, 6, 1)->toDateString(), 'discounts_apply' => true, 'sort' => 2],
         ]);
         Event::query()->create([
             'event_series_id' => $alumni->id, 'title' => ($de ? 'Alumni-Wochenende ' : 'Alumni weekend ').$year,
@@ -114,6 +122,34 @@ class DemoData
         $children = Person::query()->whereHas('guardians')->get()->filter(fn (Person $p) => ($age = $p->ageAt($next->starts_at)) !== null && $age >= 8 && $age <= 13);
         foreach ($children as $child) {
             $registrations->register($next, $child, 'child', $child->guardians()->first());
+        }
+
+        $this->invoices($next, $locale);
+    }
+
+    /** Organisation data with an example IBAN, deposit invoices for the camp, about two thirds paid (0.6). */
+    private function invoices(Event $event, string $locale): void
+    {
+        $de = $locale !== 'en';
+        Settings::set('organisation_name', $de ? 'Demo-Feriencamp' : 'Demo Holiday Camp');
+        Settings::set('organisation_address', $de ? "Beispielgasse 1\n1010 Wien" : "1 Example Street\nLondon W1A 1AA");
+        Settings::set('organisation_iban', 'AT611904300234573201');
+        Settings::set('organisation_legal_footer', $de ? 'Demo-Daten – kein echter Verein. Beispiel-IBAN, bitte nicht überweisen.' : 'Demo data – not a real organisation. Example IBAN, please do not transfer money.');
+        $service = app(Invoices::class);
+        $event->load('roles', 'installments');
+        $deposit = $event->installments->firstWhere('key', 'deposit');
+        if ($deposit === null) {
+            return;
+        }
+        $service->draftRun($event, $deposit);
+        foreach (Invoice::query()->where('status', 'draft')->get() as $invoice) {
+            $issued = $service->issue($invoice);
+            if ($this->faker->boolean(65)) {
+                // Booked directly, so the demo set-up does not queue payment confirmation mails.
+                $issued->payments()->create(['amount_cents' => $issued->total_cents, 'paid_on' => now()->subDays($this->faker->numberBetween(0, 10))->toDateString(),
+                    'method' => 'bank', 'reference' => $issued->reference, 'payer_name' => $issued->payer_name, 'match' => 'auto']);
+                $issued->forceFill(['paid_cents' => $issued->total_cents, 'status' => 'paid'])->save();
+            }
         }
     }
 

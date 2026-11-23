@@ -34,6 +34,8 @@ class InstallerTest extends TestCase
 
     public function test_web_installer_installs_kasmin(): void
     {
+        // Like a real installation: no cache table yet, database cache store configured.
+        config(['cache.default' => 'database']);
         $this->post('/install', [
             'organisation' => 'Example Camp Association',
             'locale' => 'en',

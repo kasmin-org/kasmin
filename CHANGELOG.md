@@ -21,3 +21,12 @@ All notable changes to Kasmin are documented in this file. The format is based o
   development mode per branch, SHA-256 verification, access code, writes `.env`), web installer (organisation,
   language, default content German/English/none, first administrator) and `kasmin:install`; tested in CI.
 - Kasmin colours in the Tailwind theme; simple start page.
+- People and families: persons with contact points (purposes login/information/invoices/emergency), legal
+  guardianship, households with legal guardians and children, membership types and memberships, roles with
+  periods; default roles and membership types (German/English) from the installer; the first administrator is a
+  person with the administrator role.
+- Passwordless login with one-time link (confirmation click, mail-scanner safe) and six-digit code, brute-force
+  protection, same answer for unknown addresses; second factor (TOTP with QR code) for administrative roles.
+- Append-only audit log for all changes (old/new values) and all login events (method, token ID).
+- Admin interface (Filament 5) with people and families; portal start page for legal guardians with their children.
+- Demo data generator `kasmin:demo` (German and English, fictitious, reproducible).

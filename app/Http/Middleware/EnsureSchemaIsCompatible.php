@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use App\Support\Schema\SchemaGuard;
 use App\Support\Schema\SchemaStatus;
 use Closure;
+use Illuminate\Cache\RateLimiter;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -24,8 +25,12 @@ class EnsureSchemaIsCompatible
         }
 
         if ($status === SchemaStatus::NotInstalled) {
-            // Before installation there are no session/cache tables yet.
-            config(['session.driver' => 'file', 'cache.default' => 'file']);
+            // Before installation there are no session/cache tables yet: use files for session, cache and
+            // the rate limiter of the installer routes.
+            config(['session.driver' => 'file', 'cache.default' => 'file', 'cache.limiter' => 'file']);
+            app()->forgetInstance('cache');
+            app()->forgetInstance('cache.store');
+            app()->forgetInstance(RateLimiter::class);
 
             return $request->is('install') ? $next($request) : redirect('/install');
         }

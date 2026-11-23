@@ -2,6 +2,8 @@
 
 namespace App\Support\Install;
 
+use App\Models\Person;
+use App\Models\Role;
 use App\Models\User;
 use App\Support\Schema\SchemaGuard;
 use App\Support\Schema\SchemaStatus;
@@ -17,7 +19,7 @@ class Installer
 {
     public const DEFAULTS = ['de', 'en', 'none'];
 
-    public function __construct(private readonly SchemaGuard $guard) {}
+    public function __construct(private readonly SchemaGuard $guard, private readonly Defaults $defaults) {}
 
     public function isInstalled(): bool
     {
@@ -48,11 +50,20 @@ class Installer
             DB::table('system_meta')->updateOrInsert(['key' => $key], ['value' => $value, 'created_at' => now(), 'updated_at' => now()]);
         }
 
-        // Passwordless login follows in 0.2.0; the random password is never shown or used.
+        $this->defaults->install($defaults);
+
+        $email = Str::lower($adminEmail);
+        [$first, $last] = array_pad(explode(' ', trim($adminName), 2), 2, '');
+        $person = Person::query()->create(['first_name' => $first, 'last_name' => $last, 'locale' => $locale]);
+        $person->contactPoints()->create(['type' => 'email', 'value' => $email, 'purposes' => ['login', 'information'], 'is_primary' => true]);
+        $person->roleAssignments()->create(['role_id' => Role::query()->where('key', 'administrator')->value('id'), 'starts_on' => now()->toDateString()]);
+
+        // Login works with one-time links; the random password is never shown or used.
         return User::query()->create([
             'name' => $adminName,
-            'email' => Str::lower($adminEmail),
+            'email' => $email,
             'password' => Str::password(64),
+            'person_id' => $person->id,
         ]);
     }
 }

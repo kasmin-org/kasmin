@@ -164,6 +164,10 @@ function ks_extract(string $zipFile, string $target): void
     @mkdir($target, 0755, true);
     $zip->extractTo($target);
     $zip->close();
+    // ZIP files do not contain empty directories; Laravel needs these to exist and be writable.
+    foreach (['storage/app/private', 'storage/app/public', 'storage/framework/cache/data', 'storage/framework/sessions', 'storage/framework/views', 'storage/logs', 'bootstrap/cache'] as $dir) {
+        @mkdir($target.'/'.$dir, 0775, true);
+    }
 }
 
 /** @param array<string, string> $db */

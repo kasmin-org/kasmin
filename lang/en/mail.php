@@ -1,0 +1,32 @@
+<?php
+
+return [
+    'footer_preferences' => 'Notifications and data',
+    'footer_link' => 'Settings',
+    'preferences_title' => 'E-mail settings',
+    'preferences_intro' => 'Settings for :name. Choose what you would like to change.',
+    'preferences_saved' => 'Your choice has been saved.',
+    'preferences_note' => 'You will still receive messages about your registrations and invoices.',
+    'confirm_deletion' => 'Do you really want to request the deletion of your data?',
+    'choices' => [
+        'newsletter_off' => 'Unsubscribe from the newsletter',
+        'newsletter_on' => 'Receive the newsletter again',
+        'optout_all' => 'Receive no more information about events',
+        'deletion_request' => 'Request deletion of my data',
+    ],
+    'notify_failed' => 'Mail to :to could not be delivered.',
+    'notify_bounce' => 'Mail to :to bounced.',
+    'notify_deletion' => 'Deletion request from :name',
+    'digest_subject' => 'Kasmin: :count new events',
+    'topics' => [
+        'registrations' => 'New sign-ups and registrations',
+        'profile_updates' => 'Updated information',
+        'safety_updates' => 'Safety sheets',
+        'waitlist' => 'Waitlist',
+        'payments' => 'Payments',
+        'bounces' => 'Undeliverable mails',
+        'approvals' => 'Approvals',
+        'deletion_requests' => 'Deletion requests',
+        'automation_errors' => 'Automation errors',
+    ],
+];

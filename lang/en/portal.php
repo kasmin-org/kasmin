@@ -26,4 +26,5 @@ return [
     'register_submit' => 'Sign up and receive a login link',
     'privacy_consent' => 'I have read the privacy policy and agree to my data being processed to manage the registrations.',
     'have_account' => 'Already signed up? Log in here',
+    'notify_signup' => 'New sign-up: :name',
 ];

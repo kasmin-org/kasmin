@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\TwoFactorController;
 use App\Http\Controllers\InstallController;
+use App\Http\Controllers\MailPreferencesController;
 use App\Http\Controllers\PortalChildController;
 use App\Http\Controllers\PortalController;
 use App\Http\Controllers\PortalFormController;
@@ -16,6 +17,9 @@ Route::get('/', function () {
 
 Route::get('/install', [InstallController::class, 'show'])->name('install');
 Route::post('/install', [InstallController::class, 'store'])->middleware('throttle:10,1');
+
+Route::get('/mail/preferences/{person}', [MailPreferencesController::class, 'show'])->middleware('signed')->name('mail.preferences');
+Route::post('/mail/preferences/{person}', [MailPreferencesController::class, 'update'])->middleware(['signed', 'throttle:10,1'])->name('mail.preferences.update');
 
 Route::middleware('guest')->group(function () {
     Route::get('/register', [PublicRegistrationController::class, 'show'])->name('register');

@@ -7,6 +7,8 @@ use App\Models\EventRole;
 use App\Models\Participation;
 use App\Models\Person;
 use App\Support\Audit\Audit;
+use App\Support\Mail\Composer;
+use App\Support\Mail\Notifier;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -27,7 +29,7 @@ class Registrations
             throw RegistrationException::because('age');
         }
 
-        return DB::transaction(function () use ($event, $person, $role, $registeredBy) {
+        $participation = DB::transaction(function () use ($event, $person, $role, $registeredBy) {
             // Lock the role row so two registrations at the same moment cannot both take the last place.
             EventRole::query()->whereKey($role->id)->lockForUpdate()->first();
 
@@ -44,6 +46,31 @@ class Registrations
 
             return $participation;
         });
+
+        $this->confirm($participation->load(['event', 'person']));
+
+        return $participation;
+    }
+
+    /**
+     * Confirmation mail to the legal guardians (or the person itself) with status and waitlist position (A01), and an
+     * admin notification (NT02).
+     */
+    private function confirm(Participation $participation): void
+    {
+        $person = $participation->person;
+        if ($person === null) {
+            return;
+        }
+        $recipients = $person->guardians()->get()->all() ?: [$person];
+        foreach ($recipients as $recipient) {
+            app(Composer::class)->queue('registration_confirmation', $recipient, [
+                'event' => $participation->event, 'participation' => $participation, 'household' => $person->households()->first(), 'children' => [$person],
+            ]);
+        }
+        app(Notifier::class)->event($participation->status === 'waitlist' ? 'waitlist' : 'registrations',
+            __('events.notify_registration', ['name' => $person->fullName(), 'event' => $participation->event->title, 'status' => __('events.status.'.$participation->status)]),
+            url('/admin/events/'.$participation->event_id.'/edit'));
     }
 
     /**

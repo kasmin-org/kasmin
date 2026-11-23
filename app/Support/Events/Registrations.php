@@ -59,17 +59,18 @@ class Registrations
     private function confirm(Participation $participation): void
     {
         $person = $participation->person;
-        if ($person === null) {
+        $event = $participation->event;
+        if ($person === null || $event === null) {
             return;
         }
         $recipients = $person->guardians()->get()->all() ?: [$person];
         foreach ($recipients as $recipient) {
             app(Composer::class)->queue('registration_confirmation', $recipient, [
-                'event' => $participation->event, 'participation' => $participation, 'household' => $person->households()->first(), 'children' => [$person],
+                'event' => $event, 'participation' => $participation, 'household' => $person->households()->first(), 'children' => [$person],
             ]);
         }
         app(Notifier::class)->event($participation->status === 'waitlist' ? 'waitlist' : 'registrations',
-            __('events.notify_registration', ['name' => $person->fullName(), 'event' => $participation->event->title, 'status' => __('events.status.'.$participation->status)]),
+            __('events.notify_registration', ['name' => $person->fullName(), 'event' => $event->title, 'status' => __('events.status.'.$participation->status)]),
             url('/admin/events/'.$participation->event_id.'/edit'));
     }
 

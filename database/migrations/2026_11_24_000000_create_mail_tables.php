@@ -168,7 +168,7 @@ return new class extends Migration
         Schema::create('notification_events', function (Blueprint $table) {
             $table->id();
             $table->string('topic', 48)->index();
-            $table->string('summary');
+            $table->text('summary');
             $table->string('url')->nullable();
             $table->timestamp('created_at')->useCurrent()->index();
         });

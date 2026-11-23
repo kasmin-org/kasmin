@@ -29,7 +29,9 @@ class Inbox
             'username' => $account->imap_username, 'password' => $account->imap_password, 'validate_cert' => true,
         ]);
         $since = $account->last_imap_check_at ?? now()->subDays(2);
-        $messages = $mailbox->inbox()->messages()->since($since)->withHeaders()->withBody()->get();
+        $query = $mailbox->inbox()->messages()->withHeaders()->withBody();
+        $query->since($since);
+        $messages = $query->get();
         foreach ($messages as $message) {
             /** @var MessageInterface $message */
             $id = (string) $message->messageId();

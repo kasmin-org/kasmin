@@ -7,6 +7,7 @@ use App\Filament\Resources\OutgoingMails\Schemas\OutgoingMailForm;
 use App\Filament\Resources\OutgoingMails\Tables\OutgoingMailsTable;
 use App\Models\OutgoingMail;
 use BackedEnum;
+use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -58,12 +59,12 @@ class OutgoingMailResource extends Resource
     public static function infolist(Schema $schema): Schema
     {
         return $schema->components([
-            \Filament\Infolists\Components\TextEntry::make('to_address')->label(__('admin.mail.to')),
-            \Filament\Infolists\Components\TextEntry::make('status')->label(__('admin.event.status'))->formatStateUsing(fn ($state) => __('admin.mail.statuses.'.$state)),
-            \Filament\Infolists\Components\TextEntry::make('sent_at')->label(__('admin.mail.sent_at'))->dateTime()->placeholder('–'),
-            \Filament\Infolists\Components\TextEntry::make('last_error')->label(__('admin.mail.error'))->placeholder('–')->columnSpanFull(),
-            \Filament\Infolists\Components\TextEntry::make('subject')->label(__('admin.mail.subject'))->columnSpanFull(),
-            \Filament\Infolists\Components\TextEntry::make('text')->label(__('admin.mail.body'))->columnSpanFull()->extraAttributes(['style' => 'white-space: pre-wrap']),
+            TextEntry::make('to_address')->label(__('admin.mail.to')),
+            TextEntry::make('status')->label(__('admin.event.status'))->formatStateUsing(fn ($state) => __('admin.mail.statuses.'.$state)),
+            TextEntry::make('sent_at')->label(__('admin.mail.sent_at'))->dateTime()->placeholder('–'),
+            TextEntry::make('last_error')->label(__('admin.mail.error'))->placeholder('–')->columnSpanFull(),
+            TextEntry::make('subject')->label(__('admin.mail.subject'))->columnSpanFull(),
+            TextEntry::make('text')->label(__('admin.mail.body'))->columnSpanFull()->extraAttributes(['style' => 'white-space: pre-wrap']),
         ]);
     }
 

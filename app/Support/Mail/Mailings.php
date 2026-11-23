@@ -32,7 +32,7 @@ class Mailings
         }
         if (! empty($r['event_id'])) {
             $ids = $ids->merge(Participation::query()->where('event_id', $r['event_id'])
-                ->when(! empty($r['statuses']), fn ($q) => $q->whereIn('status', $r['statuses']))->pluck('person_id'));
+                ->when(! empty($r['statuses'] ?? []), fn ($q) => $q->whereIn('status', $r['statuses'] ?? []))->pluck('person_id'));
         }
 
         return Person::query()->whereIn('id', $ids->unique())->with(['guardians', 'households'])->get();
@@ -47,7 +47,8 @@ class Mailings
     {
         $mails = [];
         $excluded = [];
-        $optedOut = Consent::query()->where('granted', false)->whereIn('kind', $mailing->template->category === 'newsletter' ? ['newsletter'] : ['optout_all'])->pluck('person_id')->all();
+        $template = $mailing->template;
+        $optedOut = Consent::query()->where('granted', false)->whereIn('kind', $template?->category === 'newsletter' ? ['newsletter'] : ['optout_all'])->pluck('person_id')->all();
 
         foreach ($this->subjects($mailing) as $subject) {
             $targets = match ($mailing->routing) {
@@ -81,10 +82,14 @@ class Mailings
     public function prepare(Mailing $mailing): int
     {
         $mailing->mails()->where('status', 'held')->delete();
+        $template = $mailing->template;
+        if ($template === null) {
+            return 0;
+        }
         $count = 0;
         foreach ($this->plan($mailing)['mails'] as $mail) {
-            $created = $this->composer->queue($mailing->template, $mail['to'], ['children' => $mail['children'], 'household' => $mail['household']],
-                $mailing->template->category === 'newsletter' ? 'newsletter' : 'mailing', 'held', $mailing->id);
+            $created = $this->composer->queue($template, $mail['to'], ['children' => $mail['children'], 'household' => $mail['household']],
+                $template->category === 'newsletter' ? 'newsletter' : 'mailing', 'held', $mailing->id);
             if ($created !== null && $mailing->sender_profile_id !== null) {
                 $created->forceFill(['sender_profile_id' => $mailing->sender_profile_id])->save();
             }

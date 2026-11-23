@@ -22,7 +22,9 @@ class OutgoingMailsTable
             TextColumn::make('subject')->label(__('admin.mail.subject'))->limit(60)->searchable(),
             TextColumn::make('kind')->label(__('admin.mail.kind'))->formatStateUsing(fn ($state) => __('admin.mail.kinds.'.$state))->badge(),
             TextColumn::make('status')->label(__('admin.event.status'))->formatStateUsing(fn ($state) => __('admin.mail.statuses.'.$state))->badge()
-                ->color(fn ($state) => match ($state) { 'sent' => 'success', 'failed', 'bounced' => 'danger', 'queued', 'held', 'sending' => 'warning', default => 'gray' }),
+                ->color(fn ($state) => match ($state) {
+                    'sent' => 'success', 'failed', 'bounced' => 'danger', 'queued', 'held', 'sending' => 'warning', default => 'gray'
+                }),
         ])->filters([
             SelectFilter::make('status')->label(__('admin.event.status'))->options(__('admin.mail.statuses')),
             SelectFilter::make('kind')->label(__('admin.mail.kind'))->options(__('admin.mail.kinds')),

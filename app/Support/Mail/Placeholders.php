@@ -7,6 +7,7 @@ use App\Models\Household;
 use App\Models\Participation;
 use App\Models\Person;
 use App\Support\Auth\LoginLinks;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\URL;
 
@@ -92,8 +93,8 @@ class Placeholders
 
         return [
             'title' => $event->title,
-            'starts_at' => $event->starts_at->locale($locale)->translatedFormat($format),
-            'ends_at' => $event->ends_at->locale($locale)->translatedFormat($format),
+            'starts_at' => $this->date($event->starts_at, $locale, $format),
+            'ends_at' => $this->date($event->ends_at, $locale, $format),
             'location' => (string) $event->getAttribute('location'),
             'meeting_point' => (string) $event->getAttribute('meeting_point'),
         ];
@@ -102,7 +103,7 @@ class Placeholders
     /** @return array<string, mixed> */
     private function participation(Participation $p, string $locale): array
     {
-        $role = $p->event->roles()->where('role_key', $p->role_key)->first();
+        $role = $p->event?->roles()->where('role_key', $p->role_key)->first();
 
         return [
             'status' => trans('events.status.'.$p->status, [], $locale),
@@ -110,6 +111,14 @@ class Placeholders
             'waitlist_total' => $role?->waitlistLength(),
             'child' => $p->person?->fullName(),
         ];
+    }
+
+    private function date(mixed $value, string $locale, string $format): string
+    {
+        $date = Carbon::parse($value);
+        $date->setLocale($locale);
+
+        return $date->translatedFormat($format);
     }
 
     private function loginLink(Person $person): string

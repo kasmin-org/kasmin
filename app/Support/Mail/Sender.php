@@ -38,7 +38,7 @@ class Sender
             ->orderBy('id')->limit($limit)->with('senderProfile.account')->get();
 
         foreach ($mails as $mail) {
-            $account = $mail->senderProfile?->account ?? MailAccount::query()->where('is_default', true)->first();
+            $account = $mail->senderProfile->account ?? MailAccount::query()->where('is_default', true)->first();
             if ($account !== null && ! $this->withinRateLimits($account)) {
                 $result['deferred']++;
 

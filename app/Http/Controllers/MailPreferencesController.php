@@ -38,7 +38,7 @@ class MailPreferencesController extends Controller
         match ($choice) {
             'newsletter_off', 'newsletter_on' => Consent::query()->create(['person_id' => $model->id, 'kind' => 'newsletter', 'granted' => $choice === 'newsletter_on', 'source' => 'mail_link']),
             'optout_all' => Consent::query()->create(['person_id' => $model->id, 'kind' => 'optout_all', 'granted' => false, 'source' => 'mail_link']),
-            'deletion_request' => $this->deletionRequest($model),
+            default => $this->deletionRequest($model),
         };
 
         return back()->with('status', __('mail.preferences_saved'));

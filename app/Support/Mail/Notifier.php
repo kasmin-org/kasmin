@@ -5,6 +5,7 @@ namespace App\Support\Mail;
 use App\Models\NotificationEvent;
 use App\Models\NotificationSubscription;
 use App\Models\User;
+use Illuminate\Support\Str;
 
 /**
  * Admin notifications (NT01–NT05): events are stored; subscribers with "immediate" get a mail at once, the others a
@@ -14,7 +15,7 @@ class Notifier
 {
     public function event(string $topic, string $summary, ?string $url = null): void
     {
-        $event = NotificationEvent::query()->create(['topic' => $topic, 'summary' => $summary, 'url' => $url, 'created_at' => now()]);
+        $event = NotificationEvent::query()->create(['topic' => $topic, 'summary' => Str::limit($summary, 1000), 'url' => $url, 'created_at' => now()]);
         foreach (NotificationSubscription::query()->where('topic', $topic)->where('frequency', 'immediate')->with('user')->get() as $sub) {
             if ($sub->user instanceof User) {
                 $this->mail($sub->user, [$event]);

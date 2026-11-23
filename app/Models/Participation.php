@@ -17,6 +17,7 @@ use Illuminate\Support\Carbon;
  * @property string $status
  * @property Carbon $registered_at
  * @property bool $reserve_place
+ * @property Carbon|null $offer_expires_at
  */
 class Participation extends Model
 {
@@ -28,7 +29,7 @@ class Participation extends Model
 
     protected function casts(): array
     {
-        return ['registered_at' => 'datetime', 'reserve_place' => 'boolean'];
+        return ['registered_at' => 'datetime', 'reserve_place' => 'boolean', 'offer_expires_at' => 'datetime'];
     }
 
     /** @return BelongsTo<Event, $this> */

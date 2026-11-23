@@ -10,3 +10,4 @@ Schedule::command('kasmin:notifications:digest')->dailyAt((string) config('kasmi
 Schedule::call(fn () => SystemStatus::heartbeat())->everyMinute()->name('kasmin-heartbeat');
 Schedule::command('kasmin:system:check')->hourly();
 Schedule::command('kasmin:invoices:remind')->dailyAt('09:00');
+Schedule::command('kasmin:automations:run')->hourlyAt(5)->withoutOverlapping();

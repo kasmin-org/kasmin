@@ -26,6 +26,9 @@ return [
      */
     'digest_time' => env('KASMIN_DIGEST_TIME', '07:00'),
 
+    // Days an approval request of an automation stays open (AT04, AT05).
+    'approval_days' => (int) env('KASMIN_APPROVAL_DAYS', 7),
+
     /*
      * Demo instances (APP_ENV=demo): language of the demo data, first administrator and e-mail domain of the
      * fictitious people (a catch-all mailbox makes their login links readable).

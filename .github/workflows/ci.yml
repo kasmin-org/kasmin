@@ -203,6 +203,10 @@ jobs:
           email=$(docker exec -u www-data -e HOME=/tmp kasmin php artisan tinker --execute='echo App\Models\Invoice::query()->whereNotNull("payer_id")->first()?->payer?->user?->email;' | tail -1)
           echo "KASMIN_LINK_DESKTOP=$(docker exec -u www-data kasmin php artisan kasmin:login-link "$email" | tail -1)" >> "$GITHUB_ENV"
           echo "KASMIN_LINK_PHONE=$(docker exec -u www-data kasmin php artisan kasmin:login-link "$email" | tail -1)" >> "$GITHUB_ENV"
+          docker cp tests/e2e/make-approvals.php kasmin:/tmp/make-approvals.php
+          links=$(docker exec -u www-data -e HOME=/tmp kasmin php artisan tinker --execute="require '/tmp/make-approvals.php';" | grep '^/approvals/')
+          echo "KASMIN_APPROVAL_DESKTOP=$(echo "$links" | sed -n 1p)" >> "$GITHUB_ENV"
+          echo "KASMIN_APPROVAL_PHONE=$(echo "$links" | sed -n 2p)" >> "$GITHUB_ENV"
       - run: npx playwright test --trace off
         env: { KASMIN_URL: "http://127.0.0.1:8080", CI: "true" }
       - uses: actions/upload-artifact@v4

@@ -85,6 +85,21 @@ class PortalChildController extends Controller
         return back()->with('status', __('portal.cancelled'));
     }
 
+    /** Accept or decline an offered place from the waitlist (A05). */
+    public function answerOffer(Request $request, string $publicId, int $participation): RedirectResponse
+    {
+        $child = $this->child($request, $publicId);
+        $model = Participation::query()->where('person_id', $child->id)->with('event')->findOrFail($participation);
+        $accept = $request->validate(['answer' => ['required', 'in:accept,decline']])['answer'] === 'accept';
+        try {
+            $this->registrations->answerOffer($model, $accept);
+        } catch (RegistrationException $e) {
+            return back()->withErrors(['offer' => $e->getMessage()]);
+        }
+
+        return back()->with('status', __($accept ? 'portal.offer_accepted' : 'portal.offer_declined'));
+    }
+
     private function guardian(Request $request): Person
     {
         /** @var User $user */

@@ -14,10 +14,6 @@ on:
 permissions:
   contents: read
 
-concurrency:
-  group: deploy-demo
-  cancel-in-progress: false
-
 jobs:
   release:
     name: Find the latest release
@@ -36,6 +32,11 @@ jobs:
   deploy:
     name: Deploy ${{ needs.release.outputs.tag }} to demo-${{ matrix.lang }}
     needs: release
+    # Serialised per instance on the job level: runs whose condition skips them (e.g. after a develop build) no
+    # longer take the slot of a pending release deployment.
+    concurrency:
+      group: deploy-demo-${{ matrix.lang }}
+      cancel-in-progress: false
     if: ${{ needs.release.outputs.tag != '' }}
     runs-on: ubuntu-latest
     strategy:

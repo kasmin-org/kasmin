@@ -102,7 +102,9 @@ class LoginTest extends TestCase
         $this->post('/two-factor', ['code' => (new Google2FA)->getCurrentOtp($secret)])->assertRedirect('/admin');
         $this->assertNotNull($user->fresh()?->two_factor_confirmed_at);
         $this->get('/admin')->assertOk();
-        $this->get('/admin/people')->assertOk();
+        foreach (['/admin/people', '/admin/households', '/admin/events', '/admin/event-series', '/admin/groups'] as $page) {
+            $this->get($page)->assertOk();
+        }
     }
 
     public function test_guardians_cannot_open_the_admin_interface(): void

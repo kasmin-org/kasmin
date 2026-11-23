@@ -2,11 +2,14 @@
 
 namespace App\Support\Demo;
 
+use App\Models\Event;
+use App\Models\EventSeries;
 use App\Models\Household;
 use App\Models\MembershipType;
 use App\Models\Person;
 use App\Models\Role;
 use App\Models\User;
+use App\Support\Events\Registrations;
 use Faker\Factory as Faker;
 use Faker\Generator;
 use Illuminate\Support\Str;
@@ -78,7 +81,40 @@ class DemoData
             $people++;
         }
 
+        $this->events($locale);
+
         return ['households' => $families, 'people' => $people];
+    }
+
+    /** A camp series and an alumni series with an open next event; children are registered until the waitlist starts. */
+    private function events(string $locale): void
+    {
+        $de = $locale !== 'en';
+        $year = (int) now()->addYear()->format('Y');
+        $camp = EventSeries::query()->create(['name' => $de ? 'Sommerlager' : 'Summer camp', 'type' => 'camp']);
+        $alumni = EventSeries::query()->create(['name' => $de ? 'Alumni-Wochenende' : 'Alumni weekend', 'type' => 'alumni']);
+
+        $next = Event::query()->create([
+            'event_series_id' => $camp->id, 'title' => ($de ? 'Sommerlager ' : 'Summer camp ').$year,
+            'starts_at' => now()->addYear()->setDate($year, 8, 15)->setTime(9, 0), 'ends_at' => now()->addYear()->setDate($year, 8, 22)->setTime(16, 0),
+            'location' => $this->faker->city(), 'meeting_point' => $this->faker->streetAddress(), 'status' => 'open',
+        ]);
+        $next->roles()->createMany([
+            ['role_key' => 'child', 'capacity' => 20, 'reserve_places' => 1, 'min_age' => 8, 'max_age' => 13],
+            ['role_key' => 'junior_counsellor', 'capacity' => 4, 'min_age' => 14, 'max_age' => 15],
+            ['role_key' => 'staff', 'capacity' => null, 'min_age' => 16, 'registered_by' => 'admin'],
+        ]);
+        Event::query()->create([
+            'event_series_id' => $alumni->id, 'title' => ($de ? 'Alumni-Wochenende ' : 'Alumni weekend ').$year,
+            'starts_at' => now()->addYear()->setDate($year, 7, 4)->setTime(15, 0), 'ends_at' => now()->addYear()->setDate($year, 7, 6)->setTime(14, 0),
+            'location' => $this->faker->city(), 'status' => 'announced',
+        ])->roles()->create(['role_key' => 'guest', 'capacity' => 40, 'min_age' => 15, 'registered_by' => 'self']);
+
+        $registrations = app(Registrations::class);
+        $children = Person::query()->whereHas('guardians')->get()->filter(fn (Person $p) => ($age = $p->ageAt($next->starts_at)) !== null && $age >= 8 && $age <= 13);
+        foreach ($children as $child) {
+            $registrations->register($next, $child, 'child', $child->guardians()->first());
+        }
     }
 
     private function person(string $first, string $last, \DateTimeInterface $birth, string $locale): Person

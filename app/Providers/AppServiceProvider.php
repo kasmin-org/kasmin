@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Support\Schema\SchemaGuard;
 use App\Support\Schema\SchemaStatus;
+use Illuminate\Cache\RateLimiter;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Console\Events\CommandStarting;
 use Illuminate\Http\Request;
@@ -31,7 +32,7 @@ class AppServiceProvider extends ServiceProvider
     public static function defineRateLimiters(): void
     {
         foreach (['install' => 10, 'preferences' => 10, 'register' => 5, 'login-send' => 5, 'login-code' => 10, 'login-link' => 10, 'approvals' => 10, 'two-factor' => 10] as $name => $perMinute) {
-            app(\Illuminate\Cache\RateLimiter::class)->for($name, fn (Request $request) => Limit::perMinute($perMinute)->by($name.'|'.$request->ip()));
+            app(RateLimiter::class)->for($name, fn (Request $request) => Limit::perMinute($perMinute)->by($name.'|'.$request->ip()));
         }
     }
 

@@ -2,10 +2,12 @@
 
 namespace App\Support\Mail;
 
+use App\Models\Invoice;
 use App\Models\MailAccount;
 use App\Models\OutgoingMail;
 use App\Models\SenderProfile;
 use App\Support\Audit\Audit;
+use App\Support\Finance\InvoicePdf;
 use DirectoryTree\ImapEngine\Mailbox;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
@@ -98,6 +100,16 @@ class Sender
             ->text($mail->text);
         if ($profile?->reply_to) {
             $email->replyTo($profile->reply_to);
+        }
+        foreach ($mail->attachments ?? [] as $attachment) {
+            if (isset($attachment['invoice_id'])) {
+                $invoice = Invoice::query()->whereKey((int) $attachment['invoice_id'])->first();
+                if ($invoice !== null) {
+                    $pdf = app(InvoicePdf::class);
+                    $paid = (bool) ($attachment['paid'] ?? false);
+                    $email->attach($pdf->render($invoice, $paid), $pdf->fileName($invoice, $paid), 'application/pdf');
+                }
+            }
         }
         $messageId = $mail->message_id ?? $mail->uuid.'@'.$domain;
         $email->getHeaders()->addIdHeader('Message-ID', $messageId);

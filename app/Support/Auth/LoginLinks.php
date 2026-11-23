@@ -62,8 +62,8 @@ class LoginLinks
 
     public function consume(LoginToken $model): LoginToken
     {
-        // Mail links (newsletter, invoice) may be used more than once until they expire; one-time links once.
-        if ($model->purpose === 'login') {
+        // Mail links (newsletter, invoice) may be used more than once until they expire; all other links once.
+        if ($model->purpose !== 'mail_link') {
             $model->forceFill(['used_at' => now()])->save();
         }
 

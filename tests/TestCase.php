@@ -2,6 +2,7 @@
 
 namespace Tests;
 
+use App\Support\Settings;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 
 abstract class TestCase extends BaseTestCase
@@ -11,5 +12,6 @@ abstract class TestCase extends BaseTestCase
         parent::setUp();
         // Tests do not need built frontend assets.
         $this->withoutVite();
+        Settings::flush();
     }
 }

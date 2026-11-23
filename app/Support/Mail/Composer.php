@@ -4,6 +4,7 @@ namespace App\Support\Mail;
 
 use App\Models\Event;
 use App\Models\Household;
+use App\Models\Invoice;
 use App\Models\MailTemplate;
 use App\Models\OutgoingMail;
 use App\Models\Participation;
@@ -18,9 +19,10 @@ class Composer
     public function __construct(private readonly TemplateRenderer $renderer, private readonly Placeholders $placeholders) {}
 
     /**
-     * @param  array{event?: Event|null, participation?: Participation|null, household?: Household|null, children?: list<Person>, login?: bool}  $about
+     * @param  array{event?: Event|null, participation?: Participation|null, household?: Household|null, invoice?: Invoice|null, children?: list<Person>, login?: bool}  $about
+     * @param  list<array<string, mixed>>|null  $attachments  generated attachments, e.g. [['invoice_id' => 1, 'paid' => false]] (MT08)
      */
-    public function queue(string|MailTemplate $template, Person $recipient, array $about = [], string $kind = 'transactional', string $status = 'queued', ?int $mailingId = null): ?OutgoingMail
+    public function queue(string|MailTemplate $template, Person $recipient, array $about = [], string $kind = 'transactional', string $status = 'queued', ?int $mailingId = null, ?array $attachments = null): ?OutgoingMail
     {
         $template = is_string($template) ? MailTemplate::query()->where('key', $template)->where('active', true)->with('contents')->first() : $template;
         $address = $recipient->primaryEmail();
@@ -45,6 +47,7 @@ class Composer
             'text' => $rendered['text']."\n\n-- \n".__('mail.footer_preferences', [], $locale).': '.$context['links']['preferences'],
             'kind' => $kind,
             'status' => $status,
+            'attachments' => $attachments,
             'created_by_id' => auth()->id(),
         ]);
     }

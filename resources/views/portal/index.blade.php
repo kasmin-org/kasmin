@@ -36,6 +36,29 @@
         <p>{{ __('portal.no_family') }}</p>
     @endforelse
     <a href="{{ route('portal.child.create') }}" class="mt-2 block w-full rounded-lg bg-kasmin-600 px-4 py-3 text-center font-semibold text-white">{{ __('portal.add_child') }}</a>
+    @if ($invoices->isNotEmpty())
+        <section class="mt-8" id="invoices">
+            <h2 class="mb-2 text-lg font-semibold">{{ __('finance.invoices') }}</h2>
+            <ul class="divide-y divide-kasmin-100 text-sm">
+                @foreach ($invoices as $invoice)
+                    @php($state = $invoice->isOverdue() ? 'overdue' : $invoice->status)
+                    <li class="flex flex-wrap items-baseline justify-between gap-2 py-2">
+                        <span>
+                            <a class="underline" href="{{ route('portal.invoice.pdf', $invoice) }}" target="_blank" rel="noopener">{{ __('finance.type.'.$invoice->type) }} {{ $invoice->number }}</a>
+                            @if ($invoice->event)<span class="text-kasmin-700">· {{ $invoice->event->title }}</span>@endif
+                        </span>
+                        <span class="text-right">
+                            {{ \App\Models\Invoice::money(in_array($invoice->status, ['issued', 'partially_paid'], true) ? $invoice->openCents() : $invoice->total_cents, $invoice->currency) }}
+                            <span @class(['ml-1 rounded-full px-2 py-0.5 text-xs font-semibold', 'bg-green-100 text-green-900' => $state === 'paid', 'bg-red-100 text-red-900' => $state === 'overdue', 'bg-amber-100 text-amber-900' => in_array($state, ['issued', 'partially_paid'], true), 'bg-gray-100 text-gray-700' => in_array($state, ['cancelled', 'corrected'], true)])>{{ __('finance.status.'.$state) }}</span>
+                            @if (in_array($invoice->status, ['issued', 'partially_paid'], true) && $invoice->due_on)
+                                <span class="block text-xs text-kasmin-700">{{ __('finance.due_on') }} {{ $invoice->due_on->isoFormat('L') }} · {{ __('finance.reference') }} {{ $invoice->reference }}</span>
+                            @endif
+                        </span>
+                    </li>
+                @endforeach
+            </ul>
+        </section>
+    @endif
     @if ($mails->isNotEmpty())
         <section class="mt-8">
             <h2 class="mb-2 text-lg font-semibold">{{ __('portal.mails') }}</h2>

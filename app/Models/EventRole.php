@@ -16,6 +16,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int|null $min_age
  * @property int|null $max_age
  * @property string $registered_by
+ * @property int $price_cents
+ * @property int $role_discount_cents
+ * @property bool $counts_as_sibling
  */
 class EventRole extends Model
 {
@@ -28,7 +31,12 @@ class EventRole extends Model
 
     protected $guarded = ['id'];
 
-    protected $attributes = ['reserve_places' => 0, 'registered_by' => 'guardian'];
+    protected $attributes = ['reserve_places' => 0, 'registered_by' => 'guardian', 'price_cents' => 0, 'role_discount_cents' => 0, 'counts_as_sibling' => true];
+
+    protected function casts(): array
+    {
+        return ['counts_as_sibling' => 'boolean'];
+    }
 
     /** @return BelongsTo<Event, $this> */
     public function event(): BelongsTo

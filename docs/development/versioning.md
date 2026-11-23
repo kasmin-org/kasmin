@@ -23,3 +23,18 @@ Before 1.0.0 (`0.y.z`), MINOR releases may contain breaking changes; they are li
 
 Migrations only go forward. The application refuses to run if the database schema is newer than the code, to
 prevent accidental downgrades.
+
+## Minimum PHP version
+
+Kasmin supports the PHP versions that php.net still supports **and** that all dependencies support. The minimum
+PHP version **may be raised in any MINOR release** when the code or its dependencies need it – also before php.net
+ends the support of the older version (for example because the locked dependencies require it). Such a change is
+always stated clearly:
+
+- in the changelog as **"Breaking: requires PHP x.y or newer"**,
+- in the release notes and the README,
+- by the installer and the self-updater, which check the requirements of the target version before anything is
+  changed and refuse the update with an explanation if the server does not meet them.
+
+Administrators are warned in advance: when the installed PHP version is the lowest one still supported, the
+system shows a notification with its end-of-support date.

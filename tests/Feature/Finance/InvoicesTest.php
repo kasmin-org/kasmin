@@ -164,7 +164,7 @@ class InvoicesTest extends TestCase
         $this->assertSame('alex@example.org', $mail->to_address);
         $this->assertStringContainsString($invoice->number.'', $mail->subject);
         $this->assertStringContainsString((string) $invoice->reference, $mail->html);
-        $this->assertSame([['invoice_id' => $invoice->id, 'paid' => false]], $mail->attachments);
+        $this->assertEquals([['invoice_id' => $invoice->id, 'paid' => false]], $mail->attachments); // MySQL sorts JSON keys
     }
 
     public function test_bank_import_matches_by_reference_and_confirms_payment(): void
@@ -184,7 +184,7 @@ class InvoicesTest extends TestCase
         $this->assertSame(['imported' => 2, 'matched' => 1, 'suggested' => 0, 'duplicates' => 0], $result);
         $this->assertSame('paid', $invoice->fresh()?->status);
         $confirmation = OutgoingMail::query()->where('subject', 'like', 'Payment received%')->firstOrFail();
-        $this->assertSame([['invoice_id' => $invoice->id, 'paid' => true]], $confirmation->attachments);
+        $this->assertEquals([['invoice_id' => $invoice->id, 'paid' => true]], $confirmation->attachments); // MySQL sorts JSON keys
 
         $again = app(Payments::class)->import($csv, 'bank.csv', $mapping);
         $this->assertSame(2, $again['duplicates']);

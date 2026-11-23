@@ -9,11 +9,15 @@ use App\Support\Audit\Audit;
 use DirectoryTree\ImapEngine\Mailbox;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
+use Symfony\Component\Mailer\Envelope;
 use Symfony\Component\Mailer\Mailer;
 use Symfony\Component\Mailer\Transport;
+use Symfony\Component\Mailer\Transport\Smtp\EsmtpTransport;
 use Symfony\Component\Mailer\Transport\TransportInterface;
 use Symfony\Component\Mime\Address;
+use Symfony\Component\Mime\Crypto\DkimSigner;
 use Symfony\Component\Mime\Email;
+use Symfony\Component\Mime\Message;
 use Throwable;
 
 /**
@@ -55,7 +59,10 @@ class Sender
         $mail->forceFill(['status' => 'sending', 'attempts' => $mail->attempts + 1])->save();
         try {
             $email = $this->build($mail, $mail->senderProfile, $account);
-            $this->transport($account)->send($email);
+            if ($account !== null && $account->dkim_private_key && MailDns::canSignDkim()) {
+                $email = (new DkimSigner($account->dkim_private_key, (string) ($account->dkim_domain ?: Str::after($mail->senderProfile->from_address ?? '', '@')), (string) $account->dkim_selector))->sign($email);
+            }
+            $account?->isDirect() ? $this->sendDirect($email, $mail->to_address) : $this->transport($account)->send($email);
             $mail->forceFill(['status' => 'sent', 'sent_at' => now(), 'last_error' => null])->save();
             if ($account?->canReceive() && $account->imap_sent_folder) {
                 $this->copyToImap($account, $email, $mail);
@@ -114,6 +121,33 @@ class Sender
         return preg_match('#https?://[^"\s]+/mail/preferences/[^"\s]+#', $mail->html, $m) ? html_entity_decode($m[0]) : null;
     }
 
+    /**
+     * Direct delivery to the mail server of the recipient's domain (MX), STARTTLS required with a verified
+     * certificate – no unencrypted fallback.
+     */
+    protected function sendDirect(Message $email, string $to): void
+    {
+        $domain = Str::after($to, '@');
+        $mx = [];
+        $weights = [];
+        getmxrr($domain, $mx, $weights) ?: $mx = [$domain];
+        array_multisort($weights, $mx);
+        $last = null;
+        foreach ($mx as $host) {
+            try {
+                $transport = new EsmtpTransport($host, 25, false);
+                $transport->setAutoTls(true);
+                $transport->setRequireTls(true);
+                $transport->send($email, Envelope::create($email));
+
+                return;
+            } catch (Throwable $e) {
+                $last = $e;
+            }
+        }
+        throw $last ?? new MailException("No mail server found for {$domain}");
+    }
+
     public function transport(?MailAccount $account): TransportInterface
     {
         if ($account === null) {
@@ -149,7 +183,7 @@ class Sender
             && ($account->rate_per_day === null || $count(1440) < $account->rate_per_day);
     }
 
-    private function copyToImap(MailAccount $account, Email $email, OutgoingMail $mail): void
+    private function copyToImap(MailAccount $account, Message $email, OutgoingMail $mail): void
     {
         try {
             $mailbox = new Mailbox([

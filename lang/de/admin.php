@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'nav' => ['people' => 'Personen', 'events' => 'Veranstaltungen', 'forms' => 'Formulare', 'communication' => 'Kommunikation'],
+    'nav' => ['people' => 'Personen', 'events' => 'Veranstaltungen', 'forms' => 'Formulare', 'communication' => 'Kommunikation', 'system' => 'System'],
     'person' => [
         'singular' => 'Person', 'plural' => 'Personen',
         'section_person' => 'Person', 'section_contacts' => 'Kontaktdaten',
@@ -50,6 +50,9 @@ return [
         ],
     ],
     'mail' => [
+        'delivery' => 'Zustellung', 'delivery_smtp' => 'Über SMTP-Server', 'delivery_direct' => 'Direkt an den Mailserver der Empfänger',
+        'dkim_hint' => 'Bei direkter Zustellung signiert Kasmin selbst mit DKIM. Beim Versand über einen SMTP-Server signiert meist der Anbieter; geben Sie dann dessen Selektor an, damit der DNS-Check ihn findet.', 'dkim_domain' => 'DKIM-Domain', 'dkim_selector' => 'DKIM-Selektor',
+        'dkim_generate' => 'DKIM-Schlüssel erzeugen', 'dkim_generate_hint' => 'Ein neuer Schlüssel ersetzt den bisherigen. Danach müssen Sie den angezeigten DNS-Eintrag setzen.', 'dkim_generated' => 'Schlüssel erzeugt – bitte diesen DNS-Eintrag setzen:',
         'account' => 'Mailkonto', 'account_plural' => 'Mailkonten',
         'sender_profile' => 'Absenderprofil', 'sender_profile_plural' => 'Absenderprofile',
         'template' => 'Mailvorlage', 'template_plural' => 'Mailvorlagen',
@@ -81,6 +84,7 @@ return [
         'kinds' => ['transactional' => 'Einzelmail', 'mailing' => 'Aussendung', 'newsletter' => 'Newsletter', 'notification' => 'Benachrichtigung'],
         'hints' => [
             'is_default' => 'Wird für Mails ohne eigenes Absenderprofil verwendet.',
+            'delivery' => 'Direkte Zustellung braucht offenen Port 25 und korrekte SPF/DKIM/DMARC-Einträge; auf normalem Webhosting ist ein SMTP-Server meist zuverlässiger.',
             'sent_folder' => 'Z. B. Sent oder Gesendet. Leer = keine Kopie.',
             'rate_limits' => 'Grenzen Ihres Mailanbieters; was darüber liegt, geht beim nächsten Durchlauf hinaus.',
             'sender_profile' => 'Leer = Standardkonto.',

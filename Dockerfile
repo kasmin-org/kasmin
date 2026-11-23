@@ -37,7 +37,8 @@ COPY --from=vendor /app /var/www/html
 COPY --from=assets /app/public/build /var/www/html/public/build
 RUN php artisan package:discover --ansi && chown -R www-data:www-data storage bootstrap/cache
 ARG KASMIN_VERSION=dev
-ENV KASMIN_VERSION=${KASMIN_VERSION}
+ENV KASMIN_VERSION=${KASMIN_VERSION} \
+    KASMIN_RUNTIME=docker
 LABEL org.opencontainers.image.source="https://github.com/kasmin-org/kasmin" \
       org.opencontainers.image.licenses="AGPL-3.0-only" \
       org.opencontainers.image.title="Kasmin"

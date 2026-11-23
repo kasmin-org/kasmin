@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'nav' => ['people' => 'People', 'events' => 'Events', 'forms' => 'Forms', 'communication' => 'Communication'],
+    'nav' => ['people' => 'People', 'events' => 'Events', 'forms' => 'Forms', 'communication' => 'Communication', 'system' => 'System'],
     'person' => [
         'singular' => 'Person', 'plural' => 'People',
         'section_person' => 'Person', 'section_contacts' => 'Contact data',
@@ -50,6 +50,9 @@ return [
         ],
     ],
     'mail' => [
+        'delivery' => 'Delivery', 'delivery_smtp' => 'Via SMTP server', 'delivery_direct' => 'Directly to the mail servers of the recipients',
+        'dkim_hint' => 'With direct delivery Kasmin signs with DKIM itself. When sending via an SMTP server the provider usually signs; enter its selector so the DNS check finds it.', 'dkim_domain' => 'DKIM domain', 'dkim_selector' => 'DKIM selector',
+        'dkim_generate' => 'Generate DKIM key', 'dkim_generate_hint' => 'A new key replaces the previous one. Then you have to publish the DNS record shown.', 'dkim_generated' => 'Key generated – please publish this DNS record:',
         'account' => 'Mail account', 'account_plural' => 'Mail accounts',
         'sender_profile' => 'Sender profile', 'sender_profile_plural' => 'Sender profiles',
         'template' => 'Mail template', 'template_plural' => 'Mail templates',
@@ -81,6 +84,7 @@ return [
         'kinds' => ['transactional' => 'Single mail', 'mailing' => 'Mailing', 'newsletter' => 'Newsletter', 'notification' => 'Notification'],
         'hints' => [
             'is_default' => 'Used for mails without their own sender profile.',
+            'delivery' => 'Direct delivery needs outgoing port 25 and correct SPF/DKIM/DMARC records; on ordinary web hosting an SMTP server is usually more reliable.',
             'sent_folder' => 'E.g. Sent. Empty = no copy.',
             'rate_limits' => 'Limits of your mail provider; anything above them goes out in the next run.',
             'sender_profile' => 'Empty = default account.',

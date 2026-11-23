@@ -9,4 +9,6 @@ Route::prefix('system')->group(function () {
     Route::post('/hooks/upgrade', [HookController::class, 'upgrade']);
     Route::post('/hooks/demo', [HookController::class, 'demo']);
     Route::match(['get', 'post'], '/cron', [HookController::class, 'cron']);
+    // Second step of the self-update (one-time token, valid 30 minutes).
+    Route::get('/update/finish', [HookController::class, 'finishUpdate']);
 });

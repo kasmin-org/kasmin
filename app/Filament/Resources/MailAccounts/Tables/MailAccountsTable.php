@@ -33,6 +33,12 @@ class MailAccountsTable
                         Notification::make()->title(__('admin.mail.test_failed'))->body($e->getMessage())->danger()->send();
                     }
                 }),
+            Action::make('dkim')->label(__('admin.mail.dkim_generate'))->icon('heroicon-o-key')->requiresConfirmation()
+                ->modalDescription(__('admin.mail.dkim_generate_hint'))
+                ->action(function (MailAccount $record) {
+                    $value = $record->generateDkimKey();
+                    Notification::make()->title(__('admin.mail.dkim_generated'))->body($record->dkim_selector.'._domainkey TXT "'.$value.'"')->persistent()->success()->send();
+                }),
             EditAction::make(),
         ]);
     }

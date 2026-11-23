@@ -45,21 +45,23 @@ class WaitlistOffer implements Action
     public function execute(Automation $automation, array $item, ?Event $event): string
     {
         $p = Participation::query()->with('event.roles', 'person.guardians', 'person.households')->find((int) substr($item['key'], 14));
-        if ($p === null || $p->status !== 'waitlist' || $p->event === null || $p->person === null) {
+        $person = $p?->person;
+        $e = $p?->event;
+        if ($p === null || $p->status !== 'waitlist' || $e === null || $person === null) {
             return 'skipped: no longer on the waitlist';
         }
-        $role = $p->event->roles->firstWhere('role_key', $p->role_key);
+        $role = $e->roles->firstWhere('role_key', $p->role_key);
         if ($role === null || ($role->bookableLeft() ?? 1) < 1) {
             return 'skipped: no free place';
         }
         $p->fill(['status' => 'offered', 'offer_expires_at' => now()->addDays((int) $automation->setting('offer_days', 7))->endOfDay()])->save();
         Audit::record('participation.offered', $p, null, ['until' => $p->offer_expires_at?->toIso8601String()]);
-        foreach ($p->person->guardians->all() ?: [$p->person] as $recipient) {
+        foreach ($person->guardians->all() ?: [$person] as $recipient) {
             app(Composer::class)->queue('waitlist_offer', $recipient, [
-                'event' => $p->event, 'participation' => $p, 'household' => $p->person->households->first(), 'children' => [$p->person],
+                'event' => $e, 'participation' => $p, 'household' => $person->households->first(), 'children' => [$person],
             ]);
         }
-        app(Notifier::class)->event('waitlist', __('automations.notify.offered', ['name' => $p->person->fullName(), 'event' => $p->event->title]), url('/admin/events/'.$p->event_id.'/edit'));
+        app(Notifier::class)->event('waitlist', __('automations.notify.offered', ['name' => $person->fullName(), 'event' => $e->title]), url('/admin/events/'.$p->event_id.'/edit'));
 
         return 'offered';
     }

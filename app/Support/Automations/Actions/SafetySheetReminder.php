@@ -5,7 +5,9 @@ namespace App\Support\Automations\Actions;
 use App\Models\Automation;
 use App\Models\Event;
 use App\Models\Form;
+use App\Models\Household;
 use App\Models\Participation;
+use App\Models\Person;
 use App\Support\Automations\Action;
 use App\Support\Automations\Families;
 use App\Support\Automations\Finishes;
@@ -65,13 +67,16 @@ class SafetySheetReminder implements Action, Finishes
             return;
         }
         foreach ($missing->groupBy(fn ($entry) => $entry[0]->id) as $entries) {
-            $e = $entries->first()[0];
+            $e = $entries->first()[0] ?? null;
+            if (! $e instanceof Event) {
+                continue;
+            }
             $names = $entries->flatMap(fn ($entry) => array_map(fn ($c) => $c->fullName(), $entry[1]['children']))->implode(', ');
             app(Notifier::class)->event('safety_updates', __('automations.notify.safety_missing', ['event' => $e->title, 'count' => $entries->count(), 'names' => $names]), url('/admin/events/'.$e->id.'/edit'));
         }
     }
 
-    /** @return Collection<string, array{0: Event, 1: array{household: \App\Models\Household|null, children: list<\App\Models\Person>, recipients: list<\App\Models\Person>, participations: list<Participation>}}> */
+    /** @return Collection<string, array{0: Event, 1: array{household: Household|null, children: list<Person>, recipients: list<Person>, participations: list<Participation>}}> */
     private function missing(Automation $automation, ?Event $event): Collection
     {
         $form = Form::query()->where('key', (string) $automation->setting('form', 'safety_sheet'))->where('active', true)->first();

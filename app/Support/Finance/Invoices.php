@@ -50,15 +50,17 @@ class Invoices
         $participations = Participation::query()->where('event_id', $event->id)
             ->whereIn('status', ['registered', 'confirmed', 'offered', 'attended'])->with(['person.guardians', 'person.households'])->get();
 
-        return $participations->groupBy(fn (Participation $p) => (string) ($p->person?->households->first()->id ?? 'p'.$p->person_id))
-            ->filter(function (Collection $group) use ($event, $installment) {
-                $household = $group->first()?->person?->households->first();
+        /** @var Collection<string, Collection<int, Participation>> $groups */
+        $groups = collect($participations->groupBy(fn (Participation $p) => (string) ($p->person?->households->first()->id ?? 'p'.$p->person_id))->all());
 
-                return ! Invoice::query()->where('event_id', $event->id)->where('installment_key', $installment->key)->where('type', 'invoice')
-                    ->whereNotIn('status', ['cancelled', 'corrected'])
-                    ->where(fn ($q) => $household ? $q->where('household_id', $household->id) : $q->whereHas('lines', fn ($l) => $l->whereIn('person_id', $group->pluck('person_id'))))
-                    ->exists();
-            });
+        return $groups->filter(function (Collection $group) use ($event, $installment) {
+            $household = $group->first()?->person?->households->first();
+
+            return ! Invoice::query()->where('event_id', $event->id)->where('installment_key', $installment->key)->where('type', 'invoice')
+                ->whereNotIn('status', ['cancelled', 'corrected'])
+                ->where(fn ($q) => $household ? $q->where('household_id', $household->id) : $q->whereHas('lines', fn ($l) => $l->whereIn('person_id', $group->pluck('person_id'))))
+                ->exists();
+        });
     }
 
     /**

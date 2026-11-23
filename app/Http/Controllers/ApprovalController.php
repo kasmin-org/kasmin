@@ -50,7 +50,7 @@ class ApprovalController extends Controller
         ]);
         $user = $model->user;
         if ($user->two_factor_confirmed_at !== null
-            && ! (new Google2FA)->verifyKey((string) $user->two_factor_secret, preg_replace('/\s+/', '', (string) ($data['code'] ?? '')), 1)) {
+            && ! (new Google2FA)->verifyKey((string) $user->two_factor_secret, (string) preg_replace('/\s+/', '', (string) ($data['code'] ?? '')), 1)) {
             return back()->withErrors(['code' => __('automations.approval.code_invalid')])->withInput();
         }
         try {

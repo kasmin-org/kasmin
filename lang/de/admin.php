@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'nav' => ['people' => 'Personen', 'events' => 'Veranstaltungen', 'forms' => 'Formulare', 'finance' => 'Finanzen', 'settings' => 'Einstellungen', 'communication' => 'Kommunikation', 'system' => 'System'],
+    'nav' => ['people' => 'Personen', 'events' => 'Veranstaltungen', 'forms' => 'Formulare', 'finance' => 'Finanzen', 'settings' => 'Einstellungen', 'automations' => 'Automatisierungen', 'communication' => 'Kommunikation', 'system' => 'System'],
     'finance' => [
         'price' => 'Preis', 'role_discount' => 'Rollen-Ermäßigung', 'role_discount_hint' => 'Z. B. für Nachwuchs-Betreuung. Ersetzt die Geschwisterermäßigung; die Person zählt trotzdem als Geschwisterkind.',
         'counts_as_sibling' => 'Zählt als Geschwisterkind', 'counts_as_sibling_hint' => 'Ob Anmeldungen dieser Rolle bei der Geschwisterermäßigung mitgezählt werden.',

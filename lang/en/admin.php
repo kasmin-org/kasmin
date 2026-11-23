@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'nav' => ['people' => 'People', 'events' => 'Events', 'forms' => 'Forms', 'finance' => 'Finance', 'settings' => 'Settings', 'communication' => 'Communication', 'system' => 'System'],
+    'nav' => ['people' => 'People', 'events' => 'Events', 'forms' => 'Forms', 'finance' => 'Finance', 'settings' => 'Settings', 'automations' => 'Automations', 'communication' => 'Communication', 'system' => 'System'],
     'finance' => [
         'price' => 'Price', 'role_discount' => 'Role discount', 'role_discount_hint' => 'E.g. for junior counsellors. Replaces the sibling discount; the person still counts as a sibling.',
         'counts_as_sibling' => 'Counts as sibling', 'counts_as_sibling_hint' => 'Whether registrations in this role are counted for the sibling discount.',

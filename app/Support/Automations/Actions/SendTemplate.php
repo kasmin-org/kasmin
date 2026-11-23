@@ -4,10 +4,13 @@ namespace App\Support\Automations\Actions;
 
 use App\Models\Automation;
 use App\Models\Event;
+use App\Models\Household;
 use App\Models\Participation;
+use App\Models\Person;
 use App\Support\Automations\Action;
 use App\Support\Automations\Families;
 use App\Support\Mail\Composer;
+use Illuminate\Support\Collection;
 
 /**
  * A09 and similar: a mail template to the participants of an event, one mail per family. Config: template,
@@ -50,7 +53,7 @@ class SendTemplate implements Action
         return $sent.' mail(s)';
     }
 
-    /** @return \Illuminate\Support\Collection<string, array{household: \App\Models\Household|null, children: list<\App\Models\Person>, recipients: list<\App\Models\Person>, participations: list<Participation>}> */
+    /** @return Collection<string, array{household: Household|null, children: list<Person>, recipients: list<Person>, participations: list<Participation>}> */
     private function families(Automation $automation, Event $event)
     {
         $statuses = (array) $automation->setting('statuses', ['registered', 'confirmed']);

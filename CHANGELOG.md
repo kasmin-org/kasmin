@@ -14,10 +14,18 @@ All notable changes to Kasmin are documented in this file. The format is based o
   English), payments by hand or CSV/XLSX bank import with automatic matching and suggestions, reminders before and
   after the due date, credit notes, invoices in the portal; organisation and invoice settings page; finance demo data.
 - `kasmin:login-link` prints a one-time login link (support, or before mail works).
+- Automations (0.7): triggers (by button, daily, before/after events, when a place becomes free), modes automatic /
+  approval required / manual, approval by e-mail with one-time links (decision only on the page, untick single
+  actions, second-factor code), reminder and expiry of requests, approvals inbox and run history, dry run, safety
+  limit; actions: waitlist offers with deadline (accept/decline in the portal), expiry of offers, invoice runs,
+  mails to participants, safety sheet reminders with interval and maximum, start season, close event, age notice;
+  standard automations (switched off) and the template "Place offered from the waitlist".
 
 ### Changed
 
 - All login links except the long-lived links in mails can now be used only once.
+- Demo deployment: concurrency per instance on the job level, so a skipped run cannot cancel a pending release
+  deployment.
 
 ## [0.5.0] - 2026-11-23
 

@@ -3,6 +3,7 @@
 return [
     'errors' => [
         'not_open' => 'Registration for this event is not possible at the moment.',
+        'no_offer' => 'There is no open offer for this place (any more).',
         'no_role' => 'Registration is not provided for this role.',
         'age' => 'The age does not match this event.',
         'already' => 'This person is already registered for this event.',

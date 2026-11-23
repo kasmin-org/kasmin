@@ -19,8 +19,9 @@ class Families
      */
     public static function group(Collection $participations, string $to = 'guardians'): Collection
     {
-        $participations->loadMissing('person.guardians', 'person.households');
-        $result = collect();
+        $participations = (new \Illuminate\Database\Eloquent\Collection($participations->all()))->loadMissing('person.guardians', 'person.households');
+        /** @var Collection<string, array{household: Household|null, children: list<Person>, recipients: list<Person>, participations: list<Participation>}> $result */
+        $result = new Collection;
         foreach ($participations as $p) {
             $person = $p->person;
             if ($person === null) {

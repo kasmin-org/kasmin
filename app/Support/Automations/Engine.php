@@ -65,6 +65,17 @@ class Engine
         if ($dedupe !== null && $automation->runs()->where('dedupe_key', $dedupe)->exists()) {
             return null;
         }
+        // One open request per automation and event: the scheduler waits for the decision; a manual run replaces it.
+        $open = $automation->runs()->where('status', 'pending_approval')->where('event_id', $event?->id)->where('expires_at', '>', now())->get();
+        if ($open->isNotEmpty()) {
+            if ($by === null) {
+                return null;
+            }
+            foreach ($open as $old) {
+                $old->forceFill(['status' => 'expired', 'comment' => 'replaced by a manual run'])->save();
+                $old->tokens()->whereNull('used_at')->update(['used_at' => now()]);
+            }
+        }
         $plan = $this->preview($automation, $event);
         if ($plan === []) {
             return null;

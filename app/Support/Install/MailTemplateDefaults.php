@@ -10,7 +10,7 @@ use App\Models\MailTemplate;
  */
 class MailTemplateDefaults
 {
-    public const VERSION = 2;
+    public const VERSION = 3;
 
     public function install(): void
     {
@@ -88,6 +88,13 @@ class MailTemplateDefaults
             ], [
                 'Payment received: invoice {{ invoice.number }}',
                 '<p>{{ salutation }}</p><p>thank you! We have received your payment of <strong>{{ invoice.paid }}</strong> for invoice <strong>{{ invoice.number }}</strong>{% if event %} ({{ event.title }}){% endif %}. The invoice is now paid in full.</p><p>Kind regards<br>{{ organisation.name }}</p>',
+            ]],
+            'waitlist_offer' => ['waitlist', 'guardians', ['de' => 'Platzangebot von der Warteliste', 'en' => 'Place offered from the waitlist'], [
+                'Ein Platz ist frei: {{ event.title }} für {{ registration.child }}',
+                '<p>{{ salutation }}</p><p>gute Nachrichten: Für <strong>{{ event.title }}</strong> ({{ event.starts_at }} – {{ event.ends_at }}) ist ein Platz frei geworden, und {{ registration.child }} ist als Nächstes an der Reihe.</p><p>Bitte nehmen Sie den Platz im Portal <strong>bis {{ registration.offer_until }}</strong> an oder sagen Sie ab. Ohne Antwort geht der Platz an die nächste Person auf der Warteliste.</p>'.$button('Platz annehmen oder absagen').'<p>Mit freundlichen Grüßen<br>{{ organisation.name }}</p>',
+            ], [
+                'A place is free: {{ event.title }} for {{ registration.child }}',
+                '<p>{{ salutation }}</p><p>good news: a place has become free for <strong>{{ event.title }}</strong> ({{ event.starts_at }} – {{ event.ends_at }}), and {{ registration.child }} is next in line.</p><p>Please accept or decline the place in the portal <strong>by {{ registration.offer_until }}</strong>. Without an answer the place goes to the next person on the waitlist.</p>'.$button('Accept or decline the place').'<p>Kind regards<br>{{ organisation.name }}</p>',
             ]],
             'newsletter' => ['newsletter', 'both', ['de' => 'Newsletter', 'en' => 'Newsletter'], [
                 'Neuigkeiten von {{ organisation.name }}',

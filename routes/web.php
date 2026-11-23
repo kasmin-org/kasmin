@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ApprovalController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\TwoFactorController;
 use App\Http\Controllers\InstallController;
@@ -33,6 +34,11 @@ Route::middleware('guest')->group(function () {
     Route::post('/login/link/{token}', [LoginController::class, 'consumeLink'])->middleware('throttle:10,1')->name('login.link.consume');
 });
 
+// Approval links of automations (AT03, AT04): the token is personal, one-time and expiring; GET only shows the plan.
+Route::get('/approvals/done', [ApprovalController::class, 'done'])->name('approvals.done');
+Route::get('/approvals/{token}', [ApprovalController::class, 'show'])->name('approvals.show');
+Route::post('/approvals/{token}', [ApprovalController::class, 'decide'])->middleware('throttle:10,1')->name('approvals.decide');
+
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
     Route::get('/two-factor', [TwoFactorController::class, 'show'])->name('two-factor');
@@ -47,6 +53,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/children/{child}', [PortalChildController::class, 'show'])->name('portal.child');
         Route::post('/children/{child}/register', [PortalChildController::class, 'register'])->name('portal.child.register');
         Route::post('/children/{child}/participations/{participation}/cancel', [PortalChildController::class, 'cancel'])->name('portal.child.cancel');
+        Route::post('/children/{child}/participations/{participation}/offer', [PortalChildController::class, 'answerOffer'])->name('portal.child.offer');
         Route::get('/children/{child}/forms/{form}', [PortalFormController::class, 'edit'])->name('portal.form.edit');
         Route::post('/children/{child}/forms/{form}', [PortalFormController::class, 'update'])->name('portal.form.update');
         Route::post('/children/{child}/forms/{form}/confirm', [PortalFormController::class, 'confirm'])->name('portal.form.confirm');

@@ -64,7 +64,8 @@ class Approvals
 
                 continue;
             }
-            $half = $run->created_at?->copy()->addSeconds((int) ($run->created_at->diffInSeconds($run->expires_at) / 2));
+            $created = $run->created_at;
+            $half = $created !== null && $run->expires_at !== null ? $created->copy()->addSeconds((int) ($created->diffInSeconds($run->expires_at) / 2)) : null;
             if ($run->reminded_at === null && $half !== null && $half->isPast()) {
                 $run->forceFill(['reminded_at' => now()])->save();
                 $this->request($run, true);

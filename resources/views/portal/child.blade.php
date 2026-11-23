@@ -28,11 +28,27 @@
                     <span class="rounded-full bg-kasmin-100 px-2 py-0.5 text-xs font-semibold">{{ __('events.status.'.$p->status) }}</span>
                 </div>
                 <p class="text-sm text-kasmin-700">{{ $p->event->starts_at->isoFormat('LL') }} – {{ $p->event->ends_at->isoFormat('LL') }}</p>
+                @if ($p->status === 'offered')
+                    <div class="mt-2 rounded-lg bg-summer-500/20 p-3 text-sm">
+                        <p class="font-semibold">{{ __('portal.offer_title') }}</p>
+                        <p>{{ __('portal.offer_text', ['date' => $p->offer_expires_at?->isoFormat('LLL') ?? '–']) }}</p>
+                        <div class="mt-2 grid gap-2 sm:grid-cols-2">
+                            <form method="post" action="{{ route('portal.child.offer', [$child->public_id, $p->id]) }}">
+                                @csrf<input type="hidden" name="answer" value="accept">
+                                <button class="w-full rounded-lg bg-kasmin-600 px-4 py-3 font-semibold text-white">{{ __('portal.offer_accept') }}</button>
+                            </form>
+                            <form method="post" action="{{ route('portal.child.offer', [$child->public_id, $p->id]) }}" onsubmit="return confirm('{{ __('portal.offer_decline_confirm') }}')">
+                                @csrf<input type="hidden" name="answer" value="decline">
+                                <button class="w-full rounded-lg bg-white px-4 py-3 font-semibold ring-1 ring-kasmin-200">{{ __('portal.offer_decline') }}</button>
+                            </form>
+                        </div>
+                    </div>
+                @endif
                 @if ($p->status === 'waitlist')
                     @php($role = $p->event->roles()->where('role_key', $p->role_key)->first())
                     <p class="mt-2 font-medium">{{ __('events.waitlist_position', ['position' => $p->waitlistPosition(), 'total' => $role?->waitlistLength()]) }}</p>
                 @endif
-                @if (! in_array($p->status, ['cancelled', 'declined', 'attended', 'no_show'], true))
+                @if (! in_array($p->status, ['cancelled', 'declined', 'attended', 'no_show', 'offered'], true))
                     <form method="post" action="{{ route('portal.child.cancel', [$child->public_id, $p->id]) }}" class="mt-2" onsubmit="return confirm('{{ __('portal.cancel_confirm') }}')">
                         @csrf<button class="text-sm underline">{{ __('portal.cancel') }}</button>
                     </form>

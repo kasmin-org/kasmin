@@ -17,12 +17,12 @@ class OfferExpiry implements Action
 {
     public function plan(Automation $automation, ?Event $event): array
     {
-        return Participation::query()->where('status', 'offered')->whereNotNull('offer_expires_at')->where('offer_expires_at', '<', now())
+        return array_values(Participation::query()->where('status', 'offered')->whereNotNull('offer_expires_at')->where('offer_expires_at', '<', now())
             ->when($event, fn ($q) => $q->where('event_id', $event?->id))->with('person', 'event')->get()
             ->map(fn (Participation $p) => [
                 'key' => 'participation:'.$p->id,
-                'label' => __('automations.items.offer_expired', ['name' => $p->person?->fullName(), 'event' => $p->event?->title, 'date' => $p->offer_expires_at?->isoFormat('L')]),
-            ])->values()->all();
+                'label' => (string) __('automations.items.offer_expired', ['name' => $p->person?->fullName(), 'event' => $p->event?->title, 'date' => $p->offer_expires_at?->isoFormat('L')]),
+            ])->all());
     }
 
     public function execute(Automation $automation, array $item, ?Event $event): string

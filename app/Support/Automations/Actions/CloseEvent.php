@@ -15,13 +15,13 @@ class CloseEvent implements Action
 {
     public function plan(Automation $automation, ?Event $event): array
     {
-        if ($event === null || $event->ends_at === null || $event->ends_at->isFuture()) {
+        if ($event === null || $event->ends_at->isFuture()) {
             return [];
         }
 
-        return Participation::query()->where('event_id', $event->id)->whereIn('status', ['registered', 'confirmed'])->with('person')->get()
-            ->map(fn (Participation $p) => ['key' => 'participation:'.$p->id, 'label' => __('automations.items.attended', ['name' => $p->person?->fullName()])])
-            ->values()->all();
+        return array_values(Participation::query()->where('event_id', $event->id)->whereIn('status', ['registered', 'confirmed'])->with('person')->get()
+            ->map(fn (Participation $p) => ['key' => 'participation:'.$p->id, 'label' => (string) __('automations.items.attended', ['name' => $p->person?->fullName()])])
+            ->all());
     }
 
     public function execute(Automation $automation, array $item, ?Event $event): string

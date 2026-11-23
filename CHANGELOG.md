@@ -6,6 +6,11 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ## [Unreleased]
 
+### Changed
+
+- Docker image now based on **Ubuntu 26.04 LTS** with Ubuntu's PHP 8.5 packages and Apache; `apt-get dist-upgrade`
+  during the build, apt caches removed afterwards.
+
 ## [0.4.0] - 2026-11-23
 
 First public pre-release for testing. Not ready for production use.

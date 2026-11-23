@@ -1,5 +1,4 @@
-# Production image of Kasmin: Apache + PHP, dependencies and built assets included.
-ARG PHP_VERSION=8.5
+# Production image of Kasmin: Ubuntu LTS with Apache + PHP, dependencies and built assets included.
 
 FROM node:24-slim AS assets
 WORKDIR /app
@@ -14,24 +13,21 @@ RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist --no-in
 COPY . .
 RUN composer dump-autoload --optimize --no-dev --no-scripts
 
-FROM php:${PHP_VERSION}-apache
-# Build the PHP extensions, then remove the build packages (headers, compilers) so the image only contains runtime
-# libraries; apt-get upgrade pulls the latest security fixes of the base image.
+FROM ubuntu:26.04
+# Ubuntu LTS with its own PHP packages (PHP 8.5 in 26.04; OPcache is built in). dist-upgrade pulls all security fixes at build time;
+# apt caches and package lists are removed afterwards to keep the image small.
+ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update \
- && apt-get upgrade -y \
- && savedAptMark="$(apt-mark showmanual)" \
- && apt-get install -y --no-install-recommends libicu-dev libzip-dev libpng-dev libjpeg-dev libfreetype6-dev \
- && docker-php-ext-configure gd --with-freetype --with-jpeg \
- && docker-php-ext-install -j"$(nproc)" pdo_mysql intl zip gd bcmath exif \
- && apt-mark auto '.*' > /dev/null && apt-mark manual $savedAptMark > /dev/null \
- && find /usr/local -type f -executable -exec ldd '{}' ';' 2>/dev/null | awk '/=>/ { so = $(NF-1); if (index(so, "/usr/local/") == 1) next; gsub("^/(usr/)?", "", so); print so }' \
-    | sort -u | xargs -r -n1 sh -c 'dpkg-query --search "$0" 2>/dev/null || true' | grep -v '^diversion' \
-    | cut -d: -f1 | tr ',' '\n' | tr -d ' ' | grep -v '^$' | sort -u | xargs -r apt-mark manual > /dev/null \
- && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
- && rm -rf /var/lib/apt/lists/* \
+ && apt-get dist-upgrade -y \
+ && apt-get install -y --no-install-recommends ca-certificates apache2 libapache2-mod-php8.5 \
+    php8.5-cli php8.5-mysql php8.5-sqlite3 php8.5-intl php8.5-zip php8.5-gd php8.5-bcmath php8.5-mbstring \
+    php8.5-xml php8.5-curl \
  && a2enmod rewrite headers \
  && sed -ri 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available/000-default.conf \
- && mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
+ && printf '<Directory /var/www/html/public>\n    AllowOverride All\n</Directory>\n' > /etc/apache2/conf-available/kasmin.conf && a2enconf kasmin \
+ && ln -sf /dev/stdout /var/log/apache2/access.log && ln -sf /dev/stderr /var/log/apache2/error.log \
+ && rm -rf /var/www/html/* \
+ && apt-get clean && rm -rf /var/lib/apt/lists/* /var/cache/apt/* /tmp/* /var/tmp/*
 WORKDIR /var/www/html
 COPY --from=vendor /app /var/www/html
 COPY --from=assets /app/public/build /var/www/html/public/build
@@ -42,3 +38,4 @@ LABEL org.opencontainers.image.source="https://github.com/kasmin-org/kasmin" \
       org.opencontainers.image.licenses="AGPL-3.0-only" \
       org.opencontainers.image.title="Kasmin"
 EXPOSE 80
+CMD ["apachectl", "-D", "FOREGROUND"]

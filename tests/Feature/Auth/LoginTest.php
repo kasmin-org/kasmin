@@ -73,8 +73,8 @@ class LoginTest extends TestCase
     public function test_cli_login_link_works_once_and_is_audited(): void
     {
         $user = User::query()->create(['name' => 'Robin', 'email' => 'robin@example.org', 'password' => 'x', 'person_id' => Person::factory()->create()->id]);
-        $this->artisan('kasmin:login-link', ['email' => 'nobody@example.org'])->assertExitCode(1);
-        $this->artisan('kasmin:login-link', ['email' => 'Robin@Example.org'])->assertExitCode(0);
+        $this->artisan('kasmin:login-link', ['email' => 'nobody@example.org'])->assertExitCode(1); // @phpstan-ignore method.nonObject
+        $this->artisan('kasmin:login-link', ['email' => 'Robin@Example.org'])->assertExitCode(0); // @phpstan-ignore method.nonObject
         $token = $user->loginTokens()->latest('id')->firstOrFail();
         $this->assertSame('cli', $token->purpose);
         $this->assertTrue(AuditEvent::query()->where('action', 'login.token_issued')->exists());

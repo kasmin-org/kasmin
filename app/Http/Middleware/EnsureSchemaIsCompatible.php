@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Providers\AppServiceProvider;
 use App\Support\Schema\SchemaGuard;
 use App\Support\Schema\SchemaStatus;
 use Closure;
@@ -31,6 +32,7 @@ class EnsureSchemaIsCompatible
             app()->forgetInstance('cache');
             app()->forgetInstance('cache.store');
             app()->forgetInstance(RateLimiter::class);
+            AppServiceProvider::defineRateLimiters();
 
             return $request->is('install') ? $next($request) : redirect('/install');
         }

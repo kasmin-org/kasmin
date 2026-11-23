@@ -9,3 +9,5 @@ Schedule::command('kasmin:mail:fetch')->everyFiveMinutes()->withoutOverlapping()
 Schedule::command('kasmin:notifications:digest')->dailyAt((string) config('kasmin.digest_time', '07:00'));
 Schedule::call(fn () => SystemStatus::heartbeat())->everyMinute()->name('kasmin-heartbeat');
 Schedule::command('kasmin:system:check')->hourly();
+Schedule::command('kasmin:invoices:remind')->dailyAt('09:00');
+Schedule::command('kasmin:automations:run')->hourlyAt(5)->withoutOverlapping();

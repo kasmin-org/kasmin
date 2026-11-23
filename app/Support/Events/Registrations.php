@@ -7,6 +7,7 @@ use App\Models\EventRole;
 use App\Models\Participation;
 use App\Models\Person;
 use App\Support\Audit\Audit;
+use App\Support\Automations\Engine;
 use App\Support\Mail\Composer;
 use App\Support\Mail\Notifier;
 use Illuminate\Support\Facades\DB;
@@ -16,9 +17,12 @@ use Illuminate\Support\Facades\DB;
  */
 class Registrations
 {
-    public function register(Event $event, Person $person, string $roleKey = 'child', ?Person $registeredBy = null): Participation
+    /**
+     * @param  bool  $force  team/automation registrations outside the registration period (age limits still apply)
+     */
+    public function register(Event $event, Person $person, string $roleKey = 'child', ?Person $registeredBy = null, bool $force = false): Participation
     {
-        if (! $event->isOpenForRegistration()) {
+        if (! $force && ! $event->isOpenForRegistration()) {
             throw RegistrationException::because('not_open');
         }
         $role = $event->roles()->where('role_key', $roleKey)->first();
@@ -94,7 +98,33 @@ class Registrations
 
     public function cancel(Participation $participation): Participation
     {
-        $participation->fill(['status' => 'cancelled'])->save();
+        $freed = in_array($participation->status, EventRole::OCCUPYING, true);
+        $participation->fill(['status' => 'cancelled', 'offer_expires_at' => null])->save();
+        if ($freed && $participation->event !== null) {
+            app(Engine::class)->placeFreed($participation->event);
+        }
+
+        return $participation;
+    }
+
+    /** The legal guardians accept or decline an offered place (A05). */
+    public function answerOffer(Participation $participation, bool $accept): Participation
+    {
+        if ($participation->status !== 'offered') {
+            throw RegistrationException::because('no_offer');
+        }
+        if ($accept) {
+            $participation->fill(['status' => $participation->event?->registration_binding === false ? 'requested' : 'registered', 'offer_expires_at' => null])->save();
+            Audit::record('participation.offer_accepted', $participation);
+            $this->confirm($participation->load(['event', 'person']));
+
+            return $participation;
+        }
+        $participation->fill(['status' => 'declined', 'offer_expires_at' => null])->save();
+        Audit::record('participation.offer_declined', $participation);
+        if ($participation->event !== null) {
+            app(Engine::class)->placeFreed($participation->event);
+        }
 
         return $participation;
     }

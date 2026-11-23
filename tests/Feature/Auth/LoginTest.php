@@ -70,6 +70,33 @@ class LoginTest extends TestCase
         $this->assertGuest();
     }
 
+    public function test_cli_login_link_works_once_and_is_audited(): void
+    {
+        $user = User::query()->create(['name' => 'Robin', 'email' => 'robin@example.org', 'password' => 'x', 'person_id' => Person::factory()->create()->id]);
+        $this->artisan('kasmin:login-link', ['email' => 'nobody@example.org'])->assertExitCode(1); // @phpstan-ignore method.nonObject
+        $this->artisan('kasmin:login-link', ['email' => 'Robin@Example.org'])->assertExitCode(0); // @phpstan-ignore method.nonObject
+        $token = $user->loginTokens()->latest('id')->firstOrFail();
+        $this->assertSame('cli', $token->purpose);
+        $this->assertTrue(AuditEvent::query()->where('action', 'login.token_issued')->exists());
+
+        // The plain token is only printed; issue a known one the same way to test the flow.
+        ['token' => $plain] = app(LoginLinks::class)->issue($user, 'cli');
+        $this->post('/login/link/'.$plain)->assertRedirect();
+        $this->assertAuthenticatedAs($user);
+        auth()->logout();
+        $this->post('/login/link/'.$plain)->assertRedirect('/login');
+        $this->assertGuest();
+    }
+
+    public function test_rate_limits_are_separate_per_purpose(): void
+    {
+        // Ten invalid link attempts must not block requesting a login link (own counter per purpose).
+        for ($i = 0; $i < 10; $i++) {
+            $this->post('/login/link/invalid-'.$i);
+        }
+        $this->post('/login', ['email' => 'nobody@example.org'])->assertRedirect('/login/code');
+    }
+
     public function test_code_login_and_brute_force_protection(): void
     {
         $user = $this->guardian();

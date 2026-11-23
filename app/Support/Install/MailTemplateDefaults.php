@@ -10,7 +10,7 @@ use App\Models\MailTemplate;
  */
 class MailTemplateDefaults
 {
-    public const VERSION = 1;
+    public const VERSION = 3;
 
     public function install(): void
     {
@@ -60,6 +60,41 @@ class MailTemplateDefaults
             ], [
                 'Information about {{ event.title }}',
                 '<p>{{ salutation }}</p><p>here is the most important information about <strong>{{ event.title }}</strong>:</p><ul><li>Start: {{ event.starts_at }}</li><li>End: {{ event.ends_at }}</li><li>Place: {{ event.location }}</li><li>Meeting point: {{ event.meeting_point }}</li></ul><p>Kind regards<br>{{ organisation.name }}</p>',
+            ]],
+            'invoice' => ['invoice', 'guardians', ['de' => 'Rechnung', 'en' => 'Invoice'], [
+                'Rechnung {{ invoice.number }}{% if event %} – {{ event.title }}{% endif %}',
+                '<p>{{ salutation }}</p><p>anbei erhalten Sie die Rechnung <strong>{{ invoice.number }}</strong>{% if event %} für {{ event.title }}{% endif %}{% if invoice.children %} ({{ invoice.children }}){% endif %} über <strong>{{ invoice.total }}</strong>.</p><p>Bitte überweisen Sie den Betrag bis <strong>{{ invoice.due_on }}</strong>{% if invoice.iban %} auf das Konto {{ invoice.iban }}{% endif %} mit dem Verwendungszweck <strong>{{ invoice.reference }}</strong>. Am einfachsten scannen Sie den QR-Code auf der Rechnung mit Ihrer Banking-App.</p><p>Die Rechnung finden Sie auch im Portal.</p>'.$button('Rechnung im Portal ansehen').'<p>Mit freundlichen Grüßen<br>{{ organisation.name }}</p>',
+            ], [
+                'Invoice {{ invoice.number }}{% if event %} – {{ event.title }}{% endif %}',
+                '<p>{{ salutation }}</p><p>please find attached invoice <strong>{{ invoice.number }}</strong>{% if event %} for {{ event.title }}{% endif %}{% if invoice.children %} ({{ invoice.children }}){% endif %} for <strong>{{ invoice.total }}</strong>.</p><p>Please transfer the amount by <strong>{{ invoice.due_on }}</strong>{% if invoice.iban %} to the account {{ invoice.iban }}{% endif %} with the reference <strong>{{ invoice.reference }}</strong>. The easiest way is to scan the QR code on the invoice with your banking app.</p><p>You can also find the invoice in the portal.</p>'.$button('View the invoice in the portal').'<p>Kind regards<br>{{ organisation.name }}</p>',
+            ]],
+            'payment_reminder' => ['reminder', 'guardians', ['de' => 'Zahlungserinnerung (vor Fälligkeit)', 'en' => 'Payment reminder (before due date)'], [
+                'Freundliche Erinnerung: Rechnung {{ invoice.number }} ist am {{ invoice.due_on }} fällig',
+                '<p>{{ salutation }}</p><p>eine kurze Erinnerung: Die Rechnung <strong>{{ invoice.number }}</strong> über <strong>{{ invoice.open }}</strong> ist am <strong>{{ invoice.due_on }}</strong> fällig. Verwendungszweck: <strong>{{ invoice.reference }}</strong>. Falls Sie bereits bezahlt haben, betrachten Sie diese Nachricht bitte als gegenstandslos.</p>'.$button('Rechnung im Portal ansehen').'<p>Mit freundlichen Grüßen<br>{{ organisation.name }}</p>',
+            ], [
+                'Friendly reminder: invoice {{ invoice.number }} is due on {{ invoice.due_on }}',
+                '<p>{{ salutation }}</p><p>a short reminder: invoice <strong>{{ invoice.number }}</strong> for <strong>{{ invoice.open }}</strong> is due on <strong>{{ invoice.due_on }}</strong>. Reference: <strong>{{ invoice.reference }}</strong>. If you have already paid, please disregard this message.</p>'.$button('View the invoice in the portal').'<p>Kind regards<br>{{ organisation.name }}</p>',
+            ]],
+            'payment_overdue' => ['reminder', 'guardians', ['de' => 'Zahlungserinnerung (überfällig)', 'en' => 'Payment reminder (overdue)'], [
+                'Zahlungserinnerung: Rechnung {{ invoice.number }}',
+                '<p>{{ salutation }}</p><p>laut unseren Unterlagen ist die Rechnung <strong>{{ invoice.number }}</strong> (fällig am {{ invoice.due_on }}) noch offen: <strong>{{ invoice.open }}</strong>. Bitte überweisen Sie den Betrag mit dem Verwendungszweck <strong>{{ invoice.reference }}</strong>{% if invoice.iban %} auf das Konto {{ invoice.iban }}{% endif %}. Wenn sich die Zahlung mit dieser Nachricht überschnitten hat oder Sie Fragen haben, antworten Sie einfach auf diese E-Mail.</p>'.$button('Rechnung im Portal ansehen').'<p>Mit freundlichen Grüßen<br>{{ organisation.name }}</p>',
+            ], [
+                'Payment reminder: invoice {{ invoice.number }}',
+                '<p>{{ salutation }}</p><p>according to our records, invoice <strong>{{ invoice.number }}</strong> (due on {{ invoice.due_on }}) is still open: <strong>{{ invoice.open }}</strong>. Please transfer the amount with the reference <strong>{{ invoice.reference }}</strong>{% if invoice.iban %} to the account {{ invoice.iban }}{% endif %}. If your payment crossed with this message or you have questions, simply reply to this e-mail.</p>'.$button('View the invoice in the portal').'<p>Kind regards<br>{{ organisation.name }}</p>',
+            ]],
+            'payment_confirmation' => ['invoice', 'guardians', ['de' => 'Zahlungsbestätigung', 'en' => 'Payment confirmation'], [
+                'Zahlung erhalten: Rechnung {{ invoice.number }}',
+                '<p>{{ salutation }}</p><p>vielen Dank! Wir haben Ihre Zahlung über <strong>{{ invoice.paid }}</strong> für die Rechnung <strong>{{ invoice.number }}</strong>{% if event %} ({{ event.title }}){% endif %} erhalten. Die Rechnung ist damit vollständig bezahlt.</p><p>Mit freundlichen Grüßen<br>{{ organisation.name }}</p>',
+            ], [
+                'Payment received: invoice {{ invoice.number }}',
+                '<p>{{ salutation }}</p><p>thank you! We have received your payment of <strong>{{ invoice.paid }}</strong> for invoice <strong>{{ invoice.number }}</strong>{% if event %} ({{ event.title }}){% endif %}. The invoice is now paid in full.</p><p>Kind regards<br>{{ organisation.name }}</p>',
+            ]],
+            'waitlist_offer' => ['waitlist', 'guardians', ['de' => 'Platzangebot von der Warteliste', 'en' => 'Place offered from the waitlist'], [
+                'Ein Platz ist frei: {{ event.title }} für {{ registration.child }}',
+                '<p>{{ salutation }}</p><p>gute Nachrichten: Für <strong>{{ event.title }}</strong> ({{ event.starts_at }} – {{ event.ends_at }}) ist ein Platz frei geworden, und {{ registration.child }} ist als Nächstes an der Reihe.</p><p>Bitte nehmen Sie den Platz im Portal <strong>bis {{ registration.offer_until }}</strong> an oder sagen Sie ab. Ohne Antwort geht der Platz an die nächste Person auf der Warteliste.</p>'.$button('Platz annehmen oder absagen').'<p>Mit freundlichen Grüßen<br>{{ organisation.name }}</p>',
+            ], [
+                'A place is free: {{ event.title }} for {{ registration.child }}',
+                '<p>{{ salutation }}</p><p>good news: a place has become free for <strong>{{ event.title }}</strong> ({{ event.starts_at }} – {{ event.ends_at }}), and {{ registration.child }} is next in line.</p><p>Please accept or decline the place in the portal <strong>by {{ registration.offer_until }}</strong>. Without an answer the place goes to the next person on the waitlist.</p>'.$button('Accept or decline the place').'<p>Kind regards<br>{{ organisation.name }}</p>',
             ]],
             'newsletter' => ['newsletter', 'both', ['de' => 'Newsletter', 'en' => 'Newsletter'], [
                 'Neuigkeiten von {{ organisation.name }}',

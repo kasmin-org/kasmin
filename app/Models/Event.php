@@ -18,6 +18,13 @@ use Illuminate\Support\Carbon;
  * @property string $status
  * @property bool $registration_binding
  * @property Carbon|null $age_reference_date
+ * @property string $currency
+ * @property string $sibling_mode
+ * @property int $sibling_amount_cents
+ * @property int|null $sibling_cap_position
+ * @property int $sibling_min_children
+ * @property string $sibling_order
+ * @property list<int>|null $reminder_days_before
  */
 class Event extends Model
 {
@@ -28,7 +35,7 @@ class Event extends Model
     protected $guarded = ['id', 'public_id'];
 
     /** Defaults like in the database, also before the model is reloaded. */
-    protected $attributes = ['status' => 'draft', 'registration_binding' => true];
+    protected $attributes = ['status' => 'draft', 'registration_binding' => true, 'currency' => 'EUR', 'sibling_mode' => 'none', 'sibling_amount_cents' => 0, 'sibling_min_children' => 2, 'sibling_order' => 'oldest'];
 
     /** @return list<string> */
     public function uniqueIds(): array
@@ -38,7 +45,7 @@ class Event extends Model
 
     protected function casts(): array
     {
-        return ['starts_at' => 'datetime', 'ends_at' => 'datetime', 'registration_binding' => 'boolean', 'age_reference_date' => 'date'];
+        return ['starts_at' => 'datetime', 'ends_at' => 'datetime', 'registration_binding' => 'boolean', 'age_reference_date' => 'date', 'reminder_days_before' => 'array'];
     }
 
     /** @return BelongsTo<EventSeries, $this> */
@@ -51,6 +58,12 @@ class Event extends Model
     public function roles(): HasMany
     {
         return $this->hasMany(EventRole::class);
+    }
+
+    /** @return HasMany<EventInstallment, $this> */
+    public function installments(): HasMany
+    {
+        return $this->hasMany(EventInstallment::class)->orderBy('sort');
     }
 
     /** @return HasMany<Participation, $this> */

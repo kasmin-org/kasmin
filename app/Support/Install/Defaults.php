@@ -49,6 +49,7 @@ class Defaults
         }
         app(FormDefaults::class)->install();
         app(MailTemplateDefaults::class)->install();
+        app(AutomationDefaults::class)->install();
 
         $sort = 0;
         foreach (self::MEMBERSHIP_TYPES as $key => $type) {

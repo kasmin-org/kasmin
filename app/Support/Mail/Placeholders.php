@@ -4,9 +4,11 @@ namespace App\Support\Mail;
 
 use App\Models\Event;
 use App\Models\Household;
+use App\Models\Invoice;
 use App\Models\Participation;
 use App\Models\Person;
 use App\Support\Auth\LoginLinks;
+use App\Support\Settings;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\URL;
@@ -21,7 +23,7 @@ class Placeholders
     public const ADULT_AGE = 18;
 
     /**
-     * @param  array{event?: Event|null, participation?: Participation|null, household?: Household|null, children?: list<Person>, login?: bool}  $about
+     * @param  array{event?: Event|null, participation?: Participation|null, household?: Household|null, invoice?: Invoice|null, children?: list<Person>, login?: bool}  $about
      * @return array<string, mixed>
      */
     public function for(Person $recipient, string $locale, array $about = []): array
@@ -35,6 +37,7 @@ class Placeholders
             'organisation' => ['name' => self::organisationName()],
             'event' => isset($about['event']) ? $this->event($about['event'], $locale) : null,
             'registration' => isset($about['participation']) ? $this->participation($about['participation'], $locale) : null,
+            'invoice' => isset($about['invoice']) ? $this->invoice($about['invoice'], $locale) : null,
             'links' => [
                 'portal' => route('portal'),
                 'login' => ($about['login'] ?? true) ? $this->loginLink($recipient) : route('login'),
@@ -55,7 +58,8 @@ class Placeholders
             'children' => [['first_name' => 'Kim', 'last_name' => 'Example', 'full_name' => 'Kim Example', 'age' => 10]],
             'organisation' => ['name' => 'Example Camp'],
             'event' => ['title' => 'Summer camp', 'starts_at' => '15.08.2027', 'ends_at' => '22.08.2027', 'location' => 'Example place', 'meeting_point' => 'Station'],
-            'registration' => ['status' => 'Waitlist', 'waitlist_position' => 3, 'waitlist_total' => 9, 'child' => 'Kim Example'],
+            'registration' => ['status' => 'Waitlist', 'waitlist_position' => 3, 'waitlist_total' => 9, 'child' => 'Kim Example', 'offer_until' => '20.03.2027 23:59'],
+            'invoice' => ['number' => 'R17', 'total' => '250,00 €', 'open' => '250,00 €', 'paid' => '0,00 €', 'due_on' => '01.06.2027', 'reference' => 'RF72R17', 'iban' => 'AT61 1904 3002 3457 3201', 'overdue' => false, 'children' => 'Kim Example'],
             'links' => ['portal' => 'https://example.org/portal', 'login' => 'https://example.org/login/link/x', 'preferences' => 'https://example.org/mail/preferences'],
         ];
     }
@@ -101,6 +105,24 @@ class Placeholders
     }
 
     /** @return array<string, mixed> */
+    private function invoice(Invoice $invoice, string $locale): array
+    {
+        $iban = strtoupper(str_replace(' ', '', (string) Settings::get('organisation_iban')));
+
+        return [
+            'number' => $invoice->number,
+            'total' => Invoice::money($invoice->total_cents, $invoice->currency),
+            'open' => Invoice::money($invoice->openCents(), $invoice->currency),
+            'paid' => Invoice::money($invoice->paid_cents, $invoice->currency),
+            'due_on' => $invoice->due_on ? $this->date($invoice->due_on, $locale, $locale === 'de' ? 'd.m.Y' : 'j F Y') : '',
+            'reference' => $invoice->reference,
+            'iban' => trim(chunk_split($iban, 4, ' ')),
+            'overdue' => $invoice->isOverdue(),
+            'children' => $invoice->lines->pluck('person')->filter()->unique('id')->map(fn (Person $p) => $p->fullName())->implode(', '),
+        ];
+    }
+
+    /** @return array<string, mixed> */
     private function participation(Participation $p, string $locale): array
     {
         $role = $p->event?->roles()->where('role_key', $p->role_key)->first();
@@ -110,6 +132,7 @@ class Placeholders
             'waitlist_position' => $p->waitlistPosition(),
             'waitlist_total' => $role?->waitlistLength(),
             'child' => $p->person?->fullName(),
+            'offer_until' => $p->offer_expires_at !== null ? $this->date($p->offer_expires_at, $locale, $locale === 'de' ? 'd.m.Y H:i' : 'j F Y, H:i') : '',
         ];
     }
 

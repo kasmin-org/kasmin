@@ -4,7 +4,10 @@ namespace App\Providers;
 
 use App\Support\Schema\SchemaGuard;
 use App\Support\Schema\SchemaStatus;
+use Illuminate\Cache\RateLimiter;
+use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Console\Events\CommandStarting;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use RuntimeException;
@@ -25,8 +28,20 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(SchemaGuard::class);
     }
 
+    /** Also called again when the limiter is re-created before installation (EnsureSchemaIsCompatible). */
+    public static function defineRateLimiters(): void
+    {
+        foreach (['install' => 10, 'preferences' => 10, 'register' => 5, 'login-send' => 5, 'login-code' => 10, 'login-link' => 10, 'approvals' => 10, 'two-factor' => 10] as $name => $perMinute) {
+            app(RateLimiter::class)->for($name, fn (Request $request) => Limit::perMinute($perMinute)->by($name.'|'.$request->ip()));
+        }
+    }
+
     public function boot(): void
     {
+        // Separate rate limits per purpose: anonymous "throttle:x,y" limits share one counter per IP across all
+        // routes, so e.g. using login links or approvals would block requesting a login link.
+        self::defineRateLimiters();
+
         Event::listen(CommandStarting::class, function (CommandStarting $event): void {
             $command = (string) $event->command;
 

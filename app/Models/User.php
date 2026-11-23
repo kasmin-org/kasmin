@@ -72,6 +72,23 @@ class User extends Authenticatable implements FilamentUser
         return Role::query()->whereIn('key', $this->person->activeRoleKeys())->where('requires_second_factor', true)->exists();
     }
 
+    /** @param  list<string>  $roles */
+    public function hasAnyRole(array $roles): bool
+    {
+        return $this->person !== null && array_intersect($this->person->activeRoleKeys(), $roles) !== [];
+    }
+
+    /** Finance (invoices, payments, bank import): administrators, board and treasurers; auditors read only. */
+    public function canManageFinance(): bool
+    {
+        return $this->hasAnyRole(['administrator', 'board', 'treasurer']);
+    }
+
+    public function canViewFinance(): bool
+    {
+        return $this->canManageFinance() || $this->hasAnyRole(['auditor']);
+    }
+
     public function canAccessPanel(Panel $panel): bool
     {
         return $panel->getId() === 'admin' && $this->isAdministrative();

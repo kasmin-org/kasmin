@@ -121,8 +121,8 @@ class Person extends Model
 
         /** @var list<string> $keys */
         $keys = $this->roleAssignments()
-            ->where(fn ($q) => $q->whereNull('starts_on')->orWhere('starts_on', '<=', $today))
-            ->where(fn ($q) => $q->whereNull('ends_on')->orWhere('ends_on', '>=', $today))
+            ->where(fn ($q) => $q->whereNull('starts_on')->orWhereDate('starts_on', '<=', $today))
+            ->where(fn ($q) => $q->whereNull('ends_on')->orWhereDate('ends_on', '>=', $today))
             ->join('roles', 'roles.id', '=', 'role_assignments.role_id')
             ->pluck('roles.key')->all();
 

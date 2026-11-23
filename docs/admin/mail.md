@@ -26,6 +26,7 @@ available):
 | `{{ family.name }}` | family |
 | `{{ event.title }}`, `.starts_at`, `.ends_at`, `.location`, `.meeting_point` | event |
 | `{{ registration.status }}`, `.waitlist_position`, `.waitlist_total`, `.child` | registration |
+| `{{ invoice.number }}`, `.total`, `.open`, `.paid`, `.due_on`, `.reference`, `.iban`, `.overdue`, `.children` | invoice (invoice, reminder and payment mails), see [Invoices](invoices.md) |
 | `{{ organisation.name }}` | your organisation |
 | `{{ links.login }}`, `{{ links.portal }}` | personal login link (limited, valid 30 days) and portal |
 

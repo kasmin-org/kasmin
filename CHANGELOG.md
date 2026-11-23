@@ -6,6 +6,40 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-11-23
+
+Pre-release for testing. Not ready for production use. Contains the milestones 0.6 (invoices and payments) and
+0.7 (automations); there is no separate 0.6.0 release.
+
+### Added
+
+- Invoices and payments (0.6): prices per role, payment plans with fixed and remaining instalments, sibling discounts
+  (staggered with cap or all siblings, oldest pays full) and role discounts; invoice runs per family, numbering and
+  RF creditor references, PDF with EPC QR code, invoice/reminder/payment confirmation templates (German and
+  English), payments by hand or CSV/XLSX bank import with automatic matching and suggestions, reminders before and
+  after the due date, credit notes, invoices in the portal; organisation and invoice settings page; finance demo data.
+- `kasmin:login-link` prints a one-time login link (support, or before mail works).
+- Automations (0.7): triggers (by button, daily, before/after events, when a place becomes free), modes automatic /
+  approval required / manual, approval by e-mail with one-time links (decision only on the page, untick single
+  actions, second-factor code), reminder and expiry of requests, approvals inbox and run history, dry run, safety
+  limit; actions: waitlist offers with deadline (accept/decline in the portal), expiry of offers, invoice runs,
+  mails to participants, safety sheet reminders with interval and maximum, start season, close event, age notice;
+  standard automations (switched off) and the template "Place offered from the waitlist".
+
+### Changed
+
+- All login links except the long-lived links in mails can now be used only once.
+### Fixed
+
+- Rate limits are counted per purpose (login link request, code, link, approvals, sign-up …); before, all shared one
+  counter per IP, so using links could block requesting a login link.
+- SQLite: roles that start today were not active yet (date compared as text); role periods are now compared as dates.
+
+### Changed (deployment)
+
+- Demo deployment: concurrency per instance on the job level, so a skipped run cannot cancel a pending release
+  deployment.
+
 ## [0.5.0] - 2026-11-23
 
 Pre-release for testing. Not ready for production use.
@@ -87,6 +121,7 @@ First public pre-release for testing. Not ready for production use.
 - Docker image: system packages updated and build packages removed after compiling the PHP extensions – the
   container scan reports no high or critical findings any more (previously 75 in Debian packages).
 
-[Unreleased]: https://github.com/kasmin-org/kasmin/compare/v0.5.0...develop
+[Unreleased]: https://github.com/kasmin-org/kasmin/compare/v0.7.0...develop
+[0.7.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.7.0
 [0.5.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.5.0
 [0.4.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.4.0

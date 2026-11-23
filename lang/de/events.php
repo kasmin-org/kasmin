@@ -2,6 +2,7 @@
 
 return [
     'errors' => [
+        'no_offer' => 'Für diesen Platz gibt es kein offenes Angebot (mehr).',
         'not_open' => 'Für diese Veranstaltung ist derzeit keine Anmeldung möglich.',
         'no_role' => 'Für diese Rolle ist keine Anmeldung vorgesehen.',
         'age' => 'Das Alter passt nicht zu dieser Veranstaltung.',

@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'nav' => ['people' => 'People', 'events' => 'Events'],
+    'nav' => ['people' => 'People', 'events' => 'Events', 'forms' => 'Forms'],
     'person' => [
         'singular' => 'Person', 'plural' => 'People',
         'section_person' => 'Person', 'section_contacts' => 'Contact data',
@@ -32,6 +32,23 @@ return [
     ],
     'series' => ['singular' => 'Event series', 'plural' => 'Event series'],
     'group' => ['singular' => 'Group', 'plural' => 'Groups'],
+    'form' => [
+        'singular' => 'Form', 'plural' => 'Forms', 'key' => 'Key', 'active' => 'Active', 'name' => 'Name', 'description' => 'Description',
+        'applies_until_age' => 'Applies until age', 'confirm_every_days' => 'Confirm every … days', 'family_emergency_contacts' => 'Show the family\'s emergency contacts',
+        'version' => 'Version', 'fields' => 'Fields', 'add_field' => 'Add field', 'type' => 'Type', 'label' => 'Label', 'help' => 'Help text (tooltip)',
+        'sensitivity' => 'Confidentiality', 'list_use' => 'Used in lists', 'required' => 'Required', 'carry_over' => 'Carry over to next year',
+        'choices' => 'Choices', 'choice_value' => 'Value', 'choice_label' => 'Label',
+        'types' => ['text' => 'Text', 'textarea' => 'Long text', 'select' => 'Choice', 'multiselect' => 'Multiple choice', 'yes_no' => 'Yes/no', 'date' => 'Date', 'year_or_no' => 'Year or no/unknown', 'phone' => 'Phone', 'email' => 'E-mail', 'none_or_text' => 'None or text', 'repeater' => 'Repeatable group', 'consent' => 'Consent'],
+        'sensitivities' => ['normal' => 'Normal', 'health' => 'Health (confidential)', 'identity' => 'ID/insurance number (confidential)'],
+        'lists' => ['kitchen' => 'Kitchen', 'medical' => 'Medical', 'insurance' => 'Insurance', 'emergency' => 'Emergency'],
+        'hints' => [
+            'applies_until_age' => 'From this age the form is no longer requested or shown (safety sheet: 16).',
+            'confirm_every_days' => 'After this time the information has to be confirmed again (e.g. 365 = yearly).',
+            'family_emergency_contacts' => 'Shows the legal guardians and the family\'s further emergency contacts on top.',
+            'sensitivity' => 'Confidential fields never appear in e-mails, notifications or logs and are visible only to authorised roles.',
+            'carry_over' => 'Off: the field is empty again at the next yearly confirmation (e.g. "other notes for this year").',
+        ],
+    ],
     'genders' => ['female' => 'female', 'male' => 'male', 'diverse' => 'diverse', 'unspecified' => 'not specified'],
     'purposes' => ['login' => 'Login', 'information' => 'Information', 'invoices' => 'Invoices', 'emergency' => 'Emergency'],
 ];

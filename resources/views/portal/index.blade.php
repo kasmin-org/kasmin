@@ -28,6 +28,9 @@
                     <li>{{ $guardian->fullName() }}</li>
                 @endforeach
             </ul>
+            @if ($household->members->where('pivot.role', 'guardian')->contains('id', $person?->id))
+                <a href="{{ route('portal.emergency', $household->public_id) }}" class="mt-2 inline-block text-sm underline">{{ __('forms.emergency_contacts') }}</a>
+            @endif
         </section>
     @empty
         <p>{{ __('portal.no_family') }}</p>

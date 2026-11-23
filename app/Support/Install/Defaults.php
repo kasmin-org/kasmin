@@ -47,6 +47,8 @@ class Defaults
         if ($defaults === 'none') {
             return;
         }
+        app(FormDefaults::class)->install();
+
         $sort = 0;
         foreach (self::MEMBERSHIP_TYPES as $key => $type) {
             MembershipType::query()->firstOrCreate(['key' => $key], [

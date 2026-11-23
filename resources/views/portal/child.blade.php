@@ -7,6 +7,18 @@
     <h1 class="text-2xl font-semibold">{{ $child->fullName() }}</h1>
     <p class="mb-6 text-sm text-kasmin-700">{{ $child->birth_date?->isoFormat('LL') }} · {{ __('portal.age', ['age' => $child->ageAt()]) }}</p>
 
+    @if ($forms->isNotEmpty())
+        <h2 class="mb-2 text-lg font-semibold">{{ __('forms.title') }}</h2>
+        <div class="mb-6 grid gap-3">
+            @foreach ($forms as $item)
+                <a href="{{ route('portal.form.edit', [$child->public_id, $item['form']->key]) }}" class="flex items-center justify-between gap-2 rounded-xl border border-kasmin-100 p-4 hover:border-kasmin-500">
+                    <span class="font-semibold">{{ $item['form']->label() }}</span>
+                    <span class="rounded-full px-2 py-0.5 text-xs font-semibold {{ $item['status'] === 'confirmed' ? 'bg-kasmin-100' : 'bg-summer-500/30' }}">{{ __('forms.status.'.$item['status']) }}</span>
+                </a>
+            @endforeach
+        </div>
+    @endif
+
     <h2 class="mb-2 text-lg font-semibold">{{ __('portal.registrations') }}</h2>
     <div class="mb-6 grid gap-3">
         @forelse ($participations as $p)

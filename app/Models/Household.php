@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * A family / household: billing and mailing unit with legal guardians and children.
@@ -45,6 +46,12 @@ class Household extends Model
     public function children(): BelongsToMany
     {
         return $this->members()->wherePivot('role', 'child');
+    }
+
+    /** @return HasMany<HouseholdEmergencyContact, $this> */
+    public function emergencyContacts(): HasMany
+    {
+        return $this->hasMany(HouseholdEmergencyContact::class)->orderBy('sort');
     }
 
     /** @return BelongsTo<Person, $this> */

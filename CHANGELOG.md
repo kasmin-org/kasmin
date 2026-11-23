@@ -37,3 +37,10 @@ All notable changes to Kasmin are documented in this file. The format is based o
 - Public sign-up for legal guardians (name, e-mail, privacy consent, honeypot) with login link; portal: add
   children, see matching open events, register or join the waitlist, cancel.
 - Demo data now includes a camp series and an alumni series with an open camp and a waitlist.
+- Form builder for person forms (12 field types, labels and help texts in German and English, confidentiality,
+  carry-over, list use, versions); default safety sheet (until 16, yearly confirmation) and general information
+  (T-shirt size, need for new T-shirts).
+- Safety sheet in the portal: pre-filled, one-click confirmation of unchanged data, history of changed fields;
+  family-wide emergency contacts after the legal guardians.
+- Encrypted answers; confidential values never in the audit log; safety data in the admin interface only for the
+  safety role and administrators, with logged views.

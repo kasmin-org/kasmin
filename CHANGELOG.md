@@ -26,6 +26,8 @@ All notable changes to Kasmin are documented in this file. The format is based o
 - All login links except the long-lived links in mails can now be used only once.
 ### Fixed
 
+- Rate limits are counted per purpose (login link request, code, link, approvals, sign-up …); before, all shared one
+  counter per IP, so using links could block requesting a login link.
 - SQLite: roles that start today were not active yet (date compared as text); role periods are now compared as dates.
 
 ### Changed (deployment)

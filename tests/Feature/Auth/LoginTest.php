@@ -88,6 +88,15 @@ class LoginTest extends TestCase
         $this->assertGuest();
     }
 
+    public function test_rate_limits_are_separate_per_purpose(): void
+    {
+        // Ten invalid link attempts must not block requesting a login link (own counter per purpose).
+        for ($i = 0; $i < 10; $i++) {
+            $this->post('/login/link/invalid-'.$i);
+        }
+        $this->post('/login', ['email' => 'nobody@example.org'])->assertRedirect('/login/code');
+    }
+
     public function test_code_login_and_brute_force_protection(): void
     {
         $user = $this->guardian();

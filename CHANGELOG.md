@@ -14,3 +14,6 @@ All notable changes to Kasmin are documented in this file. The format is based o
 - Production Docker image (Apache + PHP 8.5) and CI pipeline: code style, static analysis, composer audit, tests on
   PHP 8.3–8.5 with MariaDB and MySQL (8.6 experimental), Semgrep, Trivy container scan, GUI tests with Playwright
   on phone and desktop, Docker images per branch, commit and release, coverage and security badges.
+- Database version lock: Kasmin stops if the database is newer than the code; `kasmin:upgrade` (with PHP-only
+  database backup and lock) and `kasmin:status`; backward migration commands disabled in production.
+- Release packages: installable ZIP with checksum for every release tag and a rolling development build per branch.

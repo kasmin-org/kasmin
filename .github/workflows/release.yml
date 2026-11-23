@@ -1,0 +1,73 @@
+name: Release packages
+
+# Builds the installable ZIP (with vendor/ and built assets) that the bootstrap installer downloads:
+# - for every release tag vMAJOR.MINOR.PATCH: a GitHub release with notes from CHANGELOG.md
+# - for every branch push: a rolling pre-release "dev-<branch>" that is replaced on each push (development mode)
+
+on:
+  push:
+    branches: ["**"]
+    tags: ["v*.*.*"]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with: { php-version: "8.3", extensions: "intl, zip, gd, bcmath", coverage: none }
+      - uses: actions/setup-node@v4
+        with: { node-version: "24" }
+      - name: Determine version
+        id: v
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+            echo "release=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+            echo "prerelease=$([[ "$GITHUB_REF_NAME" == *-* ]] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+          else
+            slug=$(echo "$GITHUB_REF_NAME" | tr '/' '-' | tr -cd 'A-Za-z0-9._-')
+            echo "version=$(cat VERSION)+${slug}.${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+            echo "release=dev-${slug}" >> "$GITHUB_OUTPUT"
+            echo "prerelease=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Build package
+        run: |
+          echo "${{ steps.v.outputs.version }}" > VERSION
+          composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader --no-scripts
+          npm ci --ignore-scripts --no-audit --no-fund && npm run build
+          rm -rf node_modules
+          name="kasmin-${{ steps.v.outputs.release }}"
+          mkdir -p /tmp/pkg
+          zip -qr "/tmp/pkg/${name}.zip" . \
+            -x ".git/*" ".github/*" "tests/*" "docker/dev/*" "compose.dev.yaml" "playwright.config.ts" \
+               ".env" "database/*.sqlite" "storage/logs/*" "storage/framework/cache/data/*" \
+               "storage/framework/sessions/*" "storage/framework/views/*" "bootstrap/cache/*.php"
+          cd /tmp/pkg && sha256sum "${name}.zip" > "${name}.zip.sha256"
+      - name: Release notes
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            awk -v v="${{ steps.v.outputs.version }}" '
+              $0 ~ "^## \\[" v "\\]" {p=1; next} p && /^## \[/ {exit} p {print}' CHANGELOG.md > /tmp/notes.md
+          else
+            printf 'Rolling development build of branch `%s` (commit %s). Not for production. Replaced on every push.\n' \
+              "$GITHUB_REF_NAME" "${GITHUB_SHA::7}" > /tmp/notes.md
+          fi
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.v.outputs.release }}
+        run: |
+          if [[ "$GITHUB_REF" != refs/tags/v* ]]; then
+            gh release delete "$TAG" --yes --cleanup-tag 2>/dev/null || true
+            git tag -f "$TAG" "$GITHUB_SHA" && git push -f origin "refs/tags/$TAG"
+          fi
+          flags=""; [ "${{ steps.v.outputs.prerelease }}" = "true" ] && flags="--prerelease"
+          gh release create "$TAG" /tmp/pkg/* --title "$TAG" --notes-file /tmp/notes.md --verify-tag $flags

@@ -190,6 +190,7 @@ jobs:
             -e DB_CONNECTION=sqlite -e DB_DATABASE=/tmp/kasmin.sqlite \
             -e SESSION_DRIVER=file -e CACHE_STORE=file kasmin:ci
           for i in $(seq 1 30); do curl -sf http://127.0.0.1:8080/up && break; sleep 1; done
+          docker exec -u www-data kasmin sh -c 'touch /tmp/kasmin.sqlite && php artisan kasmin:install --organisation="Demo Camp" --locale=en --defaults=en --admin-name="Alex Admin" --admin-email=admin@example.org && php artisan kasmin:demo --locale=en --families=5 --staff=3 --force'
       - uses: actions/setup-node@v4
         with: { node-version: "24" }
       - run: npm ci --ignore-scripts --no-audit --no-fund

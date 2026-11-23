@@ -1,0 +1,28 @@
+<?php
+
+return [
+    'title' => 'Log in',
+    'intro' => 'Enter your e-mail address. You will receive a login link and a code – no password needed.',
+    'email' => 'E-mail address',
+    'send' => 'Send login link',
+    'sent' => 'If we know this address, we have sent you a login link and a code.',
+    'code_title' => 'Enter code',
+    'code_intro' => 'Click the link in the e-mail or enter the six-digit code here.',
+    'code' => 'Code',
+    'continue' => 'Continue',
+    'new_link' => 'Request a new login link',
+    'link_title' => 'Confirm login',
+    'link_intro' => 'Tap "Continue" to log in.',
+    'invalid_title' => 'Link no longer valid',
+    'invalid' => 'This login link has expired or was already used.',
+    'wrong_code' => 'The code is wrong or has expired.',
+    'mail_subject' => 'Your login link for :app',
+    'mail_greeting' => 'Hello :name,',
+    'mail_intro' => 'use this link to log in:',
+    'mail_button' => 'Log in now',
+    'mail_code' => 'Or enter this code: :code',
+    'mail_validity' => 'The link is valid for :minutes minutes and can be used once. If you did not request a login, you can ignore this e-mail.',
+    'tf_title' => 'Second factor',
+    'tf_setup' => 'Your role requires a second factor. Scan the QR code with an authenticator app and enter the code it shows.',
+    'tf_challenge' => 'Enter the code from your authenticator app.',
+];

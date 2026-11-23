@@ -1,0 +1,28 @@
+<?php
+
+return [
+    'title' => 'Anmelden',
+    'intro' => 'Geben Sie Ihre E-Mail-Adresse ein. Sie erhalten einen Anmeldelink und einen Code – ein Passwort ist nicht nötig.',
+    'email' => 'E-Mail-Adresse',
+    'send' => 'Anmeldelink senden',
+    'sent' => 'Wenn diese Adresse bei uns bekannt ist, haben wir Ihnen einen Anmeldelink und einen Code geschickt.',
+    'code_title' => 'Code eingeben',
+    'code_intro' => 'Klicken Sie auf den Link in der E-Mail oder geben Sie hier den sechsstelligen Code ein.',
+    'code' => 'Code',
+    'continue' => 'Weiter',
+    'new_link' => 'Neuen Anmeldelink anfordern',
+    'link_title' => 'Anmeldung bestätigen',
+    'link_intro' => 'Tippen Sie auf „Weiter“, um sich anzumelden.',
+    'invalid_title' => 'Link nicht mehr gültig',
+    'invalid' => 'Dieser Anmeldelink ist abgelaufen oder wurde schon verwendet.',
+    'wrong_code' => 'Der Code ist falsch oder abgelaufen.',
+    'mail_subject' => 'Ihr Anmeldelink für :app',
+    'mail_greeting' => 'Guten Tag :name,',
+    'mail_intro' => 'mit diesem Link melden Sie sich an:',
+    'mail_button' => 'Jetzt anmelden',
+    'mail_code' => 'Oder geben Sie diesen Code ein: :code',
+    'mail_validity' => 'Der Link ist :minutes Minuten gültig und kann einmal verwendet werden. Wenn Sie keine Anmeldung angefordert haben, können Sie diese E-Mail ignorieren.',
+    'tf_title' => 'Zweiter Faktor',
+    'tf_setup' => 'Für Ihre Rolle ist ein zweiter Faktor nötig. Scannen Sie den QR-Code mit einer Authenticator-App und geben Sie den angezeigten Code ein.',
+    'tf_challenge' => 'Geben Sie den Code aus Ihrer Authenticator-App ein.',
+];

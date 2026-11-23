@@ -15,10 +15,19 @@ COPY . .
 RUN composer dump-autoload --optimize --no-dev --no-scripts
 
 FROM php:${PHP_VERSION}-apache
+# Build the PHP extensions, then remove the build packages (headers, compilers) so the image only contains runtime
+# libraries; apt-get upgrade pulls the latest security fixes of the base image.
 RUN apt-get update \
+ && apt-get upgrade -y \
+ && savedAptMark="$(apt-mark showmanual)" \
  && apt-get install -y --no-install-recommends libicu-dev libzip-dev libpng-dev libjpeg-dev libfreetype6-dev \
  && docker-php-ext-configure gd --with-freetype --with-jpeg \
  && docker-php-ext-install -j"$(nproc)" pdo_mysql intl zip gd bcmath exif \
+ && apt-mark auto '.*' > /dev/null && apt-mark manual $savedAptMark > /dev/null \
+ && find /usr/local -type f -executable -exec ldd '{}' ';' 2>/dev/null | awk '/=>/ { so = $(NF-1); if (index(so, "/usr/local/") == 1) next; gsub("^/(usr/)?", "", so); print so }' \
+    | sort -u | xargs -r -n1 sh -c 'dpkg-query --search "$0" 2>/dev/null || true' | grep -v '^diversion' \
+    | cut -d: -f1 | tr ',' '\n' | tr -d ' ' | grep -v '^$' | sort -u | xargs -r apt-mark manual > /dev/null \
+ && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
  && rm -rf /var/lib/apt/lists/* \
  && a2enmod rewrite headers \
  && sed -ri 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available/000-default.conf \

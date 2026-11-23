@@ -24,7 +24,7 @@ class DemoData
     /**
      * @return array{households: int, people: int}
      */
-    public function generate(string $locale = 'de', int $families = 30, int $staff = 15, int $seed = 2026): array
+    public function generate(string $locale = 'de', int $families = 30, int $staff = 15, int $seed = 2026, string $emailDomain = 'example.org'): array
     {
         $this->faker = Faker::create($locale === 'en' ? 'en_GB' : 'de_AT');
         $this->faker->seed($seed);
@@ -44,7 +44,7 @@ class DemoData
             $guardians = [];
             foreach (range(1, $this->faker->numberBetween(1, 2)) as $g) {
                 $guardian = $this->person($this->faker->firstName(), $g === 1 ? $lastName : $this->faker->randomElement([$lastName, $this->faker->lastName()]), $this->faker->dateTimeBetween('-55 years', '-30 years'), $locale);
-                $email = Str::lower(Str::ascii($guardian->first_name.'.'.$guardian->last_name)).$i.'@example.org';
+                $email = Str::lower(Str::ascii($guardian->first_name.'.'.$guardian->last_name)).$i.'@'.$emailDomain;
                 $guardian->contactPoints()->create(['type' => 'email', 'value' => $email, 'purposes' => ['login', 'information', 'invoices'], 'is_primary' => true]);
                 $guardian->contactPoints()->create(['type' => 'phone', 'value' => $this->faker->phoneNumber(), 'purposes' => ['emergency']]);
                 User::query()->create(['name' => $guardian->fullName(), 'email' => $email, 'password' => Str::password(64), 'person_id' => $guardian->id]);
@@ -69,7 +69,7 @@ class DemoData
         $counsellor = Role::query()->where('key', 'counsellor')->value('id');
         for ($i = 0; $i < $staff; $i++) {
             $person = $this->person($this->faker->firstName(), $this->faker->lastName(), $this->faker->dateTimeBetween('-35 years', '-16 years'), $locale);
-            $email = Str::lower(Str::ascii($person->first_name.'.'.$person->last_name)).'.team'.$i.'@example.org';
+            $email = Str::lower(Str::ascii($person->first_name.'.'.$person->last_name)).'.team'.$i.'@'.$emailDomain;
             $person->contactPoints()->create(['type' => 'email', 'value' => $email, 'purposes' => ['login', 'information'], 'is_primary' => true]);
             User::query()->create(['name' => $person->fullName(), 'email' => $email, 'password' => Str::password(64), 'person_id' => $person->id]);
             if (isset($types['regular'])) {

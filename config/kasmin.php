@@ -10,4 +10,19 @@ return [
      * Directory for automatic database backups before upgrades (relative to storage/app).
      */
     'backup_path' => env('KASMIN_BACKUP_PATH', 'backups'),
+
+    /*
+     * Token for the HTTP hooks (upgrade after deployment, web cron, demo set-up). Hooks are disabled when empty.
+     */
+    'hook_token' => env('KASMIN_HOOK_TOKEN'),
+
+    /*
+     * Demo instances (APP_ENV=demo): language of the demo data, first administrator and e-mail domain of the
+     * fictitious people (a catch-all mailbox makes their login links readable).
+     */
+    'demo' => [
+        'locale' => env('KASMIN_DEMO_LOCALE', 'en'),
+        'admin_email' => env('KASMIN_DEMO_ADMIN_EMAIL', 'admin@example.org'),
+        'email_domain' => env('KASMIN_DEMO_EMAIL_DOMAIN', 'example.org'),
+    ],
 ];

@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'nav' => ['people' => 'Personen', 'events' => 'Veranstaltungen'],
+    'nav' => ['people' => 'Personen', 'events' => 'Veranstaltungen', 'forms' => 'Formulare'],
     'person' => [
         'singular' => 'Person', 'plural' => 'Personen',
         'section_person' => 'Person', 'section_contacts' => 'Kontaktdaten',
@@ -32,6 +32,23 @@ return [
     ],
     'series' => ['singular' => 'Veranstaltungsreihe', 'plural' => 'Veranstaltungsreihen'],
     'group' => ['singular' => 'Gruppe', 'plural' => 'Gruppen'],
+    'form' => [
+        'singular' => 'Formular', 'plural' => 'Formulare', 'key' => 'Schlüssel', 'active' => 'Aktiv', 'name' => 'Name', 'description' => 'Beschreibung',
+        'applies_until_age' => 'Gilt bis zum Alter', 'confirm_every_days' => 'Bestätigen alle … Tage', 'family_emergency_contacts' => 'Notfallkontakte der Familie anzeigen',
+        'version' => 'Version', 'fields' => 'Felder', 'add_field' => 'Feld hinzufügen', 'type' => 'Typ', 'label' => 'Bezeichnung', 'help' => 'Hilfetext (Tooltip)',
+        'sensitivity' => 'Vertraulichkeit', 'list_use' => 'Verwendung in Listen', 'required' => 'Pflichtfeld', 'carry_over' => 'Ins nächste Jahr übernehmen',
+        'choices' => 'Auswahlmöglichkeiten', 'choice_value' => 'Wert', 'choice_label' => 'Bezeichnung',
+        'types' => ['text' => 'Text', 'textarea' => 'Langer Text', 'select' => 'Auswahl', 'multiselect' => 'Mehrfachauswahl', 'yes_no' => 'Ja/Nein', 'date' => 'Datum', 'year_or_no' => 'Jahr oder nein/unbekannt', 'phone' => 'Telefon', 'email' => 'E-Mail', 'none_or_text' => 'Keine oder Text', 'repeater' => 'Wiederholbare Gruppe', 'consent' => 'Einwilligung'],
+        'sensitivities' => ['normal' => 'Normal', 'health' => 'Gesundheit (vertraulich)', 'identity' => 'Ausweis-/Versicherungsnummer (vertraulich)'],
+        'lists' => ['kitchen' => 'Küche', 'medical' => 'Medizin', 'insurance' => 'Versicherung', 'emergency' => 'Notfall'],
+        'hints' => [
+            'applies_until_age' => 'Ab diesem Alter wird das Formular nicht mehr verlangt und nicht mehr angezeigt (Sicherheitsblatt: 16).',
+            'confirm_every_days' => 'Nach dieser Zeit müssen die Angaben neu bestätigt werden (z. B. 365 = jährlich).',
+            'family_emergency_contacts' => 'Zeigt oben die Erziehungsberechtigten und die weiteren Notfallkontakte der Familie.',
+            'sensitivity' => 'Vertrauliche Felder erscheinen nie in E-Mails, Benachrichtigungen oder Protokollen und sind nur für berechtigte Rollen sichtbar.',
+            'carry_over' => 'Aus: Das Feld ist bei der nächsten jährlichen Bestätigung wieder leer (z. B. „Sonstiges für dieses Jahr“).',
+        ],
+    ],
     'genders' => ['female' => 'weiblich', 'male' => 'männlich', 'diverse' => 'divers', 'unspecified' => 'keine Angabe'],
     'purposes' => ['login' => 'Anmeldung', 'information' => 'Informationen', 'invoices' => 'Rechnungen', 'emergency' => 'Notfall'],
 ];

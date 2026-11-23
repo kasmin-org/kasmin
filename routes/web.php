@@ -5,6 +5,7 @@ use App\Http\Controllers\Auth\TwoFactorController;
 use App\Http\Controllers\InstallController;
 use App\Http\Controllers\PortalChildController;
 use App\Http\Controllers\PortalController;
+use App\Http\Controllers\PortalFormController;
 use App\Http\Controllers\PublicRegistrationController;
 use App\Http\Middleware\RequireSecondFactor;
 use Illuminate\Support\Facades\Route;
@@ -38,5 +39,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/children/{child}', [PortalChildController::class, 'show'])->name('portal.child');
         Route::post('/children/{child}/register', [PortalChildController::class, 'register'])->name('portal.child.register');
         Route::post('/children/{child}/participations/{participation}/cancel', [PortalChildController::class, 'cancel'])->name('portal.child.cancel');
+        Route::get('/children/{child}/forms/{form}', [PortalFormController::class, 'edit'])->name('portal.form.edit');
+        Route::post('/children/{child}/forms/{form}', [PortalFormController::class, 'update'])->name('portal.form.update');
+        Route::post('/children/{child}/forms/{form}/confirm', [PortalFormController::class, 'confirm'])->name('portal.form.confirm');
+        Route::get('/families/{household}/emergency-contacts', [PortalFormController::class, 'emergencyContacts'])->name('portal.emergency');
+        Route::post('/families/{household}/emergency-contacts', [PortalFormController::class, 'saveEmergencyContacts'])->name('portal.emergency.save');
     });
 });

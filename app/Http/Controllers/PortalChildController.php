@@ -3,12 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\Event;
+use App\Models\Form;
 use App\Models\Household;
 use App\Models\Participation;
 use App\Models\Person;
 use App\Models\User;
 use App\Support\Events\RegistrationException;
 use App\Support\Events\Registrations;
+use App\Support\Forms\Forms;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -18,7 +20,7 @@ use Illuminate\View\View;
  */
 class PortalChildController extends Controller
 {
-    public function __construct(private readonly Registrations $registrations) {}
+    public function __construct(private readonly Registrations $registrations, private readonly Forms $forms) {}
 
     public function create(): View
     {
@@ -55,6 +57,9 @@ class PortalChildController extends Controller
             'participations' => $participations,
             'open' => $this->registrations->openFor($child),
             'registeredIds' => $participations->whereNotIn('status', ['cancelled', 'declined'])->pluck('event_id')->all(),
+            'forms' => Form::query()->where('active', true)->orderBy('sort')->get()
+                ->map(fn (Form $form) => ['form' => $form, 'status' => $this->forms->status($form, $child)])
+                ->reject(fn (array $item) => $item['status'] === 'not_applicable')->values(),
         ]);
     }
 

@@ -8,8 +8,8 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ### Changed
 
-- Docker image now based on **Ubuntu 26.04 LTS** with Ubuntu's PHP 8.5 packages and Apache; `apt-get dist-upgrade`
-  during the build, apt caches removed afterwards.
+- Docker image now based on **Alpine Linux 3.24** with its PHP 8.5 packages and Apache (345 MB instead of about 1 GB);
+  all packages upgraded during the build, no package cache in the image; bash and vim included for maintenance.
 
 ## [0.4.0] - 2026-11-23
 

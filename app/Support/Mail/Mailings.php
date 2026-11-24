@@ -150,9 +150,12 @@ class Mailings
     }
 
     /** Sends now, or asks for the approval of large mailings. Returns the number of mails, or null while waiting. */
-    public function release(Mailing $mailing, ?User $by = null): ?int
+    public function release(Mailing $mailing, ?User $by = null, bool $forceApproval = false): ?int
     {
-        $automation = $this->needsApproval($mailing) ? Automation::query()->where('key', 'mailing_release')->first() : null;
+        $automation = $forceApproval || $this->needsApproval($mailing) ? Automation::query()->where('key', 'mailing_release')->first() : null;
+        if ($automation === null && $forceApproval) {
+            throw new \RuntimeException('The automation mailing_release is missing.'); // never send without a decision
+        }
         if ($automation === null) {
             return $this->send($mailing);
         }

@@ -52,6 +52,17 @@ class MailTemplate extends Model
         return $this->belongsTo(SenderProfile::class);
     }
 
+    /** Every change is a new version with a snapshot for restoring (MT07). */
+    public function newVersion(): void
+    {
+        $this->increment('version');
+        $this->versions()->create([
+            'version' => $this->version,
+            'snapshot' => ['name' => $this->name, 'contents' => $this->contents()->get(['locale', 'subject', 'html', 'text'])->toArray()],
+            'changed_by_id' => auth()->id(),
+        ]);
+    }
+
     public function label(): string
     {
         return $this->name[app()->getLocale()] ?? $this->name['en'] ?? $this->key;

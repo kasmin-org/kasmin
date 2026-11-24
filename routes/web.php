@@ -10,6 +10,8 @@ use App\Http\Controllers\PortalChildController;
 use App\Http\Controllers\PortalController;
 use App\Http\Controllers\PortalFormController;
 use App\Http\Controllers\PublicRegistrationController;
+use App\Http\Controllers\ViewAsController;
+use App\Http\Middleware\ReadOnlyPortalPreview;
 use App\Http\Middleware\RequireSecondFactor;
 use Illuminate\Support\Facades\Route;
 
@@ -44,7 +46,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/two-factor', [TwoFactorController::class, 'show'])->name('two-factor');
     Route::post('/two-factor', [TwoFactorController::class, 'verify'])->middleware('throttle:two-factor')->name('two-factor.verify');
     Route::get('/admin/invoices/{invoice}/pdf', [InvoicePdfController::class, 'admin'])->middleware(RequireSecondFactor::class)->name('admin.invoices.pdf');
-    Route::middleware(RequireSecondFactor::class)->prefix('portal')->group(function () {
+    Route::post('/portal/view-as/end', [ViewAsController::class, 'end'])->name('portal.view-as.end');
+    Route::middleware([RequireSecondFactor::class, ReadOnlyPortalPreview::class])->prefix('portal')->group(function () {
         Route::get('/', [PortalController::class, 'index'])->name('portal');
         Route::get('/mails/{uuid}', [PortalController::class, 'mail'])->name('portal.mail');
         Route::get('/invoices/{invoice}.pdf', [InvoicePdfController::class, 'portal'])->name('portal.invoice.pdf');

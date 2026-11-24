@@ -11,3 +11,4 @@ Schedule::call(fn () => SystemStatus::heartbeat())->everyMinute()->name('kasmin-
 Schedule::command('kasmin:system:check')->hourly();
 Schedule::command('kasmin:invoices:remind')->dailyAt('09:00');
 Schedule::command('kasmin:automations:run')->hourlyAt(5)->withoutOverlapping();
+Schedule::command('kasmin:webhooks:deliver')->everyMinute()->withoutOverlapping();

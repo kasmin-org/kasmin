@@ -2,13 +2,22 @@
 
 namespace App\Providers;
 
+use App\Models\Participation;
+use App\Models\Person;
+use App\Models\User;
+use App\Support\Api\Presenter;
 use App\Support\Schema\SchemaGuard;
 use App\Support\Schema\SchemaStatus;
+use App\Support\Webhooks\Webhooks;
+use Dedoc\Scramble\Scramble;
+use Dedoc\Scramble\Support\Generator\OpenApi;
+use Dedoc\Scramble\Support\Generator\SecurityScheme;
 use Illuminate\Cache\RateLimiter;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Console\Events\CommandStarting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use RuntimeException;
 
@@ -42,6 +51,19 @@ class AppServiceProvider extends ServiceProvider
         // Separate rate limits per purpose: anonymous "throttle:x,y" limits share one counter per IP across all
         // routes, so e.g. using login links or approvals would block requesting a login link.
         self::defineRateLimiters();
+
+        // Webhook events of participations and people (AD81).
+        Participation::created(fn (Participation $p) => app(Webhooks::class)->emit('participation.created', Presenter::participation($p->loadMissing('event', 'person'))));
+        Participation::updated(function (Participation $p): void {
+            if ($p->wasChanged('status')) {
+                app(Webhooks::class)->emit('participation.status_changed', Presenter::participation($p->loadMissing('event', 'person')) + ['previous_status' => $p->getOriginal('status')]);
+            }
+        });
+        Person::created(fn (Person $p) => app(Webhooks::class)->emit('person.created', Presenter::person($p)));
+
+        // OpenAPI documentation of the REST API (X02): public, contains no data.
+        Gate::define('viewApiDocs', fn (?User $user = null) => true);
+        Scramble::configure()->withDocumentTransformers(fn (OpenApi $openApi) => $openApi->secure(SecurityScheme::http('bearer')));
 
         Event::listen(CommandStarting::class, function (CommandStarting $event): void {
             $command = (string) $event->command;

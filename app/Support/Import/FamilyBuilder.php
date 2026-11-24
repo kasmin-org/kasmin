@@ -79,7 +79,7 @@ class FamilyBuilder
         $keys = [];
         foreach (array_keys($rows) as $i) {
             $root = $this->find($parents, $i);
-            $hasGuardian = ! empty($rows[$i]['guardian1_first_name']) || ! empty($rows[$i]['guardian1_email']);
+            $hasGuardian = ! empty($rows[$i]['guardian1_first_name']) || ! empty($rows[$i]['guardian1_name']) || ! empty($rows[$i]['guardian1_email']);
             $keys[$i] = ($sizes[$root] > 1 || $hasGuardian) ? 'auto-'.$root : null;
         }
 
@@ -154,7 +154,7 @@ class FamilyBuilder
     /** @param  array<string, mixed>  $row */
     private function name(array $row, int $n): ?string
     {
-        $first = trim((string) ($row["guardian{$n}_first_name"] ?? ''));
+        $first = trim((string) ($row["guardian{$n}_first_name"] ?? $row["guardian{$n}_name"] ?? ''));
 
         return $first !== '' ? Str::lower($first.' '.trim((string) ($row["guardian{$n}_last_name"] ?? $row['last_name'] ?? ''))) : null;
     }

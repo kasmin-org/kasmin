@@ -2,15 +2,19 @@
 
 namespace Tests\Feature\Import;
 
+use App\Filament\Pages\ImportPeoplePage;
 use App\Models\Event;
 use App\Models\Household;
 use App\Models\ImportBatch;
 use App\Models\Person;
+use App\Models\Role;
 use App\Models\User;
 use App\Support\Import\FamilyBuilder;
 use App\Support\Import\PeopleImporter;
 use App\Support\Install\Defaults;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class PeopleImporterTest extends TestCase
@@ -115,6 +119,31 @@ class PeopleImporterTest extends TestCase
 
         $this->expectException(\RuntimeException::class);
         app(PeopleImporter::class)->rollback(ImportBatch::query()->findOrFail($batch->id));
+    }
+
+    public function test_full_guardian_name_is_split(): void
+    {
+        app(PeopleImporter::class)->import([['first_name' => 'Ivo', 'last_name' => 'Kern', 'guardian1_name' => 'Maria Luise Kern-Berg']], 'test');
+        $guardian = Person::query()->where('first_name', 'Ivo')->firstOrFail()->guardians()->firstOrFail();
+        $this->assertSame(['Maria Luise', 'Kern-Berg'], [$guardian->first_name, $guardian->last_name]);
+    }
+
+    public function test_wizard_reads_a_csv_file_previews_and_imports(): void
+    {
+        $person = Person::factory()->create();
+        $person->roleAssignments()->create(['role_id' => Role::query()->where('key', 'administrator')->value('id')]);
+        $this->actingAs(User::query()->create(['name' => 'a', 'email' => 'a@example.org', 'password' => 'x', 'person_id' => $person->id]));
+        Storage::fake('local');
+        Storage::disk('local')->put('imports/list.csv', "Vorname;last_name;source_id;guardian1_name\nUla;Vogt;7;Rita Vogt\nUwe;Vogt;8;Rita Vogt\n");
+
+        $page = Livewire::test(ImportPeoplePage::class)
+            ->fillForm(['type' => 'file', 'locale' => 'de', 'source' => 'old-list', 'file' => ['imports/list.csv']])
+            ->call('read')
+            ->assertSet('columns', ['vorname', 'last_name', 'source_id', 'guardian1_name']);
+        $this->assertFalse(Storage::disk('local')->exists('imports/list.csv'), 'the file is deleted after reading');
+        $page->set('data.mapping.first_name', 'vorname')->call('preview')->assertSet('plan.summary.create', 2)->call('import');
+        $this->assertSame(2, Person::query()->where('last_name', 'Vogt')->whereHas('guardians')->count());
+        $this->assertSame(1, ImportBatch::query()->count());
     }
 
     public function test_family_keys_for_guardian_only_rows(): void

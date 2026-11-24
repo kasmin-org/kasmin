@@ -44,6 +44,7 @@ jobs:
           composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader --no-scripts
           npm ci --ignore-scripts --no-audit --no-fund && npm run build
           rm -rf node_modules
+          php artisan scramble:export   # OpenAPI 3.1 spec of the REST API (X02): public/api/openapi.json
           name="kasmin-${{ steps.v.outputs.release }}"
           mkdir -p /tmp/pkg
           zip -qr "/tmp/pkg/${name}.zip" . \
@@ -51,6 +52,7 @@ jobs:
                ".env" "database/*.sqlite" "storage/logs/*.log" "storage/framework/cache/data/[!.]*" \
                "storage/framework/sessions/[!.]*" "storage/framework/views/*.php" "bootstrap/cache/*.php"
           php artisan kasmin:requirements > /tmp/pkg/requirements.json || echo '{}' > /tmp/pkg/requirements.json
+          cp public/api/openapi.json /tmp/pkg/openapi.json
           cd /tmp/pkg && sha256sum "${name}.zip" > "${name}.zip.sha256"
       - name: Release notes
         run: |

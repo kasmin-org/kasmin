@@ -12,6 +12,7 @@ use App\Models\Person;
 use App\Models\User;
 use App\Support\Api\ApiContext;
 use App\Support\Audit\Audit;
+use App\Support\Webhooks\Webhooks;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -27,7 +28,8 @@ use RuntimeException;
  * Row fields (all optional except names): source_id, first_name, last_name, birth_date, gender, locale, email,
  * phone, street, postal_code, city, country, family (explicit family key), groups (comma-separated),
  * membership_type, membership_start, membership_end, guardian1_first_name, guardian1_last_name, guardian1_email,
- * guardian1_phone, guardian2_… (same), participations ("Event title:role:status;…").
+ * guardian1_phone, guardian2_… (same), guardian1_name / guardian2_name (full name in one field), participations
+ * ("Event title:role:status;…").
  */
 class PeopleImporter
 {
@@ -36,6 +38,7 @@ class PeopleImporter
         'family', 'groups', 'membership_type', 'membership_start', 'membership_end',
         'guardian1_first_name', 'guardian1_last_name', 'guardian1_email', 'guardian1_phone',
         'guardian2_first_name', 'guardian2_last_name', 'guardian2_email', 'guardian2_phone', 'participations',
+        'guardian1_name', 'guardian2_name',
     ];
 
     /** @var array<string, Person> people created or found during one run, by guardian key */
@@ -106,6 +109,7 @@ class PeopleImporter
             }
             $this->batch->forceFill(['stats' => $stats])->save();
             Audit::record('import.batch_imported', $this->batch, null, ['source' => $source, 'created' => $stats['created'], 'updated' => $stats['updated'], 'skipped' => $stats['skipped']]);
+            app(Webhooks::class)->emit('import.finished', ['batch' => $this->batch->id, 'source' => $source, 'created' => $stats['created'], 'updated' => $stats['updated'], 'skipped' => $stats['skipped']]);
 
             return $this->batch;
         });
@@ -351,6 +355,15 @@ class PeopleImporter
         foreach (['birth_date', 'membership_start', 'membership_end'] as $field) {
             if (! empty($row[$field])) {
                 $row[$field] = $this->date((string) $row[$field]) ?? $row[$field];
+            }
+        }
+        // Full guardian names in one field ("First Last"): the last word is the last name.
+        foreach ([1, 2] as $n) {
+            $full = trim((string) ($row["guardian{$n}_name"] ?? ''));
+            if ($full !== '' && empty($row["guardian{$n}_first_name"])) {
+                $parts = preg_split('/\s+/', $full) ?: [$full];
+                $row["guardian{$n}_last_name"] = ($row["guardian{$n}_last_name"] ?? null) ?: (count($parts) > 1 ? array_pop($parts) : null);
+                $row["guardian{$n}_first_name"] = implode(' ', $parts);
             }
         }
         $row['locale'] = in_array($row['locale'] ?? null, ['de', 'en'], true) ? $row['locale'] : $locale;

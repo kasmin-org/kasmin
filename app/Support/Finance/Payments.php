@@ -5,9 +5,11 @@ namespace App\Support\Finance;
 use App\Models\BankImport;
 use App\Models\Invoice;
 use App\Models\Payment;
+use App\Support\Api\Presenter;
 use App\Support\Mail\Composer;
 use App\Support\Mail\Notifier;
 use App\Support\Settings;
+use App\Support\Webhooks\Webhooks;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use OpenSpout\Reader\CSV\Options as CsvOptions;
@@ -44,7 +46,9 @@ class Payments
         $paid = (int) $invoice->payments()->sum('amount_cents');
         $status = $paid >= $invoice->total_cents ? 'paid' : ($paid > 0 ? 'partially_paid' : 'issued');
         $invoice->forceFill(['paid_cents' => $paid, 'status' => $status])->save();
+        app(Webhooks::class)->emit('payment.received', Presenter::invoice($invoice));
         if ($status === 'paid' && ! $wasPaid) {
+            app(Webhooks::class)->emit('invoice.paid', Presenter::invoice($invoice));
             $this->confirm($invoice);
         }
     }

@@ -6,6 +6,25 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ## [Unreleased]
 
+### Added
+
+- REST API v1 with API tokens (scopes, expiry, revoke, last use, shown once), OpenAPI 3.1 documentation at
+  `/docs/api` generated from the code (also attached to every release), audit log with the token as actor.
+- MCP endpoint `/mcp` for AI assistants on top of the REST API (same tokens and scopes; tools only for granted
+  scopes); setting "AI processing allowed" (none / non-confidential / all) limits MCP and health data.
+- Automation runs started via API/MCP wait for a human decision unless the token has `approvals:decide`.
+- Webhooks: subscribed events signed with HMAC-SHA256, retries with backoff, delivery log, HTTPS only.
+- Import of people and families: wizard (CSV/XLSX or Webling), REST API, MCP and command line; dry run, family
+  builder (e-mail, phone, legal guardians; address only as suggestion), idempotent re-imports by source id, import
+  batches with rollback, historical participations.
+- Webling connector (members and member groups via the Webling API, configurable field assignment).
+- Export and import of mail templates and automations as JSON (`kasmin:config:export`, `kasmin:config:import`).
+- Documentation: API, MCP and webhooks; import; "Migrate with an AI assistant" with a privacy checklist.
+
+### Changed
+
+- Cron documentation: web hosts that do not allow "every minute" (e.g. all-inkl.com) work with every 5 minutes.
+
 ## [0.7.0] - 2026-11-23
 
 Pre-release for testing. Not ready for production use. Contains the milestones 0.6 (invoices and payments) and

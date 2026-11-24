@@ -6,8 +6,10 @@ use App\Models\Automation;
 use App\Models\AutomationRun;
 use App\Models\Event;
 use App\Models\User;
+use App\Support\Api\Presenter;
 use App\Support\Audit\Audit;
 use App\Support\Mail\Notifier;
+use App\Support\Webhooks\Webhooks;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Str;
 use RuntimeException;
@@ -55,9 +57,9 @@ class Engine
 
     /**
      * Starts a run. $by: the person who pressed the button (runs directly if they may approve, after they saw the
-     * preview). Returns null if there is nothing to do or the run already exists (dedupe key).
+     * preview); with $forceApproval the approvers always decide (API and MCP without approvals:decide). Returns null if there is nothing to do or the run already exists (dedupe key).
      */
-    public function trigger(Automation $automation, string $trigger, ?Event $event = null, ?string $dedupe = null, ?User $by = null): ?AutomationRun
+    public function trigger(Automation $automation, string $trigger, ?Event $event = null, ?string $dedupe = null, ?User $by = null, bool $forceApproval = false): ?AutomationRun
     {
         if ($by === null && (! $automation->active || $automation->mode === 'manual')) {
             return null;
@@ -90,12 +92,14 @@ class Engine
         }
         Audit::record('automation.run_created', $automation, null, ['run' => $run->id, 'trigger' => $trigger, 'items' => count($plan)], $by ? null : 'system');
 
-        if ($by !== null && $this->mayApprove($automation, $by)) {
+        // $forceApproval: started via API/MCP without the scope approvals:decide – always a draft for humans (X05).
+        if ($by !== null && ! $forceApproval && $this->mayApprove($automation, $by)) {
             $this->decide($run, $by, true);
         } elseif ($by === null && $automation->mode === 'automatic' && count($plan) <= $automation->max_items) {
             $this->execute($run);
         } else {
             $this->approvals->request($run);
+            app(Webhooks::class)->emit('automation.approval_requested', Presenter::run($run->load('automation', 'event')));
             app(Notifier::class)->event('approvals', __('automations.notify.approval_needed', ['name' => $automation->label(), 'count' => count($plan)]), url('/admin/automation-runs/'.$run->id));
         }
 
@@ -161,6 +165,7 @@ class Engine
         $run->forceFill(['status' => $errors > 0 ? 'failed' : 'done', 'result' => $results, 'executed_at' => now(), 'error' => $errors > 0 ? $errors.' error(s)' : null])->save();
         $automation->forceFill(['last_run_at' => now()])->save();
         Audit::record('automation.executed', $automation, null, ['run' => $run->id, 'items' => count($results), 'errors' => $errors], 'system');
+        app(Webhooks::class)->emit('automation.run_finished', Presenter::run($run->load('automation', 'event')));
         if ($errors > 0) {
             app(Notifier::class)->event('automation_errors', __('automations.notify.errors', ['name' => $automation->label(), 'count' => $errors]), url('/admin/automation-runs/'.$run->id));
         }

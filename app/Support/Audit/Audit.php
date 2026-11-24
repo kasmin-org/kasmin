@@ -3,6 +3,7 @@
 namespace App\Support\Audit;
 
 use App\Models\AuditEvent;
+use App\Support\Api\ApiContext;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -22,6 +23,13 @@ class Audit
     {
         $request = app()->runningInConsole() ? null : request();
         $userId = Auth::id();
+        $token = ApiContext::token();
+        if ($token !== null && $actorType === null) {
+            // API and MCP calls: the token is the actor, the user it acts for is kept in the meta data (AU02, AU03).
+            $actorType = ApiContext::viaMcp() ? 'mcp' : 'api';
+            $actorId = $token->id;
+            $meta = ($meta ?? []) + ['on_behalf_of' => $userId];
+        }
 
         return AuditEvent::query()->create([
             'occurred_at' => now(),

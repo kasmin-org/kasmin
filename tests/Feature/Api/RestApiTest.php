@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Api;
 
+use App\Filament\Resources\ApiTokens\Pages\ListApiTokens;
 use App\Models\ApiToken;
 use App\Models\AuditEvent;
 use App\Models\Automation;
@@ -14,7 +15,9 @@ use App\Models\User;
 use App\Support\Events\Registrations;
 use App\Support\Install\Defaults;
 use App\Support\Settings;
+use Filament\Http\Middleware\AuthenticateSession;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class RestApiTest extends TestCase
@@ -124,6 +127,26 @@ class RestApiTest extends TestCase
         $this->withToken($finance)->postJson("/api/v1/invoices/{$invoice->id}/payments", ['amount' => 100, 'paid_on' => now()->toDateString()])
             ->assertCreated()->assertJsonPath('data.status', 'paid');
         $this->withToken($finance)->get("/api/v1/invoices/{$invoice->id}/pdf")->assertOk()->assertHeader('Content-Type', 'application/pdf');
+    }
+
+    public function test_admin_pages_for_tokens_webhooks_and_imports(): void
+    {
+        $this->withoutMiddleware(AuthenticateSession::class);
+        $person = Person::factory()->create();
+        $person->roleAssignments()->create(['role_id' => Role::query()->where('key', 'administrator')->value('id')]);
+        $admin = User::query()->create(['name' => 'Admin', 'email' => 'admin@example.org', 'password' => 'x', 'person_id' => $person->id]);
+        foreach (['/admin/api-tokens', '/admin/webhooks', '/admin/webhooks/create', '/admin/import/people', '/admin/import-batches', '/admin/settings/organisation'] as $page) {
+            $this->actingAs($admin)->withSession(['two_factor_passed' => true])->get($page)->assertOk();
+        }
+        $this->actingAs($this->user)->withSession(['two_factor_passed' => true])->get('/admin/api-tokens')->assertForbidden();
+
+        $this->actingAs($admin);
+        Livewire::test(ListApiTokens::class)
+            ->callAction('create', data: ['name' => 'Website', 'scopes' => ['events:read'], 'mcp' => false, 'expires_at' => now()->addMonth()->toDateString()])
+            ->assertHasNoActionErrors()->assertNotified();
+        $token = ApiToken::query()->where('name', 'Website')->firstOrFail();
+        $this->assertSame(['events:read'], $token->scopes);
+        $this->assertSame($admin->id, $token->user_id);
     }
 
     public function test_audit_needs_its_own_scope(): void

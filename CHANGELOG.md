@@ -6,6 +6,16 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ## [Unreleased]
 
+## [0.8.1] - 2026-11-24
+
+Pre-release for testing. Not ready for production use.
+
+### Fixed
+
+- Updates by uploading a new release (FTP, demo deployment) kept Laravel's cached package list, so packages added by
+  the release were not loaded: invoice PDFs (since 0.7.0), API documentation and MCP (since 0.8.0). The cached files
+  are now rebuilt automatically whenever the release changes. The update in the admin interface was not affected.
+
 ## [0.8.0] - 2026-11-24
 
 Pre-release for testing. Not ready for production use.
@@ -144,7 +154,8 @@ First public pre-release for testing. Not ready for production use.
 - Docker image: system packages updated and build packages removed after compiling the PHP extensions – the
   container scan reports no high or critical findings any more (previously 75 in Debian packages).
 
-[Unreleased]: https://github.com/kasmin-org/kasmin/compare/v0.8.0...develop
+[Unreleased]: https://github.com/kasmin-org/kasmin/compare/v0.8.1...develop
+[0.8.1]: https://github.com/kasmin-org/kasmin/releases/tag/v0.8.1
 [0.8.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.8.0
 [0.7.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.7.0
 [0.5.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.5.0

@@ -54,7 +54,7 @@ jobs:
           zip -qr "/tmp/pkg/${name}.zip" . \
             -x ".git/*" ".github/*" "tests/*" "docker/dev/*" "compose.dev.yaml" "playwright.config.ts" \
                ".env" "database/*.sqlite" "storage/logs/*.log" "storage/framework/cache/data/[!.]*" \
-               "storage/framework/sessions/[!.]*" "storage/framework/views/*.php" "bootstrap/cache/*.php"
+               "storage/framework/sessions/[!.]*" "storage/framework/views/*.php" "bootstrap/cache/*.php" "bootstrap/cache/release.txt"
           php artisan kasmin:requirements > /tmp/pkg/requirements.json || echo '{}' > /tmp/pkg/requirements.json
           cp public/api/openapi.json /tmp/pkg/openapi.json
           cd /tmp/pkg && sha256sum "${name}.zip" > "${name}.zip.sha256"

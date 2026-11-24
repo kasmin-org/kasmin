@@ -7,6 +7,8 @@ return [
         'no_role' => 'Für diese Rolle ist keine Anmeldung vorgesehen.',
         'age' => 'Das Alter passt nicht zu dieser Veranstaltung.',
         'no_guests' => 'Es können keine weiteren Gäste eingeladen werden.',
+        'pay_to_accept' => 'Dieser Platz wird durch Bezahlung der Rechnung angenommen.',
+        'no_place' => 'Es gibt keinen freien Platz, oder die Person ist bereits angemeldet.',
         'already' => 'Diese Person ist für diese Veranstaltung bereits angemeldet.',
         'reason' => 'Bitte geben Sie einen Grund an.',
         'no_reserve' => 'Es ist kein Reserveplatz mehr frei.',

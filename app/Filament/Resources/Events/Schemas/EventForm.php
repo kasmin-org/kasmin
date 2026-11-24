@@ -130,6 +130,18 @@ class EventForm
                             ->hintIcon('heroicon-m-question-mark-circle', tooltip: __('admin.finance.discounts_apply_hint')),
                     ]),
             ]),
+            Section::make(__('admin.event.rounds'))->collapsible()->collapsed(fn (?Event $record) => $record === null || ! $record->rounds()->exists())->columnSpanFull()->description(__('admin.event.rounds_hint'))->schema([
+                Repeater::make('rounds')->relationship()->label('')->columns(['md' => 3])->orderColumn('sort')->defaultItems(0)->addActionLabel(__('admin.event.add_round'))
+                    ->schema([
+                        Select::make('role_key')->label(__('admin.event.role'))->options(__('events.roles'))->default('child')->required(),
+                        Select::make('kind')->label(__('admin.event.round_kind'))->options(__('admin.event.round_kinds'))->required()->live(),
+                        Select::make('mode')->label(__('admin.event.round_mode'))->options(__('admin.event.round_modes'))->default('accept')->required()->visible($offers = fn ($get) => in_array($get('kind'), ['returning', 'selection'], true)),
+                        DateTimePicker::make('opens_at')->label(__('public.opens_at'))->seconds(false)->required(),
+                        DateTimePicker::make('closes_at')->label(__('public.closes_at'))->seconds(false)->after('opens_at')->required($offers),
+                        TextInput::make('min_events')->label(__('admin.event.round_min_events'))->numeric()->minValue(0)->maxValue(20)->default(0)->visible(fn ($get) => $get('kind') === 'selection')->dehydrateStateUsing(fn ($state) => (int) $state),
+                        Select::make('group_id')->label(__('admin.event.round_group'))->options(fn () => Group::query()->orderBy('name')->pluck('name', 'id')->all())->visible($offers),
+                    ]),
+            ]),
             Section::make(__('admin.finance.costs'))->collapsible()->collapsed()->schema([
                 Repeater::make('costs')->relationship()->label('')->columns(3)->orderColumn('sort')->defaultItems(0)->addActionLabel(__('admin.finance.add_cost'))
                     ->schema([

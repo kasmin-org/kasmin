@@ -117,7 +117,7 @@ class Payments
             if ($participation === null || $person === null || ! in_array($participation->status, Billing::BILLED, true)) {
                 continue;
             }
-            if ($installment->confirms_place && in_array($participation->status, ['registered', 'offered'], true)) {
+            if (($installment->confirms_place || $participation->offer_mode === 'payment') && in_array($participation->status, ['registered', 'offered'], true)) {
                 $participation->fill(['status' => 'confirmed', 'offer_expires_at' => null])->save();
                 Audit::record('participation.confirmed_by_payment', $participation, null, ['invoice' => $invoice->id], 'system');
             }

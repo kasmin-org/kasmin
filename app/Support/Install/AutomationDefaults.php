@@ -44,6 +44,11 @@ class AutomationDefaults
                 'description' => ['de' => 'Erstellt und versendet die Rechnungen der Rate „balance“ 90 Tage vor Beginn.', 'en' => 'Creates and sends the invoices of the instalment "balance" 90 days before the start.'],
                 'action' => 'invoice_run', 'config' => ['installment' => 'balance', 'send' => true], 'trigger' => 'before_event', 'trigger_config' => ['days' => 90], 'mode' => 'confirm',
             ],
+            'registration_rounds' => [
+                'name' => ['de' => 'Anmelderunden', 'en' => 'Registration rounds'],
+                'description' => ['de' => 'Bietet in den Runden einer Veranstaltung Plätze an (Wiederkehrende, Auswahl), nach Freigabe.', 'en' => 'Offers places in the rounds of an event (returning participants, selection), after approval.'],
+                'action' => 'registration_rounds', 'trigger' => 'daily', 'trigger_config' => ['time' => '08:30'], 'mode' => 'confirm', 'active' => true,
+            ],
             'payment_reminders' => [
                 'name' => ['de' => 'Zahlungserinnerungen', 'en' => 'Payment reminders'],
                 'description' => ['de' => 'Erinnert vor und nach der Fälligkeit an offene Rechnungen, nach Freigabe.', 'en' => 'Reminds of open invoices before and after the due date, after approval.'],

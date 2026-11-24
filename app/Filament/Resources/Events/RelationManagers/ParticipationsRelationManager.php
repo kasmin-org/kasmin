@@ -10,14 +10,17 @@ use App\Models\Person;
 use App\Models\User;
 use App\Support\Events\RegistrationException;
 use App\Support\Events\Registrations;
+use App\Support\Events\Rounds;
 use App\Support\Finance\Corrections;
 use App\Support\Forms\FormValue;
 use App\Support\Forms\RegistrationAnswers;
 use App\Support\Lists\EventLists;
+use App\Support\Mail\Composer;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\CreateAction;
 use Filament\Actions\EditAction;
+use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -32,6 +35,7 @@ use Filament\Tables\Enums\RecordActionsPosition;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 
 /**
  * Participants board of an event: status, waitlist position, reserve places (AD30, AD31, WL05).
@@ -73,6 +77,30 @@ class ParticipationsRelationManager extends RelationManager
                 SelectFilter::make('role_key')->label(__('admin.event.role'))->options(__('events.roles')),
             ])
             ->headerActions([
+                // Out of turn, with a reason (RR03).
+                Action::make('offer')->label(__('admin.event.offer_place'))->icon('heroicon-o-gift')->color('gray')
+                    ->schema([
+                        Select::make('person_id')->label(__('admin.person.singular'))->searchable()->required()
+                            ->getSearchResultsUsing(fn (string $search) => Person::query()->whereNull('anonymised_at')->where(fn ($q) => $q->where('last_name', 'like', "%{$search}%")->orWhere('first_name', 'like', "%{$search}%"))->limit(30)->get()->mapWithKeys(fn (Person $p) => [$p->id => $p->fullName()])->all())
+                            ->getOptionLabelUsing(fn ($value) => Person::query()->whereKey((int) $value)->first()?->fullName()),
+                        Select::make('role_key')->label(__('admin.event.role'))->options(__('events.roles'))->default('child')->required(),
+                        DatePicker::make('until')->label(__('admin.event.offer_until'))->required()->minDate(now()),
+                        Textarea::make('reason')->label(__('admin.finance.reason'))->required()->maxLength(250),
+                    ])
+                    ->action(function (array $data) {
+                        /** @var Event $event */
+                        $event = $this->getOwnerRecord();
+                        $person = Person::query()->whereKey((int) $data['person_id'])->firstOrFail();
+                        $offered = app(Rounds::class)->offer($event, $person, (string) $data['role_key'], Carbon::parse((string) $data['until'])->endOfDay(), null, (string) $data['reason']);
+                        if ($offered === null) {
+                            Notification::make()->title(__('events.errors.no_place'))->danger()->send();
+
+                            return;
+                        }
+                        foreach ($person->guardians()->get()->all() ?: [$person] as $recipient) {
+                            app(Composer::class)->queue('round_offer', $recipient, ['event' => $event, 'participation' => $offered->load('event', 'person'), 'household' => $person->households()->first(), 'children' => [$person]]);
+                        }
+                    }),
                 CreateAction::make()->label(__('admin.event.add_participant'))
                     ->schema([
                         Select::make('person_id')->label(__('admin.person.singular'))->searchable()->required()

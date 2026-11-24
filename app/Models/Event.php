@@ -103,6 +103,12 @@ class Event extends Model
         return $this->hasMany(EventDocument::class)->orderBy('sort')->orderBy('id');
     }
 
+    /** @return HasMany<RegistrationRound, $this> */
+    public function rounds(): HasMany
+    {
+        return $this->hasMany(RegistrationRound::class)->orderBy('sort')->orderBy('id');
+    }
+
     /** @return HasMany<EventCost, $this> */
     public function costs(): HasMany
     {

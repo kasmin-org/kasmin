@@ -7,6 +7,7 @@ use App\Models\EventDocument;
 use App\Models\EventInstallment;
 use App\Models\EventPrice;
 use App\Models\EventRole;
+use App\Models\RegistrationRound;
 use App\Support\Audit\Audit;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
@@ -38,6 +39,7 @@ class EventCopier
             $source->roles()->get()->each(fn (EventRole $r) => $this->row($r, $event, []));
             $source->prices()->get()->each(fn (EventPrice $p) => $this->row($p, $event, ['from_date' => $p->from_date?->copy()->addDays($days), 'until_date' => $p->until_date?->copy()->addDays($days)]));
             $source->installments()->get()->each(fn (EventInstallment $i) => $this->row($i, $event, ['due_date' => $i->due_date?->copy()->addDays($days)]));
+            $source->rounds()->get()->each(fn (RegistrationRound $r) => $this->row($r, $event, ['opens_at' => $r->opens_at?->copy()->addDays($days), 'closes_at' => $r->closes_at?->copy()->addDays($days)]));
             $source->documents()->get()->each(fn (EventDocument $d) => $this->row($d, $event, []));
             Audit::record('event.copied', $event, null, ['from' => $source->id, 'days' => $days]);
 

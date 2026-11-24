@@ -31,12 +31,14 @@
                 @if ($p->status === 'offered')
                     <div class="mt-2 rounded-lg bg-summer-500/20 p-3 text-sm">
                         <p class="font-semibold">{{ __('portal.offer_title') }}</p>
-                        <p>{{ __('portal.offer_text', ['date' => $p->offer_expires_at?->isoFormat('LLL') ?? '–']) }}</p>
+                        <p>{{ __($p->offer_mode === 'payment' ? 'portal.offer_payment' : 'portal.offer_text', ['date' => $p->offer_expires_at?->isoFormat('LLL') ?? '–']) }}</p>
                         <div class="mt-2 grid gap-2 sm:grid-cols-2">
+                            @if ($p->offer_mode !== 'payment')
                             <form method="post" action="{{ route('portal.child.offer', [$child->public_id, $p->id]) }}">
                                 @csrf<input type="hidden" name="answer" value="accept">
                                 <button class="w-full rounded-lg bg-kasmin-600 px-4 py-3 font-semibold text-white">{{ __('portal.offer_accept') }}</button>
                             </form>
+                            @endif
                             <form method="post" action="{{ route('portal.child.offer', [$child->public_id, $p->id]) }}" onsubmit="return confirm('{{ __('portal.offer_decline_confirm') }}')">
                                 @csrf<input type="hidden" name="answer" value="decline">
                                 <button class="w-full rounded-lg bg-white px-4 py-3 font-semibold ring-1 ring-kasmin-200">{{ __('portal.offer_decline') }}</button>

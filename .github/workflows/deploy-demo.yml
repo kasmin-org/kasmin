@@ -123,5 +123,6 @@ jobs:
           doc=$(curl -sf "https://${HOST}/docs/api.json" | jq -r '.info.version')
           echo "API document: ${doc}"
           case "$doc" in *"Kasmin ${TAG#v})"*) ;; *) echo "::error::${HOST} does not run ${TAG}"; exit 1;; esac
+          curl -sf -o /dev/null "https://${HOST}/js/filament/filament/app.js" || { echo "::error::assets of the admin interface are missing"; exit 1; }
           code=$(curl -s -o /dev/null -w '%{http_code}' -X POST -H 'Content-Type: application/json' -d '{}' "https://${HOST}/mcp")
           [ "$code" = 401 ] || { echo "::error::MCP endpoint answered ${code} instead of 401"; exit 1; }

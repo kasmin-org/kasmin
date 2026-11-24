@@ -51,7 +51,7 @@
                             {{ \App\Models\Invoice::money(in_array($invoice->status, ['issued', 'partially_paid'], true) ? $invoice->openCents() : $invoice->total_cents, $invoice->currency) }}
                             <span @class(['ml-1 rounded-full px-2 py-0.5 text-xs font-semibold', 'bg-green-100 text-green-900' => $state === 'paid', 'bg-red-100 text-red-900' => $state === 'overdue', 'bg-amber-100 text-amber-900' => in_array($state, ['issued', 'partially_paid'], true), 'bg-gray-100 text-gray-700' => in_array($state, ['cancelled', 'corrected'], true)])>{{ __('finance.status.'.$state) }}</span>
                             @if (in_array($invoice->status, ['issued', 'partially_paid'], true) && $invoice->due_on)
-                                <span class="block text-xs text-kasmin-700">{{ __('finance.due_on') }} {{ $invoice->due_on->isoFormat('L') }} · {{ __('finance.reference') }} {{ $invoice->reference }}</span>
+                                <span class="block text-xs text-kasmin-700">{{ __('finance.due_on') }} {{ $invoice->due_on->isoFormat('LL') }} · {{ __('finance.reference') }} {{ $invoice->reference }}</span>
                             @endif
                         </span>
                     </li>

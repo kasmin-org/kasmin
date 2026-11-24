@@ -38,7 +38,10 @@ RUN apk upgrade --no-cache \
 WORKDIR /var/www/html
 COPY --from=vendor /app /var/www/html
 COPY --from=assets /app/public/build /var/www/html/public/build
-RUN php artisan package:discover --ansi && chown -R www-data:www-data storage bootstrap/cache
+# JavaScript, styles and fonts of the admin interface (created by a Composer script that the build skips).
+RUN php artisan package:discover --ansi && php artisan filament:assets \
+ && test -s public/js/filament/filament/app.js -a -s public/js/filament/support/support.js \
+ && chown -R www-data:www-data storage bootstrap/cache
 ARG KASMIN_VERSION=dev
 ENV KASMIN_VERSION=${KASMIN_VERSION} \
     KASMIN_RUNTIME=docker

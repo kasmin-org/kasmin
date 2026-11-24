@@ -1,5 +1,11 @@
 # System status, notifications and updates
 
+## Time zone
+
+*Settings → Organisation and invoices → Time zone*: all times and daily jobs. Installations before 0.13 run in UTC until a
+time zone is chosen. Times already stored are not converted, so links and offers that are open at that moment may expire up
+to two hours earlier or later.
+
 ## System status
 
 *System → System status* (administrators only) shows:

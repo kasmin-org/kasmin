@@ -3,10 +3,10 @@
 namespace App\Filament\Resources\People\Schemas;
 
 use App\Models\Form;
-use App\Models\FormField;
 use App\Models\Person;
 use App\Models\User;
 use App\Support\Forms\Forms;
+use App\Support\Forms\FormValue;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
@@ -55,21 +55,9 @@ class PersonInfolist
         }
         foreach ($form->fields as $field) {
             $entries[] = TextEntry::make('f_'.$form->key.'_'.$field->key)->label($field->labelText())->placeholder('–')
-                ->state(self::display($field, $current->values[$field->key] ?? null));
+                ->state(FormValue::text($field, $current->values[$field->key] ?? null));
         }
 
         return $entries;
-    }
-
-    private static function display(FormField $field, mixed $value): ?string
-    {
-        return match (true) {
-            $value === null => null,
-            $value === FormField::NONE => (string) __('forms.none'),
-            in_array($field->type, ['yes_no', 'consent'], true) => (string) __('forms.'.$value),
-            $field->type === 'select' => $field->choices()[(string) $value] ?? (string) $value,
-            is_array($value) => collect($value)->map(fn ($v) => is_array($v) ? implode(' · ', array_filter($v)) : ($field->choices()[(string) $v] ?? $v))->implode('; '),
-            default => (string) $value,
-        };
     }
 }

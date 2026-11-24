@@ -75,6 +75,7 @@ first start (with a backup in the storage volume; `KASMIN_AUTO_UPGRADE=false` sw
 | `KASMIN_INVOICE_NUMBER_FORMAT`, `KASMIN_INVOICE_DUE_DAYS`, `KASMIN_INVOICE_ATTACH_PAID`, `KASMIN_INVOICE_REMINDER_DAYS_BEFORE`, `KASMIN_INVOICE_OVERDUE_DAYS` | [invoices](invoices.md) |
 | `KASMIN_RETENTION_SAFETY_YEARS`, `KASMIN_RETENTION_INVOICE_YEARS` | [retention](privacy.md) |
 | `KASMIN_AI_PROCESSING` (`none`/`non_confidential`/`all`) | [AI assistants](api.md) |
+| `KASMIN_TIMEZONE` (e.g. `Europe/Vienna`) | time zone of all times and daily jobs |
 | `KASMIN_DIGEST_TIME` (`07:00`), `KASMIN_APPROVAL_DAYS` (`7`) | digest, approval requests |
 
 ### Mail (database)

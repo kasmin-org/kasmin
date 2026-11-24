@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Payments\Pages;
 
 use App\Filament\Resources\Payments\PaymentResource;
+use App\Filament\Support\ListTools;
 use App\Filament\Support\Money;
 use App\Support\Finance\Payments;
 use App\Support\Settings;
@@ -17,6 +18,8 @@ use Illuminate\Support\Facades\Storage;
 
 class ListPayments extends ListRecords
 {
+    use ListTools;
+
     protected static string $resource = PaymentResource::class;
 
     protected function getHeaderActions(): array
@@ -25,7 +28,7 @@ class ListPayments extends ListRecords
         $saved = is_array($saved) ? $saved : ['date' => 1, 'amount' => 2, 'reference' => 3, 'name' => 4, 'iban' => 5, 'skip_rows' => 1, 'delimiter' => ';', 'date_format' => 'd.m.Y'];
         $column = fn (string $key, bool $required) => TextInput::make($key)->label(__('admin.finance.column_'.$key))->numeric()->minValue(1)->required($required)->default($saved[$key] ?? null);
 
-        return [
+        return [...$this->listTools(),
             // Bank import (PY02, AD41): CSV or XLSX export of the bank account; the column mapping is saved for next time.
             Action::make('import')->label(__('admin.finance.bank_import'))->icon('heroicon-o-arrow-up-tray')
                 ->visible(fn () => Money::canManage())

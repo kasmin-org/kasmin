@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\EnsureSchemaIsCompatible;
+use App\Http\Middleware\SetLocale;
 use App\Support\System\BootCache;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -27,7 +28,7 @@ return Application::configure(basePath: dirname(__DIR__))
         if ($proxies !== []) {
             $middleware->trustProxies(at: array_values($proxies));
         }
-        $middleware->web(prepend: [EnsureSchemaIsCompatible::class]);
+        $middleware->web(prepend: [EnsureSchemaIsCompatible::class], append: [SetLocale::class]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

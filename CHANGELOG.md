@@ -8,11 +8,22 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ### Added
 
+- REST API and MCP: groups, forms (confidential values only with `health:read` / `health:write`), mail templates, mailings (sending always
+  needs an approval unless the token has `approvals:decide`), settings, and public events and forms without a token.
+- Idempotency keys for API requests.
+- Timeline of a person; login link from the person page; single invoices.
+- Daily database backups with status on the system page.
+- Mails go to the recipients set in the template (legal guardians, the person, or both).
+- Groups show who joined and left in the last 30 days.
 - Groups: members can be added and removed; groups by rules (age, membership, role, other groups, number of past events) and of the
   participants of an event; subgroups; ended memberships stay as history.
 - Mail test mode: all mails, also login links, go to one address; shown in the admin interface.
 - Attachments for mail templates and mailings, also documents of events. A mail never goes out without a promised file.
 - Large mailings (default: more than 50 mails) are sent after an approval.
+
+### Changed
+
+- Registrations by the API count as made by the team (registration rounds).
 
 ### Fixed
 

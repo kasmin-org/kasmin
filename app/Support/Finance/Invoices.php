@@ -90,6 +90,28 @@ class Invoices
         });
     }
 
+    /**
+     * A draft for one person, independent of events (AD24).
+     *
+     * @param  list<array{description: string, amount_cents: int}>  $lines
+     */
+    public function single(Person $payer, array $lines): Invoice
+    {
+        $household = $payer->households()->wherePivot('role', 'guardian')->first();
+
+        return DB::transaction(function () use ($payer, $household, $lines) {
+            $invoice = Invoice::query()->create([
+                'household_id' => $household?->id, 'payer_id' => $payer->id, 'payer_name' => $payer->fullName(), 'created_by_id' => auth()->id(), 'total_cents' => array_sum(array_column($lines, 'amount_cents')),
+                'payer_address' => $household ? trim(implode("\n", array_filter([$household->getAttribute('street'), trim($household->getAttribute('postal_code').' '.$household->getAttribute('city'))]))) : null,
+            ]);
+            foreach ($lines as $sort => $line) {
+                $invoice->lines()->create($line + ['discount_cents' => 0, 'sort' => $sort]);
+            }
+
+            return $invoice;
+        });
+    }
+
     /** Assigns number, reference, dates; status issued. */
     public function issue(Invoice $invoice): Invoice
     {

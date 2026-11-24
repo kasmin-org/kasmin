@@ -39,7 +39,7 @@ class OrganisationSettingsPage extends Page
     private const KEYS = [
         'organisation_name', 'organisation_address', 'organisation_email', 'organisation_website', 'organisation_iban',
         'organisation_bic', 'organisation_bank', 'organisation_legal_footer', 'invoice_number_format', 'invoice_next_number',
-        'invoice_number_per_year', 'invoice_due_days', 'invoice_attach_paid', 'invoice_reminder_days_before', 'invoice_overdue_days', 'invoice_overdue_fees', 'public_url', 'mail_test_address', 'mailing_approval_above', 'embed_origins', 'timezone', 'digest_time', 'approval_days', 'ai_processing', 'retention_safety_years', 'retention_invoice_years',
+        'invoice_number_per_year', 'invoice_due_days', 'invoice_attach_paid', 'invoice_reminder_days_before', 'invoice_overdue_days', 'invoice_overdue_fees', 'public_url', 'mail_test_address', 'mailing_approval_above', 'backup_keep', 'embed_origins', 'timezone', 'digest_time', 'approval_days', 'ai_processing', 'retention_safety_years', 'retention_invoice_years',
         'max_guardians', 'min_login_age', 'guardian_until_age', 'own_registrations_visible',
     ];
 
@@ -120,6 +120,7 @@ class OrganisationSettingsPage extends Page
                 TextInput::make('public_url')->label(__('admin.settings.public_url'))->url()->maxLength(200)->placeholder((string) config('app.url'))->hintIcon(...$hint('public_url')),
                 TextInput::make('mail_test_address')->label(__('admin.settings.mail_test_address'))->email()->hintIcon(...$hint('mail_test_address')),
                 TextInput::make('mailing_approval_above')->label(__('admin.settings.mailing_approval_above'))->numeric()->minValue(0)->required()->hintIcon(...$hint('mailing_approval_above')),
+                TextInput::make('backup_keep')->label(__('admin.settings.backup_keep'))->numeric()->minValue(1)->maxValue(90)->required(),
                 TextInput::make('embed_origins')->label(__('admin.settings.embed_origins'))->placeholder('https://www.example.org')->regex('#^\s*https://[a-zA-Z0-9.-]+(:\d+)?([\s,]+https://[a-zA-Z0-9.-]+(:\d+)?)*\s*$#')->hintIcon(...$hint('embed_origins')),
                 Select::make('timezone')->label(__('admin.settings.timezone'))->searchable()->placeholder('UTC')->options(fn () => array_combine(timezone_identifiers_list(), timezone_identifiers_list()))->hintIcon(...$hint('timezone')),
                 TextInput::make('digest_time')->label(__('admin.settings.digest_time'))->regex('/^([01]\d|2[0-3]):[0-5]\d$/')->placeholder('07:00'),

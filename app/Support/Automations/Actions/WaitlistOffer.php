@@ -10,6 +10,7 @@ use App\Support\Automations\Action;
 use App\Support\Events\Rounds;
 use App\Support\Mail\Composer;
 use App\Support\Mail\Notifier;
+use App\Support\Mail\Routing;
 
 /**
  * A05: free places go to the next people on the waitlist as an offer with a deadline; the legal guardians accept
@@ -57,7 +58,7 @@ class WaitlistOffer implements Action
         }
         $p->fill(['status' => 'offered', 'offer_expires_at' => now()->addDays((int) $automation->setting('offer_days', 7))->endOfDay()])->save();
         Audit::record('participation.offered', $p, null, ['until' => $p->offer_expires_at?->toIso8601String()]);
-        foreach ($p->isOwn() ? [$person] : ($person->guardians->all() ?: [$person]) as $recipient) {
+        foreach (Routing::recipients('waitlist_offer', $person, $p) as $recipient) {
             app(Composer::class)->queue('waitlist_offer', $recipient, [
                 'event' => $e, 'participation' => $p, 'household' => $person->households->first(), 'children' => [$person],
             ]);

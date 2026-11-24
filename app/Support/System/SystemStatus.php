@@ -2,7 +2,9 @@
 
 namespace App\Support\System;
 
+use App\Support\Backup\Backups;
 use App\Support\Install\Requirements;
+use App\Support\Mail\Sender;
 use App\Support\Schema\SchemaGuard;
 use App\Support\Schema\SchemaStatus;
 use Illuminate\Support\Carbon;
@@ -81,6 +83,15 @@ class SystemStatus
         $queued = DB::table('outgoing_mails')->where('status', 'queued')->where('created_at', '<', now()->subMinutes(30))->count();
         $checks[] = ['key' => 'queue', 'label' => __('system.status.queue'), 'status' => $queued > 0 ? 'warning' : 'ok', 'detail' => __('system.status.queue_old', ['count' => $queued])];
         $checks[] = ['key' => 'database', 'label' => __('system.status.database'), 'status' => $this->schema->status(fresh: true) === SchemaStatus::Ok ? 'ok' : 'error', 'detail' => DB::connection()->getDriverName().' · '.__('system.schema.versions', ['code' => $this->schema->codeVersion(), 'database' => $this->schema->databaseVersion() ?? '–'])];
+        $backup = app(Backups::class)->all()[0] ?? null;
+        $checks[] = [
+            'key' => 'backup', 'label' => __('system.status.backup'), 'status' => $backup === null || $backup['at']->lt(now()->subDays(2)) ? 'warning' : 'ok',
+            'detail' => $backup === null ? __('system.status.backup_none') : __('system.status.backup_last', ['time' => $backup['at']->diffForHumans(), 'size' => number_format($backup['size'] / 1048576, 1)]),
+            'url' => self::docsUrl('admin/upgrading'),
+        ];
+        if (Sender::testAddress() !== null) {
+            $checks[] = ['key' => 'test_mode', 'label' => __('admin.settings.mail_test_address'), 'status' => 'warning', 'detail' => Sender::testAddress()];
+        }
         $latest = $this->releases->latest();
         $checks[] = [
             'key' => 'version', 'label' => 'Kasmin '.config('kasmin.version'),

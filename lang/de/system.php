@@ -2,6 +2,7 @@
 
 return [
     'status' => [
+        'backup' => 'Datensicherung', 'backup_none' => 'Es gibt noch keine Sicherung.', 'backup_last' => 'Letzte Sicherung :time (:size MB)',
         'title' => 'Systemstatus', 'checks' => 'Prüfungen', 'docs' => 'Anleitung', 'more' => 'Mehr erfahren', 'dismiss' => 'Ausblenden',
         'levels' => ['ok' => 'OK', 'warning' => 'Warnung', 'error' => 'Fehler', 'info' => 'Info'],
         'php_eol' => 'Sicherheitsupdates bis :date', 'php_unknown' => 'Supportende unbekannt',

@@ -5,6 +5,7 @@ namespace App\Filament\Resources\People;
 use App\Filament\Resources\People\Pages\CreatePerson;
 use App\Filament\Resources\People\Pages\EditPerson;
 use App\Filament\Resources\People\Pages\ListPeople;
+use App\Filament\Resources\People\Pages\PersonTimeline;
 use App\Filament\Resources\People\Pages\ViewPerson;
 use App\Filament\Resources\People\Schemas\PersonForm;
 use App\Filament\Resources\People\Schemas\PersonInfolist;
@@ -87,6 +88,7 @@ class PersonResource extends Resource
             'index' => ListPeople::route('/'),
             'create' => CreatePerson::route('/create'),
             'view' => ViewPerson::route('/{record}'),
+            'timeline' => PersonTimeline::route('/{record}/timeline'),
             'edit' => EditPerson::route('/{record}/edit'),
         ];
     }

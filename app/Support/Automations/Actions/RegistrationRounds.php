@@ -10,6 +10,7 @@ use App\Support\Automations\Action;
 use App\Support\Events\Rounds;
 use App\Support\Finance\Invoices;
 use App\Support\Mail\Composer;
+use App\Support\Mail\Routing;
 use App\Support\Settings;
 use Illuminate\Support\Collection;
 
@@ -66,7 +67,7 @@ class RegistrationRounds implements Action
             }
         }
         $children = array_map(fn ($p) => $people->firstWhere('id', $p->person_id) ?? $people->first(), $offered);
-        $recipients = collect($children)->flatMap(fn (?Person $c) => $c === null ? [] : ($c->guardians->all() ?: [$c]))->unique('id');
+        $recipients = collect($children)->flatMap(fn (?Person $c) => $c === null ? [] : Routing::recipients('round_offer', $c))->unique('id');
         foreach ($recipients as $recipient) {
             app(Composer::class)->queue('round_offer', $recipient, [
                 'event' => $e, 'participation' => $offered[0]->load('event', 'person'), 'household' => $people->first()?->households->first(), 'children' => array_values(array_filter($children)),

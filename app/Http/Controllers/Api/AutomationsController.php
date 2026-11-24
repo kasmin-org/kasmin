@@ -1,0 +1,88 @@
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use App\Models\Automation;
+use App\Models\AutomationRun;
+use App\Models\User;
+use App\Support\Api\ApiContext;
+use App\Support\Api\Presenter;
+use App\Support\Automations\Engine;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+
+/**
+ * Automations, runs and approvals (AP01, AP02, X05). Scopes: automations:read, automations:run, approvals:decide.
+ * Runs started via the API always wait for a human decision unless the token has approvals:decide.
+ */
+class AutomationsController extends ApiController
+{
+    public function index(): JsonResponse
+    {
+        $this->scope('automations:read');
+
+        return response()->json(['data' => Automation::query()->orderBy('key')->get()->map(fn (Automation $a) => Presenter::automation($a))->values()]);
+    }
+
+    /** Dry run: what the automation would do now (nothing is changed). */
+    public function preview(Request $request, string $automation): JsonResponse
+    {
+        $this->scope('automations:read');
+        $model = Automation::query()->where('key', $automation)->firstOrFail();
+        $event = $request->input('event') ? $this->event((string) $request->input('event')) : null;
+
+        return response()->json(['data' => app(Engine::class)->preview($model, $event)]);
+    }
+
+    /** Start a run. Without approvals:decide it becomes an approval request for the approvers. */
+    public function run(Request $request, string $automation): JsonResponse
+    {
+        $this->scope('automations:run');
+        $model = Automation::query()->where('key', $automation)->firstOrFail();
+        $event = $request->input('event') ? $this->event((string) $request->input('event')) : null;
+        /** @var User $user */
+        $user = $request->user();
+        $run = app(Engine::class)->trigger($model, ApiContext::viaMcp() ? 'mcp' : 'api', $event, null, $user, ! ApiContext::allows('approvals:decide'));
+
+        return $run === null
+            ? response()->json(['data' => null, 'message' => 'Nothing to do.'])
+            : response()->json(['data' => Presenter::run($run->load('automation', 'event'))], 201);
+    }
+
+    /** Runs; default: pending approval requests. */
+    public function runs(Request $request): JsonResponse
+    {
+        $this->scope('automations:read');
+        $status = (string) $request->query('status', 'pending_approval');
+        $runs = AutomationRun::query()->with('automation', 'event', 'decidedBy')->when($status !== 'all', fn ($q) => $q->where('status', $status))
+            ->orderByDesc('id')->limit(100)->get();
+
+        return response()->json(['data' => $runs->map(fn (AutomationRun $r) => Presenter::run($r))->values()]);
+    }
+
+    public function showRun(int $run): JsonResponse
+    {
+        $this->scope('automations:read');
+
+        return response()->json(['data' => Presenter::run(AutomationRun::query()->with('automation', 'event', 'decidedBy')->findOrFail($run))]);
+    }
+
+    /** Approve (optionally without some items) or deny a pending run. Needs approvals:decide and an approver role. */
+    public function decide(Request $request, int $run): JsonResponse
+    {
+        $this->scope('approvals:decide');
+        $data = $request->validate([
+            'decision' => ['required', Rule::in(['approve', 'deny'])], 'excluded' => ['array'], 'excluded.*' => ['string'], 'comment' => ['nullable', 'string', 'max:490'],
+        ]);
+        /** @var User $user */
+        $user = $request->user();
+        try {
+            $model = app(Engine::class)->decide(AutomationRun::query()->findOrFail($run), $user, $data['decision'] === 'approve', array_values($data['excluded'] ?? []), $data['comment'] ?? null);
+        } catch (\RuntimeException $e) {
+            return response()->json(['message' => $e->getMessage()], 409);
+        }
+
+        return response()->json(['data' => Presenter::run($model->load('automation', 'event', 'decidedBy'))]);
+    }
+}

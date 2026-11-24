@@ -23,8 +23,14 @@ https://your-kasmin-domain.example/system/cron?token=YOUR_TOKEN
 ```
 
 At all-inkl.com: KAS → *Tools* → *Cronjobs* → *Neuen Cronjob anlegen*: protocol `https`, the URL above (without
-`https://`), interval "every minute" (`*` for minute, hour, day, month and weekday), a description such as
-"Kasmin scheduler". The answer of the URL is a short JSON text with `"ok":true`.
+`https://`), a description such as "Kasmin scheduler", and the shortest interval your package allows. Packages that
+do not allow "every minute" reject it ("time not allowed"); then use **every 5 minutes** (`*/5` for the minute, `*`
+for hour, day, month and weekday). The answer of the URL is a short JSON text with `"ok":true`.
+
+**Every 5 minutes instead of every minute** works: mails, reminders and automations simply start up to 5 minutes
+later. Keep times you configure yourself (e.g. the digest time) on multiples of 5 minutes (07:00, 07:05 …), because a
+scheduled task only starts when a cron call falls into its minute. The "cron job not configured" warning appears
+only after 15 minutes without a call.
 
 # Hosting without a command line
 

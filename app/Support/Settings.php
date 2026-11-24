@@ -25,6 +25,7 @@ class Settings
         'invoice_attach_paid' => '1',
         'invoice_reminder_days_before' => '3',
         'invoice_overdue_days' => '7,21',
+        'ai_processing' => 'none', // none, non_confidential, all (MI12)
     ];
 
     /** @var array<string, string|null> */

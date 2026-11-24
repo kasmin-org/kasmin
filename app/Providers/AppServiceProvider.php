@@ -2,13 +2,22 @@
 
 namespace App\Providers;
 
+use App\Models\Participation;
+use App\Models\Person;
+use App\Models\User;
+use App\Support\Api\Presenter;
 use App\Support\Schema\SchemaGuard;
 use App\Support\Schema\SchemaStatus;
+use App\Support\Webhooks\Webhooks;
+use Dedoc\Scramble\Scramble;
+use Dedoc\Scramble\Support\Generator\OpenApi;
+use Dedoc\Scramble\Support\Generator\SecurityScheme;
 use Illuminate\Cache\RateLimiter;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Console\Events\CommandStarting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use RuntimeException;
 
@@ -31,6 +40,7 @@ class AppServiceProvider extends ServiceProvider
     /** Also called again when the limiter is re-created before installation (EnsureSchemaIsCompatible). */
     public static function defineRateLimiters(): void
     {
+        app(RateLimiter::class)->for('api', fn (Request $request) => Limit::perMinute(120)->by('api|'.($request->bearerToken() !== null ? hash('sha256', (string) $request->bearerToken()) : $request->ip())));
         foreach (['install' => 10, 'preferences' => 10, 'register' => 5, 'login-send' => 5, 'login-code' => 10, 'login-link' => 10, 'approvals' => 10, 'two-factor' => 10] as $name => $perMinute) {
             app(RateLimiter::class)->for($name, fn (Request $request) => Limit::perMinute($perMinute)->by($name.'|'.$request->ip()));
         }
@@ -41,6 +51,19 @@ class AppServiceProvider extends ServiceProvider
         // Separate rate limits per purpose: anonymous "throttle:x,y" limits share one counter per IP across all
         // routes, so e.g. using login links or approvals would block requesting a login link.
         self::defineRateLimiters();
+
+        // Webhook events of participations and people (AD81).
+        Participation::created(fn (Participation $p) => app(Webhooks::class)->emit('participation.created', Presenter::participation($p->loadMissing('event', 'person'))));
+        Participation::updated(function (Participation $p): void {
+            if ($p->wasChanged('status')) {
+                app(Webhooks::class)->emit('participation.status_changed', Presenter::participation($p->loadMissing('event', 'person')) + ['previous_status' => $p->getOriginal('status')]);
+            }
+        });
+        Person::created(fn (Person $p) => app(Webhooks::class)->emit('person.created', Presenter::person($p)));
+
+        // OpenAPI documentation of the REST API (X02): public, contains no data.
+        Gate::define('viewApiDocs', fn (?User $user = null) => true);
+        Scramble::configure()->withDocumentTransformers(fn (OpenApi $openApi) => $openApi->secure(SecurityScheme::http('bearer')));
 
         Event::listen(CommandStarting::class, function (CommandStarting $event): void {
             $command = (string) $event->command;

@@ -32,6 +32,9 @@ return [
         'next_number' => 'Next number', 'next_number_hint' => 'After importing old invoices, set this to the next free number.', 'due_days' => 'Payment term (days)',
         'reminder_before' => 'Reminder before due date (days)', 'reminder_before_hint' => '0 = no reminder before the due date. Can be changed per event.',
         'overdue_days' => 'Reminders after … days', 'overdue_days_hint' => 'Comma-separated, e.g. 7,21.', 'attach_paid' => 'Attach the paid invoice to the payment confirmation',
+        'ai' => 'AI assistants', 'ai_processing' => 'AI processing allowed',
+        'ai_options' => ['none' => 'None – the MCP endpoint is switched off', 'non_confidential' => 'Non-confidential data (no health and safety data)', 'all' => 'All data, including health and safety data'],
+        'ai_hint' => 'Only allow what your privacy policy and a data processing agreement with the AI provider cover. See the documentation "Migrate with an AI assistant".',
         'save' => 'Save', 'saved' => 'Saved',
     ],
     'person' => [

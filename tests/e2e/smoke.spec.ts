@@ -47,3 +47,12 @@ test('favicon and manifest are served', async ({ request }) => {
     expect((await request.get('/favicon.svg')).status()).toBe(200);
     expect((await request.get('/site.webmanifest')).status()).toBe(200);
 });
+
+test('API documentation is public, the API itself needs a token', async ({ page, request }) => {
+    const spec = await request.get('/docs/api.json');
+    expect(spec.status()).toBe(200);
+    expect((await spec.json()).openapi).toMatch(/^3\.1/);
+    expect((await request.get('/api/v1/me')).status()).toBe(401);
+    await page.goto('/docs/api');
+    await expect(page.locator('body')).toContainText('Kasmin', { timeout: 15_000 });
+});

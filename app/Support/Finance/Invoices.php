@@ -9,8 +9,10 @@ use App\Models\Household;
 use App\Models\Invoice;
 use App\Models\Participation;
 use App\Models\Person;
+use App\Support\Api\Presenter;
 use App\Support\Mail\Composer;
 use App\Support\Settings;
+use App\Support\Webhooks\Webhooks;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
@@ -124,6 +126,7 @@ class Invoices
                 'number' => $number, 'reference' => self::creditorReference($number), 'status' => $invoice->total_cents > 0 ? 'issued' : 'paid',
                 'issued_on' => now()->toDateString(), 'due_on' => $due->toDateString() < now()->toDateString() ? now()->addDays(14)->toDateString() : $due->toDateString(),
             ])->save();
+            app(Webhooks::class)->emit('invoice.issued', Presenter::invoice($invoice));
 
             return $invoice;
         });

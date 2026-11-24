@@ -44,6 +44,11 @@ class AutomationDefaults
                 'description' => ['de' => 'Erstellt und versendet die Rechnungen der Rate „balance“ 90 Tage vor Beginn.', 'en' => 'Creates and sends the invoices of the instalment "balance" 90 days before the start.'],
                 'action' => 'invoice_run', 'config' => ['installment' => 'balance', 'send' => true], 'trigger' => 'before_event', 'trigger_config' => ['days' => 90], 'mode' => 'confirm',
             ],
+            'mailing_release' => [
+                'name' => ['de' => 'Große Aussendungen freigeben', 'en' => 'Approve large mailings'],
+                'description' => ['de' => 'Aussendungen mit vielen Mails werden erst nach Freigabe verschickt (Einstellungen).', 'en' => 'Mailings with many mails are sent after an approval (settings).'],
+                'action' => 'mailing_release', 'trigger' => 'manual', 'mode' => 'confirm', 'active' => true,
+            ],
             'registration_rounds' => [
                 'name' => ['de' => 'Anmelderunden', 'en' => 'Registration rounds'],
                 'description' => ['de' => 'Bietet in den Runden einer Veranstaltung Plätze an (Wiederkehrende, Auswahl), nach Freigabe.', 'en' => 'Offers places in the rounds of an event (returning participants, selection), after approval.'],

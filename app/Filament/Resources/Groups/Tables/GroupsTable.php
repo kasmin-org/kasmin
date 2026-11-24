@@ -14,20 +14,10 @@ class GroupsTable
     {
         return $table
             ->columns([
-                TextColumn::make('name')
-                    ->searchable(),
-                TextColumn::make('parent.name')
-                    ->searchable(),
-                TextColumn::make('kind')
-                    ->searchable(),
-                TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('updated_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('name')->label(__('admin.form.name'))->searchable()->sortable(),
+                TextColumn::make('parent.name')->label(__('admin.group.parent'))->placeholder('–')->toggleable(),
+                TextColumn::make('kind')->label(__('admin.form.kind'))->badge()->formatStateUsing(fn (string $state) => __('admin.group.kinds.'.$state)),
+                TextColumn::make('people_count')->counts('people')->label(__('admin.group.members')),
             ])
             ->filters([
                 //

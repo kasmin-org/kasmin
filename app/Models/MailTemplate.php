@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property bool $is_standard
  * @property int|null $standard_version
  * @property int $version
+ * @property array<array-key, string>|null $attachments
  */
 class MailTemplate extends Model
 {
@@ -30,7 +31,7 @@ class MailTemplate extends Model
 
     protected function casts(): array
     {
-        return ['name' => 'array', 'is_standard' => 'boolean', 'active' => 'boolean'];
+        return ['attachments' => 'array', 'name' => 'array', 'is_standard' => 'boolean', 'active' => 'boolean'];
     }
 
     /** @return HasMany<MailTemplateContent, $this> */

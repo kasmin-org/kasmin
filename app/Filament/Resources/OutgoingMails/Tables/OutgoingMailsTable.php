@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\OutgoingMails\Tables;
 
 use App\Models\OutgoingMail;
+use App\Support\Auth\Permissions;
 use Filament\Actions\Action;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
@@ -31,7 +32,7 @@ class OutgoingMailsTable
         ])->recordActions([
             ViewAction::make(),
             Action::make('resend')->label(__('admin.mail.resend'))->icon('heroicon-o-arrow-path')->requiresConfirmation()
-                ->visible(fn (OutgoingMail $r) => in_array($r->status, ['sent', 'failed', 'bounced'], true))
+                ->visible(fn (OutgoingMail $r) => Permissions::current('mailings', 'edit') && in_array($r->status, ['sent', 'failed', 'bounced'], true))
                 ->action(fn (OutgoingMail $r) => $r->replicate(['uuid', 'message_id', 'sent_at', 'imap_copied_at', 'attempts', 'last_error'])->fill(['status' => 'queued', 'created_by_id' => auth()->id()])->save()),
         ]);
     }

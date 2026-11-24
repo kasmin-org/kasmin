@@ -33,6 +33,8 @@ class Settings
         'retention_safety_years' => '7', // CO01
         'retention_invoice_years' => '7',
         'public_url' => '',
+        'mail_test_address' => '',       // MS08: all mails go here
+        'mailing_approval_above' => '50', // MM07; 0 = never
         'embed_origins' => '', // websites that may show public pages in a frame
         'timezone' => null, // UTC; stored times are in this time zone, so it is chosen at the set-up
         'digest_time' => null,

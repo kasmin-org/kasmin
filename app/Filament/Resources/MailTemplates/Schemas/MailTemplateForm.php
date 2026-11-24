@@ -5,6 +5,7 @@ namespace App\Filament\Resources\MailTemplates\Schemas;
 use App\Models\MailTemplate;
 use App\Support\Mail\TemplateRenderer;
 use Closure;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
@@ -13,6 +14,8 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Illuminate\Support\Str;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
 /**
  * Template editor (MT01–MT11): WYSIWYG per language, placeholders validated against the sandbox before saving.
@@ -32,6 +35,8 @@ class MailTemplateForm
                 Select::make('audience')->label(__('admin.mail.audience'))->options(__('admin.mail.audiences'))->default('guardians')->required(),
                 Toggle::make('active')->label(__('admin.form.active'))->default(true),
                 TextInput::make('version')->label(__('admin.form.version'))->disabled()->dehydrated(false),
+                FileUpload::make('attachments')->label(__('admin.mail.attachments'))->multiple()->disk('local')->directory('mail-attachments')->visibility('private')->getUploadedFileNameForStorageUsing(fn (TemporaryUploadedFile $file) => Str::lower(Str::random(6)).'-'.Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)).'.'.$file->guessExtension())->maxSize(5120)->maxFiles(5)
+                    ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])->helperText(__('admin.mail.attachments_hint'))->columnSpanFull(),
             ]),
             Section::make(__('admin.mail.contents'))->description(__('admin.mail.placeholder_help'))->schema([
                 Repeater::make('contents')->relationship()->label('')->minItems(1)->maxItems(2)

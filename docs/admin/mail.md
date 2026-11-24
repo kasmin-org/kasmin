@@ -57,3 +57,24 @@ requests are not executed automatically – administrators are notified and deci
 Topics (new registrations, waitlist, changed information, safety sheets, bounces, deletion requests …) can be
 received immediately or as a daily digest (07:00, last 24 hours) or weekly digest (Mondays, last 7 days). They never
 contain confidential values.
+
+## Test mode
+
+*Settings → Organisation and invoices → Mail test mode* (administrators; `KASMIN_MAIL_TEST_ADDRESS` for Docker): **every** mail goes to
+this address, also login links. The subject shows the real recipient, and the admin interface shows a notice. Make sure you can read
+that mailbox, otherwise nobody can log in.
+
+## Attachments
+
+Templates and mailings can have up to five files (PDF, JPG, PNG, 5 MB each); mailings can also use documents of events. If a file is
+missing, the mail is not sent and the error is shown in the mail log.
+
+## Approval of large mailings
+
+Mailings with more mails than set under *Settings* (default 50, 0 = never) wait for an approval, like automations: the approvers get a
+mail, and nothing is sent before somebody decides.
+
+## Private registrations
+
+If somebody is a recipient only because of a registration made with the own login, the mail goes to that person and not to the legal
+guardians (unless *Legal guardians see what their child registers itself* is on).

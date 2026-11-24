@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\EnsureSchemaIsCompatible;
+use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SetLocale;
 use App\Support\System\BootCache;
 use Illuminate\Foundation\Application;
@@ -29,6 +30,10 @@ return Application::configure(basePath: dirname(__DIR__))
             $middleware->trustProxies(at: array_values($proxies));
         }
         $middleware->web(prepend: [EnsureSchemaIsCompatible::class], append: [SetLocale::class]);
+        $middleware->append(SecurityHeaders::class);
+        // Public forms work in frames of other websites, where browsers send no cookies. They change nothing before the
+        // address is confirmed by mail, and they never use a login.
+        $middleware->validateCsrfTokens(except: ['f/*']);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

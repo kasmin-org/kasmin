@@ -48,6 +48,7 @@ return [
         'overdue_fees' => 'Mahnspesen', 'overdue_fees_hint' => 'Optional, standardmäßig aus: Betrag je Mahnung nach der Fälligkeit, mit Strichpunkt getrennt in derselben Reihenfolge, z. B. 0;5. Die Spesen sind eine eigene Rechnung.', 'number_format_invalid' => 'Das Format braucht {number}; bei eigenen Nummern pro Jahr auch {year}.',
         'timezone' => 'Zeitzone', 'timezone_hint' => 'Alle Uhrzeiten und täglichen Aufgaben gelten in dieser Zeitzone. Am Anfang festlegen: bereits gespeicherte Zeiten werden nicht umgerechnet.',
         'families' => 'Familien', 'max_guardians' => 'Erziehungsberechtigte pro Familie (höchstens)', 'min_login_age' => 'Eigener Zugang ab Alter', 'guardian_until_age' => 'Erziehungsberechtigung endet mit Alter', 'own_registrations_visible' => 'Erziehungsberechtigte sehen eigene Anmeldungen des Kindes', 'own_registrations_visible_hint' => 'Aus: Anmeldungen, die das Kind mit eigenem Zugang macht, sind privat.',
+        'embed_origins' => 'Websites, die öffentliche Seiten einbetten dürfen', 'embed_origins_hint' => 'Adressen mit https, durch Leerzeichen getrennt. Nur öffentliche Veranstaltungsseiten und Formulare (mit ?embed=1) können dort angezeigt werden, alles andere nie in Frames.',
         'number_per_year' => 'Eigene Nummern pro Jahr', 'number_per_year_hint' => 'Die Nummern beginnen jedes Jahr mit 1; dazu ein Nummernformat mit {year} verwenden.',
         'save' => 'Speichern', 'saved' => 'Gespeichert',
     ],
@@ -67,6 +68,7 @@ return [
         'street' => 'Straße', 'postal_code' => 'PLZ', 'city' => 'Ort', 'country' => 'Land (ISO)',
     ],
     'event' => [
+        'address' => 'Adresse', 'map' => 'Karte', 'return_point' => 'Rückkehr', 'contact' => 'Kontakt', 'announce_at' => 'Ankündigen am', 'opens_at' => 'Anmeldung öffnet', 'closes_at' => 'Anmeldung schließt', 'dates_hint' => 'Der Status ändert sich an diesen Terminen sowie zu Beginn und Ende der Veranstaltung. Jeder Termin wirkt einmal; Änderungen von Hand bleiben.', 'public_page' => 'Öffentliche Seite', 'image' => 'Bild', 'documents' => 'Dokumente', 'add_document' => 'Dokument hinzufügen', 'visibility' => 'Sichtbar für', 'visibilities' => ['participants' => 'Teilnehmende und ihre Erziehungsberechtigten', 'public' => 'Alle (öffentliche Seite)'], 'copy' => 'Kopieren', 'copy_hint' => 'Alle Termine verschieben sich um gleich viele Tage.', 'save_template' => 'Als Vorlage speichern', 'template_saved' => 'Vorlage gespeichert.', 'from_template' => 'Aus Vorlage', 'template' => 'Veranstaltungsvorlage', 'templates' => 'Veranstaltungsvorlagen', 'days' => 'Tage',
         'registration_form' => 'Fragen bei der Anmeldung', 'answers_until' => 'Antworten änderbar bis', 'answers_until_hint' => 'Leer = bis zum Beginn der Veranstaltung.',
         'cancel_participation' => 'Anmeldung stornieren', 'cancelled_hint' => 'Storniert. Korrekturen ausgestellter Rechnungen werden unter Automatisierungen vorgeschlagen.',
         'singular' => 'Veranstaltung', 'plural' => 'Veranstaltungen', 'title' => 'Titel', 'series' => 'Reihe', 'status' => 'Status',

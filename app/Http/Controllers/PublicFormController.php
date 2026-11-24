@@ -10,6 +10,7 @@ use App\Support\Events\RegistrationException;
 use App\Support\Forms\RegistrationAnswers;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 /**
@@ -22,22 +23,40 @@ class PublicFormController extends Controller
 
     public function show(string $slug): View
     {
-        $form = $this->form($slug);
+        return $this->page($this->form($slug));
+    }
 
+    private function page(PublicForm $form, bool $sent = false): View
+    {
         return view('public.form', [
+            'sent' => $sent || session('sent') === true,
             'title' => $form->titleText(), 'intro' => $form->introText(), 'state' => $form->state(), 'form' => $form,
-            'fields' => $this->forms->questions($form)->fields ?? collect(), 'action' => route('public.form.store', $form->slug),
+            'fields' => $this->forms->questions($form)->fields ?? collect(), 'action' => route('public.form.store', [$form->slug] + (request()->boolean('embed') ? ['embed' => 1] : [])),
             'askEmail' => true, 'askBirthDate' => $form->kind !== 'interest', 'places' => $this->places($form),
         ]);
     }
 
-    public function store(Request $request, string $slug): RedirectResponse
+    public function store(Request $request, string $slug): View|RedirectResponse
     {
         $form = $this->form($slug);
         // Bots fill every field: the same answer, but nothing is sent.
         if ((string) $request->input('website') === '') {
             abort_unless($form->state() === 'open', 403);
-            $this->forms->submit($form, $this->data($request, $this->forms->questions($form), true, $form->kind !== 'interest'));
+            try {
+                $data = $this->data($request, $this->forms->questions($form), true, $form->kind !== 'interest');
+            } catch (ValidationException $e) {
+                if ($request->boolean('embed')) { // no cookies in frames, so errors cannot wait for the next page
+                    $request->flash();
+
+                    return $this->page($form)->withErrors($e->validator);
+                }
+
+                throw $e;
+            }
+            $this->forms->submit($form, $data);
+        }
+        if ($request->boolean('embed')) {
+            return $this->page($form, true);
         }
 
         return redirect()->route('public.form', $form->slug)->with('sent', true);
@@ -72,7 +91,7 @@ class PublicFormController extends Controller
         return view('public.form', [
             'title' => $event->title, 'intro' => __('public.guest_intro', ['host' => $invitation->participation->person?->fullName()]), 'state' => 'open', 'form' => null,
             'fields' => $this->answers->form($event, Guests::ROLE)->fields ?? collect(), 'action' => route('public.guest.store', $token),
-            'askEmail' => false, 'askBirthDate' => true, 'places' => null,
+            'askEmail' => false, 'askBirthDate' => true, 'places' => null, 'sent' => false,
         ]);
     }
 

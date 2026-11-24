@@ -33,6 +33,7 @@ class Settings
         'retention_safety_years' => '7', // CO01
         'retention_invoice_years' => '7',
         'public_url' => '',
+        'embed_origins' => '', // websites that may show public pages in a frame
         'timezone' => null, // UTC; stored times are in this time zone, so it is chosen at the set-up
         'digest_time' => null,
         'approval_days' => null,

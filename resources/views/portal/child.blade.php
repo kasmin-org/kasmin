@@ -51,6 +51,9 @@
                 @if (! in_array($p->status, ['cancelled', 'declined'], true) && isset($answerForms[$p->id]))
                     <p class="mt-2 text-sm"><a class="underline" href="{{ route('portal.child.answers', [$child->public_id, $p->id]) }}">{{ __('portal.answers') }}</a></p>
                 @endif
+                @if (in_array($p->status, ['registered', 'confirmed', 'attended', 'offered'], true))
+                    @foreach ($p->event->documents as $d)<p class="mt-1 text-sm"><a class="underline" href="{{ route('event.document', $d) }}">{{ $d->title }}</a></p>@endforeach
+                @endif
                 @if ($self && ($guestsLeft[$p->id] ?? 0) > 0)
                     <form method="post" action="{{ route('portal.child.guest', [$child->public_id, $p->id]) }}" class="mt-3 text-sm">
                         @csrf

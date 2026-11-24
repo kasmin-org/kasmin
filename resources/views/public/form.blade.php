@@ -3,7 +3,7 @@
 @section('content')
     <h1 class="mb-2 text-2xl font-semibold">{{ $title }}</h1>
     @if ($intro)<p class="mb-4 whitespace-pre-line text-kasmin-700">{{ $intro }}</p>@endif
-    @if (session('sent'))
+    @if ($sent)
         <div class="rounded-lg bg-kasmin-100 p-4" role="status">{{ __('public.sent') }}</div>
     @elseif ($state !== 'open')
         <div class="rounded-lg bg-summer-500/20 p-4" role="status">{{ $state === 'early' ? __('public.early', ['date' => $form?->opens_at?->isoFormat('LLL')]) : __('public.closed') }}</div>

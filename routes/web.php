@@ -66,6 +66,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/children/new', [PortalChildController::class, 'create'])->middleware(RequireFullLogin::class)->name('portal.child.create');
         Route::post('/children', [PortalChildController::class, 'store'])->middleware(RequireFullLogin::class)->name('portal.child.store');
         Route::get('/children/{child}', [PortalChildController::class, 'show'])->name('portal.child');
+        Route::get('/children/{child}/register/{event}/{role}', [PortalChildController::class, 'registerForm'])->middleware(RequireFullLogin::class)->name('portal.child.register.form');
+        Route::get('/children/{child}/participations/{participation}/answers', [PortalChildController::class, 'editAnswers'])->middleware(RequireFullLogin::class)->whereNumber('participation')->name('portal.child.answers');
+        Route::post('/children/{child}/participations/{participation}/answers', [PortalChildController::class, 'saveAnswers'])->middleware(RequireFullLogin::class)->whereNumber('participation')->name('portal.child.answers.save');
         Route::post('/children/{child}/register', [PortalChildController::class, 'register'])->middleware(RequireFullLogin::class)->name('portal.child.register');
         Route::post('/children/{child}/participations/{participation}/cancel', [PortalChildController::class, 'cancel'])->middleware(RequireFullLogin::class)->name('portal.child.cancel');
         Route::post('/children/{child}/participations/{participation}/offer', [PortalChildController::class, 'answerOffer'])->name('portal.child.offer');

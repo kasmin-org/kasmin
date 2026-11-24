@@ -66,6 +66,7 @@ return [
         'street' => 'Straße', 'postal_code' => 'PLZ', 'city' => 'Ort', 'country' => 'Land (ISO)',
     ],
     'event' => [
+        'registration_form' => 'Fragen bei der Anmeldung', 'answers_until' => 'Antworten änderbar bis', 'answers_until_hint' => 'Leer = bis zum Beginn der Veranstaltung.',
         'cancel_participation' => 'Anmeldung stornieren', 'cancelled_hint' => 'Storniert. Korrekturen ausgestellter Rechnungen werden unter Automatisierungen vorgeschlagen.',
         'singular' => 'Veranstaltung', 'plural' => 'Veranstaltungen', 'title' => 'Titel', 'series' => 'Reihe', 'status' => 'Status',
         'starts_at' => 'Beginn', 'ends_at' => 'Ende', 'location' => 'Ort', 'meeting_point' => 'Treffpunkt', 'description' => 'Beschreibung',
@@ -82,6 +83,7 @@ return [
     'series' => ['singular' => 'Veranstaltungsreihe', 'plural' => 'Veranstaltungsreihen'],
     'group' => ['singular' => 'Gruppe', 'plural' => 'Gruppen'],
     'form' => [
+        'kind' => 'Art', 'kinds' => ['person' => 'Person (gilt für alle Veranstaltungen)', 'registration' => 'Fragen einer Veranstaltung'], 'scope' => 'Gefragt', 'scopes' => ['participant' => 'pro teilnehmender Person', 'family' => 'einmal pro Familie'],
         'singular' => 'Formular', 'plural' => 'Formulare', 'key' => 'Schlüssel', 'active' => 'Aktiv', 'name' => 'Name', 'description' => 'Beschreibung',
         'applies_until_age' => 'Gilt bis zum Alter', 'confirm_every_days' => 'Bestätigen alle … Tage', 'family_emergency_contacts' => 'Notfallkontakte der Familie anzeigen',
         'version' => 'Version', 'fields' => 'Felder', 'add_field' => 'Feld hinzufügen', 'type' => 'Typ', 'label' => 'Bezeichnung', 'help' => 'Hilfetext (Tooltip)',
@@ -90,7 +92,7 @@ return [
         'types' => ['text' => 'Text', 'textarea' => 'Langer Text', 'select' => 'Auswahl', 'multiselect' => 'Mehrfachauswahl', 'yes_no' => 'Ja/Nein', 'date' => 'Datum', 'year_or_no' => 'Jahr oder nein/unbekannt', 'phone' => 'Telefon', 'email' => 'E-Mail', 'none_or_text' => 'Keine oder Text', 'repeater' => 'Wiederholbare Gruppe', 'consent' => 'Einwilligung'],
         'sensitivities' => ['normal' => 'Normal', 'health' => 'Gesundheit (vertraulich)', 'identity' => 'Ausweis-/Versicherungsnummer (vertraulich)'],
         'lists' => ['kitchen' => 'Küche', 'medical' => 'Medizin', 'insurance' => 'Versicherung', 'emergency' => 'Notfall'],
-        'hints' => [
+        'hints' => ['kind' => 'Fragen einer Veranstaltung werden dort pro Rolle gewählt und bei der Anmeldung beantwortet.',
             'applies_until_age' => 'Ab diesem Alter wird das Formular nicht mehr verlangt und nicht mehr angezeigt (Sicherheitsblatt: 16).',
             'confirm_every_days' => 'Nach dieser Zeit müssen die Angaben neu bestätigt werden (z. B. 365 = jährlich).',
             'family_emergency_contacts' => 'Zeigt oben die Erziehungsberechtigten und die weiteren Notfallkontakte der Familie.',

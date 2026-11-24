@@ -32,7 +32,7 @@ class PersonInfolist
         $allowed = $user instanceof User && $user->person !== null
             && array_intersect($user->person->activeRoleKeys(), ['safety_officer', 'administrator']) !== [];
         if ($allowed) {
-            foreach (Form::query()->where('active', true)->orderBy('sort')->with('fields')->get() as $form) {
+            foreach (Form::query()->where('kind', 'person')->where('active', true)->orderBy('sort')->with('fields')->get() as $form) {
                 $sections[] = Section::make($form->label())->collapsible()->collapsed()->columns(2)
                     ->schema(fn (Person $record) => self::formEntries($form, $record));
             }

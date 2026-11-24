@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property array<string, string> $name
  * @property array<string, string>|null $description
  * @property int $version
+ * @property string $kind
  * @property int|null $applies_until_age
  * @property int|null $confirm_every_days
  * @property bool $family_emergency_contacts
@@ -24,7 +25,7 @@ class Form extends Model
 
     protected $guarded = ['id'];
 
-    protected $attributes = ['version' => 1, 'active' => true];
+    protected $attributes = ['version' => 1, 'active' => true, 'kind' => 'person'];
 
     protected function casts(): array
     {

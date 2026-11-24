@@ -99,7 +99,7 @@ class PortalFormController extends Controller
 
     private function form(string $key): Form
     {
-        return Form::query()->where('key', $key)->where('active', true)->with('fields')->firstOrFail();
+        return Form::query()->where('key', $key)->where('kind', 'person')->where('active', true)->with('fields')->firstOrFail();
     }
 
     private function household(Request $request, string $publicId): Household

@@ -18,6 +18,7 @@ use Illuminate\Support\Carbon;
  * @property string $status
  * @property bool $registration_binding
  * @property Carbon|null $age_reference_date
+ * @property Carbon|null $answers_until
  * @property string $currency
  * @property int $cancellation_fee_cents
  * @property array<string, string>|null $cancellation_text
@@ -47,7 +48,7 @@ class Event extends Model
 
     protected function casts(): array
     {
-        return ['starts_at' => 'datetime', 'ends_at' => 'datetime', 'registration_binding' => 'boolean', 'age_reference_date' => 'date', 'reminder_days_before' => 'array', 'cancellation_text' => 'array'];
+        return ['starts_at' => 'datetime', 'ends_at' => 'datetime', 'registration_binding' => 'boolean', 'age_reference_date' => 'date', 'answers_until' => 'date', 'reminder_days_before' => 'array', 'cancellation_text' => 'array'];
     }
 
     /** @return BelongsTo<EventSeries, $this> */

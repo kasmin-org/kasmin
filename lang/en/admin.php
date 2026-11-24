@@ -66,6 +66,7 @@ return [
         'street' => 'Street', 'postal_code' => 'Postcode', 'city' => 'City', 'country' => 'Country (ISO)',
     ],
     'event' => [
+        'registration_form' => 'Questions when registering', 'answers_until' => 'Answers can be changed until', 'answers_until_hint' => 'Empty = until the start of the event.',
         'cancel_participation' => 'Cancel registration', 'cancelled_hint' => 'Cancelled. Corrections of issued invoices are proposed under Automations.',
         'singular' => 'Event', 'plural' => 'Events', 'title' => 'Title', 'series' => 'Series', 'status' => 'Status',
         'starts_at' => 'Start', 'ends_at' => 'End', 'location' => 'Location', 'meeting_point' => 'Meeting point', 'description' => 'Description',
@@ -82,6 +83,7 @@ return [
     'series' => ['singular' => 'Event series', 'plural' => 'Event series'],
     'group' => ['singular' => 'Group', 'plural' => 'Groups'],
     'form' => [
+        'kind' => 'Kind', 'kinds' => ['person' => 'Person (kept for all events)', 'registration' => 'Questions of an event'], 'scope' => 'Asked', 'scopes' => ['participant' => 'per participant', 'family' => 'once per family'],
         'singular' => 'Form', 'plural' => 'Forms', 'key' => 'Key', 'active' => 'Active', 'name' => 'Name', 'description' => 'Description',
         'applies_until_age' => 'Applies until age', 'confirm_every_days' => 'Confirm every … days', 'family_emergency_contacts' => 'Show the family\'s emergency contacts',
         'version' => 'Version', 'fields' => 'Fields', 'add_field' => 'Add field', 'type' => 'Type', 'label' => 'Label', 'help' => 'Help text (tooltip)',
@@ -90,7 +92,7 @@ return [
         'types' => ['text' => 'Text', 'textarea' => 'Long text', 'select' => 'Choice', 'multiselect' => 'Multiple choice', 'yes_no' => 'Yes/no', 'date' => 'Date', 'year_or_no' => 'Year or no/unknown', 'phone' => 'Phone', 'email' => 'E-mail', 'none_or_text' => 'None or text', 'repeater' => 'Repeatable group', 'consent' => 'Consent'],
         'sensitivities' => ['normal' => 'Normal', 'health' => 'Health (confidential)', 'identity' => 'ID/insurance number (confidential)'],
         'lists' => ['kitchen' => 'Kitchen', 'medical' => 'Medical', 'insurance' => 'Insurance', 'emergency' => 'Emergency'],
-        'hints' => [
+        'hints' => ['kind' => 'Questions of an event are chosen per role in the event and answered when registering.',
             'applies_until_age' => 'From this age the form is no longer requested or shown (safety sheet: 16).',
             'confirm_every_days' => 'After this time the information has to be confirmed again (e.g. 365 = yearly).',
             'family_emergency_contacts' => 'Shows the legal guardians and the family\'s further emergency contacts on top.',

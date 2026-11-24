@@ -47,6 +47,7 @@ return [
         'system' => 'System', 'public_url' => 'Öffentliche Adresse', 'public_url_hint' => 'Adresse dieser Installation für Links in E-Mails und, im Container, für das Zertifikat.', 'digest_time' => 'Uhrzeit der täglichen Zusammenfassung', 'approval_days' => 'Tage, die eine Freigabe-Anfrage offen bleibt',
         'overdue_fees' => 'Mahnspesen', 'overdue_fees_hint' => 'Optional, standardmäßig aus: Betrag je Mahnung nach der Fälligkeit, mit Strichpunkt getrennt in derselben Reihenfolge, z. B. 0;5. Die Spesen sind eine eigene Rechnung.', 'number_format_invalid' => 'Das Format braucht {number}; bei eigenen Nummern pro Jahr auch {year}.',
         'timezone' => 'Zeitzone', 'timezone_hint' => 'Alle Uhrzeiten und täglichen Aufgaben gelten in dieser Zeitzone. Am Anfang festlegen: bereits gespeicherte Zeiten werden nicht umgerechnet.',
+        'families' => 'Familien', 'max_guardians' => 'Erziehungsberechtigte pro Familie (höchstens)', 'min_login_age' => 'Eigener Zugang ab Alter', 'guardian_until_age' => 'Erziehungsberechtigung endet mit Alter', 'own_registrations_visible' => 'Erziehungsberechtigte sehen eigene Anmeldungen des Kindes', 'own_registrations_visible_hint' => 'Aus: Anmeldungen, die das Kind mit eigenem Zugang macht, sind privat.',
         'number_per_year' => 'Eigene Nummern pro Jahr', 'number_per_year_hint' => 'Die Nummern beginnen jedes Jahr mit 1; dazu ein Nummernformat mit {year} verwenden.',
         'save' => 'Speichern', 'saved' => 'Gespeichert',
     ],

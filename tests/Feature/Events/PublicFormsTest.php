@@ -204,15 +204,4 @@ class PublicFormsTest extends TestCase
         $this->assertNull(GuestInvitation::query()->sole()->email);
         $this->assertSame(0, app(Guests::class)->left($guest->load('event')), 'guests cannot invite guests');
     }
-
-    public function test_a_child_with_a_login_cannot_change_its_safety_sheet(): void
-    {
-        $child = Person::factory()->create(['birth_date' => '2014-01-01']);
-        $user = User::query()->create(['name' => 'C', 'email' => 'c@example.org', 'password' => 'x', 'person_id' => $child->id]);
-        $this->actingAs($user)->get(route('portal.child', $child->public_id))->assertOk()->assertDontSee('Safety sheet');
-        foreach (['safety_sheet', 'general_information'] as $key) {
-            $this->get(route('portal.form.edit', [$child->public_id, $key]))->assertNotFound();
-            $this->post(route('portal.form.update', [$child->public_id, $key]), ['values' => []])->assertNotFound();
-        }
-    }
 }

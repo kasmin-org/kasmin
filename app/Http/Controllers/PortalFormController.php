@@ -26,6 +26,9 @@ class PortalFormController extends Controller
         [$person, $model] = [$this->child($request, $child), $this->form($form)];
         abort_if($this->forms->status($model, $person) === 'not_applicable', 404);
         $this->forms->logView($model, $person);
+        if ($person->is($this->guardian($request)) && $this->readOnly($person, $model)) {
+            return view('portal.forms.read', ['child' => $person, 'form' => $model, 'values' => $this->forms->current($model, $person)->values ?? []]);
+        }
 
         return view('portal.forms.edit', [
             'child' => $person,
@@ -36,6 +39,11 @@ class PortalFormController extends Controller
             'emergency' => $model->family_emergency_contacts ? $this->forms->emergencyContacts($person) : [],
             'history' => FormResponse::query()->where('form_id', $model->id)->where('person_id', $person->id)->latest('id')->limit(20)->get(),
         ]);
+    }
+
+    private function readOnly(Person $person, Form $form): bool
+    {
+        return $form->family_emergency_contacts || ($person->ageAt() ?? 18) < 18;
     }
 
     public function update(Request $request, string $child, string $form): RedirectResponse
@@ -96,10 +104,9 @@ class PortalFormController extends Controller
     {
         $person = $this->guardian($request);
 
-        // Own forms: adults only and never the safety sheet, which children may not change themselves (SF20).
+        // Children may see their safety sheet but not change it (SF20); other own forms are changed by adults only.
         if ($person->public_id === $publicId) {
-            $form = Form::query()->where('key', (string) $request->route('form'))->first();
-            abort_if($form === null || $form->family_emergency_contacts || ($person->ageAt() ?? 18) < 18, 404);
+            abort_if($this->readOnly($person, $this->form((string) $request->route('form'))) && ! $request->isMethod('GET'), 403);
 
             return $person;
         }

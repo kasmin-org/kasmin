@@ -91,4 +91,15 @@
             <p class="text-sm">{{ __('portal.no_open_events') }}</p>
         @endforelse
     </div>
+    @if ($mayHaveLogin)
+        <details class="mt-6 text-sm">
+            <summary class="cursor-pointer underline">{{ __('portal.child_login') }}</summary>
+            <form method="post" action="{{ route('portal.child.login', $child->public_id) }}" class="mt-2 space-y-2">
+                @csrf
+                <p>{{ __('portal.child_login_hint') }}</p>
+                <input type="email" name="email" required maxlength="254" placeholder="{{ __('auth_link.email') }}" aria-label="{{ __('auth_link.email') }}" class="w-full rounded-lg border border-kasmin-200 px-3 py-3">
+                <button class="rounded-lg bg-white px-4 py-2 font-semibold ring-1 ring-kasmin-200">{{ __('portal.create_login') }}</button>
+            </form>
+        </details>
+    @endif
 @endsection

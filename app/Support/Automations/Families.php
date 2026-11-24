@@ -27,15 +27,15 @@ class Families
             if ($person === null) {
                 continue;
             }
-            $household = $person->households->first();
+            $household = $p->isOwn() ? null : $person->households->first(); // own registrations are private (PE05a)
             $key = $household !== null ? 'household:'.$household->id : 'person:'.$person->id;
             $entry = $result->get($key, ['household' => $household, 'children' => [], 'recipients' => [], 'participations' => []]);
             $entry['children'][] = $person;
             $entry['participations'][] = $p;
             $recipients = match ($to) {
                 'person' => [$person],
-                'both' => array_merge($person->guardians->all(), [$person]),
-                default => $person->guardians->all() ?: [$person],
+                'both' => $p->isOwn() ? [$person] : array_merge($person->guardians->all(), [$person]),
+                default => $p->isOwn() ? [$person] : ($person->guardians->all() ?: [$person]),
             };
             foreach ($recipients as $r) {
                 if (! collect($entry['recipients'])->contains('id', $r->id)) {

@@ -5,6 +5,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\StepUpController;
 use App\Http\Controllers\Auth\TwoFactorController;
 use App\Http\Controllers\EventListController;
+use App\Http\Controllers\GuardianController;
 use App\Http\Controllers\InstallController;
 use App\Http\Controllers\InvoicePdfController;
 use App\Http\Controllers\LanguageController;
@@ -39,6 +40,9 @@ Route::get('/confirm/{token}', [PublicFormController::class, 'confirmation'])->n
 Route::post('/confirm/{token}', [PublicFormController::class, 'confirm'])->middleware('throttle:login-link')->name('public.confirm.store');
 Route::get('/guest/{token}', [PublicFormController::class, 'guest'])->name('public.guest');
 Route::post('/guest/{token}', [PublicFormController::class, 'acceptGuest'])->middleware('throttle:public-form')->name('public.guest.store');
+
+Route::get('/guardian/{token}', [GuardianController::class, 'show'])->name('guardian.invitation');
+Route::post('/guardian/{token}', [GuardianController::class, 'accept'])->middleware('throttle:login-link')->name('guardian.invitation.accept');
 
 Route::middleware('guest')->group(function () {
     Route::get('/register', [PublicRegistrationController::class, 'show'])->name('register');
@@ -79,6 +83,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/children/{child}/participations/{participation}/answers', [PortalChildController::class, 'editAnswers'])->middleware(RequireFullLogin::class)->whereNumber('participation')->name('portal.child.answers');
         Route::post('/children/{child}/participations/{participation}/answers', [PortalChildController::class, 'saveAnswers'])->middleware(RequireFullLogin::class)->whereNumber('participation')->name('portal.child.answers.save');
         Route::post('/children/{child}/participations/{participation}/guests', [PortalChildController::class, 'inviteGuest'])->middleware([RequireFullLogin::class, 'throttle:public-form'])->whereNumber('participation')->name('portal.child.guest');
+        Route::post('/children/{child}/login', [GuardianController::class, 'childLogin'])->middleware([RequireFullLogin::class, 'throttle:public-form'])->name('portal.child.login');
+        Route::post('/families/{household}/guardians', [GuardianController::class, 'invite'])->middleware([RequireFullLogin::class, 'throttle:public-form'])->name('portal.guardian.invite');
         Route::post('/children/{child}/register', [PortalChildController::class, 'register'])->middleware(RequireFullLogin::class)->name('portal.child.register');
         Route::post('/children/{child}/participations/{participation}/cancel', [PortalChildController::class, 'cancel'])->middleware(RequireFullLogin::class)->name('portal.child.cancel');
         Route::post('/children/{child}/participations/{participation}/offer', [PortalChildController::class, 'answerOffer'])->name('portal.child.offer');

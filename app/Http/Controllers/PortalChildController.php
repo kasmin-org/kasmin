@@ -19,6 +19,9 @@ use App\Support\Finance\CancellationTerms;
 use App\Support\Finance\Corrections;
 use App\Support\Forms\Forms;
 use App\Support\Forms\RegistrationAnswers;
+use App\Support\Mail\Notifier;
+use App\Support\People\Duplicates;
+use App\Support\People\Guardians;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -54,13 +57,18 @@ class PortalChildController extends Controller
             $child->guardians()->attach($other->id);
         }
 
+        if (app(Duplicates::class)->of($child) !== []) {
+            app(Notifier::class)->event('registrations', __('portal.notify_duplicate', ['name' => $child->fullName()]), url('/admin/duplicates')); // reviewed by administrators (RG04)
+        }
+
         return redirect()->route('portal.child', $child->public_id)->with('status', __('portal.child_added'));
     }
 
     public function show(Request $request, string $publicId): View
     {
         $child = $this->child($request, $publicId);
-        $participations = $child->participations()->with('event')->latest('registered_at')->get();
+        $viewer = $this->guardian($request);
+        $participations = $child->participations()->with('event')->latest('registered_at')->get()->filter(fn (Participation $p) => $p->visibleInPortal($viewer))->values();
 
         return view('portal.child', [
             'child' => $child,
@@ -68,12 +76,12 @@ class PortalChildController extends Controller
             'participations' => $participations,
             'open' => $this->registrations->openFor($child, $this->by($request, $child)),
             'self' => $child->is($this->guardian($request)),
+            'mayHaveLogin' => ! $child->is($this->guardian($request)) && app(Guardians::class)->mayHaveLogin($child),
             'guestsLeft' => $participations->mapWithKeys(fn (Participation $p) => [$p->id => app(Guests::class)->left($p)])->all(),
             'registeredIds' => $participations->whereNotIn('status', ['cancelled', 'declined'])->pluck('event_id')->all(),
             'forms' => Form::query()->where('kind', 'person')->where('active', true)->orderBy('sort')->get()
-                ->reject(fn (Form $form) => $child->is($this->guardian($request)) && ($form->family_emergency_contacts || ($child->ageAt() ?? 18) < 18))
                 ->map(fn (Form $form) => ['form' => $form, 'status' => $this->forms->status($form, $child)])
-                ->reject(fn (array $item) => $item['status'] === 'not_applicable')->values(),
+                ->reject(fn (array $item) => $item['status'] === 'not_applicable' || ($child->is($viewer) && ($item['form']->family_emergency_contacts ? $item['status'] === 'missing' : false)))->values(),
         ]);
     }
 
@@ -128,7 +136,7 @@ class PortalChildController extends Controller
     public function editAnswers(Request $request, string $publicId, int $participation): View
     {
         $child = $this->child($request, $publicId);
-        [$model, $form] = $this->answered($child, $participation);
+        [$model, $form] = $this->answered($request, $child, $participation);
 
         return view('portal.register-event', [
             'child' => $child, 'event' => $model->event, 'role' => $model->event?->roles()->where('role_key', $model->role_key)->first(), 'participation' => $model,
@@ -140,7 +148,7 @@ class PortalChildController extends Controller
     public function saveAnswers(Request $request, string $publicId, int $participation): RedirectResponse
     {
         $child = $this->child($request, $publicId);
-        [$model, $form] = $this->answered($child, $participation);
+        [$model, $form] = $this->answered($request, $child, $participation);
         abort_unless($model->event !== null && $this->answers->editable($model->event), 403);
         $values = (array) ($request->validate($this->answers->rules($form))['values'] ?? []);
         $this->answers->save($model, $form, $values, $this->guardian($request));
@@ -149,9 +157,10 @@ class PortalChildController extends Controller
     }
 
     /** @return array{0: Participation, 1: Form} */
-    private function answered(Person $child, int $id): array
+    private function answered(Request $request, Person $child, int $id): array
     {
-        $participation = Participation::query()->where('person_id', $child->id)->whereNotIn('status', ['cancelled', 'declined'])->with('event')->findOrFail($id);
+        $participation = $this->participation($request, $child, $id);
+        abort_if(in_array($participation->status, ['cancelled', 'declined'], true), 404);
         $form = $participation->event !== null ? $this->answers->form($participation->event, $participation->role_key) : null;
         abort_if($form === null, 404);
 
@@ -167,7 +176,7 @@ class PortalChildController extends Controller
     public function cancel(Request $request, string $publicId, int $participation): RedirectResponse
     {
         $child = $this->child($request, $publicId);
-        $model = Participation::query()->where('person_id', $child->id)->findOrFail($participation);
+        $model = $this->participation($request, $child, $participation);
         $this->registrations->cancel($model);
         if ($model->event !== null) {
             app(Corrections::class)->refreshDrafts($model->event);
@@ -181,7 +190,7 @@ class PortalChildController extends Controller
     {
         $child = $this->child($request, $publicId);
         abort_unless($child->is($this->guardian($request)) && ($child->ageAt() ?? 18) >= 18, 404);
-        $model = Participation::query()->where('person_id', $child->id)->with('event', 'person')->findOrFail($participation);
+        $model = $this->participation($request, $child, $participation);
         $email = (string) $request->validate(['email' => ['required', 'email', 'max:254']])['email'];
         try {
             app(Guests::class)->invite($model, $email, $child->locale);
@@ -196,7 +205,7 @@ class PortalChildController extends Controller
     public function answerOffer(Request $request, string $publicId, int $participation): RedirectResponse
     {
         $child = $this->child($request, $publicId);
-        $model = Participation::query()->where('person_id', $child->id)->with('event')->findOrFail($participation);
+        $model = $this->participation($request, $child, $participation);
         $accept = $request->validate(['answer' => ['required', 'in:accept,decline']])['answer'] === 'accept';
         try {
             $this->registrations->answerOffer($model, $accept);
@@ -211,6 +220,15 @@ class PortalChildController extends Controller
     private function by(Request $request, Person $child): string
     {
         return $child->is($this->guardian($request)) ? 'self' : 'guardian';
+    }
+
+    /** A registration of this person that the viewer may see (PE05a). */
+    private function participation(Request $request, Person $child, int $id): Participation
+    {
+        $participation = Participation::query()->where('person_id', $child->id)->with('event', 'person')->findOrFail($id);
+        abort_unless($participation->visibleInPortal($this->guardian($request)), 404);
+
+        return $participation;
     }
 
     private function guardian(Request $request): Person

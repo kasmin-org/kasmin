@@ -47,6 +47,13 @@ class MailTemplateDefaults
                 'Welcome to {{ organisation.name }}',
                 '<p>{{ salutation }}</p><p>your application was accepted – welcome! You find your data and registrations in the portal.</p>'.$button('Open the portal').'<p>Kind regards<br>{{ organisation.name }}</p>',
             ]],
+            'guardianship_ended' => ['system', 'both', ['de' => 'Ende der Erziehungsberechtigung', 'en' => 'End of guardianship'], [
+                'Änderung bei {{ children[0].full_name }}',
+                '<p>{{ salutation }}</p><p>{{ children[0].full_name }} hat das Alter erreicht, ab dem die eigenen Daten selbst verwaltet werden. Erziehungsberechtigte haben im Portal keinen Zugriff mehr darauf; künftige Rechnungen gehen an {{ children[0].full_name }}.</p><p>Mit freundlichen Grüßen<br>{{ organisation.name }}</p>',
+            ], [
+                'Change for {{ children[0].full_name }}',
+                '<p>{{ salutation }}</p><p>{{ children[0].full_name }} has reached the age from which people manage their own data. Legal guardians no longer have access in the portal; future invoices go to {{ children[0].full_name }}.</p><p>Kind regards<br>{{ organisation.name }}</p>',
+            ]],
             'safety_sheet_request' => ['safety_sheet', 'guardians', ['de' => 'Sicherheitsblatt ausfüllen', 'en' => 'Fill in the safety sheet'], [
                 'Bitte Sicherheitsblatt ausfüllen oder bestätigen',
                 '<p>{{ salutation }}</p><p>für {{ event.title }} brauchen wir das aktuelle Sicherheitsblatt{% if children|length > 0 %} von {% for child in children %}{{ child.first_name }}{% if not loop.last %}, {% endif %}{% endfor %}{% endif %}. Wenn sich nichts geändert hat, bestätigen Sie die Angaben im Portal mit einem Klick.</p>'.$button('Sicherheitsblatt öffnen').'<p>Die Angaben selbst stehen aus Datenschutzgründen nicht in dieser E-Mail.</p><p>Mit freundlichen Grüßen<br>{{ organisation.name }}</p>',

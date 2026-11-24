@@ -32,7 +32,7 @@ class Invoices
     {
         $created = 0;
         foreach ($this->pendingGroups($event, $installment) as $group) {
-            $this->draftFor($event, $installment, $group, $group->first()?->person?->households->first());
+            $this->draftFor($event, $installment, $group, self::household($group));
             $created++;
         }
 
@@ -49,13 +49,13 @@ class Invoices
     {
         $event->loadMissing('roles', 'installments');
         $participations = Participation::query()->where('event_id', $event->id)
-            ->whereIn('status', Billing::BILLED)->with(['person.guardians', 'person.households'])->get();
+            ->whereIn('status', Billing::BILLED)->with(['event', 'person.guardians', 'person.households'])->get();
 
         /** @var Collection<string, Collection<int, Participation>> $groups */
-        $groups = collect($participations->groupBy(fn (Participation $p) => (string) ($p->person?->households->first()->id ?? 'p'.$p->person_id))->all());
+        $groups = collect($participations->groupBy(fn (Participation $p) => (string) (Billing::household($p)->id ?? 'p'.$p->person_id))->all());
 
         return $groups->filter(function (Collection $group) use ($event, $installment) {
-            $household = $group->first()?->person?->households->first();
+            $household = self::household($group);
 
             return ! Invoice::query()->where('event_id', $event->id)->where('installment_key', $installment->key)->where('type', 'invoice')
                 ->whereNotIn('status', ['cancelled', 'corrected'])
@@ -176,6 +176,14 @@ class Invoices
         return 'RF'.str_pad((string) $check, 2, '0', STR_PAD_LEFT).$ref;
     }
 
+    /** @param Collection<int, Participation> $group */
+    public static function household(Collection $group): ?Household
+    {
+        $first = $group->first();
+
+        return $first !== null ? Billing::household($first) : null;
+    }
+
     /** @param Collection<int, Participation> $participations */
     private function payer(?Household $household, Collection $participations): ?Person
     {
@@ -189,8 +197,10 @@ class Invoices
                 return $guardian;
             }
         }
-        $person = $participations->first()?->person;
+        $first = $participations->first();
+        $person = $first?->person;
+        $itself = $first !== null && ($first->isOwn() || ($person?->ageAt($first->event?->starts_at) ?? 0) >= Settings::int('guardian_until_age'));
 
-        return $person?->guardians->first() ?? $person;
+        return $itself ? $person : ($person?->guardians->first() ?? $person);
     }
 }

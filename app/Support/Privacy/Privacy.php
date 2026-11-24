@@ -86,8 +86,7 @@ class Privacy
             $person->participations()->update(['price_reason' => null, 'cancel_reason' => null]);
             PublicSubmission::query()->where('person_id', $person->id)->delete();
             $person->households()->detach();
-            $person->guardians()->detach();
-            $person->wards()->detach();
+            DB::table('guardianships')->where('child_id', $person->id)->orWhere('guardian_id', $person->id)->delete(); // also ended ones
             $person->groups()->detach();
             $person->forceFill([
                 'first_name' => __('privacy.anonymous'), 'last_name' => '#'.$person->id, 'gender' => null,

@@ -47,6 +47,7 @@ return [
         'system' => 'System', 'public_url' => 'Public URL', 'public_url_hint' => 'Address of this installation, used for links in mails and, in the container, for the certificate.', 'digest_time' => 'Time of the daily digest', 'approval_days' => 'Days an approval request stays open',
         'overdue_fees' => 'Reminder fees', 'overdue_fees_hint' => 'Optional, off by default: amount per reminder after the due date, separated by semicolons in the same order, e.g. 0;5. The fee is an own invoice.', 'number_format_invalid' => 'The format needs {number}; with own numbers per year also {year}.',
         'timezone' => 'Time zone', 'timezone_hint' => 'All times and daily jobs are in this time zone. Choose it at the beginning: times already stored are not converted.',
+        'families' => 'Families', 'max_guardians' => 'Legal guardians per family (at most)', 'min_login_age' => 'Own login from age', 'guardian_until_age' => 'Guardianship ends at age', 'own_registrations_visible' => 'Legal guardians see what their child registers itself', 'own_registrations_visible_hint' => 'Off: registrations made by the child with its own login are private.',
         'number_per_year' => 'Own numbers per year', 'number_per_year_hint' => 'Numbers start with 1 every year; use a number format with {year}.',
         'save' => 'Save', 'saved' => 'Saved',
     ],

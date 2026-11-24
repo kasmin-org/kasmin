@@ -151,6 +151,7 @@ class LoginTest extends TestCase
         $household->members()->attach($user->person_id, ['role' => 'guardian']);
         $child = Person::factory()->create(['first_name' => 'Kim', 'last_name' => 'Example', 'birth_date' => now()->subYears(10)]);
         $household->members()->attach($child->id, ['role' => 'child']);
+        $child->guardians()->attach($user->person_id);
 
         $this->actingAs($user)->get('/portal')->assertOk()->assertSee('Family Example')->assertSee('Kim Example')->assertSee('10');
     }

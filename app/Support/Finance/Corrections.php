@@ -128,12 +128,13 @@ class Corrections
     /** @return Collection<int, Participation> */
     private function family(Event $event, Invoice $invoice): Collection
     {
+        $billed = $invoice->lines->pluck('participation_id')->filter()->all();
         $persons = $invoice->lines->pluck('person_id')->filter()->all();
         $household = $invoice->household_id;
 
-        return Participation::query()->where('event_id', $event->id)->with('person.households')->get()
-            ->filter(fn (Participation $p) => in_array($p->person_id, $persons, true)
-                || ($household !== null && $p->person?->households->first()?->id === $household))->values()->toBase();
+        return Participation::query()->where('event_id', $event->id)->with('event', 'person.households')->get()
+            ->filter(fn (Participation $p) => in_array($p->id, $billed, true)
+                || ($household !== null ? Billing::household($p)?->id === $household : in_array($p->person_id, $persons, true) && Billing::household($p) === null))->values()->toBase();
     }
 
     /** @param  array<int, array<string, mixed>>  $lines */

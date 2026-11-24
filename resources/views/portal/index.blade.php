@@ -6,17 +6,18 @@
         <form method="post" action="{{ route('logout') }}">@csrf<button class="text-sm underline">{{ __('portal.logout') }}</button></form>
     </div>
     @if (session('status'))<div class="mb-4 rounded-lg bg-kasmin-100 p-3 text-sm" role="status">{{ session('status') }}</div>@endif
+    @if ($errors->any())<div class="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-800" role="alert">{{ $errors->first() }}</div>@endif
     @forelse ($households as $household)
         <section class="mb-6" aria-labelledby="h{{ $household->id }}">
             <h2 id="h{{ $household->id }}" class="mb-3 text-lg font-semibold">{{ $household->name }}</h2>
             <div class="grid gap-3">
-                @foreach ($household->members->where('pivot.role', 'child') as $child)
+                @foreach ($household->members->where('pivot.role', 'child')->whereIn('id', $wardIds) as $child)
                     <a href="{{ route('portal.child', $child->public_id) }}" class="block rounded-xl border border-kasmin-100 p-4 hover:border-kasmin-500">
                         <h3 class="font-semibold">{{ $child->fullName() }}</h3>
                         @if ($child->birth_date)
                             <p class="text-sm text-kasmin-700">{{ __('portal.age', ['age' => $child->ageAt()]) }}</p>
                         @endif
-                        @foreach ($child->participations()->with('event')->whereNotIn('status', ['cancelled', 'declined'])->get() as $p)
+                        @foreach ($child->participations()->with('event')->whereNotIn('status', ['cancelled', 'declined'])->get()->filter(fn ($p) => $p->visibleInPortal($person)) as $p)
                             <p class="mt-1 text-sm">{{ $p->event->title }}: <strong>{{ __('events.status.'.$p->status) }}</strong>@if ($p->status === 'waitlist') ({{ __('events.waitlist_position', ['position' => $p->waitlistPosition(), 'total' => $p->event->roles()->where('role_key', $p->role_key)->first()?->waitlistLength()]) }})@endif</p>
                         @endforeach
                     </a>
@@ -30,6 +31,18 @@
             </ul>
             @if ($household->members->where('pivot.role', 'guardian')->contains('id', $person?->id))
                 <a href="{{ route('portal.emergency', $household->public_id) }}" class="mt-2 inline-block text-sm underline">{{ __('forms.emergency_contacts') }}</a>
+                @if (($guardiansLeft[$household->id] ?? 0) > 0)
+                    <details class="mt-2 text-sm">
+                        <summary class="cursor-pointer underline">{{ __('portal.invite_guardian') }}</summary>
+                        <form method="post" action="{{ route('portal.guardian.invite', $household->public_id) }}" class="mt-2 space-y-2">
+                            @csrf
+                            <input name="first_name" required maxlength="120" placeholder="{{ __('admin.person.first_name') }}" aria-label="{{ __('admin.person.first_name') }}" class="w-full rounded-lg border border-kasmin-200 px-3 py-3">
+                            <input name="last_name" required maxlength="120" placeholder="{{ __('admin.person.last_name') }}" aria-label="{{ __('admin.person.last_name') }}" class="w-full rounded-lg border border-kasmin-200 px-3 py-3">
+                            <input type="email" name="email" required maxlength="254" placeholder="{{ __('auth_link.email') }}" aria-label="{{ __('auth_link.email') }}" class="w-full rounded-lg border border-kasmin-200 px-3 py-3">
+                            <button class="rounded-lg bg-white px-4 py-2 font-semibold ring-1 ring-kasmin-200">{{ __('public.invite') }}</button>
+                        </form>
+                    </details>
+                @endif
             @endif
         </section>
     @empty

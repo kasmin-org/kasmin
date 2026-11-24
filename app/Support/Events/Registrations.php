@@ -67,7 +67,7 @@ class Registrations
         if ($person === null || $event === null) {
             return;
         }
-        $recipients = $person->guardians()->get()->all() ?: [$person];
+        $recipients = $participation->isOwn() ? [$person] : ($person->guardians()->get()->all() ?: [$person]); // PE05a
         foreach ($recipients as $recipient) {
             app(Composer::class)->queue('registration_confirmation', $recipient, [
                 'event' => $event, 'participation' => $participation, 'household' => $person->households()->first(), 'children' => [$person],

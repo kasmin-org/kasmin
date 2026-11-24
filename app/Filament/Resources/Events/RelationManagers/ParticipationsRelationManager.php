@@ -2,22 +2,27 @@
 
 namespace App\Filament\Resources\Events\RelationManagers;
 
+use App\Filament\Support\Money;
 use App\Models\Event;
 use App\Models\Participation;
 use App\Models\Person;
 use App\Support\Events\RegistrationException;
 use App\Support\Events\Registrations;
+use App\Support\Finance\Corrections;
 use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\CreateAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
 use Filament\Support\Exceptions\Halt;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Enums\RecordActionsPosition;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
@@ -37,7 +42,7 @@ class ParticipationsRelationManager extends RelationManager
     public function form(Schema $schema): Schema
     {
         return $schema->components([
-            Select::make('status')->label(__('admin.event.status'))->options(__('events.status'))->required(),
+            Select::make('status')->label(__('admin.event.status'))->options(collect(__('events.status'))->except('cancelled')->all())->required(),
         ]);
     }
 
@@ -83,17 +88,39 @@ class ParticipationsRelationManager extends RelationManager
                     }),
             ])
             ->recordActions([
-                Action::make('reserve')->label(__('admin.event.assign_reserve'))->icon('heroicon-o-star')
-                    ->visible(fn (Participation $record) => $record->status === 'waitlist')
-                    ->schema([Textarea::make('reason')->label(__('admin.event.reserve_reason'))->required()->maxLength(255)])
-                    ->action(function (Participation $record, array $data) {
-                        try {
-                            app(Registrations::class)->assignReservePlace($record, (string) $data['reason']);
-                        } catch (RegistrationException $e) {
-                            Notification::make()->title($e->getMessage())->danger()->send();
-                        }
-                    }),
-                EditAction::make()->label(__('admin.event.change_status')),
-            ]);
+                ActionGroup::make([
+                    Action::make('reserve')->label(__('admin.event.assign_reserve'))->icon('heroicon-o-star')
+                        ->visible(fn (Participation $record) => $record->status === 'waitlist')
+                        ->schema([Textarea::make('reason')->label(__('admin.event.reserve_reason'))->required()->maxLength(255)])
+                        ->action(function (Participation $record, array $data) {
+                            try {
+                                app(Registrations::class)->assignReservePlace($record, (string) $data['reason']);
+                            } catch (RegistrationException $e) {
+                                Notification::make()->title($e->getMessage())->danger()->send();
+                            }
+                        }),
+                    Action::make('price')->label(__('admin.finance.reduced_place'))->icon('heroicon-o-receipt-percent')
+                        ->visible(fn () => Money::canManage())
+                        ->fillForm(fn (Participation $record) => ['price' => $record->price_cents === null ? null : number_format($record->price_cents / 100, 2, '.', ''), 'reason' => $record->price_reason])
+                        ->schema([
+                            TextInput::make('price')->label(__('admin.finance.price'))->numeric()->minValue(0)->suffix('€')->helperText(__('admin.finance.reduced_place_hint')),
+                            TextInput::make('reason')->label(__('admin.finance.reason'))->maxLength(250)->requiredWith('price'),
+                        ])
+                        ->action(function (Participation $record, array $data) {
+                            $empty = ! filled($data['price'] ?? null);
+                            $record->forceFill(['price_cents' => $empty ? null : Money::toCents($data['price']), 'price_reason' => $empty ? null : $data['reason']])->save();
+                            app(Corrections::class)->refreshDrafts($record->event ?? throw new Halt);
+                        }),
+                    Action::make('cancel')->label(__('admin.event.cancel_participation'))->icon('heroicon-o-x-circle')->color('danger')->requiresConfirmation()
+                        ->visible(fn (Participation $record) => ! in_array($record->status, ['cancelled', 'declined', 'attended', 'no_show'], true))
+                        ->schema([Textarea::make('reason')->label(__('admin.finance.reason'))->required()->maxLength(250)])
+                        ->action(function (Participation $record, array $data) {
+                            app(Registrations::class)->cancel($record->loadMissing('event'), (string) $data['reason']);
+                            app(Corrections::class)->refreshDrafts($record->event ?? throw new Halt);
+                            Notification::make()->title(__('admin.event.cancelled_hint'))->success()->send();
+                        }),
+                    EditAction::make()->label(__('admin.event.change_status')),
+                ]),
+            ], RecordActionsPosition::BeforeColumns);
     }
 }

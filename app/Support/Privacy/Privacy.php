@@ -127,7 +127,7 @@ class Privacy
         Invoice::query()->whereIn('id', $paid)->update(['payer_name' => $anonymous, 'payer_address' => null]);
         Payment::query()->whereIn('invoice_id', $paid)->update(['payer_name' => null, 'iban' => null, 'reference' => null, 'note' => null]);
         foreach (InvoiceLine::query()->where('person_id', $person->id)->whereIn('invoice_id', $old->pluck('id'))->get() as $line) {
-            $line->forceFill(['description' => str_replace($name, $anonymous, $line->description)])->save();
+            $line->forceFill(['description' => str_replace($name, $anonymous, $line->description)])->saveQuietly();
         }
 
         // A family without other members: no name, address or emergency contacts any more.

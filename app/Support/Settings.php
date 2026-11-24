@@ -21,6 +21,7 @@ class Settings
         'organisation_legal_footer' => '',
         'invoice_number_format' => 'R{number}',
         'invoice_next_number' => '1',
+        'invoice_number_per_year' => '0',
         'invoice_due_days' => '14',
         'invoice_attach_paid' => '1',
         'invoice_reminder_days_before' => '3',

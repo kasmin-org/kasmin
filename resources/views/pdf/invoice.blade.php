@@ -70,7 +70,7 @@
 </table>
 
 @if ($paid)
-    <div class="stamp">{{ mb_strtoupper(__('finance.paid')) }}</div>
+    <div class="stamp">{{ mb_strtoupper(__('finance.paid')) }}@php($last = $invoice->payments()->max('paid_on'))@if ($last) {{ $date(\Illuminate\Support\Carbon::parse($last)) }}@endif</div>
     <p>{{ __('finance.pdf_paid_text') }}</p>
 @elseif ($invoice->type === 'invoice' && $invoice->openCents() > 0)
     <table class="pay"><tr>

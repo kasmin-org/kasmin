@@ -44,6 +44,26 @@ class AutomationDefaults
                 'description' => ['de' => 'Erstellt und versendet die Rechnungen der Rate „balance“ 90 Tage vor Beginn.', 'en' => 'Creates and sends the invoices of the instalment "balance" 90 days before the start.'],
                 'action' => 'invoice_run', 'config' => ['installment' => 'balance', 'send' => true], 'trigger' => 'before_event', 'trigger_config' => ['days' => 90], 'mode' => 'confirm',
             ],
+            'payment_reminders' => [
+                'name' => ['de' => 'Zahlungserinnerungen', 'en' => 'Payment reminders'],
+                'description' => ['de' => 'Erinnert vor und nach der Fälligkeit an offene Rechnungen, nach Freigabe.', 'en' => 'Reminds of open invoices before and after the due date, after approval.'],
+                'action' => 'payment_reminders', 'trigger' => 'daily', 'trigger_config' => ['time' => '09:00'], 'mode' => 'confirm', 'active' => true,
+            ],
+            'payment_followup' => [
+                'name' => ['de' => 'Plätze unbezahlter Rechnungen freigeben', 'en' => 'Release places of unpaid invoices'],
+                'description' => ['de' => 'Schlägt 14 Tage nach der letzten Erinnerung vor, den Platz freizugeben.', 'en' => 'Proposes to release the place 14 days after the last reminder.'],
+                'action' => 'payment_followup', 'config' => ['days' => 14], 'trigger' => 'daily', 'trigger_config' => ['time' => '09:15'], 'mode' => 'confirm',
+            ],
+            'invoice_corrections' => [
+                'name' => ['de' => 'Rechnungen korrigieren', 'en' => 'Correct invoices'],
+                'description' => ['de' => 'Schlägt Korrekturen vor, wenn sich Geschwister, Preise oder Anmeldungen geändert haben.', 'en' => 'Proposes corrections when siblings, prices or registrations have changed.'],
+                'action' => 'invoice_corrections', 'config' => ['send' => true], 'trigger' => 'daily', 'trigger_config' => ['time' => '09:30'], 'mode' => 'confirm', 'active' => true,
+            ],
+            'membership_invoices' => [
+                'name' => ['de' => 'Mitgliedsbeiträge', 'en' => 'Membership fees'],
+                'description' => ['de' => 'Erstellt und versendet die Rechnungen für den Mitgliedsbeitrag des Jahres pro Familie.', 'en' => 'Creates and sends the invoices for the membership fee of the year per family.'],
+                'action' => 'membership_invoices', 'config' => ['send' => true], 'trigger' => 'manual', 'mode' => 'confirm',
+            ],
             'safety_sheet_reminders' => [
                 'name' => ['de' => 'Erinnerungen Sicherheitsblatt', 'en' => 'Safety sheet reminders'],
                 'description' => ['de' => 'Erinnert Familien mit fehlendem oder unbestätigtem Sicherheitsblatt alle 7 Tage, höchstens 4-mal, für Veranstaltungen in den nächsten 60 Tagen; danach Liste an das Team.', 'en' => 'Reminds families with a missing or unconfirmed safety sheet every 7 days, at most 4 times, for events in the next 60 days; then a list to the team.'],

@@ -31,6 +31,10 @@ class Engine
         'start_season' => Actions\StartSeason::class,
         'close_event' => Actions\CloseEvent::class,
         'age_notice' => Actions\AgeNotice::class,
+        'payment_reminders' => Actions\PaymentReminders::class,
+        'invoice_corrections' => Actions\InvoiceCorrections::class,
+        'payment_followup' => Actions\PaymentFollowup::class,
+        'membership_invoices' => Actions\MembershipInvoices::class,
     ];
 
     /** Actions that work on one event and need it from the trigger or the button. */

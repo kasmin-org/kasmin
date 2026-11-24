@@ -18,6 +18,10 @@ use Illuminate\Support\Carbon;
  * @property Carbon $registered_at
  * @property bool $reserve_place
  * @property Carbon|null $offer_expires_at
+ * @property int|null $price_cents
+ * @property string|null $price_reason
+ * @property Carbon|null $cancelled_at
+ * @property string|null $cancel_reason
  */
 class Participation extends Model
 {
@@ -29,7 +33,7 @@ class Participation extends Model
 
     protected function casts(): array
     {
-        return ['registered_at' => 'datetime', 'reserve_place' => 'boolean', 'offer_expires_at' => 'datetime'];
+        return ['registered_at' => 'datetime', 'reserve_place' => 'boolean', 'offer_expires_at' => 'datetime', 'cancelled_at' => 'datetime'];
     }
 
     /** @return BelongsTo<Event, $this> */

@@ -97,7 +97,13 @@ class PaymentResource extends Resource
                     ->schema([
                         Select::make('invoice_id')->label(__('finance.invoice'))->required()->searchable()->options(fn () => self::openInvoices()),
                     ])
-                    ->action(fn (Payment $record, array $data) => app(Payments::class)->assign($record, Invoice::query()->findOrFail((int) $data['invoice_id']))),
+                    ->action(function (Payment $record, array $data) {
+                        try {
+                            app(Payments::class)->assign($record, Invoice::query()->findOrFail((int) $data['invoice_id']));
+                        } catch (\RuntimeException $e) {
+                            Notification::make()->title($e->getMessage())->danger()->send();
+                        }
+                    }),
                 Action::make('split')->label(__('admin.finance.split'))->icon('heroicon-o-scissors')
                     ->visible(fn (Payment $record) => Money::canManage() && $record->invoice_id === null && in_array($record->match, ['suggested', 'unmatched'], true))
                     ->modalDescription(__('admin.finance.split_hint'))
@@ -108,8 +114,12 @@ class PaymentResource extends Resource
                         ]),
                     ])
                     ->action(function (Payment $record, array $data) {
+                        $amounts = [];
+                        foreach ((array) $data['parts'] as $part) {
+                            $amounts[(int) $part['invoice_id']] = Money::toCents($part['amount']);
+                        }
                         try {
-                            app(Payments::class)->split($record, collect($data['parts'])->mapWithKeys(fn (array $p) => [(int) $p['invoice_id'] => Money::toCents($p['amount'])])->all());
+                            app(Payments::class)->split($record, $amounts);
                         } catch (\RuntimeException $e) {
                             Notification::make()->title($e->getMessage())->danger()->send();
                         }

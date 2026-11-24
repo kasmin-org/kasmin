@@ -6,6 +6,24 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ## [Unreleased]
 
+### Added
+
+- Prices by age and registration date, reduced and free places with reason (finance roles only).
+- Cancellation rules per event: refundable until, cancellation fee, conditions shown in the portal before cancelling.
+- Corrections: issued invoices that no longer fit are corrected with a credit note and a new invoice, after approval.
+- Credits and refunds: overpayments and cancelled invoices become credits with a refund proposal (*Finance → Refunds*).
+- One transfer for several invoices, automatically or by hand (*Split*).
+- Yearly membership fees per membership type, also as an instalment of an event.
+- After payment: confirm the place, change groups. Automation to release unpaid places.
+- Optional reminder fees (off by default) and invoice numbers per year.
+
+### Changed
+
+- Issued invoices can no longer be changed.
+- Payment reminders are an automation and need approval before they are sent; the daily command no longer sends them alone.
+- Registrations are cancelled with a reason instead of changing the status.
+- The paid invoice shows the date of the payment.
+
 ## [0.11.0] - 2026-11-24
 
 Pre-release for testing. Not ready for production use.

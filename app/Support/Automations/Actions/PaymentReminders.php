@@ -20,8 +20,16 @@ class PaymentReminders implements Action
         return array_map(fn (array $r) => [
             'key' => $r['kind'].':'.$r['days'].':'.$r['invoice']->id,
             'label' => (string) __('automations.items.reminder', ['number' => $r['invoice']->number, 'name' => $r['invoice']->payer_name]),
-            'details' => Invoice::money($r['invoice']->openCents(), $r['invoice']->currency).' · '.__('automations.items.reminder_'.$r['kind'], ['days' => abs($r['days'])]),
+            'details' => Invoice::money($r['invoice']->openCents(), $r['invoice']->currency).' · '.__('automations.items.reminder_'.$r['kind'], ['days' => abs($r['days'])])
+                .$this->feeText($r['invoice'], $r['kind'], abs($r['days'])),
         ], $this->reminders->pending());
+    }
+
+    private function feeText(Invoice $invoice, string $kind, int $days): string
+    {
+        $fee = $kind === 'overdue' && $invoice->fee_for_id === null ? $this->reminders->feeCents($days) : 0;
+
+        return $fee > 0 ? ' · '.__('automations.items.reminder_fee', ['amount' => Invoice::money($fee, $invoice->currency)]) : '';
     }
 
     public function execute(Automation $automation, array $item, ?Event $event): string

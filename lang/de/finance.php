@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'reminder_fee' => 'Mahnspesen zur Rechnung :number',
     'cancellation_fee' => 'Stornogebühr – :name', 'membership_line' => 'Mitgliedsbeitrag :year – :name', 'membership_fee' => 'Mitgliedsbeitrag :year',
     'notify_refund' => 'Rückzahlung vorgeschlagen: :amount', 'refund_outdated' => 'Diese Rückzahlung passt nicht mehr zum Guthaben.', 'not_a_credit' => 'Das ist kein freies Guthaben.',
     'not_open' => 'Nur offene Rechnungen können bezahlt werden.', 'overpaid' => 'Überzahlte Rechnung :number', 'split_invalid' => 'Die Teile sind mehr als die Zahlung.',

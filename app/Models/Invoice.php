@@ -25,6 +25,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $due_on
  * @property string|null $payer_name
  * @property string|null $payer_address
+ * @property int|null $fee_for_id
  */
 class Invoice extends Model
 {
@@ -35,7 +36,7 @@ class Invoice extends Model
     protected $guarded = ['id'];
 
     /** What an issued invoice says never changes; only status, payments and due date (IN10). */
-    private const FIXED = ['number', 'type', 'household_id', 'payer_id', 'event_id', 'installment_key', 'currency', 'total_cents', 'reference', 'issued_on', 'payer_name', 'payer_address', 'corrects_id'];
+    private const FIXED = ['number', 'type', 'household_id', 'payer_id', 'event_id', 'installment_key', 'currency', 'total_cents', 'reference', 'issued_on', 'payer_name', 'payer_address', 'corrects_id', 'fee_for_id'];
 
     protected static function booted(): void
     {

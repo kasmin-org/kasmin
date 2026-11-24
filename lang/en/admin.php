@@ -44,6 +44,7 @@ return [
         'ai_hint' => 'Only allow what your privacy policy and a data processing agreement with the AI provider cover. See the documentation "Migrate with an AI assistant".',
         'retention' => 'Retention', 'retention_safety_years' => 'Keep safety sheets and health data (years after the last event)', 'retention_invoice_years' => 'Keep invoices (years, legal requirement)',
         'system' => 'System', 'public_url' => 'Public URL', 'public_url_hint' => 'Address of this installation, used for links in mails and, in the container, for the certificate.', 'digest_time' => 'Time of the daily digest', 'approval_days' => 'Days an approval request stays open',
+        'overdue_fees' => 'Reminder fees', 'overdue_fees_hint' => 'Optional, off by default: amount per reminder after the due date, separated by semicolons in the same order, e.g. 0;5. The fee is an own invoice.', 'number_format_invalid' => 'The format needs {number}; with own numbers per year also {year}.',
         'number_per_year' => 'Own numbers per year', 'number_per_year_hint' => 'Numbers start with 1 every year; use a number format with {year}.',
         'save' => 'Save', 'saved' => 'Saved',
     ],

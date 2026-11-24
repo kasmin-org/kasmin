@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'release_days' => 'Tage nach der letzten Mahnung', 'year' => 'Jahr (leer = aktuelles Jahr)',
     'singular' => 'Automatisierung', 'plural' => 'Automatisierungen', 'runs' => 'Läufe und Freigaben', 'run' => 'Lauf',
     'name' => 'Name', 'description' => 'Beschreibung', 'action' => 'Aktion', 'trigger' => 'Auslöser', 'mode' => 'Modus', 'active' => 'Aktiv',
     'last_run' => 'Letzter Lauf', 'max_items' => 'Höchstens … Aktionen ohne Freigabe', 'max_items_hint' => 'Automatische Läufe mit mehr Aktionen warten auf eine Freigabe (Sicherheitsgrenze).',
@@ -47,6 +48,7 @@ return [
     'planned' => 'Geplante Aktionen', 'results' => 'Ergebnisse', 'decided_by' => 'Entschieden von', 'excluded' => 'Nicht ausgeführt',
     'item' => 'Aktion', 'result' => 'Ergebnis', 'trigger_label' => 'Ausgelöst durch', 'created' => 'Erstellt', 'expires' => 'Läuft ab',
     'items' => [
+        'reminder_fee' => 'Spesen :amount',
         'reminder' => 'Erinnerung zu Rechnung :number (:name)', 'reminder_before_due' => ':days Tage vor Fälligkeit', 'reminder_overdue' => ':days Tage überfällig',
         'correction' => 'Rechnung :number korrigieren (:name)', 'release' => 'Platz freigeben: :name (:event)', 'release_reason' => 'Rechnung nicht bezahlt',
         'offer' => 'Platz anbieten: :name (:event, Wartelistenplatz :position)',

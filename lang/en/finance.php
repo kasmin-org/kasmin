@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'reminder_fee' => 'Reminder fee for invoice :number',
     'cancellation_fee' => 'Cancellation fee – :name', 'membership_line' => 'Membership fee :year – :name', 'membership_fee' => 'Membership fee :year',
     'notify_refund' => 'Refund proposed: :amount', 'refund_outdated' => 'This refund no longer fits the credit.', 'not_a_credit' => 'This is not a free credit.',
     'not_open' => 'Only open invoices can be paid.', 'overpaid' => 'Overpaid invoice :number', 'split_invalid' => 'The parts are more than the payment.',

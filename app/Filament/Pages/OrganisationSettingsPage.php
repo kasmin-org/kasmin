@@ -36,7 +36,7 @@ class OrganisationSettingsPage extends Page
     private const KEYS = [
         'organisation_name', 'organisation_address', 'organisation_email', 'organisation_website', 'organisation_iban',
         'organisation_bic', 'organisation_bank', 'organisation_legal_footer', 'invoice_number_format', 'invoice_next_number',
-        'invoice_due_days', 'invoice_attach_paid', 'invoice_reminder_days_before', 'invoice_overdue_days', 'public_url', 'digest_time', 'approval_days', 'ai_processing', 'retention_safety_years', 'retention_invoice_years',
+        'invoice_number_per_year', 'invoice_due_days', 'invoice_attach_paid', 'invoice_reminder_days_before', 'invoice_overdue_days', 'public_url', 'digest_time', 'approval_days', 'ai_processing', 'retention_safety_years', 'retention_invoice_years',
     ];
 
     public static function getNavigationGroup(): ?string
@@ -68,7 +68,9 @@ class OrganisationSettingsPage extends Page
             $data[$key] = Settings::get($key);
         }
         $data['organisation_name'] ??= config('app.name');
-        $data['invoice_attach_paid'] = Settings::bool('invoice_attach_paid');
+        foreach (['invoice_attach_paid', 'invoice_number_per_year'] as $key) {
+            $data[$key] = Settings::bool($key);
+        }
         $this->form->fill($data);
     }
 
@@ -98,6 +100,7 @@ class OrganisationSettingsPage extends Page
             Section::make(__('admin.settings.invoices'))->columns(3)->schema([
                 TextInput::make('invoice_number_format')->label(__('admin.settings.number_format'))->required()->hintIcon(...$hint('number_format')),
                 TextInput::make('invoice_next_number')->label(__('admin.settings.next_number'))->numeric()->minValue(1)->required()->hintIcon(...$hint('next_number')),
+                Toggle::make('invoice_number_per_year')->label(__('admin.settings.number_per_year'))->inline(false)->hintIcon(...$hint('number_per_year')),
                 TextInput::make('invoice_due_days')->label(__('admin.settings.due_days'))->numeric()->minValue(0)->required(),
                 TextInput::make('invoice_reminder_days_before')->label(__('admin.settings.reminder_before'))->numeric()->minValue(0)->hintIcon(...$hint('reminder_before')),
                 TextInput::make('invoice_overdue_days')->label(__('admin.settings.overdue_days'))->regex('/^\s*\d+(\s*,\s*\d+)*\s*$/')->hintIcon(...$hint('overdue_days')),
@@ -124,7 +127,7 @@ class OrganisationSettingsPage extends Page
         $data = $this->form->getState();
         foreach (self::KEYS as $key) {
             $value = $data[$key] ?? null;
-            if ($key === 'invoice_attach_paid') {
+            if (in_array($key, ['invoice_attach_paid', 'invoice_number_per_year'], true)) {
                 $value = $value ? '1' : '0';
             }
             if (in_array($key, ['organisation_iban', 'organisation_bic'], true)) {

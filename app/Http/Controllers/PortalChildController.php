@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Support\Auth\PortalPerson;
 use App\Support\Events\RegistrationException;
 use App\Support\Events\Registrations;
+use App\Support\Finance\Corrections;
 use App\Support\Forms\Forms;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -82,6 +83,9 @@ class PortalChildController extends Controller
         $child = $this->child($request, $publicId);
         $model = Participation::query()->where('person_id', $child->id)->findOrFail($participation);
         $this->registrations->cancel($model);
+        if ($model->event !== null) {
+            app(Corrections::class)->refreshDrafts($model->event);
+        }
 
         return back()->with('status', __('portal.cancelled'));
     }

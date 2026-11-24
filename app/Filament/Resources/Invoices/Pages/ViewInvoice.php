@@ -55,7 +55,11 @@ class ViewInvoice extends ViewRecord
                     TextInput::make('note')->label(__('admin.finance.note'))->maxLength(250),
                 ])
                 ->action(function (array $data) {
-                    app(Payments::class)->record($this->invoice(), Money::toCents($data['amount']), Carbon::parse((string) $data['paid_on']), (string) $data['method'], $data['note'] ?? null);
+                    try {
+                        app(Payments::class)->record($this->invoice(), Money::toCents($data['amount']), Carbon::parse((string) $data['paid_on']), (string) $data['method'], $data['note'] ?? null);
+                    } catch (\RuntimeException $e) {
+                        Notification::make()->title($e->getMessage())->danger()->send();
+                    }
                     $this->refreshFormData(['status', 'paid_cents']);
                 }),
             Action::make('extend')->label(__('admin.finance.extend'))->icon('heroicon-o-calendar')->color('gray')

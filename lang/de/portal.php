@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'cancel_now' => 'Anmeldung stornieren', 'terms_not_refundable' => ':name: nicht erstattbar.', 'terms_too_late' => ':name: nicht mehr erstattbar.', 'terms_refundable_until' => ':name: erstattbar bis :date.', 'terms_refundable' => ':name: erstattbar.', 'terms_fee' => 'Stornogebühr: :amount.',
     'view_as' => 'Als Erziehungsberechtigte ansehen',
     'view_as_hint' => 'Zeigt das Portal genau so, wie diese Person es sieht, nur lesend. Die Vorschau wird im Audit-Protokoll vermerkt.',
     'preview_banner' => 'Vorschau als :name – nur lesend',

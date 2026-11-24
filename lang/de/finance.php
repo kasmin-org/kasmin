@@ -60,6 +60,7 @@ return [
         'registration' => 'Nach Reihenfolge der Anmeldung',
     ],
     'installment_kind' => [
+        'member' => 'Mitgliedsbeitrag',
         'fixed' => 'Fester Betrag (z. B. Anzahlung)',
         'rest' => 'Restbetrag (Preis minus feste Raten)',
     ],

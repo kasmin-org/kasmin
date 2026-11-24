@@ -7,12 +7,16 @@ use App\Filament\Resources\Payments\Pages\ListPayments;
 use App\Filament\Support\Money;
 use App\Models\Invoice;
 use App\Models\Payment;
+use App\Support\Finance\Credits;
 use App\Support\Finance\Payments;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Actions\BulkAction;
 use Filament\Actions\DeleteAction;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
@@ -75,7 +79,7 @@ class PaymentResource extends Resource
                 TextColumn::make('reference')->label(__('finance.reference'))->searchable()->placeholder('–')->wrap()->limit(60),
                 TextColumn::make('match')->label(__('admin.finance.match'))->badge()->formatStateUsing(fn (string $state) => __('finance.match.'.$state))
                     ->color(fn (string $state) => match ($state) {
-                        'auto', 'manual' => 'success', 'suggested' => 'warning', default => 'danger',
+                        'auto', 'manual' => 'success', 'suggested', 'credit' => 'warning', 'refunded' => 'gray', default => 'danger',
                     }),
                 TextColumn::make('invoice.number')->label(__('finance.invoice'))->placeholder('–')
                     ->state(fn (Payment $record) => $record->invoice->number ?? ($record->suggestedInvoice ? '→ '.$record->suggestedInvoice->number : null))
@@ -91,12 +95,43 @@ class PaymentResource extends Resource
                 Action::make('assign')->label(__('admin.finance.assign'))->icon('heroicon-o-link')
                     ->visible(fn (Payment $record) => Money::canManage() && in_array($record->match, ['suggested', 'unmatched'], true))
                     ->schema([
-                        Select::make('invoice_id')->label(__('finance.invoice'))->required()->searchable()
-                            ->options(fn () => Invoice::query()->whereIn('status', ['issued', 'partially_paid'])->orderBy('number')->get()
-                                ->mapWithKeys(fn (Invoice $i) => [$i->id => $i->number.' – '.$i->payer_name.' – '.Invoice::money($i->openCents(), $i->currency)])->all()),
+                        Select::make('invoice_id')->label(__('finance.invoice'))->required()->searchable()->options(fn () => self::openInvoices()),
                     ])
                     ->action(fn (Payment $record, array $data) => app(Payments::class)->assign($record, Invoice::query()->findOrFail((int) $data['invoice_id']))),
-                DeleteAction::make()->label(__('admin.finance.ignore'))->visible(fn (Payment $record) => Money::canManage() && $record->invoice_id === null),
+                Action::make('split')->label(__('admin.finance.split'))->icon('heroicon-o-scissors')
+                    ->visible(fn (Payment $record) => Money::canManage() && $record->invoice_id === null && in_array($record->match, ['suggested', 'unmatched'], true))
+                    ->modalDescription(__('admin.finance.split_hint'))
+                    ->schema([
+                        Repeater::make('parts')->label('')->columns(2)->minItems(1)->defaultItems(2)->schema([
+                            Select::make('invoice_id')->label(__('finance.invoice'))->required()->searchable()->distinct()->options(fn () => self::openInvoices()),
+                            TextInput::make('amount')->label(__('finance.amount'))->numeric()->minValue(0.01)->suffix('€')->required(),
+                        ]),
+                    ])
+                    ->action(function (Payment $record, array $data) {
+                        try {
+                            app(Payments::class)->split($record, collect($data['parts'])->mapWithKeys(fn (array $p) => [(int) $p['invoice_id'] => Money::toCents($p['amount'])])->all());
+                        } catch (\RuntimeException $e) {
+                            Notification::make()->title($e->getMessage())->danger()->send();
+                        }
+                    }),
+                Action::make('use_credit')->label(__('admin.finance.use_credit'))->icon('heroicon-o-arrow-right-circle')
+                    ->visible(fn (Payment $record) => Money::canManage() && $record->match === 'credit')
+                    ->schema([Select::make('invoice_id')->label(__('finance.invoice'))->required()->searchable()->options(fn () => self::openInvoices())])
+                    ->action(function (Payment $record, array $data) {
+                        try {
+                            app(Credits::class)->useFor($record, Invoice::query()->findOrFail((int) $data['invoice_id']));
+                        } catch (\RuntimeException $e) {
+                            Notification::make()->title($e->getMessage())->danger()->send();
+                        }
+                    }),
+                Action::make('refund')->label(__('admin.finance.propose_refund'))->icon('heroicon-o-arrow-uturn-left')->requiresConfirmation()
+                    ->visible(fn (Payment $record) => Money::canManage() && $record->invoice_id === null && in_array($record->match, ['credit', 'unmatched'], true))
+                    ->schema([TextInput::make('reason')->label(__('admin.finance.reason'))->required()->maxLength(250)])
+                    ->action(function (Payment $record, array $data) {
+                        $record->forceFill(['match' => 'credit'])->save();
+                        app(Credits::class)->proposeRefund($record, (string) $data['reason']);
+                    }),
+                DeleteAction::make()->label(__('admin.finance.ignore'))->visible(fn (Payment $record) => Money::canManage() && $record->invoice_id === null && $record->match === 'unmatched' && $record->parent_id === null),
             ])
             ->toolbarActions([
                 BulkAction::make('confirm_all')->label(__('admin.finance.confirm_suggestions'))->icon('heroicon-o-check')->visible(fn () => Money::canManage())
@@ -110,6 +145,13 @@ class PaymentResource extends Resource
                         }
                     }),
             ]);
+    }
+
+    /** @return array<int, string> */
+    private static function openInvoices(): array
+    {
+        return Invoice::query()->where('type', 'invoice')->whereIn('status', ['issued', 'partially_paid'])->orderBy('number')->get()
+            ->mapWithKeys(fn (Invoice $i) => [$i->id => $i->number.' – '.$i->payer_name.' – '.Invoice::money($i->openCents(), $i->currency)])->all();
     }
 
     public static function getPages(): array

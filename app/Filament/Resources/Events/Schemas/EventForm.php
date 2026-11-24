@@ -3,6 +3,8 @@
 namespace App\Filament\Resources\Events\Schemas;
 
 use App\Filament\Support\Money;
+use App\Models\Group;
+use App\Models\MembershipType;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Repeater;
@@ -66,6 +68,19 @@ class EventForm
                 TagsInput::make('reminder_days_before')->label(__('admin.finance.reminder_days'))->placeholder('3')
                     ->hintIcon('heroicon-m-question-mark-circle', tooltip: __('admin.finance.reminder_days_hint'))
                     ->dehydrateStateUsing(fn ($state) => is_array($state) && $state !== [] ? array_values(array_map('intval', $state)) : null),
+                Money::input('cancellation_fee_cents', __('admin.finance.cancellation_fee'))->hintIcon('heroicon-m-question-mark-circle', tooltip: __('admin.finance.cancellation_fee_hint')),
+                Textarea::make('cancellation_text.de')->label(__('admin.finance.cancellation_text').' (DE)')->rows(2),
+                Textarea::make('cancellation_text.en')->label(__('admin.finance.cancellation_text').' (EN)')->rows(2),
+                Repeater::make('prices')->relationship()->label(__('admin.finance.prices'))->columnSpanFull()->columns(6)
+                    ->orderColumn('sort')->addActionLabel(__('admin.finance.add_price'))->defaultItems(0)->helperText(__('admin.finance.prices_hint'))
+                    ->schema([
+                        Select::make('role_key')->label(__('admin.event.role'))->options(__('events.roles'))->default('child')->required(),
+                        TextInput::make('min_age')->label(__('admin.event.min_age'))->numeric()->minValue(0)->maxValue(120),
+                        TextInput::make('max_age')->label(__('admin.event.max_age'))->numeric()->minValue(0)->maxValue(120),
+                        DatePicker::make('from_date')->label(__('admin.finance.from_date')),
+                        DatePicker::make('until_date')->label(__('admin.finance.until_date')),
+                        Money::input('price_cents', __('admin.finance.price'))->required(),
+                    ]),
                 Repeater::make('installments')->relationship()->label(__('admin.finance.installments'))->columnSpanFull()->columns(4)
                     ->orderColumn('sort')->addActionLabel(__('admin.finance.add_installment'))->defaultItems(0)
                     ->schema([
@@ -77,7 +92,14 @@ class EventForm
                         DatePicker::make('due_date')->label(__('admin.finance.due_date'))
                             ->hintIcon('heroicon-m-question-mark-circle', tooltip: __('admin.finance.due_date_hint')),
                         TextInput::make('due_days')->label(__('admin.finance.due_days'))->numeric()->minValue(0),
-                        Toggle::make('refundable')->label(__('admin.finance.refundable'))->inline(false),
+                        Select::make('membership_type_id')->label(__('admin.finance.membership_type'))->options(fn () => MembershipType::query()->orderBy('sort')->get()->mapWithKeys(fn (MembershipType $t) => [$t->id => $t->label()])->all())
+                            ->visible(fn ($get) => $get('kind') === 'member')->required(fn ($get) => $get('kind') === 'member'),
+                        Toggle::make('refundable')->label(__('admin.finance.refundable'))->inline(false)->live(),
+                        TextInput::make('refund_until_days')->label(__('admin.finance.refund_until_days'))->numeric()->minValue(0)->visible(fn ($get) => (bool) $get('refundable'))
+                            ->hintIcon('heroicon-m-question-mark-circle', tooltip: __('admin.finance.refund_until_hint')),
+                        Toggle::make('confirms_place')->label(__('admin.finance.confirms_place'))->inline(false),
+                        Select::make('paid_add_group_id')->label(__('admin.finance.paid_add_group'))->options(fn () => Group::query()->where('kind', 'manual')->orderBy('name')->pluck('name', 'id')->all()),
+                        Select::make('paid_remove_group_id')->label(__('admin.finance.paid_remove_group'))->options(fn () => Group::query()->where('kind', 'manual')->orderBy('name')->pluck('name', 'id')->all()),
                         Toggle::make('discounts_apply')->label(__('admin.finance.discounts_apply'))->default(true)->inline(false)
                             ->hintIcon('heroicon-m-question-mark-circle', tooltip: __('admin.finance.discounts_apply_hint')),
                     ]),

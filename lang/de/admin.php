@@ -3,6 +3,11 @@
 return [
     'nav' => ['people' => 'Personen', 'events' => 'Veranstaltungen', 'forms' => 'Formulare', 'finance' => 'Finanzen', 'settings' => 'Einstellungen', 'automations' => 'Automatisierungen', 'privacy' => 'Datenschutz', 'reports' => 'Auswertungen', 'communication' => 'Kommunikation', 'system' => 'System'],
     'finance' => [
+        'cancellation_fee' => 'Stornogebühr', 'cancellation_fee_hint' => 'Wird einmal verrechnet, wenn nach einer Stornierung eine Rate erstattet wird.', 'cancellation_text' => 'Stornobedingungen',
+        'prices' => 'Preise nach Alter oder Anmeldedatum', 'add_price' => 'Preis hinzufügen', 'prices_hint' => 'Die erste passende Zeile zählt; sonst der Preis der Rolle.', 'from_date' => 'Angemeldet ab', 'until_date' => 'Angemeldet bis',
+        'refund_until_days' => 'Erstattbar bis … Tage vor Beginn', 'refund_until_hint' => 'Leer = immer erstattbar.', 'confirms_place' => 'Zahlung bestätigt den Platz', 'paid_add_group' => 'Nach Zahlung: zu Gruppe hinzufügen', 'paid_remove_group' => 'Nach Zahlung: aus Gruppe entfernen',
+        'membership_type' => 'Mitgliedsart', 'membership_types' => 'Mitgliedsarten', 'pays_fee' => 'Zahlt Beitrag', 'yearly_fee' => 'Jahresbeitrag', 'reduced_place' => 'Ermäßigter Platz', 'reduced_place_hint' => 'Gesamtpreis für diese Person, 0 = gratis. Leer = normaler Preis. Nur für Finanzrollen sichtbar.',
+        'split' => 'Aufteilen', 'split_hint' => 'Eine Überweisung für mehrere Rechnungen; der Rest bleibt nicht zugeordnet.', 'use_credit' => 'Für eine Rechnung verwenden', 'propose_refund' => 'Rückzahlung vorschlagen', 'refund_done' => 'Zurückgezahlt', 'keep_credit' => 'Als Guthaben behalten',
         'costs' => 'Kosten (für die Kostenauswertung)', 'add_cost' => 'Kostenposition hinzufügen', 'cost_label' => 'Position', 'cost_category' => 'Kategorie',
         'cost_categories' => ['accommodation' => 'Unterkunft', 'food' => 'Verpflegung', 'transport' => 'Transport', 'material' => 'Material', 'staff' => 'Team', 'other' => 'Sonstiges'],
         'price' => 'Preis', 'role_discount' => 'Rollen-Ermäßigung', 'role_discount_hint' => 'Z. B. für Nachwuchs-Betreuung. Ersetzt die Geschwisterermäßigung; die Person zählt trotzdem als Geschwisterkind.',
@@ -39,6 +44,7 @@ return [
         'ai_hint' => 'Nur erlauben, was Ihre Datenschutzerklärung und ein Auftragsverarbeitungsvertrag mit dem KI-Anbieter abdecken. Siehe Dokumentation „Mit einem KI-Assistenten migrieren“.',
         'retention' => 'Aufbewahrung', 'retention_safety_years' => 'Sicherheitsblätter und Gesundheitsdaten aufbewahren (Jahre nach der letzten Veranstaltung)', 'retention_invoice_years' => 'Rechnungen aufbewahren (Jahre, gesetzlich)',
         'system' => 'System', 'public_url' => 'Öffentliche Adresse', 'public_url_hint' => 'Adresse dieser Installation für Links in E-Mails und, im Container, für das Zertifikat.', 'digest_time' => 'Uhrzeit der täglichen Zusammenfassung', 'approval_days' => 'Tage, die eine Freigabe-Anfrage offen bleibt',
+        'number_per_year' => 'Eigene Nummern pro Jahr', 'number_per_year_hint' => 'Die Nummern beginnen jedes Jahr mit 1; dazu ein Nummernformat mit {year} verwenden.',
         'save' => 'Speichern', 'saved' => 'Gespeichert',
     ],
     'person' => [
@@ -57,6 +63,7 @@ return [
         'street' => 'Straße', 'postal_code' => 'PLZ', 'city' => 'Ort', 'country' => 'Land (ISO)',
     ],
     'event' => [
+        'cancel_participation' => 'Anmeldung stornieren', 'cancelled_hint' => 'Storniert. Korrekturen ausgestellter Rechnungen werden unter Automatisierungen vorgeschlagen.',
         'singular' => 'Veranstaltung', 'plural' => 'Veranstaltungen', 'title' => 'Titel', 'series' => 'Reihe', 'status' => 'Status',
         'starts_at' => 'Beginn', 'ends_at' => 'Ende', 'location' => 'Ort', 'meeting_point' => 'Treffpunkt', 'description' => 'Beschreibung',
         'binding' => 'Anmeldung sofort verbindlich', 'binding_hint' => 'Aus: Anmeldungen sind Anfragen, die das Team bestätigt.',

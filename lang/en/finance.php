@@ -60,6 +60,7 @@ return [
         'registration' => 'By order of registration',
     ],
     'installment_kind' => [
+        'member' => 'Membership fee',
         'fixed' => 'Fixed amount (e.g. deposit)',
         'rest' => 'Remaining amount (price minus fixed instalments)',
     ],

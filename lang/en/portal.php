@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'cancel_now' => 'Cancel this registration', 'terms_not_refundable' => ':name: not refundable.', 'terms_too_late' => ':name: no longer refundable.', 'terms_refundable_until' => ':name: refundable until :date.', 'terms_refundable' => ':name: refundable.', 'terms_fee' => 'Cancellation fee: :amount.',
     'view_as' => 'View as legal guardian',
     'view_as_hint' => 'Shows the portal exactly as this person sees it, read only. The preview is recorded in the audit log.',
     'preview_banner' => 'Preview as :name – read only',

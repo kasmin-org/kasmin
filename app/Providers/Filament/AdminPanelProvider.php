@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Http\Middleware\RequireFullLogin;
 use App\Http\Middleware\RequireSecondFactor;
 use App\Livewire\SystemNotificationsPopup;
 use Filament\Http\Middleware\Authenticate;
@@ -64,6 +65,8 @@ class AdminPanelProvider extends PanelProvider
             ->authMiddleware([
                 Authenticate::class,
                 RequireSecondFactor::class,
-            ]);
+            ])
+            // Also on later Livewire requests: links in mails never open the admin interface.
+            ->authMiddleware([RequireFullLogin::class], isPersistent: true);
     }
 }

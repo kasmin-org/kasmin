@@ -26,6 +26,9 @@ return [
      */
     'digest_time' => env('KASMIN_DIGEST_TIME', '07:00'),
 
+    // Second factor for administrative roles (authenticator app). Off: login only with the token sent by e-mail (LG01).
+    'second_factor' => (bool) env('KASMIN_SECOND_FACTOR', false),
+
     // Days an approval request of an automation stays open (AT04, AT05).
     // API key for `kasmin:import:people --webling` (read permission), only needed during a migration.
     'webling_key' => env('KASMIN_WEBLING_KEY'),

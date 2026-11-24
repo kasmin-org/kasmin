@@ -5,11 +5,14 @@ namespace Tests\Feature\Auth;
 use App\Mail\LoginLinkMail;
 use App\Models\AuditEvent;
 use App\Models\Household;
+use App\Models\OutgoingMail;
 use App\Models\Person;
 use App\Models\Role;
 use App\Models\User;
 use App\Support\Auth\LoginLinks;
 use App\Support\Install\Defaults;
+use App\Support\Install\MailTemplateDefaults;
+use App\Support\Mail\Composer;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
@@ -115,8 +118,9 @@ class LoginTest extends TestCase
         $this->assertAuthenticatedAs($user);
     }
 
-    public function test_administrators_need_a_second_factor(): void
+    public function test_administrators_need_a_second_factor_if_it_is_switched_on(): void
     {
+        config(['kasmin.second_factor' => true]);
         $user = $this->guardian('admin@example.org');
         $user->person?->roleAssignments()->create(['role_id' => Role::query()->where('key', 'administrator')->value('id')]);
         ['token' => $token] = app(LoginLinks::class)->issue($user);
@@ -149,5 +153,76 @@ class LoginTest extends TestCase
         $household->members()->attach($child->id, ['role' => 'child']);
 
         $this->actingAs($user)->get('/portal')->assertOk()->assertSee('Family Example')->assertSee('Kim Example')->assertSee('10');
+    }
+
+    private function admin(string $role, string $email): User
+    {
+        app(Defaults::class)->installRoles();
+        $person = Person::factory()->create(['locale' => 'en']);
+        $person->roleAssignments()->create(['role_id' => Role::query()->where('key', $role)->value('id')]);
+
+        return User::query()->create(['name' => $role, 'email' => $email, 'password' => 'x', 'person_id' => $person->id]);
+    }
+
+    public function test_every_administrative_login_is_reported_to_all_administrators(): void
+    {
+        app(MailTemplateDefaults::class)->install();
+        $this->admin('administrator', 'a1@example.org');
+        $this->admin('administrator', 'a2@example.org');
+        $treasurer = $this->admin('treasurer', 't@example.org');
+        ['token' => $token] = app(LoginLinks::class)->issue($treasurer);
+        $this->post('/login/link/'.$token)->assertRedirect('/admin');
+
+        $mails = OutgoingMail::query()->where('subject', 'Administrator login: treasurer')->get();
+        $this->assertEqualsCanonicalizing(['a1@example.org', 'a2@example.org'], $mails->pluck('to_address')->all());
+        $this->assertStringContainsString('t@example.org', $mails->first()->html ?? '');
+        $this->assertStringContainsString('127.0.0.1', $mails->first()->html ?? '');
+        $this->assertEmpty($treasurer->refresh()->getRememberToken(), 'administrative roles are not remembered');
+        auth()->logout();
+
+        $guardian = User::query()->create(['name' => 'G', 'email' => 'g@example.org', 'password' => 'x', 'person_id' => Person::factory()->create()->id]);
+        ['token' => $token] = app(LoginLinks::class)->issue($guardian);
+        $this->post('/login/link/'.$token);
+        $this->assertSame(2, OutgoingMail::query()->where('subject', 'like', 'Administrator login%')->count(), 'not for other people');
+    }
+
+    public function test_links_in_mails_do_not_open_the_admin_interface_or_safety_sheets(): void
+    {
+        Mail::fake();
+        $admin = $this->admin('administrator', 'a1@example.org');
+        $child = Person::factory()->create(['birth_date' => now()->subYears(9)]);
+        $child->guardians()->attach($admin->person_id);
+        ['token' => $token] = app(LoginLinks::class)->issue($admin, 'mail_link', 'limited');
+        $this->post('/login/link/'.$token)->assertRedirect(route('portal'));
+        $this->assertEmpty($admin->refresh()->getRememberToken());
+
+        $this->get('/portal')->assertOk();
+        foreach (['/admin', '/admin/people', '/portal/children/'.$child->public_id.'/forms/safety_sheet', '/portal/children/new'] as $page) {
+            $this->get($page)->assertRedirect(route('step-up'));
+        }
+        $this->post('/portal/children', ['first_name' => 'X', 'last_name' => 'Y', 'birth_date' => '2016-01-01'])->assertRedirect(route('step-up'));
+        $this->assertFalse(Person::query()->where('first_name', 'X')->exists());
+
+        // Fresh link to the own address, then the page that was asked for.
+        $this->get('/admin/people');
+        $this->get('/login/confirm')->assertOk();
+        $this->post('/login/confirm')->assertRedirect('/login/code');
+        $this->assertGuest();
+        $code = null;
+        Mail::assertSent(LoginLinkMail::class, function (LoginLinkMail $mail) use (&$code) {
+            $code = $mail->code;
+
+            return $mail->hasTo('a1@example.org');
+        });
+        $this->post('/login/code', ['email' => 'a1@example.org', 'code' => $code])->assertRedirect('/admin/people');
+        $this->get('/admin/people')->assertOk();
+    }
+
+    public function test_approval_requests_are_not_shown_among_the_mails_in_the_portal(): void
+    {
+        $admin = $this->admin('administrator', 'a1@example.org');
+        $mail = app(Composer::class)->queueRaw('a1@example.org', 'A', 'Approval needed: secret run', '<p>x</p>', 'en', 'notification', $admin->person_id);
+        $this->actingAs($admin)->get('/portal')->assertOk()->assertDontSee('secret run');
+        $this->actingAs($admin)->get('/portal/mails/'.$mail->uuid)->assertNotFound();
     }
 }

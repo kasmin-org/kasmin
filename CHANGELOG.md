@@ -6,6 +6,25 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-11-24
+
+Pre-release for testing. Not ready for production use.
+
+### Changed
+
+- Login only with the link or code sent by e-mail, for all roles; the second factor is off (`KASMIN_SECOND_FACTOR=true`
+  switches it on).
+- Every login of a person with an administrative role is reported to all administrators by e-mail.
+
+### Security
+
+- Twig updated to at least 3.31.1: the previous version had several ways around the sandbox that protects mail templates
+  (e.g. CVE-2026-133764, CVE-2026-133770, CVE-2026-133772).
+- Login links in mails (valid for 30 days) were meant to be limited, but gave full access, including safety sheets, and
+  created a permanent login. They now only open the start page, invoices and offered places; everything else needs a
+  fresh link. All remembered logins and sessions are ended once during the upgrade. Affects all versions up to 0.9.0.
+- Approval requests and other notifications are no longer shown among the mails in the portal.
+
 ## [0.9.0] - 2026-11-24
 
 Pre-release for testing. Not ready for production use.
@@ -190,7 +209,8 @@ First public pre-release for testing. Not ready for production use.
 - Docker image: system packages updated and build packages removed after compiling the PHP extensions – the
   container scan reports no high or critical findings any more (previously 75 in Debian packages).
 
-[Unreleased]: https://github.com/kasmin-org/kasmin/compare/v0.9.0...develop
+[Unreleased]: https://github.com/kasmin-org/kasmin/compare/v0.10.0...develop
+[0.10.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.10.0
 [0.9.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.9.0
 [0.8.1]: https://github.com/kasmin-org/kasmin/releases/tag/v0.8.1
 [0.8.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.8.0

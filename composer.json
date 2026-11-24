@@ -17,7 +17,7 @@
         "laravel/mcp": "^1.2",
         "laravel/tinker": "^3.0",
         "openspout/openspout": "^4.33",
-        "twig/twig": "^3"
+        "twig/twig": "^3.31.1"
     },
     "require-dev": {
         "larastan/larastan": "^3",

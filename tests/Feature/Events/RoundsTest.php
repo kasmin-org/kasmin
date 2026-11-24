@@ -99,7 +99,9 @@ class RoundsTest extends TestCase
         $old = $this->child('Old', '2012-01-01', [2026]);      // too old
         $former = $this->child('Former', '2016-01-01', [2025]); // not last year
         $new = $this->child('New', '2016-01-01', []);
+        $this->assertSame(3, $this->event->roles()->where('role_key', 'child')->sole()->directLeft());
         $this->round('returning');
+        $this->assertSame(0, $this->event->roles()->where('role_key', 'child')->sole()->directLeft());
         $this->assertSame('waitlist', app(Registrations::class)->register($this->event, $new, 'child', $new->guardians()->first())->status, 'no direct places before the open round');
         $this->runRounds();
         $this->assertSame(['offered', 'offered', null, null, 'waitlist'], array_map(fn (Person $p) => $this->statusOf($p), [$ann, $ben, $old, $former, $new]));

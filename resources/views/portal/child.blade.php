@@ -88,7 +88,7 @@
             <article class="rounded-xl border border-kasmin-100 p-4">
                 <h3 class="font-semibold">{{ $item['event']->title }}</h3>
                 <p class="text-sm text-kasmin-700">{{ $item['event']->starts_at->isoFormat('LL') }} – {{ $item['event']->ends_at->isoFormat('LL') }}@if ($item['event']->location) · {{ $item['event']->location }}@endif</p>
-                @php($left = $item['role']->bookableLeft())
+                @php($left = $item['role']->directLeft())
                 <p class="mt-1 text-sm">{{ $left === null || $left > 0 ? __('events.places_left', ['count' => $left ?? '∞']) : __('events.waitlist_only') }}</p>
                 <a class="mt-3 block w-full rounded-lg bg-kasmin-600 px-4 py-3 text-center font-semibold text-white sm:inline-block sm:w-auto" href="{{ route('portal.child.register.form', [$child->public_id, $item['event']->public_id, $item['role']->role_key]) }}">{{ $left === 0 ? __('portal.join_waitlist') : __('portal.register_child') }}</a>
             </article>

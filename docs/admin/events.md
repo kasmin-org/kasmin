@@ -2,6 +2,8 @@
 
 Questions when registering, public forms and guests: [Registration](registration.md). Lists: [Lists](lists.md).
 
+Templates, dates, public pages and rounds: [Event planning](event-planning.md).
+
 ## Event series and events
 
 Events of the same kind form a **series** (e.g. the camp series, the alumni-event series). An event has dates,

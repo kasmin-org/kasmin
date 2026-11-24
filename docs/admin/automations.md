@@ -50,8 +50,8 @@ The scheduler (cron job, see [Hosting](hosting.md)) checks the automations every
 
 ## Standard automations
 
-Installed with the German or English defaults, **switched off** except *Payment reminders* and
-*Correct invoices* (both only propose, nothing is sent without approval) – review the settings and activate what you need.
+Installed with the German or English defaults, **switched off** except *Payment reminders*,
+*Correct invoices* and *Registration rounds* (they only propose, nothing is sent without approval) – review the settings and activate what you need.
 
 | Automation | Action | Default trigger and mode |
 |---|---|---|
@@ -60,6 +60,7 @@ Installed with the German or English defaults, **switched off** except *Payment 
 | Expire unanswered offers | after the deadline the offer is declined and the place goes to the next person | daily 07:30 · automatic |
 | Start season | children of the previous event of the same series are registered if their age still fits; those too old are proposed for the next role (e.g. junior counsellor) or for leaving – as a notice to the team | by button · manual |
 | Deposit invoices / Balance invoices | invoices of the instalment `deposit` / `balance` per family, issued and sent ([Invoices](invoices.md)) | by button / 90 days before · approval |
+| Registration rounds | offers in the rounds of an event ([Event planning](event-planning.md)); **active** | daily · approval |
 | Payment reminders | reminders before and after the due date as set under *Organisation and invoices* ([Invoices](invoices.md)); **active** | daily · approval |
 | Correct invoices | credit note and new invoice where an issued invoice no longer fits; **active** | daily · approval |
 | Release places of unpaid invoices | cancels places still unpaid some days (default 14) after the last reminder | daily · approval |

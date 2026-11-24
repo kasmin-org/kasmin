@@ -136,7 +136,7 @@ class PublicFormController extends Controller
         if ($role === null) {
             return null;
         }
-        $left = $role->bookableLeft();
+        $left = $role->directLeft();
 
         return (string) ($left === null || $left > 0 ? __('events.places_left', ['count' => $left ?? '∞']) : __('events.waitlist_only'));
     }

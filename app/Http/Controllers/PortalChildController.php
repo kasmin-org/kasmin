@@ -125,7 +125,7 @@ class PortalChildController extends Controller
         $model->load('installments', 'roles', 'prices');
 
         return view('portal.register-event', [
-            'child' => $child, 'event' => $model, 'role' => $eventRole, 'participation' => null, 'editable' => true, 'left' => $eventRole->bookableLeft(),
+            'child' => $child, 'event' => $model, 'role' => $eventRole, 'participation' => null, 'editable' => true, 'left' => $eventRole->directLeft(),
             'fields' => $form !== null ? $this->questions($model, $form, $child) : collect(),
             'values' => old('values', []), 'price' => $billing->price($model, $draft),
             'installments' => $model->installments->map(fn (EventInstallment $i) => ['label' => $i->labelText(), 'amount' => $billing->base($model, $i, $draft)])->filter(fn (array $i) => $i['amount'] > 0)->all(),

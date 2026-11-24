@@ -119,3 +119,9 @@ jobs:
           curl -sf -X POST -H "Authorization: Bearer ${{ secrets.HOOK_TOKEN }}" "https://${HOST}/system/hooks/demo"; echo
           curl -sf -X POST -H "Authorization: Bearer ${{ secrets.HOOK_TOKEN }}" "https://${HOST}/system/hooks/upgrade"; echo
           curl -sf -o /dev/null -w "start page: %{http_code}\n" "https://${HOST}/"
+          # /up alone is not enough: the API document must come from the new release (packages loaded, version right).
+          doc=$(curl -sf "https://${HOST}/docs/api.json" | jq -r '.info.version')
+          echo "API document: ${doc}"
+          case "$doc" in *"Kasmin ${TAG#v})"*) ;; *) echo "::error::${HOST} does not run ${TAG}"; exit 1;; esac
+          code=$(curl -s -o /dev/null -w '%{http_code}' -X POST -H 'Content-Type: application/json' -d '{}' "https://${HOST}/mcp")
+          [ "$code" = 401 ] || { echo "::error::MCP endpoint answered ${code} instead of 401"; exit 1; }

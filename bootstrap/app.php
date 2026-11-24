@@ -1,11 +1,15 @@
 <?php
 
 use App\Http\Middleware\EnsureSchemaIsCompatible;
+use App\Support\System\BootCache;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+
+// A new release must not run with the package list cached by the previous one.
+BootCache::refresh(dirname(__DIR__));
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(

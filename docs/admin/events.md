@@ -1,5 +1,7 @@
 # Events, registration and waitlist
 
+Questions when registering, public forms and guests: [Registration](registration.md). Lists: [Lists](lists.md).
+
 ## Event series and events
 
 Events of the same kind form a **series** (e.g. the camp series, the alumni-event series). An event has dates,

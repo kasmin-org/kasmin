@@ -6,6 +6,26 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ## [Unreleased]
 
+### Added
+
+- Questions and consents per event and role, per participant or once per family; changeable until a date; on lists, in mails
+  and in the list of participants. Confidential answers are encrypted and never in mails.
+- Conditions (price, instalments, cancellation) are shown before registering.
+- Public forms: register for an event, apply for the team (with approval), stay informed – with confirmation by e-mail.
+- Adults register themselves in the portal; guests with a personal invitation, own registration and own invoice.
+- Legal guardians invite further legal guardians; own logins for children from a configurable age (safety sheet read-only).
+- Duplicates: suggestions, merge with a choice per field, mark as different people.
+
+### Changed
+
+- What a child registers with its own login is private (can be changed in the settings); the person gets the mails and invoices.
+- Guardianship ends at the legal age (setting, default 18); both sides are told.
+- Legal guardians of a family become guardians of its children when the family is saved in the admin interface.
+
+### Fixed
+
+- Anonymising now also removes refund names and IBANs, and the reasons of reduced places and cancellations.
+
 ## [0.13.0] - 2026-11-24
 
 Pre-release for testing. Not ready for production use.

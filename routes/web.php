@@ -4,6 +4,7 @@ use App\Http\Controllers\ApprovalController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\StepUpController;
 use App\Http\Controllers\Auth\TwoFactorController;
+use App\Http\Controllers\EventListController;
 use App\Http\Controllers\InstallController;
 use App\Http\Controllers\InvoicePdfController;
 use App\Http\Controllers\MailPreferencesController;
@@ -50,6 +51,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/two-factor', [TwoFactorController::class, 'show'])->name('two-factor');
     Route::post('/two-factor', [TwoFactorController::class, 'verify'])->middleware('throttle:two-factor')->name('two-factor.verify');
     Route::get('/admin/invoices/{invoice}/pdf', [InvoicePdfController::class, 'admin'])->middleware([RequireSecondFactor::class, RequireFullLogin::class])->name('admin.invoices.pdf');
+    Route::middleware([RequireSecondFactor::class, RequireFullLogin::class])->group(function () {
+        Route::get('/admin/events/{event}/lists/{key}.{format}', [EventListController::class, 'list'])->whereNumber('event')->where('key', '[a-z_]+')->where('format', 'pdf|xlsx|csv')->name('admin.lists.export');
+        Route::get('/admin/events/{event}/camp-folder/{person?}', [EventListController::class, 'folder'])->whereNumber(['event', 'person'])->name('admin.lists.folder');
+    });
     Route::post('/portal/view-as/end', [ViewAsController::class, 'end'])->name('portal.view-as.end');
     Route::middleware([RequireSecondFactor::class, ReadOnlyPortalPreview::class])->prefix('portal')->group(function () {
         Route::get('/', [PortalController::class, 'index'])->name('portal');

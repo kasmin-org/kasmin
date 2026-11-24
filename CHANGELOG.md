@@ -6,6 +6,18 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ## [Unreleased]
 
+### Added
+
+- Dashboard: one block per event series with the next event (registrations, last three, waitlist, open and reserve
+  places, invoices paid/open/overdue), to-dos, finance, safety sheets (counts only), next and failed automation runs.
+- Global search for people (also by e-mail), families, events and invoices, keyboard shortcut Ctrl/Cmd+K.
+- "View as legal guardian": read-only preview of the portal for administrators, logged.
+- Statistics: age distribution, age groups of equal size for activities, costs and income per event with cost items,
+  sibling and role discounts, participants per event (returning/new).
+- Data protection: deletion requests with a preview of what is deleted and what must be kept, anonymisation (keeps
+  statistics and invoices within the retention period), nightly retention run for health and identity data (default
+  7 years after the last event), audit log viewer, consents overview.
+
 ## [0.8.1] - 2026-11-24
 
 Pre-release for testing. Not ready for production use.

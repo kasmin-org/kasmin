@@ -94,7 +94,17 @@ class PortalFormController extends Controller
 
     private function child(Request $request, string $publicId): Person
     {
-        return $this->guardian($request)->wards()->where('public_id', $publicId)->firstOrFail();
+        $person = $this->guardian($request);
+
+        // Own forms: adults only and never the safety sheet, which children may not change themselves (SF20).
+        if ($person->public_id === $publicId) {
+            $form = Form::query()->where('key', (string) $request->route('form'))->first();
+            abort_if($form === null || $form->family_emergency_contacts || ($person->ageAt() ?? 18) < 18, 404);
+
+            return $person;
+        }
+
+        return $person->wards()->where('public_id', $publicId)->firstOrFail();
     }
 
     private function form(string $key): Form

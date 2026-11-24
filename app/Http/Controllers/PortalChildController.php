@@ -11,6 +11,7 @@ use App\Models\Participation;
 use App\Models\Person;
 use App\Models\User;
 use App\Support\Auth\PortalPerson;
+use App\Support\Events\Guests;
 use App\Support\Events\RegistrationException;
 use App\Support\Events\Registrations;
 use App\Support\Finance\Billing;
@@ -65,9 +66,12 @@ class PortalChildController extends Controller
             'child' => $child,
             'answerForms' => $participations->filter(fn (Participation $p) => $p->event !== null && $this->answers->form($p->event, $p->role_key) !== null)->keyBy('id')->all(),
             'participations' => $participations,
-            'open' => $this->registrations->openFor($child),
+            'open' => $this->registrations->openFor($child, $this->by($request, $child)),
+            'self' => $child->is($this->guardian($request)),
+            'guestsLeft' => $participations->mapWithKeys(fn (Participation $p) => [$p->id => app(Guests::class)->left($p)])->all(),
             'registeredIds' => $participations->whereNotIn('status', ['cancelled', 'declined'])->pluck('event_id')->all(),
             'forms' => Form::query()->where('kind', 'person')->where('active', true)->orderBy('sort')->get()
+                ->reject(fn (Form $form) => $child->is($this->guardian($request)) && ($form->family_emergency_contacts || ($child->ageAt() ?? 18) < 18))
                 ->map(fn (Form $form) => ['form' => $form, 'status' => $this->forms->status($form, $child)])
                 ->reject(fn (array $item) => $item['status'] === 'not_applicable')->values(),
         ]);
@@ -78,7 +82,7 @@ class PortalChildController extends Controller
         $child = $this->child($request, $publicId);
         $event = Event::query()->where('public_id', (string) $request->input('event'))->firstOrFail();
         $role = (string) $request->input('role', 'child');
-        abort_unless($event->roles()->where('role_key', $role)->where('registered_by', 'guardian')->exists(), 404);
+        abort_unless($event->roles()->where('role_key', $role)->where('registered_by', $this->by($request, $child))->exists(), 404);
         $form = $this->answers->form($event, $role);
         $values = [];
         if ($form !== null) {
@@ -105,7 +109,7 @@ class PortalChildController extends Controller
     {
         $child = $this->child($request, $publicId);
         $model = Event::query()->where('public_id', $event)->where('status', 'open')->firstOrFail();
-        $eventRole = $model->roles()->where('role_key', $role)->where('registered_by', 'guardian')->firstOrFail();
+        $eventRole = $model->roles()->where('role_key', $role)->where('registered_by', $this->by($request, $child))->firstOrFail();
         $form = $this->answers->form($model, $role);
         $billing = app(Billing::class);
         $draft = new Participation(['event_id' => $model->id, 'person_id' => $child->id, 'role_key' => $role, 'status' => 'registered', 'registered_at' => now()]);
@@ -172,6 +176,22 @@ class PortalChildController extends Controller
         return back()->with('status', __('portal.cancelled'));
     }
 
+    /** Invites a guest to the own registration (PA05). */
+    public function inviteGuest(Request $request, string $publicId, int $participation): RedirectResponse
+    {
+        $child = $this->child($request, $publicId);
+        abort_unless($child->is($this->guardian($request)) && ($child->ageAt() ?? 18) >= 18, 404);
+        $model = Participation::query()->where('person_id', $child->id)->with('event', 'person')->findOrFail($participation);
+        $email = (string) $request->validate(['email' => ['required', 'email', 'max:254']])['email'];
+        try {
+            app(Guests::class)->invite($model, $email, $child->locale);
+        } catch (RegistrationException $e) {
+            return back()->withErrors(['email' => $e->getMessage()]);
+        }
+
+        return back()->with('status', __('public.invited'));
+    }
+
     /** Accept or decline an offered place from the waitlist (A05). */
     public function answerOffer(Request $request, string $publicId, int $participation): RedirectResponse
     {
@@ -185,6 +205,12 @@ class PortalChildController extends Controller
         }
 
         return back()->with('status', __($accept ? 'portal.offer_accepted' : 'portal.offer_declined'));
+    }
+
+    /** Who registers: the person itself or a legal guardian (EE05). */
+    private function by(Request $request, Person $child): string
+    {
+        return $child->is($this->guardian($request)) ? 'self' : 'guardian';
     }
 
     private function guardian(Request $request): Person
@@ -208,9 +234,11 @@ class PortalChildController extends Controller
         return $household;
     }
 
-    /** Only children of the logged-in legal guardian are reachable. */
+    /** Only children of the logged-in legal guardian, and the person itself, are reachable. */
     private function child(Request $request, string $publicId): Person
     {
-        return $this->guardian($request)->wards()->where('public_id', $publicId)->firstOrFail();
+        $person = $this->guardian($request);
+
+        return $person->public_id === $publicId ? $person : $person->wards()->where('public_id', $publicId)->firstOrFail();
     }
 }

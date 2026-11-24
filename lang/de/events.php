@@ -6,6 +6,7 @@ return [
         'not_open' => 'Für diese Veranstaltung ist derzeit keine Anmeldung möglich.',
         'no_role' => 'Für diese Rolle ist keine Anmeldung vorgesehen.',
         'age' => 'Das Alter passt nicht zu dieser Veranstaltung.',
+        'no_guests' => 'Es können keine weiteren Gäste eingeladen werden.',
         'already' => 'Diese Person ist für diese Veranstaltung bereits angemeldet.',
         'reason' => 'Bitte geben Sie einen Grund an.',
         'no_reserve' => 'Es ist kein Reserveplatz mehr frei.',

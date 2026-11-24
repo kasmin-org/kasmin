@@ -12,6 +12,7 @@ use App\Http\Controllers\MailPreferencesController;
 use App\Http\Controllers\PortalChildController;
 use App\Http\Controllers\PortalController;
 use App\Http\Controllers\PortalFormController;
+use App\Http\Controllers\PublicFormController;
 use App\Http\Controllers\PublicRegistrationController;
 use App\Http\Controllers\ViewAsController;
 use App\Http\Middleware\ReadOnlyPortalPreview;
@@ -23,13 +24,21 @@ Route::get('/', function () {
     return auth()->check() ? redirect()->route('portal') : view('welcome');
 });
 
-Route::post('/language', [LanguageController::class, 'update'])->middleware('throttle:60,1,language')->name('language');
+Route::post('/language', [LanguageController::class, 'update'])->middleware('throttle:language')->name('language');
 
 Route::get('/install', [InstallController::class, 'show'])->name('install');
 Route::post('/install', [InstallController::class, 'store'])->middleware('throttle:install');
 
 Route::get('/mail/preferences/{person}', [MailPreferencesController::class, 'show'])->middleware('signed')->name('mail.preferences');
 Route::post('/mail/preferences/{person}', [MailPreferencesController::class, 'update'])->middleware(['signed', 'throttle:preferences'])->name('mail.preferences.update');
+
+// Public forms (PF01), confirmation of the address and personal guest invitations (PA05).
+Route::get('/f/{slug}', [PublicFormController::class, 'show'])->where('slug', '[A-Za-z0-9_-]+')->name('public.form');
+Route::post('/f/{slug}', [PublicFormController::class, 'store'])->where('slug', '[A-Za-z0-9_-]+')->middleware('throttle:public-form')->name('public.form.store');
+Route::get('/confirm/{token}', [PublicFormController::class, 'confirmation'])->name('public.confirm');
+Route::post('/confirm/{token}', [PublicFormController::class, 'confirm'])->middleware('throttle:login-link')->name('public.confirm.store');
+Route::get('/guest/{token}', [PublicFormController::class, 'guest'])->name('public.guest');
+Route::post('/guest/{token}', [PublicFormController::class, 'acceptGuest'])->middleware('throttle:public-form')->name('public.guest.store');
 
 Route::middleware('guest')->group(function () {
     Route::get('/register', [PublicRegistrationController::class, 'show'])->name('register');
@@ -69,6 +78,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/children/{child}/register/{event}/{role}', [PortalChildController::class, 'registerForm'])->middleware(RequireFullLogin::class)->name('portal.child.register.form');
         Route::get('/children/{child}/participations/{participation}/answers', [PortalChildController::class, 'editAnswers'])->middleware(RequireFullLogin::class)->whereNumber('participation')->name('portal.child.answers');
         Route::post('/children/{child}/participations/{participation}/answers', [PortalChildController::class, 'saveAnswers'])->middleware(RequireFullLogin::class)->whereNumber('participation')->name('portal.child.answers.save');
+        Route::post('/children/{child}/participations/{participation}/guests', [PortalChildController::class, 'inviteGuest'])->middleware([RequireFullLogin::class, 'throttle:public-form'])->whereNumber('participation')->name('portal.child.guest');
         Route::post('/children/{child}/register', [PortalChildController::class, 'register'])->middleware(RequireFullLogin::class)->name('portal.child.register');
         Route::post('/children/{child}/participations/{participation}/cancel', [PortalChildController::class, 'cancel'])->middleware(RequireFullLogin::class)->name('portal.child.cancel');
         Route::post('/children/{child}/participations/{participation}/offer', [PortalChildController::class, 'answerOffer'])->name('portal.child.offer');

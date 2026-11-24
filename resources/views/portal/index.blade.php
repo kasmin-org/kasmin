@@ -35,6 +35,7 @@
     @empty
         <p>{{ __('portal.no_family') }}</p>
     @endforelse
+    @if ($person)<p class="mb-4"><a class="underline" href="{{ route('portal.child', $person->public_id) }}">{{ __('public.own') }}</a></p>@endif
     <a href="{{ route('portal.child.create') }}" class="mt-2 block w-full rounded-lg bg-kasmin-600 px-4 py-3 text-center font-semibold text-white">{{ __('portal.add_child') }}</a>
     @if ($invoices->isNotEmpty())
         <section class="mt-8" id="invoices">

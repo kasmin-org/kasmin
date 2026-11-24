@@ -14,6 +14,7 @@ use App\Models\OutgoingMail;
 use App\Models\Participation;
 use App\Models\Payment;
 use App\Models\Person;
+use App\Models\PublicSubmission;
 use App\Models\Refund;
 use App\Models\RegistrationAnswer;
 use App\Models\User;
@@ -83,6 +84,7 @@ class Privacy
             OutgoingMail::query()->where('person_id', $person->id)->delete();
             RegistrationAnswer::query()->whereIn('participation_id', $person->participations()->pluck('id'))->delete();
             $person->participations()->update(['price_reason' => null, 'cancel_reason' => null]);
+            PublicSubmission::query()->where('person_id', $person->id)->delete();
             $person->households()->detach();
             $person->guardians()->detach();
             $person->wards()->detach();

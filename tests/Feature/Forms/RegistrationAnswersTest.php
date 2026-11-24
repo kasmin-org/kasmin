@@ -18,6 +18,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Testing\TestResponse;
+use Symfony\Component\HttpFoundation\Response;
 use Tests\TestCase;
 
 class RegistrationAnswersTest extends TestCase
@@ -62,7 +63,7 @@ class RegistrationAnswersTest extends TestCase
 
     /**
      * @param  array<string, string>  $values
-     * @return TestResponse<\Symfony\Component\HttpFoundation\Response>
+     * @return TestResponse<Response>
      */
     private function register(Person $child, array $values): TestResponse
     {

@@ -19,6 +19,7 @@ use Illuminate\Support\Carbon;
  * @property bool $registration_binding
  * @property Carbon|null $age_reference_date
  * @property Carbon|null $answers_until
+ * @property int $max_guests
  * @property string $currency
  * @property int $cancellation_fee_cents
  * @property array<string, string>|null $cancellation_text
@@ -38,7 +39,7 @@ class Event extends Model
     protected $guarded = ['id', 'public_id'];
 
     /** Defaults like in the database, also before the model is reloaded. */
-    protected $attributes = ['status' => 'draft', 'registration_binding' => true, 'currency' => 'EUR', 'sibling_mode' => 'none', 'sibling_amount_cents' => 0, 'sibling_min_children' => 2, 'sibling_order' => 'oldest'];
+    protected $attributes = ['status' => 'draft', 'max_guests' => 0, 'registration_binding' => true, 'currency' => 'EUR', 'sibling_mode' => 'none', 'sibling_amount_cents' => 0, 'sibling_min_children' => 2, 'sibling_order' => 'oldest'];
 
     /** @return list<string> */
     public function uniqueIds(): array

@@ -40,7 +40,7 @@ class InvoiceRun implements Action
         if ($group === null) {
             return 'skipped: already invoiced';
         }
-        $invoice = $this->invoices->issue($this->invoices->draftFor($event, $installment, $group, $group->first()?->person?->households->first()));
+        $invoice = $this->invoices->issue($this->invoices->draftFor($event, $installment, $group, Invoices::household($group)));
         if ((bool) $automation->setting('send', true)) {
             $this->invoices->send($invoice);
         }

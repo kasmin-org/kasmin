@@ -1,6 +1,11 @@
 <?php
 
 return [
+    'notify_duplicate' => 'Probable duplicate: :name',
+    'guardians_full' => 'No more legal guardians can be invited.', 'notify_guardian_invited' => ':name invited a further legal guardian (:family)', 'notify_guardian_added' => ':name is now a legal guardian (:family)',
+    'login_not_possible' => 'An own login with this address is not possible.', 'login_created' => 'Login created. The child has received a login link.', 'child_login' => 'Own login for the child', 'child_login_hint' => 'The child gets its own access with its own e-mail address. It can see its safety sheet but not change it.', 'create_login' => 'Create login',
+    'mail_guardian_text' => ':host invites you to Kasmin as a further legal guardian. You will have the same rights for the family.', 'guardian_accept' => 'Accept', 'guardian_invitation' => 'Invitation as legal guardian', 'guardian_done' => 'Done. You can now log in with your e-mail address.', 'invite_guardian' => 'Invite a further legal guardian', 'read_only' => 'Only your legal guardians can change this.',
+    'answers' => 'Answers', 'save_answers' => 'Save answers', 'answers_saved' => 'Answers saved.', 'answers_closed' => 'The answers can no longer be changed.', 'price' => 'Price: :amount', 'price_hint' => 'Discounts are on the invoice.', 'terms' => 'Cancellation conditions',
     'cancel_now' => 'Cancel this registration', 'terms_not_refundable' => ':name: not refundable.', 'terms_too_late' => ':name: no longer refundable.', 'terms_refundable_until' => ':name: refundable until :date.', 'terms_refundable' => ':name: refundable.', 'terms_fee' => 'Cancellation fee: :amount.',
     'view_as' => 'View as legal guardian',
     'view_as_hint' => 'Shows the portal exactly as this person sees it, read only. The preview is recorded in the audit log.',

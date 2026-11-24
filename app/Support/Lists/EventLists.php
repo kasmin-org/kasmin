@@ -11,6 +11,7 @@ use App\Models\Person;
 use App\Models\User;
 use App\Support\Forms\Forms;
 use App\Support\Forms\FormValue;
+use App\Support\Forms\RegistrationAnswers;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
@@ -30,7 +31,7 @@ class EventLists
     /** Participants that take part. */
     public const STATUSES = ['registered', 'confirmed', 'attended'];
 
-    public function __construct(private readonly Forms $forms) {}
+    public function __construct(private readonly Forms $forms, private readonly RegistrationAnswers $answers) {}
 
     public static function mayView(User $user, string $key): bool
     {
@@ -80,7 +81,7 @@ class EventLists
     {
         return Participation::query()->where('event_id', $event->id)->whereIn('status', self::STATUSES)
             ->when($role !== null && $role !== '', fn ($q) => $q->where('role_key', $role))
-            ->with(['person.guardians.contactPoints', 'person.contactPoints', 'person.households.emergencyContacts'])->get()
+            ->with(['event', 'person.guardians.contactPoints', 'person.contactPoints', 'person.households.emergencyContacts'])->get()
             ->filter(fn (Participation $p) => $p->person !== null)
             ->sortBy(fn (Participation $p) => mb_strtolower($p->person?->last_name.' '.$p->person?->first_name))->values();
     }
@@ -88,7 +89,7 @@ class EventLists
     /** @return list<Form> safety sheets (forms with emergency contacts) */
     public function safetyForms(): array
     {
-        return array_values(Form::query()->where('active', true)->where('family_emergency_contacts', true)->orderBy('sort')->with('fields')->get()->all());
+        return array_values(Form::query()->where('kind', 'person')->where('active', true)->where('family_emergency_contacts', true)->orderBy('sort')->with('fields')->get()->all());
     }
 
     /**
@@ -184,21 +185,34 @@ class EventLists
     private function answers(Collection $participants): ListTable
     {
         $columns = [];
-        foreach (Form::query()->where('active', true)->where('family_emergency_contacts', false)->orderBy('sort')->with('fields')->get() as $form) {
+        foreach (Form::query()->where('kind', 'person')->where('active', true)->where('family_emergency_contacts', false)->orderBy('sort')->with('fields')->get() as $form) {
             foreach ($form->fields->reject(fn (FormField $f) => $f->isConfidential()) as $field) {
                 $columns[] = [$form, $field];
+            }
+        }
+        // Questions of the event (FB04); confidential answers are not on this list.
+        $questions = [];
+        $forms = [];
+        foreach ($participants as $p) {
+            $forms[$p->role_key] ??= $p->event !== null ? $this->answers->form($p->event, $p->role_key) : null;
+            foreach ($forms[$p->role_key]?->fields->reject(fn (FormField $f) => $f->isConfidential()) ?? [] as $field) {
+                $questions[$field->form_id.':'.$field->key] = $field;
             }
         }
         $rows = [];
         foreach ($participants as $p) {
             $row = [$this->person($p)->fullName()];
+            $answers = isset($forms[$p->role_key]) ? $this->answers->values($p, $forms[$p->role_key]) : [];
+            foreach ($questions as $field) {
+                $row[] = $field->form_id === $forms[$p->role_key]?->id ? (FormValue::text($field, $answers[$field->key] ?? null) ?? '–') : '–';
+            }
             foreach ($columns as [$form, $field]) {
                 $row[] = FormValue::text($field, $this->forms->current($form, $this->person($p))->values[$field->key] ?? null) ?? '–';
             }
             $rows[] = $row;
         }
 
-        return $this->table('answers', [__('lists.name'), ...array_map(fn (array $c) => $c[1]->labelText(), $columns)], $rows);
+        return $this->table('answers', [__('lists.name'), ...array_values(array_map(fn (FormField $f) => $f->labelText(), $questions)), ...array_map(fn (array $c) => $c[1]->labelText(), $columns)], $rows);
     }
 
     /**

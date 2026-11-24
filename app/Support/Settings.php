@@ -26,6 +26,10 @@ class Settings
         'invoice_attach_paid' => '1',
         'invoice_reminder_days_before' => '3',
         'invoice_overdue_days' => '7,21',
+        'max_guardians' => '5',            // RG07
+        'min_login_age' => '14',           // PE04
+        'guardian_until_age' => '18',      // PE05
+        'own_registrations_visible' => '0', // PE05a
         'retention_safety_years' => '7', // CO01
         'retention_invoice_years' => '7',
         'public_url' => '',

@@ -4,11 +4,16 @@ namespace App\Filament\Resources\Events\RelationManagers;
 
 use App\Filament\Support\Money;
 use App\Models\Event;
+use App\Models\FormField;
 use App\Models\Participation;
 use App\Models\Person;
+use App\Models\User;
 use App\Support\Events\RegistrationException;
 use App\Support\Events\Registrations;
 use App\Support\Finance\Corrections;
+use App\Support\Forms\FormValue;
+use App\Support\Forms\RegistrationAnswers;
+use App\Support\Lists\EventLists;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\CreateAction;
@@ -16,6 +21,7 @@ use Filament\Actions\EditAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Infolists\Components\TextEntry;
 use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
@@ -110,6 +116,18 @@ class ParticipationsRelationManager extends RelationManager
                             $empty = ! filled($data['price'] ?? null);
                             $record->forceFill(['price_cents' => $empty ? null : Money::toCents($data['price']), 'price_reason' => $empty ? null : $data['reason']])->save();
                             app(Corrections::class)->refreshDrafts($record->event ?? throw new Halt);
+                        }),
+                    Action::make('answers')->label(__('portal.answers'))->icon('heroicon-o-chat-bubble-left-right')->modalSubmitAction(false)
+                        ->visible(fn (Participation $record) => $record->event !== null && app(RegistrationAnswers::class)->form($record->event, $record->role_key) !== null)
+                        ->schema(function (Participation $record) {
+                            $service = app(RegistrationAnswers::class);
+                            $form = $record->event !== null ? $service->form($record->event, $record->role_key) : null;
+                            $values = $form !== null ? $service->values($record, $form) : [];
+                            $user = auth()->user();
+                            $safety = $user instanceof User && EventLists::mayViewSafety($user);
+
+                            return $form === null ? [] : $form->fields->reject(fn (FormField $f) => $f->isConfidential() && ! $safety)
+                                ->map(fn (FormField $f) => TextEntry::make('a_'.$f->key)->label($f->labelText())->state(FormValue::text($f, $values[$f->key] ?? null))->placeholder('–'))->values()->all();
                         }),
                     Action::make('cancel')->label(__('admin.event.cancel_participation'))->icon('heroicon-o-x-circle')->color('danger')->requiresConfirmation()
                         ->visible(fn (Participation $record) => ! in_array($record->status, ['cancelled', 'declined', 'attended', 'no_show'], true))

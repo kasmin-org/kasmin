@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Household;
 use App\Models\Invoice;
 use App\Models\OutgoingMail;
 use App\Models\User;
 use App\Support\Auth\PortalPerson;
+use App\Support\People\Guardians;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -31,6 +33,8 @@ class PortalController extends Controller
             'mails' => $person !== null ? OutgoingMail::query()->where('kind', '!=', 'notification')->where('person_id', $person->id)->whereIn('status', ['sent', 'queued', 'sending'])->latest('id')->limit(10)->get() : collect(),
             'person' => $person,
             'households' => $households,
+            'wardIds' => $person !== null ? $person->wards()->pluck('people.id')->all() : [],
+            'guardiansLeft' => $households->mapWithKeys(fn (Household $h) => [$h->id => app(Guardians::class)->left($h)])->all(),
             'limited' => $request->session()->get('login_scope') === 'limited',
         ]);
     }

@@ -6,8 +6,10 @@ use App\Models\Event;
 use App\Models\EventInstallment;
 use App\Models\EventPrice;
 use App\Models\EventRole;
+use App\Models\Household;
 use App\Models\InvoiceLine;
 use App\Models\Participation;
+use App\Support\Settings;
 use Illuminate\Support\Collection;
 
 /**
@@ -19,6 +21,15 @@ class Billing
     public const BILLED = ['registered', 'confirmed', 'offered', 'attended', 'no_show'];
 
     public function __construct(private readonly SiblingDiscounts $discounts) {}
+
+    /** The family that pays; null if the person pays itself: registered itself, or of legal age (PE05, PE05a). */
+    public static function household(Participation $participation): ?Household
+    {
+        $person = $participation->person;
+        $adult = ($person?->ageAt($participation->event?->starts_at) ?? 0) >= Settings::int('guardian_until_age');
+
+        return $person === null || $participation->isOwn() || $adult ? null : $person->households->first();
+    }
 
     /** Price of a participant before discounts (PR01, PR02). */
     public function price(Event $event, Participation $participation): int

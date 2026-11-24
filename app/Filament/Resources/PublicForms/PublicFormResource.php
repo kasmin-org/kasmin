@@ -3,12 +3,12 @@
 namespace App\Filament\Resources\PublicForms;
 
 use App\Filament\Resources\PublicForms\Pages\ListPublicForms;
+use App\Filament\Support\AreaAccess;
 use App\Models\Event;
 use App\Models\Form;
 use App\Models\Group;
 use App\Models\MembershipType;
 use App\Models\PublicForm;
-use App\Models\User;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
@@ -29,6 +29,13 @@ use Filament\Tables\Table;
  */
 class PublicFormResource extends Resource
 {
+    use AreaAccess;
+
+    public static function area(): string
+    {
+        return 'forms';
+    }
+
     protected static ?string $model = PublicForm::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedGlobeAlt;
@@ -48,13 +55,6 @@ class PublicFormResource extends Resource
     public static function getNavigationGroup(): ?string
     {
         return __('admin.nav.forms');
-    }
-
-    public static function canViewAny(): bool
-    {
-        $user = auth()->user();
-
-        return $user instanceof User && $user->hasAnyRole(['administrator', 'board']);
     }
 
     public static function form(Schema $schema): Schema

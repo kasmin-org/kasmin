@@ -6,8 +6,8 @@ use App\Filament\Resources\Events\Schemas\EventForm;
 use App\Filament\Resources\EventTemplates\Pages\CreateEventTemplate;
 use App\Filament\Resources\EventTemplates\Pages\EditEventTemplate;
 use App\Filament\Resources\EventTemplates\Pages\ListEventTemplates;
+use App\Filament\Support\AreaAccess;
 use App\Models\EventTemplate;
-use App\Models\User;
 use BackedEnum;
 use Filament\Actions\EditAction;
 use Filament\Resources\Resource;
@@ -21,6 +21,13 @@ use Filament\Tables\Table;
  */
 class EventTemplateResource extends Resource
 {
+    use AreaAccess;
+
+    public static function area(): string
+    {
+        return 'events';
+    }
+
     protected static ?string $model = EventTemplate::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBookmarkSquare;
@@ -40,13 +47,6 @@ class EventTemplateResource extends Resource
     public static function getNavigationGroup(): ?string
     {
         return __('admin.nav.events');
-    }
-
-    public static function canViewAny(): bool
-    {
-        $user = auth()->user();
-
-        return $user instanceof User && $user->hasAnyRole(['administrator', 'board', 'camp_leader']);
     }
 
     public static function form(Schema $schema): Schema

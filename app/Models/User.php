@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\Auth\Permissions;
 use Database\Factories\UserFactory;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
@@ -81,12 +82,12 @@ class User extends Authenticatable implements FilamentUser
     /** Finance (invoices, payments, bank import): administrators, board and treasurers; auditors read only. */
     public function canManageFinance(): bool
     {
-        return $this->hasAnyRole(['administrator', 'board', 'treasurer']);
+        return Permissions::allows($this, 'finance', 'edit');
     }
 
     public function canViewFinance(): bool
     {
-        return $this->canManageFinance() || $this->hasAnyRole(['auditor']);
+        return Permissions::allows($this, 'finance');
     }
 
     public function canAccessPanel(Panel $panel): bool

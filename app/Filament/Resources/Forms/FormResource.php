@@ -7,6 +7,7 @@ use App\Filament\Resources\Forms\Pages\EditForm;
 use App\Filament\Resources\Forms\Pages\ListForms;
 use App\Filament\Resources\Forms\Schemas\FormForm;
 use App\Filament\Resources\Forms\Tables\FormsTable;
+use App\Filament\Support\AreaAccess;
 use App\Models\Form;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -16,6 +17,13 @@ use Filament\Tables\Table;
 
 class FormResource extends Resource
 {
+    use AreaAccess;
+
+    public static function area(): string
+    {
+        return 'forms';
+    }
+
     protected static ?string $model = Form::class;
 
     public static function getModelLabel(): string

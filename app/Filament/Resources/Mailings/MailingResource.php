@@ -7,6 +7,7 @@ use App\Filament\Resources\Mailings\Pages\EditMailing;
 use App\Filament\Resources\Mailings\Pages\ListMailings;
 use App\Filament\Resources\Mailings\Schemas\MailingForm;
 use App\Filament\Resources\Mailings\Tables\MailingsTable;
+use App\Filament\Support\AreaAccess;
 use App\Models\Mailing;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -16,6 +17,13 @@ use Filament\Tables\Table;
 
 class MailingResource extends Resource
 {
+    use AreaAccess;
+
+    public static function area(): string
+    {
+        return 'mailings';
+    }
+
     protected static ?string $model = Mailing::class;
 
     public static function getModelLabel(): string

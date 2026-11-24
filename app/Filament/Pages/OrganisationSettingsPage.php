@@ -4,6 +4,7 @@ namespace App\Filament\Pages;
 
 use App\Models\User;
 use App\Support\Audit\Audit;
+use App\Support\Auth\Permissions;
 use App\Support\Settings;
 use BackedEnum;
 use Filament\Forms\Components\Radio;
@@ -61,7 +62,7 @@ class OrganisationSettingsPage extends Page
     {
         $user = auth()->user();
 
-        return $user instanceof User && $user->hasAnyRole(['administrator', 'board', 'treasurer']);
+        return $user instanceof User && (Permissions::allows($user, 'settings', 'edit') || Permissions::allows($user, 'finance', 'edit'));
     }
 
     public function mount(): void
@@ -115,24 +116,24 @@ class OrganisationSettingsPage extends Page
                 TextInput::make('invoice_overdue_fees')->label(__('admin.settings.overdue_fees'))->regex('/^\s*\d+([.,]\d{1,2})?(\s*;\s*\d+([.,]\d{1,2})?)*\s*$/')->placeholder('0')->hintIcon(...$hint('overdue_fees')),
                 Toggle::make('invoice_attach_paid')->label(__('admin.settings.attach_paid'))->inline(false),
             ]),
-            Section::make(__('admin.settings.system'))->columns(3)->schema([
+            Section::make(__('admin.settings.system'))->visible(fn () => Permissions::administrator())->columns(3)->schema([
                 TextInput::make('public_url')->label(__('admin.settings.public_url'))->url()->maxLength(200)->placeholder((string) config('app.url'))->hintIcon(...$hint('public_url')),
                 TextInput::make('embed_origins')->label(__('admin.settings.embed_origins'))->placeholder('https://www.example.org')->regex('#^\s*https://[a-zA-Z0-9.-]+(:\d+)?([\s,]+https://[a-zA-Z0-9.-]+(:\d+)?)*\s*$#')->hintIcon(...$hint('embed_origins')),
                 Select::make('timezone')->label(__('admin.settings.timezone'))->searchable()->placeholder('UTC')->options(fn () => array_combine(timezone_identifiers_list(), timezone_identifiers_list()))->hintIcon(...$hint('timezone')),
                 TextInput::make('digest_time')->label(__('admin.settings.digest_time'))->regex('/^([01]\d|2[0-3]):[0-5]\d$/')->placeholder('07:00'),
                 TextInput::make('approval_days')->label(__('admin.settings.approval_days'))->numeric()->minValue(1)->maxValue(60)->placeholder('7'),
             ]),
-            Section::make(__('admin.settings.families'))->columns(2)->schema([
+            Section::make(__('admin.settings.families'))->visible(fn () => Permissions::current('settings', 'edit'))->columns(2)->schema([
                 TextInput::make('max_guardians')->label(__('admin.settings.max_guardians'))->numeric()->minValue(1)->maxValue(20)->required(),
                 TextInput::make('min_login_age')->label(__('admin.settings.min_login_age'))->numeric()->minValue(6)->maxValue(18)->required(),
                 TextInput::make('guardian_until_age')->label(__('admin.settings.guardian_until_age'))->numeric()->minValue(14)->maxValue(25)->required(),
                 Toggle::make('own_registrations_visible')->label(__('admin.settings.own_registrations_visible'))->inline(false)->hintIcon(...$hint('own_registrations_visible')),
             ]),
-            Section::make(__('admin.settings.retention'))->columns(2)->schema([
+            Section::make(__('admin.settings.retention'))->visible(fn () => Permissions::current('settings', 'edit'))->columns(2)->schema([
                 TextInput::make('retention_safety_years')->label(__('admin.settings.retention_safety_years'))->numeric()->minValue(1)->maxValue(30)->required(),
                 TextInput::make('retention_invoice_years')->label(__('admin.settings.retention_invoice_years'))->numeric()->minValue(1)->maxValue(30)->required(),
             ]),
-            Section::make(__('admin.settings.ai'))->schema([
+            Section::make(__('admin.settings.ai'))->visible(fn () => Permissions::administrator())->schema([
                 Radio::make('ai_processing')->label(__('admin.settings.ai_processing'))->options(__('admin.settings.ai_options'))->required()
                     ->helperText(__('admin.settings.ai_hint')),
             ]),
@@ -143,7 +144,10 @@ class OrganisationSettingsPage extends Page
     {
         $data = $this->form->getState();
         foreach (self::KEYS as $key) {
-            $value = $data[$key] ?? null;
+            if (! array_key_exists($key, $data)) {
+                continue; // sections this person may not change
+            }
+            $value = $data[$key];
             if (in_array($key, ['invoice_attach_paid', 'invoice_number_per_year', 'own_registrations_visible'], true)) {
                 $value = $value ? '1' : '0';
             }

@@ -5,7 +5,9 @@ namespace App\Support\People;
 use App\Models\Person;
 use App\Models\User;
 use App\Support\Audit\Audit;
+use App\Support\Auth\Permissions;
 use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
@@ -78,6 +80,11 @@ class Duplicates
         }
         if ($duplicate->activeRoleKeys() !== [] && array_diff($duplicate->activeRoleKeys(), $keep->activeRoleKeys()) !== []) {
             throw new RuntimeException(__('people.merge_roles')); // a merge must never give somebody more rights
+        }
+        // The addresses of the duplicate would become logins of the kept person.
+        $user = Auth::user();
+        if ($user instanceof User && ! $user->hasAnyRole(['administrator']) && (Permissions::administrative($keep) || Permissions::administrative($duplicate))) {
+            throw new RuntimeException(__('roles.contact_protected'));
         }
         $both = DB::table('participations as a')->join('participations as b', fn ($j) => $j->on('a.event_id', 'b.event_id')->on('a.role_key', 'b.role_key'))
             ->where('a.person_id', $keep->id)->where('b.person_id', $duplicate->id)->pluck('b.id');

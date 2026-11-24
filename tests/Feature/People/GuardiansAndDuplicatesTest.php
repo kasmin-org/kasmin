@@ -232,6 +232,7 @@ class GuardiansAndDuplicatesTest extends TestCase
     {
         $double = $this->person('Kim', 'Ash', '2012-06-01', 'kim@example.org');
         $make = function (string $role): User {
+            auth()->forgetUser(); // roles are assigned by the system here
             $person = $this->person('Role', $role, null, null);
             $person->roleAssignments()->create(['role_id' => Role::query()->where('key', $role)->value('id')]);
 

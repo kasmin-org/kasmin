@@ -9,6 +9,7 @@ use App\Filament\Resources\People\Pages\ViewPerson;
 use App\Filament\Resources\People\Schemas\PersonForm;
 use App\Filament\Resources\People\Schemas\PersonInfolist;
 use App\Filament\Resources\People\Tables\PeopleTable;
+use App\Filament\Support\AreaAccess;
 use App\Models\Person;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -19,6 +20,13 @@ use Illuminate\Database\Eloquent\Model;
 
 class PersonResource extends Resource
 {
+    use AreaAccess;
+
+    public static function area(): string
+    {
+        return 'people';
+    }
+
     protected static ?string $model = Person::class;
 
     protected static ?string $recordTitleAttribute = 'last_name';
@@ -69,7 +77,7 @@ class PersonResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            RelationManagers\RolesRelationManager::class,
         ];
     }
 

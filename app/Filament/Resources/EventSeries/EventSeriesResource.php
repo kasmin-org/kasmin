@@ -7,6 +7,7 @@ use App\Filament\Resources\EventSeries\Pages\EditEventSeries;
 use App\Filament\Resources\EventSeries\Pages\ListEventSeries;
 use App\Filament\Resources\EventSeries\Schemas\EventSeriesForm;
 use App\Filament\Resources\EventSeries\Tables\EventSeriesTable;
+use App\Filament\Support\AreaAccess;
 use App\Models\EventSeries;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -16,6 +17,13 @@ use Filament\Tables\Table;
 
 class EventSeriesResource extends Resource
 {
+    use AreaAccess;
+
+    public static function area(): string
+    {
+        return 'events';
+    }
+
     protected static ?string $model = EventSeries::class;
 
     public static function getModelLabel(): string

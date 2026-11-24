@@ -9,6 +9,7 @@ use App\Models\FormResponse;
 use App\Models\Participation;
 use App\Models\Person;
 use App\Models\User;
+use App\Support\Auth\Permissions;
 use App\Support\Forms\Forms;
 use App\Support\Forms\FormValue;
 use App\Support\Forms\RegistrationAnswers;
@@ -39,12 +40,12 @@ class EventLists
             return false;
         }
 
-        return self::LISTS[$key] ? self::mayViewSafety($user) : $user->hasAnyRole(['administrator', 'board', 'camp_leader', 'safety_officer']);
+        return self::LISTS[$key] ? self::mayViewSafety($user) : Permissions::allows($user, 'events');
     }
 
     public static function mayViewSafety(User $user): bool
     {
-        return $user->hasAnyRole(['safety_officer', 'administrator']);
+        return Permissions::allows($user, 'safety');
     }
 
     /** @return list<string> */

@@ -50,12 +50,14 @@ class ViewAsTest extends TestCase
         app(Defaults::class)->install('en');
         $family = Person::factory()->create(['first_name' => 'Secretfamily']);
         foreach (['treasurer', 'board', 'camp_leader', 'auditor'] as $role) {
+            auth()->forgetUser(); // roles are assigned by the system here
             $person = Person::factory()->create();
             $person->roleAssignments()->create(['role_id' => Role::query()->where('key', $role)->value('id')]);
             $user = User::query()->create(['name' => $role, 'email' => $role.'@example.org', 'password' => 'x', 'person_id' => $person->id]);
             $this->actingAs($user)->withSession(['two_factor_passed' => true, 'portal_view_as' => $family->id]);
             $this->get('/portal')->assertDontSee('Secretfamily');
-            Livewire::test(ViewPerson::class, ['record' => $family->id])->assertActionHidden('view_as');
+            $page = Livewire::test(ViewPerson::class, ['record' => $family->id]);
+            $role === 'auditor' ? $page->assertForbidden() : $page->assertActionHidden('view_as');
         }
     }
 

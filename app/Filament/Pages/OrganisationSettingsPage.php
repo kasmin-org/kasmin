@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Support\Audit\Audit;
 use App\Support\Settings;
 use BackedEnum;
+use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -35,7 +36,7 @@ class OrganisationSettingsPage extends Page
     private const KEYS = [
         'organisation_name', 'organisation_address', 'organisation_email', 'organisation_website', 'organisation_iban',
         'organisation_bic', 'organisation_bank', 'organisation_legal_footer', 'invoice_number_format', 'invoice_next_number',
-        'invoice_due_days', 'invoice_attach_paid', 'invoice_reminder_days_before', 'invoice_overdue_days',
+        'invoice_due_days', 'invoice_attach_paid', 'invoice_reminder_days_before', 'invoice_overdue_days', 'ai_processing',
     ];
 
     public static function getNavigationGroup(): ?string
@@ -101,6 +102,10 @@ class OrganisationSettingsPage extends Page
                 TextInput::make('invoice_reminder_days_before')->label(__('admin.settings.reminder_before'))->numeric()->minValue(0)->hintIcon(...$hint('reminder_before')),
                 TextInput::make('invoice_overdue_days')->label(__('admin.settings.overdue_days'))->regex('/^\s*\d+(\s*,\s*\d+)*\s*$/')->hintIcon(...$hint('overdue_days')),
                 Toggle::make('invoice_attach_paid')->label(__('admin.settings.attach_paid'))->inline(false),
+            ]),
+            Section::make(__('admin.settings.ai'))->schema([
+                Radio::make('ai_processing')->label(__('admin.settings.ai_processing'))->options(__('admin.settings.ai_options'))->required()
+                    ->helperText(__('admin.settings.ai_hint')),
             ]),
         ]);
     }

@@ -37,6 +37,8 @@ class AutomationsTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        // Daily automations start after their configured time: tests run at a fixed time of day.
+        $this->travelTo(now()->setTime(12, 0));
         app(Defaults::class)->installRoles();
         app(MailTemplateDefaults::class)->install();
         app(FormDefaults::class)->install();

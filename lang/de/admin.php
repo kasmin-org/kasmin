@@ -32,6 +32,9 @@ return [
         'next_number' => 'Nächste Nummer', 'next_number_hint' => 'Nach einem Import alter Rechnungen auf die nächste freie Nummer setzen.', 'due_days' => 'Zahlungsziel (Tage)',
         'reminder_before' => 'Erinnerung vor Fälligkeit (Tage)', 'reminder_before_hint' => '0 = keine Erinnerung vor Fälligkeit. Pro Veranstaltung änderbar.',
         'overdue_days' => 'Mahnungen nach … Tagen', 'overdue_days_hint' => 'Durch Komma getrennt, z. B. 7,21.', 'attach_paid' => 'Bezahlte Rechnung an Zahlungsbestätigung anhängen',
+        'ai' => 'KI-Assistenten', 'ai_processing' => 'KI-Verarbeitung erlaubt',
+        'ai_options' => ['none' => 'Keine – der MCP-Zugang ist abgeschaltet', 'non_confidential' => 'Nicht vertrauliche Daten (keine Gesundheits- und Sicherheitsdaten)', 'all' => 'Alle Daten, auch Gesundheits- und Sicherheitsdaten'],
+        'ai_hint' => 'Nur erlauben, was Ihre Datenschutzerklärung und ein Auftragsverarbeitungsvertrag mit dem KI-Anbieter abdecken. Siehe Dokumentation „Mit einem KI-Assistenten migrieren“.',
         'save' => 'Speichern', 'saved' => 'Gespeichert',
     ],
     'person' => [

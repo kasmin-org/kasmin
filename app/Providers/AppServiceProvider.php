@@ -31,6 +31,7 @@ class AppServiceProvider extends ServiceProvider
     /** Also called again when the limiter is re-created before installation (EnsureSchemaIsCompatible). */
     public static function defineRateLimiters(): void
     {
+        app(RateLimiter::class)->for('api', fn (Request $request) => Limit::perMinute(120)->by('api|'.($request->bearerToken() !== null ? hash('sha256', (string) $request->bearerToken()) : $request->ip())));
         foreach (['install' => 10, 'preferences' => 10, 'register' => 5, 'login-send' => 5, 'login-code' => 10, 'login-link' => 10, 'approvals' => 10, 'two-factor' => 10] as $name => $perMinute) {
             app(RateLimiter::class)->for($name, fn (Request $request) => Limit::perMinute($perMinute)->by($name.'|'.$request->ip()));
         }

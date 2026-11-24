@@ -55,9 +55,9 @@ class Engine
 
     /**
      * Starts a run. $by: the person who pressed the button (runs directly if they may approve, after they saw the
-     * preview). Returns null if there is nothing to do or the run already exists (dedupe key).
+     * preview); with $forceApproval the approvers always decide (API and MCP without approvals:decide). Returns null if there is nothing to do or the run already exists (dedupe key).
      */
-    public function trigger(Automation $automation, string $trigger, ?Event $event = null, ?string $dedupe = null, ?User $by = null): ?AutomationRun
+    public function trigger(Automation $automation, string $trigger, ?Event $event = null, ?string $dedupe = null, ?User $by = null, bool $forceApproval = false): ?AutomationRun
     {
         if ($by === null && (! $automation->active || $automation->mode === 'manual')) {
             return null;
@@ -90,7 +90,8 @@ class Engine
         }
         Audit::record('automation.run_created', $automation, null, ['run' => $run->id, 'trigger' => $trigger, 'items' => count($plan)], $by ? null : 'system');
 
-        if ($by !== null && $this->mayApprove($automation, $by)) {
+        // $forceApproval: started via API/MCP without the scope approvals:decide – always a draft for humans (X05).
+        if ($by !== null && ! $forceApproval && $this->mayApprove($automation, $by)) {
             $this->decide($run, $by, true);
         } elseif ($by === null && $automation->mode === 'automatic' && count($plan) <= $automation->max_items) {
             $this->execute($run);

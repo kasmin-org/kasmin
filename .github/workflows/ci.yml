@@ -185,6 +185,18 @@ jobs:
       - uses: actions/upload-artifact@v4
         with: { name: image, path: /tmp/kasmin-image.tar, retention-days: 1 }
 
+  container:
+    name: Container (variables, TLS, Let's Encrypt)
+    needs: [docker]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: { name: image, path: /tmp }
+      - run: docker load -i /tmp/kasmin-image.tar
+      - run: tests/docker/container.sh kasmin:ci
+        timeout-minutes: 12
+
   gui:
     name: GUI tests (phone and desktop)
     needs: [docker]
@@ -278,7 +290,7 @@ jobs:
 
   report:
     name: Report a failed weekly run
-    needs: [quality, tests, installer, semgrep, docker, gui, security]
+    needs: [quality, tests, installer, semgrep, docker, container, gui, security]
     if: ${{ always() && github.event_name == 'schedule' && contains(needs.*.result, 'failure') }}
     runs-on: ubuntu-latest
     permissions: { issues: write }

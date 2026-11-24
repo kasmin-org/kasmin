@@ -50,11 +50,12 @@ LABEL org.opencontainers.image.source="https://github.com/kasmin-org/kasmin" \
       org.opencontainers.image.licenses="AGPL-3.0-only" \
       org.opencontainers.image.title="Kasmin"
 COPY docker/prod/entrypoint.sh /usr/local/bin/kasmin-entrypoint
-COPY docker/prod/tls.sh docker/prod/acme-hook.sh /usr/local/lib/kasmin/
-RUN chmod 755 /usr/local/bin/kasmin-entrypoint /usr/local/lib/kasmin/acme-hook.sh && mkdir -p /var/lib/kasmin && chmod 755 /var/lib/kasmin
+COPY docker/prod/kasmin.sh /usr/local/bin/kasmin
+COPY docker/prod/tls.sh docker/prod/env.sh docker/prod/acme-hook.sh /usr/local/lib/kasmin/
+RUN chmod 755 /usr/local/bin/kasmin-entrypoint /usr/local/bin/kasmin /usr/local/lib/kasmin/acme-hook.sh && mkdir -p /var/lib/kasmin && chmod 755 /var/lib/kasmin
 # storage: uploads, keys, backups; /var/lib/kasmin: certificates.
 VOLUME ["/var/www/html/storage", "/var/lib/kasmin"]
 EXPOSE 80 443
 HEALTHCHECK --interval=30s --timeout=5s --start-period=60s CMD wget -q -O /dev/null http://127.0.0.1:8081/up || exit 1
 ENTRYPOINT ["kasmin-entrypoint"]
-CMD ["kasmin"]
+CMD ["serve"]

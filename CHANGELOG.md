@@ -6,6 +6,23 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ## [Unreleased]
 
+### Added
+
+- Docker: almost complete configuration by environment variables (also as files). They are written to the database at the
+  set-up and ignored afterwards; variables that differ from the database are reported in the log.
+- Docker: HTTPS with your own certificate, Let's Encrypt (automatic) or a self-signed certificate; port 80 redirects to 443.
+- Docker: scheduler, automatic database upgrade with backup, health check and the command `kasmin` in the container.
+- Weekly automatic check (tests, security advisories, image scan) with an issue if it fails.
+
+### Changed
+
+- Docker: port 80 redirects to HTTPS by default; behind a reverse proxy set `KASMIN_TLS=off`.
+- Login mails use the default mail account of the database, if there is one.
+
+### Security
+
+- STARTTLS (port 587) no longer falls back to an unencrypted connection.
+
 ## [0.10.0] - 2026-11-24
 
 Pre-release for testing. Not ready for production use.

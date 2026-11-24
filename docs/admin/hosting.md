@@ -12,8 +12,7 @@ status page shows an error.
 */5 * * * * cd /path/to/kasmin && php artisan schedule:run >> /dev/null 2>&1
 ```
 
-**Docker:** run the scheduler in the container, e.g. with a second service that executes
-`php artisan schedule:work`, or a host cron job `docker exec kasmin php artisan schedule:run`.
+**Docker:** not needed, the container runs the scheduler itself.
 
 **Web hosting whose cron jobs can only call URLs** (e.g. all-inkl.com): set `KASMIN_HOOK_TOKEN` in `.env` (at
 least 32 random characters) and create a cron job that calls this URL every 5 minutes:

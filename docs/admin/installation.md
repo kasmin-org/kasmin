@@ -24,8 +24,7 @@ The image is based on Alpine Linux (currently 3.24) with Apache and PHP 8.5, as 
 installs all available security updates. `bash` and `vim` are included for maintenance (`docker exec -it <container> bash`).
 
 Images: `ghcr.io/kasmin-org/kasmin:<version>` (and `latest` for the newest release; `<branch>` and `sha-<commit>`
-for test builds). Pass the database settings as environment variables (`DB_CONNECTION`, `DB_HOST`, `DB_DATABASE`,
-`DB_USERNAME`, `DB_PASSWORD`, `APP_KEY`, `APP_URL`) and open `/install`.
+for test builds). Everything can be set with environment variables, including the certificate: see [Docker](docker.md).
 
 ## On the command line
 

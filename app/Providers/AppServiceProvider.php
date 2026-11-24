@@ -6,6 +6,7 @@ use App\Models\Participation;
 use App\Models\Person;
 use App\Models\User;
 use App\Support\Api\Presenter;
+use App\Support\RuntimeSettings;
 use App\Support\Schema\SchemaGuard;
 use App\Support\Schema\SchemaStatus;
 use App\Support\Webhooks\Webhooks;
@@ -56,6 +57,7 @@ class AppServiceProvider extends ServiceProvider
         // Separate rate limits per purpose: anonymous "throttle:x,y" limits share one counter per IP across all
         // routes, so e.g. using login links or approvals would block requesting a login link.
         self::defineRateLimiters();
+        RuntimeSettings::apply();
 
         // Webhook events of participations and people (AD81).
         Participation::created(fn (Participation $p) => app(Webhooks::class)->emit('participation.created', Presenter::participation($p->loadMissing('event', 'person'))));

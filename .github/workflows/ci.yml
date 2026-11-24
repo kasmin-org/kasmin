@@ -5,12 +5,17 @@ on:
     branches: ["**"]
     tags: ["v*.*.*"]
   pull_request:
+  schedule:
+    # Every Monday about 4:00 in Vienna (winter time; 5:00 in summer, GitHub uses UTC): finds new security advisories
+    # and rebuilds the image of main with current updates.
+    - cron: "2 3 * * 1"
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ci-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -180,6 +185,18 @@ jobs:
       - uses: actions/upload-artifact@v4
         with: { name: image, path: /tmp/kasmin-image.tar, retention-days: 1 }
 
+  container:
+    name: Container (variables, TLS, Let's Encrypt)
+    needs: [docker]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: { name: image, path: /tmp }
+      - run: docker load -i /tmp/kasmin-image.tar
+      - run: tests/docker/container.sh kasmin:ci
+        timeout-minutes: 12
+
   gui:
     name: GUI tests (phone and desktop)
     needs: [docker]
@@ -194,7 +211,7 @@ jobs:
           docker run -d --name kasmin -p 8080:80 \
             -e APP_KEY="base64:$(openssl rand -base64 32)" -e APP_ENV=production \
             -e DB_CONNECTION=sqlite -e DB_DATABASE=/tmp/kasmin.sqlite \
-            -e SESSION_DRIVER=file -e CACHE_STORE=file kasmin:ci
+            -e SESSION_DRIVER=file -e CACHE_STORE=file -e KASMIN_TLS=off kasmin:ci
           for i in $(seq 1 30); do curl -sf http://127.0.0.1:8080/up && break; sleep 1; done
           docker exec -u www-data kasmin sh -c 'touch /tmp/kasmin.sqlite && php artisan kasmin:install --organisation="Demo Camp" --locale=en --defaults=en --admin-name="Alex Admin" --admin-email=admin@example.org && php artisan kasmin:demo --locale=en --families=5 --staff=3 --force'
       - uses: actions/setup-node@v4
@@ -270,3 +287,20 @@ jobs:
           git add -A
           git commit -q -m "Update badges for ${GITHUB_REF_NAME}" || exit 0
           git push -q origin HEAD:badges
+
+  report:
+    name: Report a failed weekly run
+    needs: [quality, tests, installer, semgrep, docker, container, gui, security]
+    if: ${{ always() && github.event_name == 'schedule' && contains(needs.*.result, 'failure') }}
+    runs-on: ubuntu-latest
+    permissions: { issues: write }
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - name: Open or update the issue
+        run: |
+          title="Weekly check failed"
+          body="The weekly run failed: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }} (new security advisories are a frequent reason)."
+          number=$(gh issue list --state open --search "in:title \"$title\"" --json number,title --jq ".[]|select(.title==\"$title\")|.number" | head -1)
+          if [ -n "$number" ]; then gh issue comment "$number" --body "$body"; else gh issue create --title "$title" --body "$body"; fi

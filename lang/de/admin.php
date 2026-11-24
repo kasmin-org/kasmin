@@ -38,6 +38,7 @@ return [
         'ai_options' => ['none' => 'Keine – der MCP-Zugang ist abgeschaltet', 'non_confidential' => 'Nicht vertrauliche Daten (keine Gesundheits- und Sicherheitsdaten)', 'all' => 'Alle Daten, auch Gesundheits- und Sicherheitsdaten'],
         'ai_hint' => 'Nur erlauben, was Ihre Datenschutzerklärung und ein Auftragsverarbeitungsvertrag mit dem KI-Anbieter abdecken. Siehe Dokumentation „Mit einem KI-Assistenten migrieren“.',
         'retention' => 'Aufbewahrung', 'retention_safety_years' => 'Sicherheitsblätter und Gesundheitsdaten aufbewahren (Jahre nach der letzten Veranstaltung)', 'retention_invoice_years' => 'Rechnungen aufbewahren (Jahre, gesetzlich)',
+        'system' => 'System', 'public_url' => 'Öffentliche Adresse', 'public_url_hint' => 'Adresse dieser Installation für Links in E-Mails und, im Container, für das Zertifikat.', 'digest_time' => 'Uhrzeit der täglichen Zusammenfassung', 'approval_days' => 'Tage, die eine Freigabe-Anfrage offen bleibt',
         'save' => 'Speichern', 'saved' => 'Gespeichert',
     ],
     'person' => [

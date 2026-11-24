@@ -38,6 +38,7 @@ return [
         'ai_options' => ['none' => 'None – the MCP endpoint is switched off', 'non_confidential' => 'Non-confidential data (no health and safety data)', 'all' => 'All data, including health and safety data'],
         'ai_hint' => 'Only allow what your privacy policy and a data processing agreement with the AI provider cover. See the documentation "Migrate with an AI assistant".',
         'retention' => 'Retention', 'retention_safety_years' => 'Keep safety sheets and health data (years after the last event)', 'retention_invoice_years' => 'Keep invoices (years, legal requirement)',
+        'system' => 'System', 'public_url' => 'Public URL', 'public_url_hint' => 'Address of this installation, used for links in mails and, in the container, for the certificate.', 'digest_time' => 'Time of the daily digest', 'approval_days' => 'Days an approval request stays open',
         'save' => 'Save', 'saved' => 'Saved',
     ],
     'person' => [

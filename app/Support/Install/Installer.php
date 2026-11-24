@@ -58,6 +58,11 @@ class Installer
         $person->contactPoints()->create(['type' => 'email', 'value' => $email, 'purposes' => ['login', 'information'], 'is_primary' => true]);
         $person->roleAssignments()->create(['role_id' => Role::query()->where('key', 'administrator')->value('id'), 'starts_on' => now()->toDateString()]);
 
+        // In a container: the remaining environment variables, once (DK02).
+        if (config('kasmin.runtime') === 'docker') {
+            app(EnvConfig::class)->store($email);
+        }
+
         // Login works with one-time links; the random password is never shown or used.
         return User::query()->create([
             'name' => $adminName,

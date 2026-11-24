@@ -20,7 +20,7 @@ FROM alpine:3.24
 # Small image: Alpine Linux with its PHP 8.5 packages and Apache (mod_php); bash and vim for maintenance.
 # apk upgrade pulls all security fixes at build time; --no-cache keeps no package index in the image.
 RUN apk upgrade --no-cache \
- && apk add --no-cache bash vim ca-certificates tzdata apache2 php85-apache2 \
+ && apk add --no-cache bash vim ca-certificates tzdata apache2 apache2-ssl openssl uacme php85-apache2 \
     php85 php85-pdo_mysql php85-pdo_sqlite php85-intl php85-zip php85-gd php85-bcmath php85-mbstring \
     php85-xml php85-dom php85-xmlwriter php85-simplexml php85-tokenizer php85-fileinfo php85-curl php85-openssl \
     php85-session php85-ctype php85-iconv php85-phar \
@@ -33,6 +33,7 @@ RUN apk upgrade --no-cache \
             -e 's#^ErrorLog .*#ErrorLog /dev/stderr#' -e 's#CustomLog .* combined#CustomLog /dev/stdout combined#' \
             -e 's#^User apache#User www-data#' -e 's#^Group apache#Group www-data#' \
             -e 's#^\#ServerName .*#ServerName localhost#' /etc/apache2/httpd.conf \
+ && rm -f /etc/apache2/conf.d/ssl.conf && echo 'LoadModule ssl_module modules/mod_ssl.so' > /etc/apache2/conf.d/00-ssl.conf \
  && (addgroup -S www-data 2>/dev/null || true) && (adduser -S -G www-data -H -s /sbin/nologin www-data 2>/dev/null || true) \
  && cp /etc/php85/php.ini /etc/php85/php.ini.orig
 WORKDIR /var/www/html
@@ -48,5 +49,13 @@ ENV KASMIN_VERSION=${KASMIN_VERSION} \
 LABEL org.opencontainers.image.source="https://github.com/kasmin-org/kasmin" \
       org.opencontainers.image.licenses="AGPL-3.0-only" \
       org.opencontainers.image.title="Kasmin"
-EXPOSE 80
-CMD ["httpd", "-D", "FOREGROUND"]
+COPY docker/prod/entrypoint.sh /usr/local/bin/kasmin-entrypoint
+COPY docker/prod/kasmin.sh /usr/local/bin/kasmin
+COPY docker/prod/tls.sh docker/prod/env.sh docker/prod/acme-hook.sh /usr/local/lib/kasmin/
+RUN chmod 755 /usr/local/bin/kasmin-entrypoint /usr/local/bin/kasmin /usr/local/lib/kasmin/acme-hook.sh && mkdir -p /var/lib/kasmin && chmod 755 /var/lib/kasmin
+# storage: uploads, keys, backups; /var/lib/kasmin: certificates.
+VOLUME ["/var/www/html/storage", "/var/lib/kasmin"]
+EXPOSE 80 443
+HEALTHCHECK --interval=30s --timeout=5s --start-period=60s CMD wget -q -O /dev/null http://127.0.0.1:8081/up || exit 1
+ENTRYPOINT ["kasmin-entrypoint"]
+CMD ["serve"]

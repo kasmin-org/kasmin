@@ -5,6 +5,7 @@ namespace App\Filament\Resources\ImportBatches;
 use App\Filament\Resources\ImportBatches\Pages\ListImportBatches;
 use App\Filament\Support\AreaAccess;
 use App\Models\ImportBatch;
+use App\Support\Auth\Permissions;
 use App\Support\Import\PeopleImporter;
 use BackedEnum;
 use Filament\Actions\Action;
@@ -65,7 +66,7 @@ class ImportBatchResource extends Resource
         ])->recordActions([
             Action::make('rollback')->label(__('import.rollback'))->icon('heroicon-o-arrow-uturn-left')->color('danger')->requiresConfirmation()
                 ->modalDescription(__('import.rollback_hint'))
-                ->visible(fn (ImportBatch $r) => $r->status === 'imported')
+                ->visible(fn (ImportBatch $r) => Permissions::current('people', 'edit') && $r->status === 'imported')
                 ->action(function (ImportBatch $r) {
                     try {
                         app(PeopleImporter::class)->rollback($r);

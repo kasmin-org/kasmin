@@ -6,6 +6,21 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ## [Unreleased]
 
+### Added
+
+- Groups: members can be added and removed; groups by rules (age, membership, role, other groups, number of past events) and of the
+  participants of an event; subgroups; ended memberships stay as history.
+- Mail test mode: all mails, also login links, go to one address; shown in the admin interface.
+- Attachments for mail templates and mailings, also documents of events. A mail never goes out without a promised file.
+- Large mailings (default: more than 50 mails) are sent after an approval.
+
+### Fixed
+
+- Mailings about an event no longer go to the legal guardians of people who registered themselves.
+- People whose group membership has ended no longer get its mailings.
+- Newsletter: the latest choice counts; people who subscribed again stayed excluded.
+- Resending a mail, running an automation and rolling back an import need the permission to edit.
+
 ## [0.15.0] - 2026-11-24
 
 Pre-release for testing. Not ready for production use.

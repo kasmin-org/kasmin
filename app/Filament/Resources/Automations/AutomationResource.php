@@ -12,6 +12,7 @@ use App\Models\EventSeries;
 use App\Models\MailTemplate;
 use App\Models\Role;
 use App\Models\User;
+use App\Support\Auth\Permissions;
 use App\Support\Automations\Engine;
 use BackedEnum;
 use Filament\Actions\Action;
@@ -163,7 +164,7 @@ class AutomationResource extends Resource
     {
         return Action::make('run_now')->label(__('automations.run_now'))->icon('heroicon-o-play')->requiresConfirmation()
             ->modalDescription(__('automations.run_now_hint'))
-            ->visible(fn () => auth()->user() instanceof User && auth()->user()->isAdministrative())
+            ->visible(fn () => Permissions::current('automations', 'edit'))
             ->schema(fn (Automation $record) => in_array($record->action, Engine::NEEDS_EVENT, true) ? [self::eventSelect()->required()] : [])
             ->action(function (Automation $record, array $data, $livewire) {
                 /** @var User $user */

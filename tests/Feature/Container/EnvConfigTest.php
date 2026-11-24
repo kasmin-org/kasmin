@@ -51,6 +51,12 @@ class EnvConfigTest extends TestCase
         $this->env('KASMIN_MAIL_FROM_ADDRESS', 'office@example.org');
     }
 
+    /** @return array<int, string> */
+    private function differences(): array
+    {
+        return app(EnvConfig::class)->differences();
+    }
+
     private function store(): void
     {
         Settings::set('organisation_name', 'Example Camp');
@@ -68,22 +74,22 @@ class EnvConfigTest extends TestCase
         $account = MailAccount::query()->firstOrFail();
         $this->assertSame(['mail.example.org', 465, 'ssl', 'first-secret', true], [$account->smtp_host, (int) $account->smtp_port, $account->smtp_encryption, $account->smtp_password, $account->is_default]);
         $this->assertSame('Example Camp', SenderProfile::query()->firstOrFail()->from_name);
-        $this->assertSame([], app(EnvConfig::class)->differences());
+        $this->assertCount(0, $this->differences());
 
         // A new container with changed variables and the existing database.
         $this->env('KASMIN_INVOICE_DUE_DAYS', '30');
         $this->env('KASMIN_MAIL_PASSWORD', 'second-secret');
-        $differences = app(EnvConfig::class)->differences();
-        $this->assertCount(2, $differences);
-        $this->assertStringContainsString('KASMIN_INVOICE_DUE_DAYS is "30", but the database contains "21"', $differences[0]);
-        $this->assertStringContainsString('KASMIN_MAIL_PASSWORD differs', $differences[1]);
-        $this->assertStringNotContainsString('secret', implode(' ', $differences), 'secrets never appear in the log');
+        $changed = $this->differences();
+        $this->assertCount(2, $changed);
+        $this->assertStringContainsString('KASMIN_INVOICE_DUE_DAYS is "30", but the database contains "21"', $changed[0] ?? '');
+        $this->assertStringContainsString('KASMIN_MAIL_PASSWORD differs', $changed[1] ?? '');
+        $this->assertStringNotContainsString('secret', implode(' ', $changed), 'secrets never appear in the log');
         $this->assertSame('21', Settings::get('invoice_due_days'));
         $this->assertSame('first-secret', MailAccount::query()->firstOrFail()->smtp_password);
 
         // Changed in the admin interface: the old variable is reported.
         Settings::set('invoice_due_days', '30');
-        $this->assertCount(1, app(EnvConfig::class)->differences());
+        $this->assertCount(1, $this->differences());
     }
 
     public function test_values_from_files_and_wrong_values(): void

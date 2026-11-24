@@ -95,7 +95,7 @@ class Corrections
                 }
                 $new->forceFill(['total_cents' => $proposal['new']])->save();
             }
-            $this->invoices->cancel($invoice, $reason, $new !== null ? 'corrected' : 'cancelled', $new === null ? $reason : null);
+            $this->invoices->cancel($invoice, $reason, $new !== null ? 'corrected' : 'cancelled', $new === null);
             if ($new !== null) {
                 $this->invoices->issue($new);
                 // A date in the past or very close is not fair for a changed invoice; keep a later original date.

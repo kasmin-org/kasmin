@@ -130,13 +130,13 @@ class Invoices
     }
 
     /** Cancels an issued invoice with a credit note (IN10). */
-    public function cancel(Invoice $invoice, string $reason, string $status = 'cancelled', ?string $refundReason = null): Invoice
+    public function cancel(Invoice $invoice, string $reason, string $status = 'cancelled', bool $proposeRefund = true): Invoice
     {
         if ($invoice->type !== 'invoice' || ! in_array($invoice->status, ['issued', 'partially_paid', 'paid'], true)) {
             throw new RuntimeException('Only issued invoices can be cancelled.');
         }
 
-        return DB::transaction(function () use ($invoice, $reason, $status, $refundReason) {
+        return DB::transaction(function () use ($invoice, $reason, $status, $proposeRefund) {
             $credit = $invoice->replicate(['number', 'reference', 'issued_on', 'due_on', 'paid_cents']);
             $credit->fill(['type' => 'credit_note', 'status' => 'draft', 'total_cents' => -$invoice->total_cents, 'corrects_id' => $invoice->id])->save();
             foreach ($invoice->lines as $line) {
@@ -144,7 +144,7 @@ class Invoices
             }
             $this->issue($credit);
             $invoice->forceFill(['status' => $status])->save();
-            $this->release($invoice, $refundReason ?? $reason);
+            $this->release($invoice, $proposeRefund ? $reason : null);
 
             return $credit;
         });
@@ -155,7 +155,7 @@ class Invoices
     {
         foreach ($invoice->payments()->get() as $payment) {
             $payment->forceFill(['invoice_id' => null, 'household_id' => $invoice->household_id, 'match' => 'credit'])->save();
-            if ($refundReason !== null && $refundReason !== '') {
+            if ($refundReason !== null) {
                 app(Credits::class)->proposeRefund($payment, $refundReason, $invoice->payer_id);
             }
         }

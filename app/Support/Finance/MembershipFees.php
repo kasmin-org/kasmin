@@ -19,14 +19,19 @@ class MembershipFees
     /** @return Collection<string, Collection<int, Membership>> */
     public function pending(int $year): Collection
     {
-        $memberships = Membership::query()->with('membershipType', 'person.households', 'person.guardians')
+        $memberships = Membership::query()->with('type', 'person.households', 'person.guardians')
             ->whereDate('starts_on', '<=', $year.'-12-31')->where(fn ($q) => $q->whereNull('ends_on')->orWhereDate('ends_on', '>=', $year.'-01-01'))
-            ->whereHas('membershipType', fn ($q) => $q->where('fee_cents', '>', 0)->where('pays_fee', true))
+            ->whereHas('type', fn ($q) => $q->where('fee_cents', '>', 0)->where('pays_fee', true))
             ->whereHas('person', fn ($q) => $q->whereNull('anonymised_at'))->get()->unique('person_id')
             ->reject(fn (Membership $m) => InvoiceLine::query()->where('person_id', $m->person_id)->where('membership_type_id', $m->membership_type_id)->where('period', $year)
                 ->whereHas('invoice', fn ($q) => $q->where('type', 'invoice')->whereNotIn('status', ['cancelled', 'corrected']))->exists());
 
-        return collect($memberships->groupBy(fn (Membership $m) => (string) ($m->person?->households->first()->id ?? 'p'.$m->person_id))->all());
+        $groups = [];
+        foreach ($memberships as $m) {
+            $groups[(string) ($m->person?->households->first()->id ?? 'p'.$m->person_id)][] = $m;
+        }
+
+        return collect($groups)->mapWithKeys(fn (array $g, int|string $key) => [(string) $key => collect($g)]);
     }
 
     /** @param  Collection<int, Membership>  $group */
@@ -48,7 +53,7 @@ class MembershipFees
                 $invoice->lines()->create([
                     'person_id' => $m->person_id, 'membership_type_id' => $m->membership_type_id, 'period' => $year, 'sort' => $sort++,
                     'description' => trans('finance.membership_line', ['year' => $year, 'name' => $m->person?->fullName()], $locale),
-                    'amount_cents' => (int) $m->membershipType?->fee_cents, 'discount_cents' => 0,
+                    'amount_cents' => (int) $m->type?->fee_cents, 'discount_cents' => 0,
                 ]);
             }
             $invoice->forceFill(['total_cents' => (int) $invoice->lines()->sum('amount_cents')])->save();

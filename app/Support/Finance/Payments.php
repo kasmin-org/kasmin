@@ -3,12 +3,14 @@
 namespace App\Support\Finance;
 
 use App\Models\BankImport;
+use App\Models\Group;
 use App\Models\Invoice;
 use App\Models\Payment;
 use App\Support\Api\Presenter;
 use App\Support\Audit\Audit;
 use App\Support\Mail\Composer;
 use App\Support\Mail\Notifier;
+use App\Support\People\GroupMembers;
 use App\Support\Settings;
 use App\Support\Webhooks\Webhooks;
 use Illuminate\Support\Carbon;
@@ -122,7 +124,10 @@ class Payments
                 Audit::record('participation.confirmed_by_payment', $participation, null, ['invoice' => $invoice->id], 'system');
             }
             if ($installment->paid_remove_group_id !== null) {
-                $person->groups()->detach($installment->paid_remove_group_id);
+                $group = Group::query()->find($installment->paid_remove_group_id);
+                if ($group !== null) {
+                    GroupMembers::leave($group, $person->id);
+                }
             }
             if ($installment->paid_add_group_id !== null && ! $person->groups()->whereKey($installment->paid_add_group_id)->exists()) {
                 $person->groups()->attach($installment->paid_add_group_id, ['starts_on' => now()->toDateString(), 'source' => 'payment']);

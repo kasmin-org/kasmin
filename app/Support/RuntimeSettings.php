@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use App\Models\MailAccount;
+use App\Support\Mail\Sender;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\URL;
 
@@ -32,6 +33,10 @@ class RuntimeSettings
                 if ($value !== null && $value !== '') {
                     config([$config => $key === 'approval_days' ? (int) $value : $value]);
                 }
+            }
+            // Test mode (MS08) for mails sent directly, e.g. login links; the queue does the same in Sender.
+            if (Sender::testAddress() !== null) {
+                config(['mail.to' => ['address' => Sender::testAddress(), 'name' => 'Kasmin test mode']]);
             }
             $account = MailAccount::query()->where('is_default', true)->where('delivery', 'smtp')->whereNotNull('smtp_host')->first();
             if ($account !== null) {

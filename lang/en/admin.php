@@ -49,6 +49,7 @@ return [
         'timezone' => 'Time zone', 'timezone_hint' => 'All times and daily jobs are in this time zone. Choose it at the beginning: times already stored are not converted.',
         'families' => 'Families', 'max_guardians' => 'Legal guardians per family (at most)', 'min_login_age' => 'Own login from age', 'guardian_until_age' => 'Guardianship ends at age', 'own_registrations_visible' => 'Legal guardians see what their child registers itself', 'own_registrations_visible_hint' => 'Off: registrations made by the child with its own login are private.',
         'embed_origins' => 'Websites that may embed public pages', 'embed_origins_hint' => 'Addresses with https, separated by spaces. Only public event pages and forms (with ?embed=1) can be shown there; everything else never in frames.',
+        'mail_test_address' => 'Mail test mode: send everything to', 'mail_test_address_hint' => 'If set, every mail – also login links – goes only to this address. Empty = normal operation.', 'mailing_approval_above' => 'Approval for mailings above … mails', 'mailing_approval_above_hint' => '0 = never.', 'test_mode_on' => 'Test mode: all mails go to :address.',
         'number_per_year' => 'Own numbers per year', 'number_per_year_hint' => 'Numbers start with 1 every year; use a number format with {year}.',
         'save' => 'Save', 'saved' => 'Saved',
     ],
@@ -85,7 +86,7 @@ return [
         'change_status' => 'Change status', 'occupied' => 'Occupancy', 'waitlist_short' => 'WL',
     ],
     'series' => ['singular' => 'Event series', 'plural' => 'Event series'],
-    'group' => ['singular' => 'Group', 'plural' => 'Groups'],
+    'group' => ['singular' => 'Group', 'plural' => 'Groups', 'parent' => 'Belongs to', 'members' => 'Members', 'kinds' => ['manual' => 'By hand', 'dynamic' => 'By rules', 'event' => 'Participants of an event'], 'event_hint' => 'Ages count at this event, and only events of its series are counted. Empty = today, all events.', 'rules' => 'Rules', 'match' => 'People must fit', 'matches' => ['all' => 'all rules', 'any' => 'at least one rule'], 'add_rule' => 'Add rule', 'field' => 'Field', 'fields' => ['age' => 'Age', 'membership' => 'Membership', 'role' => 'Role', 'group' => 'Member of group', 'events' => 'Number of past events'], 'value' => 'Value', 'min' => 'From', 'max' => 'To', 'not' => 'Not', 'source' => 'Source', 'update' => 'Recalculate', 'add' => 'Add person', 'remove' => 'Remove'],
     'form' => [
         'kind' => 'Kind', 'kinds' => ['person' => 'Person (kept for all events)', 'registration' => 'Questions of an event'], 'scope' => 'Asked', 'scopes' => ['participant' => 'per participant', 'family' => 'once per family'],
         'singular' => 'Form', 'plural' => 'Forms', 'key' => 'Key', 'active' => 'Active', 'name' => 'Name', 'description' => 'Description',
@@ -111,6 +112,7 @@ return [
         'account' => 'Mail account', 'account_plural' => 'Mail accounts',
         'sender_profile' => 'Sender profile', 'sender_profile_plural' => 'Sender profiles',
         'template' => 'Mail template', 'template_plural' => 'Mail templates',
+        'attachments' => 'Attachments', 'attachments_hint' => 'PDF, JPG or PNG, at most 5 files of 5 MB. Large attachments make mails slow and are often rejected; a document at the event is usually better.', 'needs_approval' => 'This mailing is large: it is sent after an approval.', 'waiting' => 'Waiting for approval.',
         'mailing' => 'Mailing', 'mailing_plural' => 'Mailings',
         'log' => 'Mail', 'log_plural' => 'Mail log',
         'name' => 'Name', 'is_default' => 'Default account', 'host' => 'Server', 'port' => 'Port', 'encryption' => 'Encryption',
@@ -134,7 +136,7 @@ return [
         'resend' => 'Resend',
         'audiences' => ['guardians' => 'Legal guardians', 'person' => 'The person', 'both' => 'Both'],
         'categories' => ['registration' => 'Registration', 'waitlist' => 'Waitlist', 'invoice' => 'Invoice', 'reminder' => 'Reminder', 'safety_sheet' => 'Safety sheet', 'event_information' => 'Event information', 'newsletter' => 'Newsletter', 'notification' => 'Notification', 'system' => 'System'],
-        'mailing_status' => ['draft' => 'Draft', 'prepared' => 'Prepared', 'sending' => 'Sending', 'sent' => 'Sent', 'cancelled' => 'Cancelled'],
+        'mailing_status' => ['waiting' => 'Waiting for approval', 'draft' => 'Draft', 'prepared' => 'Prepared', 'sending' => 'Sending', 'sent' => 'Sent', 'cancelled' => 'Cancelled'],
         'statuses' => ['held' => 'Held', 'queued' => 'Queued', 'sending' => 'Sending', 'sent' => 'Sent', 'failed' => 'Failed', 'bounced' => 'Bounced', 'cancelled' => 'Cancelled'],
         'kinds' => ['transactional' => 'Single mail', 'mailing' => 'Mailing', 'newsletter' => 'Newsletter', 'notification' => 'Notification'],
         'hints' => [

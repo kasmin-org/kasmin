@@ -3,13 +3,17 @@
 namespace App\Filament\Resources\Mailings\Schemas;
 
 use App\Models\Event;
+use App\Models\EventDocument;
 use App\Models\Group;
 use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Illuminate\Support\Str;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
 class MailingForm
 {
@@ -21,6 +25,9 @@ class MailingForm
                 Select::make('mail_template_id')->label(__('admin.mail.template'))->relationship('template', 'key')->required(),
                 Select::make('sender_profile_id')->label(__('admin.mail.sender_profile'))->relationship('template.senderProfile', 'name')->placeholder(__('admin.mail.from_template')),
                 DateTimePicker::make('scheduled_at')->label(__('admin.mail.scheduled_at'))->seconds(false),
+                FileUpload::make('attachments')->label(__('admin.mail.attachments'))->multiple()->disk('local')->directory('mail-attachments')->visibility('private')->getUploadedFileNameForStorageUsing(fn (TemporaryUploadedFile $file) => Str::lower(Str::random(6)).'-'.Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)).'.'.$file->guessExtension())->maxSize(5120)->maxFiles(5)
+                    ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])->helperText(__('admin.mail.attachments_hint'))->columnSpanFull(),
+                Select::make('document_ids')->label(__('admin.event.documents'))->multiple()->options(fn () => EventDocument::query()->with('event')->get()->filter(fn (EventDocument $d) => $d->event !== null)->mapWithKeys(fn (EventDocument $d) => [$d->id => $d->event?->title.': '.$d->title])->all())->columnSpanFull(),
             ]),
             Section::make(__('admin.mail.recipients'))->columns(2)->schema([
                 Select::make('recipients.group_ids')->label(__('admin.group.plural'))->multiple()->options(fn () => Group::query()->pluck('name', 'id')),

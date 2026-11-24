@@ -29,6 +29,8 @@ class Composer
         if ($template === null || $address === null) {
             return null;
         }
+        $static = array_map(fn (string $path) => ['file' => $path, 'name' => basename($path)], array_values($template->attachments ?? []));
+        $attachments = [...$static, ...($attachments ?? [])] ?: null;
         $locale = $recipient->locale;
         $context = $this->placeholders->for($recipient, $locale, $about);
         $rendered = $this->renderer->render($template, $locale, $context);

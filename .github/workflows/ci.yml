@@ -101,6 +101,7 @@ jobs:
         run: |
           composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader --no-scripts
           npm ci --ignore-scripts --no-audit --no-fund && npm run build && rm -rf node_modules
+          php artisan filament:assets
           mkdir -p /tmp/pkg && zip -qr /tmp/pkg/kasmin.zip . -x ".git/*" ".github/*" "tests/*" ".env" "bootstrap/cache/*.php"
           cd /tmp/pkg && sha256sum kasmin.zip > kasmin.zip.sha256
       - name: Unpack with the bootstrap script
@@ -118,6 +119,8 @@ jobs:
             -d locale=en -d defaults=en --data-urlencode "admin_name=Alex Example" -d admin_email=admin@example.org \
             | grep -q "Kasmin is installed"
           curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8090/ | grep -q 200
+          # The package contains the assets of the admin interface.
+          for f in js/filament/filament/app.js js/filament/support/support.js; do curl -sf -o /dev/null "http://127.0.0.1:8090/$f" || { echo "::error::$f is missing in the package"; exit 1; }; done
           php artisan kasmin:status
       - name: Show logs on failure
         if: ${{ failure() }}

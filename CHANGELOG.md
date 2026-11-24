@@ -6,6 +6,11 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ## [Unreleased]
 
+### Fixed
+
+- **The admin interface did not work in any release package or Docker image so far (0.4.0–0.8.1)**: the JavaScript,
+  styles and fonts of Filament were missing. They are now included, and the build fails without them.
+
 ### Changed
 
 - The recommended cron interval is every 5 minutes; daily and hourly jobs run at the first call after their time instead

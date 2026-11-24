@@ -18,6 +18,8 @@ Pre-release for testing. Not ready for production use.
 
 ### Security
 
+- Twig updated to at least 3.31.1: the previous version had several ways around the sandbox that protects mail templates
+  (e.g. CVE-2026-133764, CVE-2026-133770, CVE-2026-133772).
 - Login links in mails (valid for 30 days) were meant to be limited, but gave full access, including safety sheets, and
   created a permanent login. They now only open the start page, invoices and offered places; everything else needs a
   fresh link. All remembered logins and sessions are ended once during the upgrade. Affects all versions up to 0.9.0.

@@ -16,6 +16,14 @@ use Filament\Tables\Table;
 
 class HouseholdResource extends Resource
 {
+    protected static ?string $recordTitleAttribute = 'name';
+
+    /** Global search (AD10). */
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['name', 'city'];
+    }
+
     protected static ?string $model = Household::class;
 
     public static function getModelLabel(): string

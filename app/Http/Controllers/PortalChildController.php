@@ -8,6 +8,7 @@ use App\Models\Household;
 use App\Models\Participation;
 use App\Models\Person;
 use App\Models\User;
+use App\Support\Auth\PortalPerson;
 use App\Support\Events\RegistrationException;
 use App\Support\Events\Registrations;
 use App\Support\Forms\Forms;
@@ -104,9 +105,10 @@ class PortalChildController extends Controller
     {
         /** @var User $user */
         $user = $request->user();
-        abort_if($user->person === null, 403);
+        $person = PortalPerson::for($request);
+        abort_if($person === null, 403);
 
-        return $user->person;
+        return $person;
     }
 
     private function household(Person $guardian): Household

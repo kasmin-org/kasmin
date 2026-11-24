@@ -7,6 +7,7 @@ use App\Models\FormResponse;
 use App\Models\Household;
 use App\Models\Person;
 use App\Models\User;
+use App\Support\Auth\PortalPerson;
 use App\Support\Forms\Forms;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -85,9 +86,10 @@ class PortalFormController extends Controller
     {
         /** @var User $user */
         $user = $request->user();
-        abort_if($user->person === null, 403);
+        $person = PortalPerson::for($request);
+        abort_if($person === null, 403);
 
-        return $user->person;
+        return $person;
     }
 
     private function child(Request $request, string $publicId): Person

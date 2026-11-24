@@ -41,7 +41,7 @@ edit single mails if wanted, then *Send*. People who opted out are excluded and 
 
 ## Sending
 
-Mails go through a queue processed every minute by the scheduler (`php artisan schedule:run` via cron, or the web
+Mails go through a queue processed by the scheduler at every run (every 5 minutes) (`php artisan schedule:run` via cron, or the web
 cron URL, see [hosting](hosting.md)). Failed attempts are retried with increasing waiting times; the mail log under
 *Communication → Mail log* shows every mail with its status and can resend it. Legal guardians see the mails sent to
 them in the portal.

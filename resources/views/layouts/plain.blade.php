@@ -12,9 +12,16 @@
     @vite(['resources/css/app.css'])
 </head>
 <body class="min-h-screen bg-kasmin-50 text-kasmin-900 antialiased">
+@if (\App\Support\Auth\PortalPerson::previewing(request()))
+    <div class="bg-summer-500 px-4 py-2 text-center text-sm font-semibold text-kasmin-900" role="status">
+        {{ __('portal.preview_banner', ['name' => \App\Support\Auth\PortalPerson::for(request())?->fullName()]) }}
+        <form method="post" action="{{ route('portal.view-as.end') }}" class="inline">@csrf<button class="ml-2 underline">{{ __('portal.preview_end') }}</button></form>
+    </div>
+@endif
 <main class="mx-auto w-full max-w-xl px-4 py-8 sm:py-12">
     <img src="/brand/kasmin-logo-horizontal.svg" alt="Kasmin" class="mb-6 h-10">
     <div class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-kasmin-100 sm:p-8">
+        @error('preview')<div class="mb-4 rounded-lg bg-summer-500/20 p-3 text-sm" role="alert">{{ $message }}</div>@enderror
         @yield('content')
     </div>
 </main>

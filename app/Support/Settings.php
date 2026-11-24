@@ -25,6 +25,8 @@ class Settings
         'invoice_attach_paid' => '1',
         'invoice_reminder_days_before' => '3',
         'invoice_overdue_days' => '7,21',
+        'retention_safety_years' => '7', // CO01
+        'retention_invoice_years' => '7',
         'ai_processing' => 'none', // none, non_confidential, all (MI12)
     ];
 

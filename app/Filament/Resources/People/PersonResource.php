@@ -15,12 +15,24 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
 
 class PersonResource extends Resource
 {
     protected static ?string $model = Person::class;
 
     protected static ?string $recordTitleAttribute = 'last_name';
+
+    /** Global search (AD10): names and e-mail addresses. */
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['first_name', 'last_name', 'contactPoints.value'];
+    }
+
+    public static function getGlobalSearchResultTitle(Model $record): string
+    {
+        return $record instanceof Person ? $record->fullName() : '';
+    }
 
     public static function getModelLabel(): string
     {

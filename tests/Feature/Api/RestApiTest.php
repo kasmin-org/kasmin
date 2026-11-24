@@ -35,8 +35,8 @@ class RestApiTest extends TestCase
         app()->setLocale('en');
         Settings::set('organisation_name', 'Example Camp');
         $person = Person::factory()->create(['locale' => 'en']);
-        $person->roleAssignments()->create(['role_id' => Role::query()->where('key', 'board')->value('id')]);
-        $this->user = User::query()->create(['name' => 'Board', 'email' => 'board@example.org', 'password' => 'x', 'person_id' => $person->id]);
+        $person->roleAssignments()->create(['role_id' => Role::query()->where('key', 'administrator')->value('id')]);
+        $this->user = User::query()->create(['name' => 'Owner', 'email' => 'owner@example.org', 'password' => 'x', 'person_id' => $person->id]);
         $this->event = Event::query()->create(['title' => 'Summer camp 2027', 'starts_at' => now()->addMonths(3), 'ends_at' => now()->addMonths(3)->addWeek(), 'status' => 'open']);
         $this->event->roles()->create(['role_key' => 'child', 'capacity' => 1, 'min_age' => 8, 'max_age' => 13, 'price_cents' => 40000]);
         $this->event->installments()->create(['key' => 'deposit', 'label' => ['en' => 'Deposit'], 'kind' => 'fixed', 'amount_cents' => 10000, 'due_days' => 14, 'discounts_apply' => false]);
@@ -60,6 +60,9 @@ class RestApiTest extends TestCase
         $revoked = ApiToken::issue($this->user, 'old', ['people:read']);
         $revoked['token']->forceFill(['revoked_at' => now()])->save();
         $this->withToken($revoked['plain'])->getJson('/api/v1/me')->assertUnauthorized();
+
+        $this->user->person?->roleAssignments()->update(['ends_on' => now()->subDay()->toDateString()]);
+        $this->withToken($token)->getJson('/api/v1/me')->assertUnauthorized(); // owner lost the administrator role
     }
 
     public function test_people_create_register_and_audit_actor(): void
@@ -138,7 +141,10 @@ class RestApiTest extends TestCase
         foreach (['/admin/api-tokens', '/admin/webhooks', '/admin/webhooks/create', '/admin/import/people', '/admin/import-batches', '/admin/settings/organisation'] as $page) {
             $this->actingAs($admin)->withSession(['two_factor_passed' => true])->get($page)->assertOk();
         }
-        $this->actingAs($this->user)->withSession(['two_factor_passed' => true])->get('/admin/api-tokens')->assertForbidden();
+        $boardPerson = Person::factory()->create();
+        $boardPerson->roleAssignments()->create(['role_id' => Role::query()->where('key', 'board')->value('id')]);
+        $board = User::query()->create(['name' => 'Board', 'email' => 'board@example.org', 'password' => 'x', 'person_id' => $boardPerson->id]);
+        $this->actingAs($board)->withSession(['two_factor_passed' => true])->get('/admin/api-tokens')->assertForbidden();
 
         $this->actingAs($admin);
         Livewire::test(ListApiTokens::class)

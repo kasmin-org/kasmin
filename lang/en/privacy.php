@@ -5,6 +5,7 @@ return [
     'no_requests' => 'No open deletion requests.', 'review' => 'Review', 'plan_for' => 'Anonymise :name',
     'will_delete' => 'Will be deleted', 'will_keep' => 'Will be kept', 'reason' => 'Reason (for the audit log)', 'default_reason' => 'Deletion request (GDPR Art. 17)',
     'anonymise' => 'Anonymise now', 'confirm' => 'Anonymise this person? This cannot be undone.', 'done' => 'The person was anonymised.',
+    'has_roles' => 'This person still has an active role. Remove the role first.',
     'anonymous' => 'Anonymised',
     'items' => ['contact_points' => 'Contact data', 'login' => 'Login', 'form_responses' => 'Form answers (incl. safety sheets)', 'mails' => 'Mails sent to the person',
         'family_links' => 'Links to family and legal guardians', 'groups' => 'Group memberships', 'invoices' => 'Invoices', 'participations' => 'Participations', 'audit' => 'Audit log'],

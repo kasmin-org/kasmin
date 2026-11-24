@@ -4,6 +4,7 @@ namespace App\Filament\Resources\People\Pages;
 
 use App\Filament\Resources\People\PersonResource;
 use App\Models\Person;
+use App\Models\User;
 use App\Support\Audit\Audit;
 use App\Support\Auth\PortalPerson;
 use Filament\Actions\Action;
@@ -19,7 +20,7 @@ class ViewPerson extends ViewRecord
         return [
             // Read-only preview of the portal as this person sees it (AD25), logged.
             Action::make('view_as')->label(__('portal.view_as'))->icon('heroicon-o-eye')->color('gray')
-                ->visible(fn () => $this->getRecord() instanceof Person && $this->getRecord()->getAttribute('anonymised_at') === null)
+                ->visible(fn () => auth()->user() instanceof User && PortalPerson::mayPreview(auth()->user()) && $this->getRecord() instanceof Person && $this->getRecord()->getAttribute('anonymised_at') === null)
                 ->requiresConfirmation()->modalDescription(__('portal.view_as_hint'))
                 ->action(function () {
                     /** @var Person $person */

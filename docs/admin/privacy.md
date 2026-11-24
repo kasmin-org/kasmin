@@ -8,7 +8,11 @@ safety sheets, mails, family and group links) and what must be kept, with the re
 
 - invoices within the legal retention period (setting, default 7 years) – the name stays on the invoice;
 - participations, anonymised, for statistics (year of birth, role, year);
-- the audit log, which cannot be changed and records the anonymisation.
+- the audit log, which cannot be changed and records the anonymisation. **Older entries can still contain the previous
+  name** (e.g. a name change); database backups contain the data until they are deleted.
+
+Names are also removed from import records, automation plans, notifications, webhook deliveries, replies and from
+invoices whose retention period is over. People with an active role must lose it first.
 
 **Anonymise now** replaces the name, reduces the date of birth to the year and deletes the rest. It cannot be
 undone. Inform the person yourself.

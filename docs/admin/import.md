@@ -17,7 +17,7 @@ Health and safety data are not imported this way.
 *People → Import people*:
 
 1. **Source**: a CSV or Excel file whose first row contains column names, plus a source name (e.g. `old-list`); or
-   Webling with its address and an API key with read permission (not stored). Files are deleted right after reading.
+   Webling with its address and an API key with read permission (not stored). Files are deleted right after reading; the rows are kept in the cache for at most one hour while you work in the wizard.
 2. **Assign the fields**: for each Kasmin field choose the column. Columns named like the fields (or Webling's
    standard fields) are assigned automatically.
 3. **Dry run**, check errors and family suggestions, then **Import**.

@@ -68,7 +68,7 @@ class Webhooks
                 if (! str_starts_with($hook->url, 'https://')) {
                     throw new \RuntimeException('Only https URLs are allowed.');
                 }
-                $response = Http::timeout(10)->withHeaders([
+                $response = Http::timeout(10)->withoutRedirecting()->withHeaders([
                     'Content-Type' => 'application/json', 'User-Agent' => 'Kasmin-Webhooks/'.config('kasmin.version'),
                     'X-Kasmin-Event' => $delivery->event, 'X-Kasmin-Delivery' => $delivery->uuid, 'X-Kasmin-Timestamp' => $timestamp,
                     'X-Kasmin-Signature' => 'sha256='.self::signature($hook->secret, $timestamp, $body),

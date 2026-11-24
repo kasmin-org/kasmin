@@ -21,17 +21,23 @@ class PortalPerson
             return null;
         }
         $viewAs = $request->session()->get(self::SESSION_KEY);
-        if ($viewAs !== null && $user->isAdministrative()) {
+        if ($viewAs !== null && self::mayPreview($user)) {
             return Person::query()->find((int) $viewAs);
         }
 
         return $user->person;
     }
 
+    /** Only the administrator role: the preview shows everything the family sees, including safety sheets. */
+    public static function mayPreview(User $user): bool
+    {
+        return $user->hasAnyRole(['administrator']);
+    }
+
     public static function previewing(Request $request): bool
     {
         $user = $request->user();
 
-        return $request->hasSession() && $request->session()->has(self::SESSION_KEY) && $user instanceof User && $user->isAdministrative();
+        return $request->hasSession() && $request->session()->has(self::SESSION_KEY) && $user instanceof User && self::mayPreview($user);
     }
 }

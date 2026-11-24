@@ -45,6 +45,20 @@ class ViewAsTest extends TestCase
         $this->get('/portal')->assertDontSee('Preview as');
     }
 
+    public function test_other_administrative_roles_cannot_preview(): void
+    {
+        app(Defaults::class)->install('en');
+        $family = Person::factory()->create(['first_name' => 'Secretfamily']);
+        foreach (['treasurer', 'board', 'camp_leader', 'auditor'] as $role) {
+            $person = Person::factory()->create();
+            $person->roleAssignments()->create(['role_id' => Role::query()->where('key', $role)->value('id')]);
+            $user = User::query()->create(['name' => $role, 'email' => $role.'@example.org', 'password' => 'x', 'person_id' => $person->id]);
+            $this->actingAs($user)->withSession(['two_factor_passed' => true, 'portal_view_as' => $family->id]);
+            $this->get('/portal')->assertDontSee('Secretfamily');
+            Livewire::test(ViewPerson::class, ['record' => $family->id])->assertActionHidden('view_as');
+        }
+    }
+
     public function test_non_administrators_cannot_use_a_preview_session(): void
     {
         $other = Person::factory()->create(['first_name' => 'Secret']);

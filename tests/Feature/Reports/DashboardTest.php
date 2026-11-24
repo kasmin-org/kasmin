@@ -53,7 +53,7 @@ class DashboardTest extends TestCase
         $admin->roleAssignments()->create(['role_id' => Role::query()->where('key', 'administrator')->value('id')]);
         $this->actingAs(User::query()->create(['name' => 'a', 'email' => 'admin@example.org', 'password' => 'x', 'person_id' => $admin->id]));
 
-        $search = fn (string $q) => collect(Filament::getPanel('admin')->getGlobalSearchProvider()->getResults($q)?->getCategories() ?? [])
+        $search = fn (string $q) => collect(Filament::getPanel('admin')?->getGlobalSearchProvider()?->getResults($q)?->getCategories() ?? [])
             ->flatten(1)->map(fn ($r) => $r->title)->all();
         $this->assertContains($person->fullName(), $search($person->last_name));
         $this->assertContains($person->fullName(), $search((string) $person->contactPoints()->value('value')));

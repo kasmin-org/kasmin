@@ -61,7 +61,13 @@ class PrivacyPage extends Page
         if ($person === null || trim($this->reason) === '') {
             return;
         }
-        app(Privacy::class)->anonymise($person, $this->reason);
+        try {
+            app(Privacy::class)->anonymise($person, $this->reason);
+        } catch (\RuntimeException $e) {
+            Notification::make()->title($e->getMessage())->danger()->send();
+
+            return;
+        }
         $this->reviewing = null;
         Notification::make()->title(__('privacy.done'))->success()->send();
     }

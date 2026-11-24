@@ -20,7 +20,8 @@ invoices (by number, payment reference or payer).
 
 ## View as legal guardian
 
-On a person's page, **View as legal guardian** opens the portal exactly as this person sees it – read only; nothing
+On a person's page, administrators (only this role, because safety sheets are visible) can use **View as legal
+guardian**. It opens the portal exactly as this person sees it – read only; nothing
 can be changed in the preview. A banner shows the preview and ends it. Start and end are recorded in the audit log.
 
 ## Statistics

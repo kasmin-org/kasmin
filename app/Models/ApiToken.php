@@ -69,7 +69,8 @@ class ApiToken extends Model
 
     public function isUsable(): bool
     {
-        return $this->revoked_at === null && ($this->expires_at === null || $this->expires_at->isFuture()) && $this->user !== null;
+        return $this->revoked_at === null && ($this->expires_at === null || $this->expires_at->isFuture())
+            && $this->user !== null && $this->user->hasAnyRole(['administrator']); // not after the owner lost the role
     }
 
     public function can(string $scope): bool

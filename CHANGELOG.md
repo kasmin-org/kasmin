@@ -6,6 +6,12 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ## [Unreleased]
 
+### Security
+
+- API tokens stop working when their owner loses the administrator role (before, they stayed valid until they expired
+  or were revoked; affects 0.8.0 and 0.8.1).
+- Webhooks and the Webling connector no longer follow redirects.
+
 ### Added
 
 - Dashboard: one block per event series with the next event (registrations, last three, waitlist, open and reserve

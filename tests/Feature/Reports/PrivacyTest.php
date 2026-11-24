@@ -3,16 +3,20 @@
 namespace Tests\Feature\Reports;
 
 use App\Models\AuditEvent;
+use App\Models\Automation;
 use App\Models\Consent;
 use App\Models\Event;
 use App\Models\Form;
 use App\Models\FormResponse;
 use App\Models\Household;
+use App\Models\Invoice;
 use App\Models\Participation;
 use App\Models\Person;
 use App\Models\Role;
 use App\Models\User;
+use App\Support\Import\PeopleImporter;
 use App\Support\Install\Defaults;
+use App\Support\Mail\Notifier;
 use App\Support\Privacy\Privacy;
 use Filament\Http\Middleware\AuthenticateSession;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -55,6 +59,33 @@ class PrivacyTest extends TestCase
         $this->assertSame(1, $person->participations()->count());
         $this->assertSame([], $privacy->openRequests()->all());
         $this->assertTrue(AuditEvent::query()->where('action', 'privacy.anonymised')->exists());
+    }
+
+    public function test_anonymisation_also_cleans_copies_and_refuses_active_roles(): void
+    {
+        app(PeopleImporter::class)->import([['source_id' => '1', 'first_name' => 'Zoe', 'last_name' => 'Quill', 'email' => 'zoe@example.org', 'family' => 'f1', 'street' => 'Secret lane 1']], 'old');
+        $person = Person::query()->where('last_name', 'Quill')->firstOrFail();
+        $automation = Automation::query()->firstOrFail();
+        $run = $automation->runs()->create(['status' => 'done', 'trigger' => 'manual', 'plan' => [['key' => 'a', 'label' => 'Offer to Zoe Quill']]]);
+        app(Notifier::class)->event('registrations', 'Zoe Quill registered');
+        $invoice = fn (int $years) => Invoice::query()->create(['payer_id' => $person->id, 'payer_name' => 'Zoe Quill', 'payer_address' => 'Secret lane 1', 'status' => 'paid', 'issued_on' => now()->subYears($years)->toDateString()]);
+        [$old, $recent] = [$invoice(9), $invoice(2)];
+
+        app(Privacy::class)->anonymise($person, 'request');
+
+        $this->assertStringNotContainsString('Zoe', (string) json_encode($run->refresh()->plan));
+        $this->assertSame(0, \DB::table('notification_events')->where('summary', 'like', '%Zoe%')->count());
+        $this->assertSame(0, \DB::table('external_ids')->count());
+        $this->assertSame(0, \DB::table('import_records')->where('model_type', Person::class)->count());
+        $this->assertNull($old->refresh()->payer_address);
+        $this->assertStringNotContainsString('Zoe', (string) $old->payer_name);
+        $this->assertSame('Zoe Quill', $recent->refresh()->payer_name, 'kept within the retention period');
+        $this->assertSame(0, Household::query()->where('street', 'Secret lane 1')->count());
+
+        $board = Person::factory()->create();
+        $board->roleAssignments()->create(['role_id' => Role::query()->where('key', 'board')->value('id')]);
+        $this->expectException(\RuntimeException::class);
+        app(Privacy::class)->anonymise($board, 'x');
     }
 
     public function test_retention_deletes_old_safety_sheets_only(): void

@@ -5,6 +5,7 @@ return [
     'no_requests' => 'Keine offenen Löschanfragen.', 'review' => 'Prüfen', 'plan_for' => ':name anonymisieren',
     'will_delete' => 'Wird gelöscht', 'will_keep' => 'Bleibt erhalten', 'reason' => 'Grund (für das Audit-Protokoll)', 'default_reason' => 'Löschanfrage (DSGVO Art. 17)',
     'anonymise' => 'Jetzt anonymisieren', 'confirm' => 'Diese Person anonymisieren? Das kann nicht rückgängig gemacht werden.', 'done' => 'Die Person wurde anonymisiert.',
+    'has_roles' => 'Diese Person hat noch eine aktive Rolle. Bitte zuerst die Rolle entfernen.',
     'anonymous' => 'Anonymisiert',
     'items' => ['contact_points' => 'Kontaktdaten', 'login' => 'Zugang', 'form_responses' => 'Formularangaben (inkl. Sicherheitsblätter)', 'mails' => 'E-Mails an die Person',
         'family_links' => 'Verbindungen zu Familie und Erziehungsberechtigten', 'groups' => 'Gruppenmitgliedschaften', 'invoices' => 'Rechnungen', 'participations' => 'Teilnahmen', 'audit' => 'Audit-Protokoll'],

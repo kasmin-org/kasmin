@@ -1,8 +1,10 @@
 <?php
 
 return [
-    'nav' => ['people' => 'Personen', 'events' => 'Veranstaltungen', 'forms' => 'Formulare', 'finance' => 'Finanzen', 'settings' => 'Einstellungen', 'automations' => 'Automatisierungen', 'communication' => 'Kommunikation', 'system' => 'System'],
+    'nav' => ['people' => 'Personen', 'events' => 'Veranstaltungen', 'forms' => 'Formulare', 'finance' => 'Finanzen', 'settings' => 'Einstellungen', 'automations' => 'Automatisierungen', 'privacy' => 'Datenschutz', 'reports' => 'Auswertungen', 'communication' => 'Kommunikation', 'system' => 'System'],
     'finance' => [
+        'costs' => 'Kosten (für die Kostenauswertung)', 'add_cost' => 'Kostenposition hinzufügen', 'cost_label' => 'Position', 'cost_category' => 'Kategorie',
+        'cost_categories' => ['accommodation' => 'Unterkunft', 'food' => 'Verpflegung', 'transport' => 'Transport', 'material' => 'Material', 'staff' => 'Team', 'other' => 'Sonstiges'],
         'price' => 'Preis', 'role_discount' => 'Rollen-Ermäßigung', 'role_discount_hint' => 'Z. B. für Nachwuchs-Betreuung. Ersetzt die Geschwisterermäßigung; die Person zählt trotzdem als Geschwisterkind.',
         'counts_as_sibling' => 'Zählt als Geschwisterkind', 'counts_as_sibling_hint' => 'Ob Anmeldungen dieser Rolle bei der Geschwisterermäßigung mitgezählt werden.',
         'pricing' => 'Preise, Ratenplan und Geschwisterermäßigung', 'sibling_mode' => 'Geschwisterermäßigung', 'sibling_order' => 'Wer zahlt den vollen Preis',
@@ -35,6 +37,7 @@ return [
         'ai' => 'KI-Assistenten', 'ai_processing' => 'KI-Verarbeitung erlaubt',
         'ai_options' => ['none' => 'Keine – der MCP-Zugang ist abgeschaltet', 'non_confidential' => 'Nicht vertrauliche Daten (keine Gesundheits- und Sicherheitsdaten)', 'all' => 'Alle Daten, auch Gesundheits- und Sicherheitsdaten'],
         'ai_hint' => 'Nur erlauben, was Ihre Datenschutzerklärung und ein Auftragsverarbeitungsvertrag mit dem KI-Anbieter abdecken. Siehe Dokumentation „Mit einem KI-Assistenten migrieren“.',
+        'retention' => 'Aufbewahrung', 'retention_safety_years' => 'Sicherheitsblätter und Gesundheitsdaten aufbewahren (Jahre nach der letzten Veranstaltung)', 'retention_invoice_years' => 'Rechnungen aufbewahren (Jahre, gesetzlich)',
         'save' => 'Speichern', 'saved' => 'Gespeichert',
     ],
     'person' => [

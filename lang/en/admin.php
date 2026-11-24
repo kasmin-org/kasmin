@@ -1,8 +1,10 @@
 <?php
 
 return [
-    'nav' => ['people' => 'People', 'events' => 'Events', 'forms' => 'Forms', 'finance' => 'Finance', 'settings' => 'Settings', 'automations' => 'Automations', 'communication' => 'Communication', 'system' => 'System'],
+    'nav' => ['people' => 'People', 'events' => 'Events', 'forms' => 'Forms', 'finance' => 'Finance', 'settings' => 'Settings', 'automations' => 'Automations', 'privacy' => 'Data protection', 'reports' => 'Reports', 'communication' => 'Communication', 'system' => 'System'],
     'finance' => [
+        'costs' => 'Costs (for the cost report)', 'add_cost' => 'Add cost item', 'cost_label' => 'Item', 'cost_category' => 'Category',
+        'cost_categories' => ['accommodation' => 'Accommodation', 'food' => 'Food', 'transport' => 'Transport', 'material' => 'Material', 'staff' => 'Staff', 'other' => 'Other'],
         'price' => 'Price', 'role_discount' => 'Role discount', 'role_discount_hint' => 'E.g. for junior counsellors. Replaces the sibling discount; the person still counts as a sibling.',
         'counts_as_sibling' => 'Counts as sibling', 'counts_as_sibling_hint' => 'Whether registrations in this role are counted for the sibling discount.',
         'pricing' => 'Prices, payment plan and sibling discount', 'sibling_mode' => 'Sibling discount', 'sibling_order' => 'Who pays the full price',
@@ -35,6 +37,7 @@ return [
         'ai' => 'AI assistants', 'ai_processing' => 'AI processing allowed',
         'ai_options' => ['none' => 'None – the MCP endpoint is switched off', 'non_confidential' => 'Non-confidential data (no health and safety data)', 'all' => 'All data, including health and safety data'],
         'ai_hint' => 'Only allow what your privacy policy and a data processing agreement with the AI provider cover. See the documentation "Migrate with an AI assistant".',
+        'retention' => 'Retention', 'retention_safety_years' => 'Keep safety sheets and health data (years after the last event)', 'retention_invoice_years' => 'Keep invoices (years, legal requirement)',
         'save' => 'Save', 'saved' => 'Saved',
     ],
     'person' => [

@@ -82,6 +82,14 @@ class EventForm
                             ->hintIcon('heroicon-m-question-mark-circle', tooltip: __('admin.finance.discounts_apply_hint')),
                     ]),
             ]),
+            Section::make(__('admin.finance.costs'))->collapsible()->collapsed()->schema([
+                Repeater::make('costs')->relationship()->label('')->columns(3)->orderColumn('sort')->defaultItems(0)->addActionLabel(__('admin.finance.add_cost'))
+                    ->schema([
+                        TextInput::make('label')->label(__('admin.finance.cost_label'))->required()->maxLength(200),
+                        Select::make('category')->label(__('admin.finance.cost_category'))->options(__('admin.finance.cost_categories')),
+                        Money::input('amount_cents', __('admin.finance.amount')),
+                    ]),
+            ]),
         ]);
     }
 }

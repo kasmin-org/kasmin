@@ -22,6 +22,11 @@ return Application::configure(basePath: dirname(__DIR__))
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Behind a reverse proxy: addresses whose X-Forwarded-* headers are trusted (comma-separated).
+        $proxies = array_filter(array_map('trim', explode(',', (string) getenv('KASMIN_TRUSTED_PROXIES'))));
+        if ($proxies !== []) {
+            $middleware->trustProxies(at: array_values($proxies));
+        }
         $middleware->web(prepend: [EnsureSchemaIsCompatible::class]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

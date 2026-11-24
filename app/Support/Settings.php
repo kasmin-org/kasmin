@@ -27,6 +27,9 @@ class Settings
         'invoice_overdue_days' => '7,21',
         'retention_safety_years' => '7', // CO01
         'retention_invoice_years' => '7',
+        'public_url' => '',
+        'digest_time' => null,
+        'approval_days' => null,
         'ai_processing' => 'none', // none, non_confidential, all (MI12)
     ];
 

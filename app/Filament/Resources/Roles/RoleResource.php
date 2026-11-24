@@ -16,6 +16,7 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Enums\RecordActionsPosition;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
 
@@ -84,10 +85,10 @@ class RoleResource extends Resource
     {
         return $table->description(count(Permissions::administrators()) < 2 ? (string) __('roles.one_administrator') : null)->columns([
             TextColumn::make('name')->label(__('roles.role'))->state(fn (Role $record) => $record->label()),
-            IconColumn::make('is_admin')->label(__('roles.is_admin'))->boolean(),
-            TextColumn::make('permissions')->label(__('roles.permissions'))->wrap()
+            IconColumn::make('is_admin')->label(__('roles.admin_short'))->boolean(),
+            TextColumn::make('permissions')->label(__('roles.permissions'))->wrap()->visibleFrom('md')
                 ->state(fn (Role $record) => $record->key === 'administrator' ? __('roles.everything') : implode(', ', array_map(fn (string $area, string $level) => __('roles.areas.'.$area).' ('.__('roles.levels.'.$level).')', array_keys(Permissions::ofRole($record)), Permissions::ofRole($record)))),
-        ])->recordActions([EditAction::make()]);
+        ])->recordActions([EditAction::make()], RecordActionsPosition::BeforeColumns);
     }
 
     public static function getPages(): array

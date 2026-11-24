@@ -28,7 +28,7 @@ class PortalController extends Controller
 
         return view('portal.index', [
             'invoices' => $invoices,
-            'mails' => $person !== null ? OutgoingMail::query()->where('person_id', $person->id)->whereIn('status', ['sent', 'queued', 'sending'])->latest('id')->limit(10)->get() : collect(),
+            'mails' => $person !== null ? OutgoingMail::query()->where('kind', '!=', 'notification')->where('person_id', $person->id)->whereIn('status', ['sent', 'queued', 'sending'])->latest('id')->limit(10)->get() : collect(),
             'person' => $person,
             'households' => $households,
             'limited' => $request->session()->get('login_scope') === 'limited',
@@ -40,7 +40,7 @@ class PortalController extends Controller
     {
         /** @var User $user */
         $user = $request->user();
-        $mail = OutgoingMail::query()->where('uuid', $uuid)->where('person_id', PortalPerson::for($request)?->id)->firstOrFail();
+        $mail = OutgoingMail::query()->where('kind', '!=', 'notification')->where('uuid', $uuid)->where('person_id', PortalPerson::for($request)?->id)->firstOrFail();
 
         return view('portal.mail', ['mail' => $mail]);
     }

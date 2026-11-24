@@ -8,6 +8,7 @@ use App\Models\ContactPoint;
 use App\Models\LoginToken;
 use App\Models\User;
 use App\Support\Audit\Audit;
+use App\Support\Auth\AdminLoginNotice;
 use App\Support\Auth\LoginLinks;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -31,6 +32,12 @@ class LoginController extends Controller
     public function send(Request $request): RedirectResponse
     {
         $email = mb_strtolower(trim((string) $request->validate(['email' => ['required', 'email', 'max:254']])['email']));
+
+        return $this->sendTo($email);
+    }
+
+    public function sendTo(string $email): RedirectResponse
+    {
         $user = $this->findUser($email);
 
         if ($user !== null) {
@@ -102,7 +109,9 @@ class LoginController extends Controller
     {
         /** @var User $user */
         $user = $token->user;
-        Auth::login($user, remember: true);
+        // Remembered devices only for full logins without administrative role: every administrator login is reported (LG02).
+        $limited = $token->scope === 'limited';
+        Auth::login($user, remember: ! $limited && ! $user->isAdministrative());
         $request->session()->regenerate();
         $request->session()->put('login_scope', $token->scope);
         $user->forceFill(['last_login_at' => now()])->save();
@@ -111,11 +120,13 @@ class LoginController extends Controller
             'method' => $method, 'token_id' => $token->id, 'purpose' => $token->purpose, 'scope' => $token->scope,
         ], 'user', $user->id);
 
+        app(AdminLoginNotice::class)->send($user, $request, $method);
+
         if ($user->requiresSecondFactor()) {
             return redirect()->route('two-factor');
         }
 
-        return redirect()->intended($user->isAdministrative() ? '/admin' : route('portal'));
+        return redirect()->intended($user->isAdministrative() && ! $limited ? '/admin' : route('portal'));
     }
 
     private function findUser(string $email): ?User

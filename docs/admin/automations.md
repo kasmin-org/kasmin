@@ -22,7 +22,7 @@ before an event, closing an event. Each automation has a **trigger**, an **actio
   page – **nothing is decided by opening a link** (mail scanners open links automatically). On that page you
   confirm, can untick single actions ("approve with changes") and add a comment.
 - Each link is personal, works **once** and expires with the request (default 7 days, `KASMIN_APPROVAL_DAYS`).
-  Approvers with a second factor enter their authenticator code on the page.
+  If the second factor is switched on, approvers enter their authenticator code on the page.
 - Halfway through, the approvers get one reminder. A request that expires without decision does nothing; the
   approvers are informed (notification topic *Approvals*).
 - While a request is open, the scheduler does not create a second one for the same automation and event.

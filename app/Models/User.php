@@ -65,7 +65,7 @@ class User extends Authenticatable implements FilamentUser
 
     public function requiresSecondFactor(): bool
     {
-        if ($this->person === null) {
+        if (! config('kasmin.second_factor') || $this->person === null) {
             return false;
         }
 

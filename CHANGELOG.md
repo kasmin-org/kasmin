@@ -6,6 +6,19 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ## [Unreleased]
 
+### Changed
+
+- Login only with the link or code sent by e-mail, for all roles; the second factor is off (`KASMIN_SECOND_FACTOR=true`
+  switches it on).
+- Every login of a person with an administrative role is reported to all administrators by e-mail.
+
+### Security
+
+- Login links in mails (valid for 30 days) were meant to be limited, but gave full access, including safety sheets, and
+  created a permanent login. They now only open the start page, invoices and offered places; everything else needs a
+  fresh link. All remembered logins and sessions are ended once during the upgrade. Affects all versions up to 0.9.0.
+- Approval requests and other notifications are no longer shown among the mails in the portal.
+
 ## [0.9.0] - 2026-11-24
 
 Pre-release for testing. Not ready for production use.

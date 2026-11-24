@@ -206,7 +206,6 @@ jobs:
           email=$(docker exec -u www-data -e HOME=/tmp kasmin php artisan tinker --execute='echo App\Models\Invoice::query()->whereNotNull("payer_id")->first()?->payer?->user?->email;' | tail -1)
           echo "KASMIN_LINK_DESKTOP=$(docker exec -u www-data kasmin php artisan kasmin:login-link "$email" | tail -1)" >> "$GITHUB_ENV"
           echo "KASMIN_LINK_PHONE=$(docker exec -u www-data kasmin php artisan kasmin:login-link "$email" | tail -1)" >> "$GITHUB_ENV"
-          docker exec -u www-data -e HOME=/tmp kasmin php artisan tinker --execute='App\Models\Role::query()->update(["requires_second_factor" => false]);'
           echo "KASMIN_ADMIN_DESKTOP=$(docker exec -u www-data kasmin php artisan kasmin:login-link admin@example.org | tail -1)" >> "$GITHUB_ENV"
           echo "KASMIN_ADMIN_PHONE=$(docker exec -u www-data kasmin php artisan kasmin:login-link admin@example.org | tail -1)" >> "$GITHUB_ENV"
           docker cp tests/e2e/make-approvals.php kasmin:/tmp/make-approvals.php

@@ -30,7 +30,7 @@ class ApprovalController extends Controller
             'run' => $model?->run,
             'token' => $token,
             'decision' => $request->query('decision') === 'deny' ? 'deny' : 'approve',
-            'needsCode' => $model !== null && $model->user?->two_factor_confirmed_at !== null,
+            'needsCode' => $model !== null && $model->user?->two_factor_confirmed_at !== null && (bool) config('kasmin.second_factor'),
         ]);
     }
 
@@ -49,7 +49,7 @@ class ApprovalController extends Controller
             'code' => ['nullable', 'string', 'max:10'],
         ]);
         $user = $model->user;
-        if ($user->two_factor_confirmed_at !== null
+        if (config('kasmin.second_factor') && $user->two_factor_confirmed_at !== null
             && ! (new Google2FA)->verifyKey((string) $user->two_factor_secret, (string) preg_replace('/\s+/', '', (string) ($data['code'] ?? '')), 1)) {
             return back()->withErrors(['code' => __('automations.approval.code_invalid')])->withInput();
         }

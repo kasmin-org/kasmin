@@ -6,6 +6,39 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ## [Unreleased]
 
+## [0.15.0] - 2026-11-24
+
+Pre-release for testing. Not ready for production use.
+
+### Added
+
+- Roles can be assigned to people with a period, and the permissions of every role can be edited (administrators only).
+- Event templates (with three default types), copying an event with all dates moved, saving an event as a template.
+- More event data, image and documents for participants or for everyone.
+- Status by date: announce, open and close the registration, running, finished.
+- Public event page; public pages and forms can be embedded in websites named in the settings.
+- Registration rounds: returning participants, selection by number of events, waitlist, open. Places are accepted in the portal or
+  by paying the first instalment; administrators can offer a place with a reason.
+
+### Changed
+
+- Every page of the admin interface checks the permissions of the role. Treasurers change prices and invoice data only, auditors
+  only view finance, consents and the audit log; camp leaders no longer see finance, mailings or settings. Mail accounts,
+  roles, API tokens, public address and AI settings are for administrators.
+- There is always at least one administrator.
+- Events become *running* and *finished* by themselves.
+
+### Fixed
+
+- An empty field for reserve places in an event no longer causes an error.
+
+### Security
+
+- Until 0.14.0 every administrative role, including auditors, could change people, mailings and mail accounts, and through them
+  take over the login of an administrator. Pages are restricted now, and login addresses and roles of people with an
+  administrative role can only be changed by administrators, whatever page or import is used.
+- Pages can no longer be shown in frames of other websites (clickjacking); no addresses are passed on as referrer.
+
 ## [0.14.0] - 2026-11-24
 
 Pre-release for testing. Not ready for production use.
@@ -299,7 +332,8 @@ First public pre-release for testing. Not ready for production use.
 - Docker image: system packages updated and build packages removed after compiling the PHP extensions – the
   container scan reports no high or critical findings any more (previously 75 in Debian packages).
 
-[Unreleased]: https://github.com/kasmin-org/kasmin/compare/v0.14.0...develop
+[Unreleased]: https://github.com/kasmin-org/kasmin/compare/v0.15.0...develop
+[0.15.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.15.0
 [0.14.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.14.0
 [0.13.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.13.0
 [0.12.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.12.0

@@ -5,6 +5,7 @@ namespace App\Filament\Resources\OutgoingMails;
 use App\Filament\Resources\OutgoingMails\Pages\ListOutgoingMails;
 use App\Filament\Resources\OutgoingMails\Schemas\OutgoingMailForm;
 use App\Filament\Resources\OutgoingMails\Tables\OutgoingMailsTable;
+use App\Filament\Support\AreaAccess;
 use App\Models\OutgoingMail;
 use BackedEnum;
 use Filament\Infolists\Components\TextEntry;
@@ -15,6 +16,13 @@ use Filament\Tables\Table;
 
 class OutgoingMailResource extends Resource
 {
+    use AreaAccess;
+
+    public static function area(): string
+    {
+        return 'mailings';
+    }
+
     protected static ?string $model = OutgoingMail::class;
 
     public static function getModelLabel(): string

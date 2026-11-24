@@ -5,6 +5,7 @@ namespace App\Filament\Resources\People\Schemas;
 use App\Models\Form;
 use App\Models\Person;
 use App\Models\User;
+use App\Support\Auth\Permissions;
 use App\Support\Forms\Forms;
 use App\Support\Forms\FormValue;
 use Filament\Infolists\Components\TextEntry;
@@ -29,8 +30,7 @@ class PersonInfolist
 
         // Safety sheet and other forms: only for the safety role and administrators (SF20); every view is logged.
         $user = auth()->user();
-        $allowed = $user instanceof User && $user->person !== null
-            && array_intersect($user->person->activeRoleKeys(), ['safety_officer', 'administrator']) !== [];
+        $allowed = $user instanceof User && Permissions::allows($user, 'safety');
         if ($allowed) {
             foreach (Form::query()->where('kind', 'person')->where('active', true)->orderBy('sort')->with('fields')->get() as $form) {
                 $sections[] = Section::make($form->label())->collapsible()->collapsed()->columns(2)

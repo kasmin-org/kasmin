@@ -7,6 +7,7 @@ use App\Filament\Resources\Groups\Pages\EditGroup;
 use App\Filament\Resources\Groups\Pages\ListGroups;
 use App\Filament\Resources\Groups\Schemas\GroupForm;
 use App\Filament\Resources\Groups\Tables\GroupsTable;
+use App\Filament\Support\AreaAccess;
 use App\Models\Group;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -16,6 +17,13 @@ use Filament\Tables\Table;
 
 class GroupResource extends Resource
 {
+    use AreaAccess;
+
+    public static function area(): string
+    {
+        return 'people';
+    }
+
     protected static ?string $model = Group::class;
 
     public static function getModelLabel(): string

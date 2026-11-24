@@ -7,6 +7,7 @@ use App\Filament\Support\Money;
 use App\Models\Invoice;
 use App\Models\MembershipType;
 use App\Models\User;
+use App\Support\Auth\Permissions;
 use BackedEnum;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\TextInput;
@@ -48,7 +49,7 @@ class MembershipTypeResource extends Resource
     {
         $user = auth()->user();
 
-        return $user instanceof User && $user->hasAnyRole(['administrator', 'board', 'treasurer']);
+        return $user instanceof User && (Permissions::allows($user, 'people', 'edit') || Permissions::allows($user, 'finance', 'edit'));
     }
 
     public static function form(Schema $schema): Schema

@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'register_child' => 'Kind anmelden', 'not_open' => 'Die Anmeldung ist noch nicht offen.', 'closed_event' => 'Die Anmeldung ist geschlossen.',
     'submit' => 'Absenden', 'confirm' => 'Bestätigen', 'sent' => 'Vielen Dank! Wir haben Ihnen eine E-Mail geschickt. Bitte öffnen Sie den Link darin zur Bestätigung.',
     'early' => 'Dieses Formular öffnet am :date.', 'closed' => 'Dieses Formular ist geschlossen.', 'invalid_title' => 'Link nicht mehr gültig', 'invalid' => 'Dieser Link wurde bereits verwendet oder ist abgelaufen.',
     'done' => 'Vielen Dank, alles ist erledigt. Sie erhalten eine E-Mail.', 'pending' => 'Vielen Dank! Wir prüfen Ihre Bewerbung und melden uns.', 'failed' => 'Das hat nicht funktioniert: :reason',

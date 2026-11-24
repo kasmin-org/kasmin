@@ -7,6 +7,8 @@ return [
         'no_role' => 'Registration is not provided for this role.',
         'age' => 'The age does not match this event.',
         'no_guests' => 'No more guests can be invited.',
+        'pay_to_accept' => 'This place is accepted by paying the invoice.',
+        'no_place' => 'There is no free place, or the person is already registered.',
         'already' => 'This person is already registered for this event.',
         'reason' => 'Please give a reason.',
         'no_reserve' => 'There is no reserve place left.',

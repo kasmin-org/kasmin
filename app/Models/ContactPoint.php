@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\Auditable;
+use App\Support\Auth\Permissions;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -32,7 +33,9 @@ class ContactPoint extends Model
             if ($point->type === 'email') {
                 $point->value = mb_strtolower(trim($point->value));
             }
+            Permissions::guardContact($point);
         });
+        static::deleting(fn (ContactPoint $point) => Permissions::guardContact($point, true));
     }
 
     /** @return BelongsTo<Person, $this> */

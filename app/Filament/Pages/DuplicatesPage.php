@@ -4,6 +4,7 @@ namespace App\Filament\Pages;
 
 use App\Models\Person;
 use App\Models\User;
+use App\Support\Auth\Permissions;
 use App\Support\People\Duplicates;
 use BackedEnum;
 use Filament\Actions\Action;
@@ -45,7 +46,7 @@ class DuplicatesPage extends Page
     {
         $user = auth()->user();
 
-        return $user instanceof User && $user->hasAnyRole(['administrator', 'board']);
+        return $user instanceof User && Permissions::allows($user, 'people', 'edit');
     }
 
     /** @return array<string, mixed> */

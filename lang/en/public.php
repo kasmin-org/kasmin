@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'register_child' => 'Register a child', 'not_open' => 'Registration is not open yet.', 'closed_event' => 'Registration is closed.',
     'submit' => 'Send', 'confirm' => 'Confirm', 'sent' => 'Thank you! We have sent you an e-mail. Please open the link in it to confirm.',
     'early' => 'This form opens on :date.', 'closed' => 'This form is closed.', 'invalid_title' => 'Link no longer valid', 'invalid' => 'This link has already been used or has expired.',
     'done' => 'Thank you, everything is done. You will get an e-mail.', 'pending' => 'Thank you! We will check your application and get back to you.', 'failed' => 'That did not work: :reason',

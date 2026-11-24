@@ -3,11 +3,15 @@
 namespace App\Filament\Resources\Events\Schemas;
 
 use App\Filament\Support\Money;
+use App\Models\Event;
+use App\Models\EventDocument;
 use App\Models\Form;
 use App\Models\Group;
 use App\Models\MembershipType;
+use App\Support\Auth\Permissions;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TagsInput;
@@ -22,7 +26,7 @@ class EventForm
     public static function configure(Schema $schema): Schema
     {
         return $schema->components([
-            Section::make(__('admin.event.singular'))->columns(2)->schema([
+            Section::make(__('admin.event.singular'))->disabled(fn () => ! Permissions::current('events', 'edit'))->columns(['md' => 2])->schema([
                 TextInput::make('title')->label(__('admin.event.title'))->required()->maxLength(200)->columnSpanFull(),
                 Select::make('event_series_id')->label(__('admin.event.series'))->relationship('series', 'name')->createOptionForm([
                     TextInput::make('name')->label(__('admin.event.title'))->required(),
@@ -38,15 +42,33 @@ class EventForm
                 DatePicker::make('age_reference_date')->label(__('admin.event.age_reference'))
                     ->hintIcon('heroicon-m-question-mark-circle', tooltip: __('admin.event.age_reference_hint')),
                 TextInput::make('max_guests')->label(__('public.guests'))->numeric()->minValue(0)->maxValue(10)->default(0)->required(),
+                TextInput::make('address')->label(__('admin.event.address'))->maxLength(250),
+                TextInput::make('map_url')->label(__('admin.event.map'))->url()->startsWith(['https://'])->maxLength(500),
+                TextInput::make('return_point')->label(__('admin.event.return_point'))->maxLength(200),
+                TextInput::make('contact_name')->label(__('admin.event.contact'))->maxLength(150),
+                TextInput::make('contact_email')->label(__('lists.email'))->email()->maxLength(254),
+                TextInput::make('contact_phone')->label(__('lists.phone'))->maxLength(40),
+                DateTimePicker::make('announce_at')->label(__('admin.event.announce_at'))->seconds(false)->hintIcon('heroicon-m-question-mark-circle', tooltip: __('admin.event.dates_hint')),
+                DateTimePicker::make('registration_opens_at')->label(__('admin.event.opens_at'))->seconds(false),
+                DateTimePicker::make('registration_closes_at')->label(__('admin.event.closes_at'))->seconds(false)->after('registration_opens_at'),
+                Toggle::make('public_page')->label(__('admin.event.public_page'))->inline(false)
+                    ->helperText(fn (?Event $record) => $record !== null && ! $record->is_template && $record->public_page ? route('public.event', $record->public_id) : null),
+                FileUpload::make('image_path')->label(__('admin.event.image'))->image()->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])->maxSize(5120)->disk('local')->directory('event-images')->visibility('private'),
+                Repeater::make('documents')->relationship()->label(__('admin.event.documents'))->columnSpanFull()->columns(['md' => 3])->orderColumn('sort')->defaultItems(0)->addActionLabel(__('admin.event.add_document'))
+                    ->schema([
+                        TextInput::make('title')->label(__('admin.event.title'))->required()->maxLength(150),
+                        Select::make('visibility')->label(__('admin.event.visibility'))->options(__('admin.event.visibilities'))->default('participants')->required(),
+                        FileUpload::make('path')->label(__('admin.finance.file'))->required()->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])->maxSize(10240)->disk('local')->directory(EventDocument::DIRECTORY)->visibility('private'),
+                    ]),
                 DatePicker::make('answers_until')->label(__('admin.event.answers_until'))->hintIcon('heroicon-m-question-mark-circle', tooltip: __('admin.event.answers_until_hint')),
                 Textarea::make('description')->label(__('admin.event.description'))->columnSpanFull(),
             ]),
-            Section::make(__('admin.event.roles'))->schema([
+            Section::make(__('admin.event.roles'))->disabled(fn () => ! Permissions::current('events', 'edit'))->schema([
                 Repeater::make('roles')->relationship()->label('')->columns(3)->defaultItems(1)->addActionLabel(__('admin.event.add_role'))
                     ->schema([
                         Select::make('role_key')->label(__('admin.event.role'))->options(__('events.roles'))->required()->distinct(),
                         TextInput::make('capacity')->label(__('admin.event.capacity'))->numeric()->minValue(0),
-                        TextInput::make('reserve_places')->label(__('admin.event.reserve_places'))->numeric()->minValue(0)->default(0)
+                        TextInput::make('reserve_places')->label(__('admin.event.reserve_places'))->numeric()->minValue(0)->default(0)->dehydrateStateUsing(fn ($state) => (int) $state)
                             ->hintIcon('heroicon-m-question-mark-circle', tooltip: __('admin.event.reserve_hint')),
                         TextInput::make('min_age')->label(__('admin.event.min_age'))->numeric()->minValue(0)->maxValue(120),
                         TextInput::make('max_age')->label(__('admin.event.max_age'))->numeric()->minValue(0)->maxValue(120),
@@ -60,7 +82,7 @@ class EventForm
                             ->columnSpanFull(),
                     ]),
             ]),
-            Section::make(__('admin.finance.pricing'))->collapsible()->columnSpanFull()->columns(['md' => 3])->schema([
+            Section::make(__('admin.finance.pricing'))->disabled(fn () => ! Permissions::current('events', 'edit') && ! Permissions::current('finance', 'edit'))->collapsible()->columnSpanFull()->columns(['md' => 3])->schema([
                 Select::make('sibling_mode')->label(__('admin.finance.sibling_mode'))->options(__('finance.sibling_mode'))->default('none')->required()->live()->columnSpan(2),
                 Select::make('sibling_order')->label(__('admin.finance.sibling_order'))->options(__('finance.sibling_order'))->default('oldest')->required(),
                 Money::input('sibling_amount_cents', __('admin.finance.sibling_amount'))
@@ -68,7 +90,7 @@ class EventForm
                 TextInput::make('sibling_cap_position')->label(__('admin.finance.sibling_cap'))->numeric()->minValue(2)
                     ->hintIcon('heroicon-m-question-mark-circle', tooltip: __('admin.finance.sibling_cap_hint'))
                     ->visible(fn ($get) => $get('sibling_mode') === 'staggered'),
-                TextInput::make('sibling_min_children')->label(__('admin.finance.sibling_min'))->numeric()->minValue(2)->default(2)
+                TextInput::make('sibling_min_children')->label(__('admin.finance.sibling_min'))->numeric()->minValue(2)->default(2)->dehydrateStateUsing(fn ($state) => max(2, (int) $state))
                     ->visible(fn ($get) => $get('sibling_mode') === 'all'),
                 TagsInput::make('reminder_days_before')->label(__('admin.finance.reminder_days'))->placeholder('3')
                     ->hintIcon('heroicon-m-question-mark-circle', tooltip: __('admin.finance.reminder_days_hint'))
@@ -107,6 +129,18 @@ class EventForm
                         Select::make('paid_remove_group_id')->label(__('admin.finance.paid_remove_group'))->options(fn () => Group::query()->where('kind', 'manual')->orderBy('name')->pluck('name', 'id')->all()),
                         Toggle::make('discounts_apply')->label(__('admin.finance.discounts_apply'))->default(true)->inline(false)
                             ->hintIcon('heroicon-m-question-mark-circle', tooltip: __('admin.finance.discounts_apply_hint')),
+                    ]),
+            ]),
+            Section::make(__('admin.event.rounds'))->disabled(fn () => ! Permissions::current('events', 'edit'))->collapsible()->collapsed(fn (?Event $record) => $record === null || ! $record->rounds()->exists())->columnSpanFull()->description(__('admin.event.rounds_hint'))->schema([
+                Repeater::make('rounds')->relationship()->label('')->columns(['md' => 3])->orderColumn('sort')->defaultItems(0)->addActionLabel(__('admin.event.add_round'))
+                    ->schema([
+                        Select::make('role_key')->label(__('admin.event.role'))->options(__('events.roles'))->default('child')->required(),
+                        Select::make('kind')->label(__('admin.event.round_kind'))->options(__('admin.event.round_kinds'))->required()->live(),
+                        Select::make('mode')->label(__('admin.event.round_mode'))->options(__('admin.event.round_modes'))->default('accept')->required()->visible($offers = fn ($get) => in_array($get('kind'), ['returning', 'selection'], true)),
+                        DateTimePicker::make('opens_at')->label(__('public.opens_at'))->seconds(false)->required(),
+                        DateTimePicker::make('closes_at')->label(__('public.closes_at'))->seconds(false)->after('opens_at')->required($offers),
+                        TextInput::make('min_events')->label(__('admin.event.round_min_events'))->numeric()->minValue(0)->maxValue(20)->default(0)->visible(fn ($get) => $get('kind') === 'selection')->dehydrateStateUsing(fn ($state) => (int) $state),
+                        Select::make('group_id')->label(__('admin.event.round_group'))->options(fn () => Group::query()->orderBy('name')->pluck('name', 'id')->all())->visible($offers),
                     ]),
             ]),
             Section::make(__('admin.finance.costs'))->collapsible()->collapsed()->schema([

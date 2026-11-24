@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\Auditable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -20,6 +21,14 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $age_reference_date
  * @property Carbon|null $answers_until
  * @property int $max_guests
+ * @property bool $is_template
+ * @property bool $public_page
+ * @property Carbon|null $announce_at
+ * @property Carbon|null $registration_opens_at
+ * @property Carbon|null $registration_closes_at
+ * @property Carbon|null $status_checked_at
+ * @property Carbon|null $created_at
+ * @property string|null $image_path
  * @property string $currency
  * @property int $cancellation_fee_cents
  * @property array<string, string>|null $cancellation_text
@@ -39,7 +48,13 @@ class Event extends Model
     protected $guarded = ['id', 'public_id'];
 
     /** Defaults like in the database, also before the model is reloaded. */
-    protected $attributes = ['status' => 'draft', 'max_guests' => 0, 'registration_binding' => true, 'currency' => 'EUR', 'sibling_mode' => 'none', 'sibling_amount_cents' => 0, 'sibling_min_children' => 2, 'sibling_order' => 'oldest'];
+    protected $attributes = ['status' => 'draft', 'is_template' => false, 'public_page' => false, 'max_guests' => 0, 'registration_binding' => true, 'currency' => 'EUR', 'sibling_mode' => 'none', 'sibling_amount_cents' => 0, 'sibling_min_children' => 2, 'sibling_order' => 'oldest'];
+
+    protected static function booted(): void
+    {
+        // Templates (ET01) are never shown or used as events.
+        static::addGlobalScope('template', fn (Builder $query) => $query->where('events.is_template', static::class === EventTemplate::class));
+    }
 
     /** @return list<string> */
     public function uniqueIds(): array
@@ -49,7 +64,7 @@ class Event extends Model
 
     protected function casts(): array
     {
-        return ['starts_at' => 'datetime', 'ends_at' => 'datetime', 'registration_binding' => 'boolean', 'age_reference_date' => 'date', 'answers_until' => 'date', 'reminder_days_before' => 'array', 'cancellation_text' => 'array'];
+        return ['starts_at' => 'datetime', 'ends_at' => 'datetime', 'registration_binding' => 'boolean', 'age_reference_date' => 'date', 'is_template' => 'boolean', 'public_page' => 'boolean', 'announce_at' => 'datetime', 'registration_opens_at' => 'datetime', 'registration_closes_at' => 'datetime', 'status_checked_at' => 'datetime', 'answers_until' => 'date', 'reminder_days_before' => 'array', 'cancellation_text' => 'array'];
     }
 
     /** @return BelongsTo<EventSeries, $this> */
@@ -76,11 +91,22 @@ class Event extends Model
         return $this->hasMany(Participation::class);
     }
 
-    /** Date at which ages are calculated (EE04, default: event start). */
     /** @return HasMany<EventPrice, $this> */
     public function prices(): HasMany
     {
         return $this->hasMany(EventPrice::class)->orderBy('sort')->orderBy('id');
+    }
+
+    /** @return HasMany<EventDocument, $this> */
+    public function documents(): HasMany
+    {
+        return $this->hasMany(EventDocument::class)->orderBy('sort')->orderBy('id');
+    }
+
+    /** @return HasMany<RegistrationRound, $this> */
+    public function rounds(): HasMany
+    {
+        return $this->hasMany(RegistrationRound::class)->orderBy('sort')->orderBy('id');
     }
 
     /** @return HasMany<EventCost, $this> */
@@ -89,6 +115,7 @@ class Event extends Model
         return $this->hasMany(EventCost::class)->orderBy('sort');
     }
 
+    /** Date at which ages are calculated (EE04, default: event start). */
     public function ageReferenceDate(): Carbon
     {
         return $this->age_reference_date ?? $this->starts_at;

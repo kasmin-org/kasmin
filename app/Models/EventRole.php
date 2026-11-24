@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\Auditable;
+use App\Support\Events\Rounds;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -62,6 +63,12 @@ class EventRole extends Model
         $regular = $this->occupied() - $reserveUsed;
 
         return max(0, $this->capacity - $this->reserve_places - $regular);
+    }
+
+    /** Places somebody can take directly now: none before the open round (RR01). */
+    public function directLeft(): ?int
+    {
+        return $this->event !== null && ! Rounds::directRegistration($this->event, $this->role_key) ? 0 : $this->bookableLeft();
     }
 
     public function reserveLeft(): int

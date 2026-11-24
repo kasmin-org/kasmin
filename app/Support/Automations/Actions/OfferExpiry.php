@@ -15,9 +15,13 @@ use App\Support\Mail\Notifier;
  */
 class OfferExpiry implements Action
 {
+    /** Transfers take some days until they are in the bank import. */
+    public const PAYMENT_GRACE_DAYS = 3;
+
     public function plan(Automation $automation, ?Event $event): array
     {
         return array_values(Participation::query()->where('status', 'offered')->whereNotNull('offer_expires_at')->where('offer_expires_at', '<', now())
+            ->where(fn ($q) => $q->whereNull('offer_mode')->orWhere('offer_expires_at', '<', now()->subDays(self::PAYMENT_GRACE_DAYS)))
             ->when($event, fn ($q) => $q->where('event_id', $event?->id))->with('person', 'event')->get()
             ->map(fn (Participation $p) => [
                 'key' => 'participation:'.$p->id,
@@ -28,7 +32,8 @@ class OfferExpiry implements Action
     public function execute(Automation $automation, array $item, ?Event $event): string
     {
         $p = Participation::query()->with('event', 'person')->find((int) substr($item['key'], 14));
-        if ($p === null || $p->status !== 'offered' || $p->offer_expires_at === null || $p->offer_expires_at->isFuture()) {
+        if ($p === null || $p->status !== 'offered' || $p->offer_expires_at === null || $p->offer_expires_at->isFuture()
+            || ($p->offer_mode === 'payment' && $p->offer_expires_at->copy()->addDays(self::PAYMENT_GRACE_DAYS)->isFuture())) {
             return 'skipped';
         }
         $p->fill(['status' => 'declined', 'offer_expires_at' => null])->save();

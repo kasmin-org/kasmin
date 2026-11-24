@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\Auditable;
+use App\Support\Auth\Permissions;
 use Database\Factories\PersonFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -35,6 +36,11 @@ class Person extends Model
     public function uniqueIds(): array
     {
         return ['public_id'];
+    }
+
+    protected static function booted(): void
+    {
+        static::deleting(fn (Person $person) => Permissions::guardPerson($person));
     }
 
     protected function casts(): array

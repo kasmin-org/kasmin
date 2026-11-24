@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'offer_payment' => 'Ein Platz ist bis :date reserviert. Sie nehmen ihn durch Bezahlung der Rechnung an.',
     'notify_duplicate' => 'Wahrscheinlich doppelter Eintrag: :name',
     'guardians_full' => 'Es können keine weiteren Erziehungsberechtigten eingeladen werden.', 'notify_guardian_invited' => ':name hat eine weitere erziehungsberechtigte Person eingeladen (:family)', 'notify_guardian_added' => ':name ist jetzt erziehungsberechtigt (:family)',
     'login_not_possible' => 'Ein eigener Zugang mit dieser Adresse ist nicht möglich.', 'login_created' => 'Zugang erstellt. Das Kind hat einen Anmeldelink erhalten.', 'child_login' => 'Eigener Zugang für das Kind', 'child_login_hint' => 'Das Kind bekommt einen eigenen Zugang mit eigener E-Mail-Adresse. Es kann sein Sicherheitsblatt sehen, aber nicht ändern.', 'create_login' => 'Zugang erstellen',

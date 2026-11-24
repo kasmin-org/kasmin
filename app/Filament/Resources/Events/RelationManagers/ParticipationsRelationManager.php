@@ -8,16 +8,20 @@ use App\Models\FormField;
 use App\Models\Participation;
 use App\Models\Person;
 use App\Models\User;
+use App\Support\Auth\Permissions;
 use App\Support\Events\RegistrationException;
 use App\Support\Events\Registrations;
+use App\Support\Events\Rounds;
 use App\Support\Finance\Corrections;
 use App\Support\Forms\FormValue;
 use App\Support\Forms\RegistrationAnswers;
 use App\Support\Lists\EventLists;
+use App\Support\Mail\Composer;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\CreateAction;
 use Filament\Actions\EditAction;
+use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -32,6 +36,7 @@ use Filament\Tables\Enums\RecordActionsPosition;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 
 /**
  * Participants board of an event: status, waitlist position, reserve places (AD30, AD31, WL05).
@@ -39,6 +44,11 @@ use Illuminate\Database\Eloquent\Model;
 class ParticipationsRelationManager extends RelationManager
 {
     protected static string $relationship = 'participations';
+
+    private static function mayEdit(): bool
+    {
+        return Permissions::current('events', 'edit');
+    }
 
     public static function getTitle(Model $ownerRecord, string $pageClass): string
     {
@@ -73,7 +83,31 @@ class ParticipationsRelationManager extends RelationManager
                 SelectFilter::make('role_key')->label(__('admin.event.role'))->options(__('events.roles')),
             ])
             ->headerActions([
-                CreateAction::make()->label(__('admin.event.add_participant'))
+                // Out of turn, with a reason (RR03).
+                Action::make('offer')->visible(fn () => self::mayEdit())->label(__('admin.event.offer_place'))->icon('heroicon-o-gift')->color('gray')
+                    ->schema([
+                        Select::make('person_id')->label(__('admin.person.singular'))->searchable()->required()
+                            ->getSearchResultsUsing(fn (string $search) => Person::query()->whereNull('anonymised_at')->where(fn ($q) => $q->where('last_name', 'like', "%{$search}%")->orWhere('first_name', 'like', "%{$search}%"))->limit(30)->get()->mapWithKeys(fn (Person $p) => [$p->id => $p->fullName()])->all())
+                            ->getOptionLabelUsing(fn ($value) => Person::query()->whereKey((int) $value)->first()?->fullName()),
+                        Select::make('role_key')->label(__('admin.event.role'))->options(__('events.roles'))->default('child')->required(),
+                        DatePicker::make('until')->label(__('admin.event.offer_until'))->required()->minDate(now()),
+                        Textarea::make('reason')->label(__('admin.finance.reason'))->required()->maxLength(250),
+                    ])
+                    ->action(function (array $data) {
+                        /** @var Event $event */
+                        $event = $this->getOwnerRecord();
+                        $person = Person::query()->whereKey((int) $data['person_id'])->firstOrFail();
+                        $offered = app(Rounds::class)->offer($event, $person, (string) $data['role_key'], Carbon::parse((string) $data['until'])->endOfDay(), null, (string) $data['reason']);
+                        if ($offered === null) {
+                            Notification::make()->title(__('events.errors.no_place'))->danger()->send();
+
+                            return;
+                        }
+                        foreach ($person->guardians()->get()->all() ?: [$person] as $recipient) {
+                            app(Composer::class)->queue('round_offer', $recipient, ['event' => $event, 'participation' => $offered->load('event', 'person'), 'household' => $person->households()->first(), 'children' => [$person]]);
+                        }
+                    }),
+                CreateAction::make()->visible(fn () => self::mayEdit())->label(__('admin.event.add_participant'))
                     ->schema([
                         Select::make('person_id')->label(__('admin.person.singular'))->searchable()->required()
                             ->getSearchResultsUsing(fn (string $search) => Person::query()->where('last_name', 'like', "%{$search}%")->orWhere('first_name', 'like', "%{$search}%")->limit(30)->get()->mapWithKeys(fn (Person $p) => [$p->id => $p->fullName()])->all())
@@ -96,7 +130,7 @@ class ParticipationsRelationManager extends RelationManager
             ->recordActions([
                 ActionGroup::make([
                     Action::make('reserve')->label(__('admin.event.assign_reserve'))->icon('heroicon-o-star')
-                        ->visible(fn (Participation $record) => $record->status === 'waitlist')
+                        ->visible(fn (Participation $record) => self::mayEdit() && $record->status === 'waitlist')
                         ->schema([Textarea::make('reason')->label(__('admin.event.reserve_reason'))->required()->maxLength(255)])
                         ->action(function (Participation $record, array $data) {
                             try {
@@ -130,14 +164,14 @@ class ParticipationsRelationManager extends RelationManager
                                 ->map(fn (FormField $f) => TextEntry::make('a_'.$f->key)->label($f->labelText())->state(FormValue::text($f, $values[$f->key] ?? null))->placeholder('–'))->values()->all();
                         }),
                     Action::make('cancel')->label(__('admin.event.cancel_participation'))->icon('heroicon-o-x-circle')->color('danger')->requiresConfirmation()
-                        ->visible(fn (Participation $record) => ! in_array($record->status, ['cancelled', 'declined', 'attended', 'no_show'], true))
+                        ->visible(fn (Participation $record) => self::mayEdit() && ! in_array($record->status, ['cancelled', 'declined', 'attended', 'no_show'], true))
                         ->schema([Textarea::make('reason')->label(__('admin.finance.reason'))->required()->maxLength(250)])
                         ->action(function (Participation $record, array $data) {
                             app(Registrations::class)->cancel($record->loadMissing('event'), (string) $data['reason']);
                             app(Corrections::class)->refreshDrafts($record->event ?? throw new Halt);
                             Notification::make()->title(__('admin.event.cancelled_hint'))->success()->send();
                         }),
-                    EditAction::make()->label(__('admin.event.change_status')),
+                    EditAction::make()->visible(fn () => self::mayEdit())->label(__('admin.event.change_status')),
                 ]),
             ], RecordActionsPosition::BeforeColumns);
     }

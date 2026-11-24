@@ -4,6 +4,7 @@ namespace App\Filament\Resources\AutomationRuns;
 
 use App\Filament\Resources\AutomationRuns\Pages\ListAutomationRuns;
 use App\Filament\Resources\AutomationRuns\Pages\ViewAutomationRun;
+use App\Filament\Support\AreaAccess;
 use App\Models\AutomationRun;
 use BackedEnum;
 use Filament\Actions\ViewAction;
@@ -22,6 +23,13 @@ use Filament\Tables\Table;
  */
 class AutomationRunResource extends Resource
 {
+    use AreaAccess;
+
+    public static function area(): string
+    {
+        return 'automations';
+    }
+
     protected static ?string $model = AutomationRun::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCheckBadge;

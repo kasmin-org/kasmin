@@ -33,6 +33,7 @@ class DashboardTest extends TestCase
 
         $this->withoutMiddleware(AuthenticateSession::class);
         $make = function (string $role): User {
+            auth()->forgetUser(); // roles are assigned by the system here
             $person = Person::factory()->create();
             $person->roleAssignments()->create(['role_id' => Role::query()->where('key', $role)->value('id')]);
 

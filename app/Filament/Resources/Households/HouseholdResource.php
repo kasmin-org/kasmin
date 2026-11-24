@@ -7,6 +7,7 @@ use App\Filament\Resources\Households\Pages\EditHousehold;
 use App\Filament\Resources\Households\Pages\ListHouseholds;
 use App\Filament\Resources\Households\Schemas\HouseholdForm;
 use App\Filament\Resources\Households\Tables\HouseholdsTable;
+use App\Filament\Support\AreaAccess;
 use App\Models\Household;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -16,6 +17,13 @@ use Filament\Tables\Table;
 
 class HouseholdResource extends Resource
 {
+    use AreaAccess;
+
+    public static function area(): string
+    {
+        return 'people';
+    }
+
     protected static ?string $recordTitleAttribute = 'name';
 
     /** Global search (AD10). */

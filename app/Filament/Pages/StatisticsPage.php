@@ -4,6 +4,7 @@ namespace App\Filament\Pages;
 
 use App\Models\Event;
 use App\Models\User;
+use App\Support\Auth\Permissions;
 use App\Support\Reports\Statistics;
 use BackedEnum;
 use Filament\Pages\Page;
@@ -46,7 +47,7 @@ class StatisticsPage extends Page
     {
         $user = auth()->user();
 
-        return $user instanceof User && $user->isAdministrative();
+        return $user instanceof User && (Permissions::allows($user, 'events') || Permissions::allows($user, 'finance'));
     }
 
     public function mount(): void
@@ -70,7 +71,7 @@ class StatisticsPage extends Page
             'model' => $event,
             'roleOptions' => $event?->roles->pluck('role_key')->all() ?? [],
             'ages' => $event ? $stats->ageDistribution($event, $roles) : [],
-            'ageGroups' => $event ? $stats->ageGroups($event, $this->groups, $roles) : [],
+            'ageGroups' => $event && Permissions::current('events') ? $stats->ageGroups($event, $this->groups, $roles) : [],
             'costs' => $event && $user instanceof User && $user->canViewFinance() ? $stats->costs($event) : null,
             'discounts' => $event && $user instanceof User && $user->canViewFinance() ? $stats->discounts($event) : null,
             'years' => $stats->years(),

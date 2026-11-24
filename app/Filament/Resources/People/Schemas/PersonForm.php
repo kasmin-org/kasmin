@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\People\Schemas;
 
+use App\Models\Person;
+use App\Support\Auth\Permissions;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
@@ -24,7 +26,7 @@ class PersonForm
                 Select::make('locale')->label(__('admin.person.locale'))->options(['de' => 'Deutsch', 'en' => 'English'])->default('de')->required(),
             ]),
             Section::make(__('admin.person.section_contacts'))->schema([
-                Repeater::make('contactPoints')->relationship()->label('')->columns(3)->defaultItems(0)
+                Repeater::make('contactPoints')->relationship()->disabled(fn (?Person $record) => Permissions::administrative($record) && ! Permissions::administrator())->label('')->columns(3)->defaultItems(0)
                     ->addActionLabel(__('admin.person.add_contact'))
                     ->schema([
                         Select::make('type')->label(__('admin.person.contact_type'))->options(['email' => __('admin.person.email'), 'phone' => __('admin.person.phone')])->required()->live(),

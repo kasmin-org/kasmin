@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'offer_payment' => 'A place is reserved until :date. You accept it by paying the invoice.',
     'notify_duplicate' => 'Probable duplicate: :name',
     'guardians_full' => 'No more legal guardians can be invited.', 'notify_guardian_invited' => ':name invited a further legal guardian (:family)', 'notify_guardian_added' => ':name is now a legal guardian (:family)',
     'login_not_possible' => 'An own login with this address is not possible.', 'login_created' => 'Login created. The child has received a login link.', 'child_login' => 'Own login for the child', 'child_login_hint' => 'The child gets its own access with its own e-mail address. It can see its safety sheet but not change it.', 'create_login' => 'Create login',

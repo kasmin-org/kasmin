@@ -69,12 +69,12 @@ class RestApiTest extends TestCase
     {
         $token = $this->token(['people:read', 'people:write', 'events:read', 'events:write']);
         $created = $this->withToken($token)->postJson('/api/v1/people', [
-            'first_name' => 'Kim', 'last_name' => 'Brook', 'birth_date' => now()->subYears(10)->toDateString(),
+            'first_name' => 'Kim', 'last_name' => 'Zzqbrook', 'birth_date' => now()->subYears(10)->toDateString(),
             'guardian1_first_name' => 'Chris', 'guardian1_email' => 'chris@example.org',
-        ])->assertCreated()->assertJsonPath('data.first_name', 'Kim')->assertJsonPath('data.legal_guardians.0.name', 'Chris Brook');
+        ])->assertCreated()->assertJsonPath('data.first_name', 'Kim')->assertJsonPath('data.legal_guardians.0.name', 'Chris Zzqbrook');
         $kim = (string) $created->json('data.id');
 
-        $this->withToken($token)->getJson('/api/v1/people?search=Brook')->assertOk()->assertJsonPath('meta.total', 2);
+        $this->withToken($token)->getJson('/api/v1/people?search=Zzqbrook')->assertOk()->assertJsonPath('meta.total', 2);
         $this->withToken($token)->patchJson('/api/v1/people/'.$kim, ['gender' => 'diverse'])->assertOk()->assertJsonPath('data.gender', 'diverse');
 
         $event = $this->event->public_id;

@@ -3,8 +3,8 @@
 namespace App\Filament\Resources\Consents;
 
 use App\Filament\Resources\Consents\Pages\ListConsents;
+use App\Filament\Support\AreaAccess;
 use App\Models\Consent;
-use App\Models\User;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Support\Icons\Heroicon;
@@ -18,6 +18,13 @@ use Filament\Tables\Table;
  */
 class ConsentResource extends Resource
 {
+    use AreaAccess;
+
+    public static function area(): string
+    {
+        return 'privacy';
+    }
+
     protected static ?string $model = Consent::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedHandThumbUp;
@@ -35,13 +42,6 @@ class ConsentResource extends Resource
     public static function getNavigationGroup(): ?string
     {
         return __('admin.nav.privacy');
-    }
-
-    public static function canViewAny(): bool
-    {
-        $user = auth()->user();
-
-        return $user instanceof User && $user->hasAnyRole(['administrator', 'board', 'auditor']);
     }
 
     public static function canCreate(): bool

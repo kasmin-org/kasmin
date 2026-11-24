@@ -3,8 +3,8 @@
 namespace App\Filament\Resources\ImportBatches;
 
 use App\Filament\Resources\ImportBatches\Pages\ListImportBatches;
+use App\Filament\Support\AreaAccess;
 use App\Models\ImportBatch;
-use App\Models\User;
 use App\Support\Import\PeopleImporter;
 use BackedEnum;
 use Filament\Actions\Action;
@@ -19,6 +19,13 @@ use Filament\Tables\Table;
  */
 class ImportBatchResource extends Resource
 {
+    use AreaAccess;
+
+    public static function area(): string
+    {
+        return 'people';
+    }
+
     protected static ?string $model = ImportBatch::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedQueueList;
@@ -36,13 +43,6 @@ class ImportBatchResource extends Resource
     public static function getNavigationGroup(): ?string
     {
         return __('admin.nav.people');
-    }
-
-    public static function canViewAny(): bool
-    {
-        $user = auth()->user();
-
-        return $user instanceof User && $user->hasAnyRole(['administrator', 'board']);
     }
 
     public static function canCreate(): bool

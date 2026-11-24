@@ -33,7 +33,7 @@ class Registrations
             throw RegistrationException::because('age');
         }
 
-        $participation = DB::transaction(function () use ($event, $person, $role, $registeredBy) {
+        $participation = DB::transaction(function () use ($event, $person, $role, $registeredBy, $force) {
             // Lock the role row so two registrations at the same moment cannot both take the last place.
             EventRole::query()->whereKey($role->id)->lockForUpdate()->first();
 
@@ -43,7 +43,9 @@ class Registrations
             }
 
             $left = $role->bookableLeft();
-            $status = ($left === null || $left > 0) ? ($event->registration_binding ? 'registered' : 'requested') : 'waitlist';
+            // In registration rounds, places are taken directly only in an open round (RR01); the team always can.
+            $direct = $force || $registeredBy === null || Rounds::directRegistration($event, $role->role_key);
+            $status = $direct && ($left === null || $left > 0) ? ($event->registration_binding ? 'registered' : 'requested') : 'waitlist';
 
             $participation = $existing ?? new Participation(['event_id' => $event->id, 'person_id' => $person->id, 'role_key' => $role->role_key]);
             $participation->fill(['status' => $status, 'registered_at' => now(), 'registered_by_id' => $registeredBy?->id, 'reserve_place' => false, 'reserve_reason' => null, 'cancelled_at' => null, 'cancel_reason' => null])->save();
@@ -112,6 +114,9 @@ class Registrations
     {
         if ($participation->status !== 'offered') {
             throw RegistrationException::because('no_offer');
+        }
+        if ($accept && $participation->offer_mode === 'payment') {
+            throw RegistrationException::because('pay_to_accept');
         }
         if ($accept) {
             $participation->fill(['status' => $participation->event?->registration_binding === false ? 'requested' : 'registered', 'offer_expires_at' => null])->save();

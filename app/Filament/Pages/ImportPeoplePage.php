@@ -5,6 +5,7 @@ namespace App\Filament\Pages;
 use App\Console\Commands\ImportPeopleCommand;
 use App\Filament\Resources\ImportBatches\ImportBatchResource;
 use App\Models\User;
+use App\Support\Auth\Permissions;
 use App\Support\Import\PeopleImporter;
 use App\Support\Import\WeblingConnector;
 use BackedEnum;
@@ -68,7 +69,7 @@ class ImportPeoplePage extends Page
     {
         $user = auth()->user();
 
-        return $user instanceof User && $user->hasAnyRole(['administrator', 'board']);
+        return $user instanceof User && Permissions::allows($user, 'people', 'edit');
     }
 
     public function mount(): void

@@ -47,6 +47,7 @@ return [
         'system' => 'System', 'public_url' => 'Public URL', 'public_url_hint' => 'Address of this installation, used for links in mails and, in the container, for the certificate.', 'digest_time' => 'Time of the daily digest', 'approval_days' => 'Days an approval request stays open',
         'overdue_fees' => 'Reminder fees', 'overdue_fees_hint' => 'Optional, off by default: amount per reminder after the due date, separated by semicolons in the same order, e.g. 0;5. The fee is an own invoice.', 'number_format_invalid' => 'The format needs {number}; with own numbers per year also {year}.',
         'timezone' => 'Time zone', 'timezone_hint' => 'All times and daily jobs are in this time zone. Choose it at the beginning: times already stored are not converted.',
+        'families' => 'Families', 'max_guardians' => 'Legal guardians per family (at most)', 'min_login_age' => 'Own login from age', 'guardian_until_age' => 'Guardianship ends at age', 'own_registrations_visible' => 'Legal guardians see what their child registers itself', 'own_registrations_visible_hint' => 'Off: registrations made by the child with its own login are private.',
         'number_per_year' => 'Own numbers per year', 'number_per_year_hint' => 'Numbers start with 1 every year; use a number format with {year}.',
         'save' => 'Save', 'saved' => 'Saved',
     ],
@@ -66,6 +67,7 @@ return [
         'street' => 'Street', 'postal_code' => 'Postcode', 'city' => 'City', 'country' => 'Country (ISO)',
     ],
     'event' => [
+        'registration_form' => 'Questions when registering', 'answers_until' => 'Answers can be changed until', 'answers_until_hint' => 'Empty = until the start of the event.',
         'cancel_participation' => 'Cancel registration', 'cancelled_hint' => 'Cancelled. Corrections of issued invoices are proposed under Automations.',
         'singular' => 'Event', 'plural' => 'Events', 'title' => 'Title', 'series' => 'Series', 'status' => 'Status',
         'starts_at' => 'Start', 'ends_at' => 'End', 'location' => 'Location', 'meeting_point' => 'Meeting point', 'description' => 'Description',
@@ -82,6 +84,7 @@ return [
     'series' => ['singular' => 'Event series', 'plural' => 'Event series'],
     'group' => ['singular' => 'Group', 'plural' => 'Groups'],
     'form' => [
+        'kind' => 'Kind', 'kinds' => ['person' => 'Person (kept for all events)', 'registration' => 'Questions of an event'], 'scope' => 'Asked', 'scopes' => ['participant' => 'per participant', 'family' => 'once per family'],
         'singular' => 'Form', 'plural' => 'Forms', 'key' => 'Key', 'active' => 'Active', 'name' => 'Name', 'description' => 'Description',
         'applies_until_age' => 'Applies until age', 'confirm_every_days' => 'Confirm every … days', 'family_emergency_contacts' => 'Show the family\'s emergency contacts',
         'version' => 'Version', 'fields' => 'Fields', 'add_field' => 'Add field', 'type' => 'Type', 'label' => 'Label', 'help' => 'Help text (tooltip)',
@@ -90,7 +93,7 @@ return [
         'types' => ['text' => 'Text', 'textarea' => 'Long text', 'select' => 'Choice', 'multiselect' => 'Multiple choice', 'yes_no' => 'Yes/no', 'date' => 'Date', 'year_or_no' => 'Year or no/unknown', 'phone' => 'Phone', 'email' => 'E-mail', 'none_or_text' => 'None or text', 'repeater' => 'Repeatable group', 'consent' => 'Consent'],
         'sensitivities' => ['normal' => 'Normal', 'health' => 'Health (confidential)', 'identity' => 'ID/insurance number (confidential)'],
         'lists' => ['kitchen' => 'Kitchen', 'medical' => 'Medical', 'insurance' => 'Insurance', 'emergency' => 'Emergency'],
-        'hints' => [
+        'hints' => ['kind' => 'Questions of an event are chosen per role in the event and answered when registering.',
             'applies_until_age' => 'From this age the form is no longer requested or shown (safety sheet: 16).',
             'confirm_every_days' => 'After this time the information has to be confirmed again (e.g. 365 = yearly).',
             'family_emergency_contacts' => 'Shows the legal guardians and the family\'s further emergency contacts on top.',

@@ -65,13 +65,14 @@ class Person extends Model
     }
 
     /**
-     * Legal guardians of this person.
+     * Legal guardians of this person (ended guardianships are left out, PE05).
      *
      * @return BelongsToMany<Person, $this>
      */
     public function guardians(): BelongsToMany
     {
-        return $this->belongsToMany(Person::class, 'guardianships', 'child_id', 'guardian_id')->withPivot(['starts_on', 'ends_on'])->withTimestamps();
+        return $this->belongsToMany(Person::class, 'guardianships', 'child_id', 'guardian_id')->withPivot(['starts_on', 'ends_on'])->withTimestamps()
+            ->where(fn ($q) => $q->whereNull('guardianships.ends_on')->orWhereDate('guardianships.ends_on', '>=', now()->toDateString()));
     }
 
     /**
@@ -81,7 +82,8 @@ class Person extends Model
      */
     public function wards(): BelongsToMany
     {
-        return $this->belongsToMany(Person::class, 'guardianships', 'guardian_id', 'child_id')->withPivot(['starts_on', 'ends_on'])->withTimestamps();
+        return $this->belongsToMany(Person::class, 'guardianships', 'guardian_id', 'child_id')->withPivot(['starts_on', 'ends_on'])->withTimestamps()
+            ->where(fn ($q) => $q->whereNull('guardianships.ends_on')->orWhereDate('guardianships.ends_on', '>=', now()->toDateString()));
     }
 
     /** @return BelongsToMany<Household, $this> */

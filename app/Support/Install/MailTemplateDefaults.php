@@ -10,7 +10,7 @@ use App\Models\MailTemplate;
  */
 class MailTemplateDefaults
 {
-    public const VERSION = 3;
+    public const VERSION = 4;
 
     public function install(): void
     {
@@ -39,6 +39,20 @@ class MailTemplateDefaults
             ], [
                 'Registration for {{ event.title }}: {{ registration.child }}',
                 '<p>{{ salutation }}</p><p>thank you! {{ registration.child }} is registered for <strong>{{ event.title }}</strong> ({{ event.starts_at }} – {{ event.ends_at }}). Status: <strong>{{ registration.status }}</strong>.</p>{% if registration.waitlist_position %}<p>Your child is on the waitlist at <strong>position {{ registration.waitlist_position }} of {{ registration.waitlist_total }}</strong>. We will contact you as soon as a place becomes free.</p>{% endif %}<p>You can see all details and the current status in the portal.</p>'.$button('Open the portal').'<p>Kind regards<br>{{ organisation.name }}</p>',
+            ]],
+            'application_welcome' => ['registration', 'both', ['de' => 'Willkommen (Bewerbung angenommen)', 'en' => 'Welcome (application accepted)'], [
+                'Willkommen bei {{ organisation.name }}',
+                '<p>{{ salutation }}</p><p>Ihre Bewerbung wurde angenommen – herzlich willkommen! Im Portal finden Sie Ihre Daten und Anmeldungen.</p>'.$button('Zum Portal').'<p>Mit freundlichen Grüßen<br>{{ organisation.name }}</p>',
+            ], [
+                'Welcome to {{ organisation.name }}',
+                '<p>{{ salutation }}</p><p>your application was accepted – welcome! You find your data and registrations in the portal.</p>'.$button('Open the portal').'<p>Kind regards<br>{{ organisation.name }}</p>',
+            ]],
+            'guardianship_ended' => ['system', 'both', ['de' => 'Ende der Erziehungsberechtigung', 'en' => 'End of guardianship'], [
+                'Änderung bei {{ children[0].full_name }}',
+                '<p>{{ salutation }}</p><p>{{ children[0].full_name }} hat das Alter erreicht, ab dem die eigenen Daten selbst verwaltet werden. Erziehungsberechtigte haben im Portal keinen Zugriff mehr darauf; künftige Rechnungen gehen an {{ children[0].full_name }}.</p><p>Mit freundlichen Grüßen<br>{{ organisation.name }}</p>',
+            ], [
+                'Change for {{ children[0].full_name }}',
+                '<p>{{ salutation }}</p><p>{{ children[0].full_name }} has reached the age from which people manage their own data. Legal guardians no longer have access in the portal; future invoices go to {{ children[0].full_name }}.</p><p>Kind regards<br>{{ organisation.name }}</p>',
             ]],
             'safety_sheet_request' => ['safety_sheet', 'guardians', ['de' => 'Sicherheitsblatt ausfüllen', 'en' => 'Fill in the safety sheet'], [
                 'Bitte Sicherheitsblatt ausfüllen oder bestätigen',

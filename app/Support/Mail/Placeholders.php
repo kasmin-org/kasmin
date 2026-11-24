@@ -3,11 +3,14 @@
 namespace App\Support\Mail;
 
 use App\Models\Event;
+use App\Models\FormField;
 use App\Models\Household;
 use App\Models\Invoice;
 use App\Models\Participation;
 use App\Models\Person;
 use App\Support\Auth\LoginLinks;
+use App\Support\Forms\FormValue;
+use App\Support\Forms\RegistrationAnswers;
 use App\Support\Settings;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -58,7 +61,7 @@ class Placeholders
             'children' => [['first_name' => 'Kim', 'last_name' => 'Example', 'full_name' => 'Kim Example', 'age' => 10]],
             'organisation' => ['name' => 'Example Camp'],
             'event' => ['title' => 'Summer camp', 'starts_at' => '15.08.2027', 'ends_at' => '22.08.2027', 'location' => 'Example place', 'meeting_point' => 'Station'],
-            'registration' => ['status' => 'Waitlist', 'waitlist_position' => 3, 'waitlist_total' => 9, 'child' => 'Kim Example', 'offer_until' => '20.03.2027 23:59'],
+            'registration' => ['status' => 'Waitlist', 'waitlist_position' => 3, 'waitlist_total' => 9, 'child' => 'Kim Example', 'answers' => [], 'offer_until' => '20.03.2027 23:59'],
             'invoice' => ['number' => 'R17', 'total' => '250,00 €', 'open' => '250,00 €', 'paid' => '0,00 €', 'due_on' => '01.06.2027', 'reference' => 'RF72R17', 'iban' => 'AT61 1904 3002 3457 3201', 'overdue' => false, 'children' => 'Kim Example'],
             'links' => ['portal' => 'https://example.org/portal', 'login' => 'https://example.org/login/link/x', 'preferences' => 'https://example.org/mail/preferences'],
         ];
@@ -122,6 +125,23 @@ class Placeholders
         ];
     }
 
+    /** @return array<string, string> non-confidential answers to the questions of the event (FB04) */
+    private function answers(Participation $p): array
+    {
+        $service = app(RegistrationAnswers::class);
+        $form = $p->event !== null ? $service->form($p->event, $p->role_key) : null;
+        if ($form === null) {
+            return [];
+        }
+        $values = $service->values($p, $form);
+        $result = [];
+        foreach ($form->fields->reject(fn (FormField $f) => $f->isConfidential()) as $field) {
+            $result[$field->key] = FormValue::text($field, $values[$field->key] ?? null) ?? '';
+        }
+
+        return $result;
+    }
+
     /** @return array<string, mixed> */
     private function participation(Participation $p, string $locale): array
     {
@@ -132,6 +152,7 @@ class Placeholders
             'waitlist_position' => $p->waitlistPosition(),
             'waitlist_total' => $role?->waitlistLength(),
             'child' => $p->person?->fullName(),
+            'answers' => $this->answers($p),
             'offer_until' => $p->offer_expires_at !== null ? $this->date($p->offer_expires_at, $locale, $locale === 'de' ? 'd.m.Y H:i' : 'j F Y, H:i') : '',
         ];
     }

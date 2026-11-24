@@ -1,0 +1,18 @@
+<?php
+
+return [
+    'submit' => 'Send', 'confirm' => 'Confirm', 'sent' => 'Thank you! We have sent you an e-mail. Please open the link in it to confirm.',
+    'early' => 'This form opens on :date.', 'closed' => 'This form is closed.', 'invalid_title' => 'Link no longer valid', 'invalid' => 'This link has already been used or has expired.',
+    'done' => 'Thank you, everything is done. You will get an e-mail.', 'pending' => 'Thank you! We will check your application and get back to you.', 'failed' => 'That did not work: :reason',
+    'to_login' => 'Go to the login', 'guest_intro' => ':host has invited you as a guest. Please register yourself; you will get your own invoice if there is a price.',
+    'notify_application' => ':form: :name is waiting for a decision',
+    'mail_confirm_subject' => 'Please confirm – :organisation', 'mail_confirm_text' => 'Hello :name, please confirm your entry in the form ":form".', 'mail_confirm_button' => 'Confirm',
+    'mail_confirm_validity' => 'The link is valid for :days days. If this was not you, simply ignore this mail.',
+    'mail_guest_subject' => 'Invitation – :organisation', 'mail_guest_text' => ':host invites you as a guest to :event.', 'mail_guest_button' => 'Register', 'mail_guest_note' => 'The link is personal and works once. If you do not want to come, simply ignore this mail.',
+    'guests' => 'Guests', 'guests_left' => 'You can invite :count more guest(s).', 'invite' => 'Invite', 'invited' => 'Invitation sent.',
+    'own' => 'My registrations',
+    'form' => 'Public form', 'forms' => 'Public forms', 'kind' => 'Kind', 'kinds' => ['event' => 'Register for an event', 'application' => 'Application (team, membership)', 'interest' => 'Stay informed'],
+    'slug' => 'Address', 'slug_hint' => 'Part of the address: /f/…', 'title' => 'Title', 'intro' => 'Text', 'needs_approval' => 'Needs approval', 'opens_at' => 'Opens', 'closes_at' => 'Closes', 'open_page' => 'Open',
+    'questions' => 'Questions', 'group' => 'Add to group', 'submission' => 'Submission', 'submissions' => 'Submissions', 'approve' => 'Approve', 'decline' => 'Decline', 'answers' => 'Show',
+    'statuses' => ['pending' => 'Waiting', 'done' => 'Done', 'declined' => 'Declined', 'failed' => 'Failed'],
+];

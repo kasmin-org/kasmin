@@ -19,6 +19,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $price_cents
  * @property int $role_discount_cents
  * @property bool $counts_as_sibling
+ * @property int|null $registration_form_id
  */
 class EventRole extends Model
 {

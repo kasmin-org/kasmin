@@ -5,7 +5,7 @@
     @if (session('status'))<div class="mb-4 rounded-lg bg-kasmin-100 p-3 text-sm" role="status">{{ session('status') }}</div>@endif
     @if ($errors->any())<div class="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-800" role="alert">{{ $errors->first() }}</div>@endif
     <h1 class="text-2xl font-semibold">{{ $child->fullName() }}</h1>
-    <p class="mb-6 text-sm text-kasmin-700">{{ $child->birth_date?->isoFormat('LL') }} · {{ __('portal.age', ['age' => $child->ageAt()]) }}</p>
+    <p class="mb-6 text-sm text-kasmin-700">@if ($child->birth_date){{ $child->birth_date->isoFormat('LL') }} · {{ __('portal.age', ['age' => $child->ageAt()]) }}@endif</p>
 
     @if ($forms->isNotEmpty())
         <h2 class="mb-2 text-lg font-semibold">{{ __('forms.title') }}</h2>
@@ -48,6 +48,17 @@
                     @php($role = $p->event->roles()->where('role_key', $p->role_key)->first())
                     <p class="mt-2 font-medium">{{ __('events.waitlist_position', ['position' => $p->waitlistPosition(), 'total' => $role?->waitlistLength()]) }}</p>
                 @endif
+                @if (! in_array($p->status, ['cancelled', 'declined'], true) && isset($answerForms[$p->id]))
+                    <p class="mt-2 text-sm"><a class="underline" href="{{ route('portal.child.answers', [$child->public_id, $p->id]) }}">{{ __('portal.answers') }}</a></p>
+                @endif
+                @if ($self && ($guestsLeft[$p->id] ?? 0) > 0)
+                    <form method="post" action="{{ route('portal.child.guest', [$child->public_id, $p->id]) }}" class="mt-3 text-sm">
+                        @csrf
+                        <label class="block"><span class="mb-1 block">{{ __('public.guests_left', ['count' => $guestsLeft[$p->id]]) }}</span>
+                            <input type="email" name="email" required maxlength="254" placeholder="{{ __('auth_link.email') }}" class="w-full rounded-lg border border-kasmin-200 px-3 py-3"></label>
+                        <button class="mt-2 rounded-lg bg-white px-4 py-2 font-semibold ring-1 ring-kasmin-200">{{ __('public.invite') }}</button>
+                    </form>
+                @endif
                 @if (! in_array($p->status, ['cancelled', 'declined', 'attended', 'no_show', 'offered'], true))
                     <details class="mt-2 text-sm">
                     <summary class="cursor-pointer underline">{{ __('portal.cancel') }}</summary>
@@ -74,15 +85,21 @@
                 <p class="text-sm text-kasmin-700">{{ $item['event']->starts_at->isoFormat('LL') }} – {{ $item['event']->ends_at->isoFormat('LL') }}@if ($item['event']->location) · {{ $item['event']->location }}@endif</p>
                 @php($left = $item['role']->bookableLeft())
                 <p class="mt-1 text-sm">{{ $left === null || $left > 0 ? __('events.places_left', ['count' => $left ?? '∞']) : __('events.waitlist_only') }}</p>
-                <form method="post" action="{{ route('portal.child.register', $child->public_id) }}" class="mt-3">
-                    @csrf
-                    <input type="hidden" name="event" value="{{ $item['event']->public_id }}">
-                    <input type="hidden" name="role" value="{{ $item['role']->role_key }}">
-                    <button class="w-full rounded-lg bg-kasmin-600 px-4 py-3 font-semibold text-white sm:w-auto">{{ $left === 0 ? __('portal.join_waitlist') : __('portal.register_child') }}</button>
-                </form>
+                <a class="mt-3 block w-full rounded-lg bg-kasmin-600 px-4 py-3 text-center font-semibold text-white sm:inline-block sm:w-auto" href="{{ route('portal.child.register.form', [$child->public_id, $item['event']->public_id, $item['role']->role_key]) }}">{{ $left === 0 ? __('portal.join_waitlist') : __('portal.register_child') }}</a>
             </article>
         @empty
             <p class="text-sm">{{ __('portal.no_open_events') }}</p>
         @endforelse
     </div>
+    @if ($mayHaveLogin)
+        <details class="mt-6 text-sm">
+            <summary class="cursor-pointer underline">{{ __('portal.child_login') }}</summary>
+            <form method="post" action="{{ route('portal.child.login', $child->public_id) }}" class="mt-2 space-y-2">
+                @csrf
+                <p>{{ __('portal.child_login_hint') }}</p>
+                <input type="email" name="email" required maxlength="254" placeholder="{{ __('auth_link.email') }}" aria-label="{{ __('auth_link.email') }}" class="w-full rounded-lg border border-kasmin-200 px-3 py-3">
+                <button class="rounded-lg bg-white px-4 py-2 font-semibold ring-1 ring-kasmin-200">{{ __('portal.create_login') }}</button>
+            </form>
+        </details>
+    @endif
 @endsection

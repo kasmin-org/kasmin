@@ -1,6 +1,11 @@
 <?php
 
 return [
+    'notify_duplicate' => 'Wahrscheinlich doppelter Eintrag: :name',
+    'guardians_full' => 'Es können keine weiteren Erziehungsberechtigten eingeladen werden.', 'notify_guardian_invited' => ':name hat eine weitere erziehungsberechtigte Person eingeladen (:family)', 'notify_guardian_added' => ':name ist jetzt erziehungsberechtigt (:family)',
+    'login_not_possible' => 'Ein eigener Zugang mit dieser Adresse ist nicht möglich.', 'login_created' => 'Zugang erstellt. Das Kind hat einen Anmeldelink erhalten.', 'child_login' => 'Eigener Zugang für das Kind', 'child_login_hint' => 'Das Kind bekommt einen eigenen Zugang mit eigener E-Mail-Adresse. Es kann sein Sicherheitsblatt sehen, aber nicht ändern.', 'create_login' => 'Zugang erstellen',
+    'mail_guardian_text' => ':host lädt Sie als weitere erziehungsberechtigte Person zu Kasmin ein. Sie haben dann die gleichen Rechte für die Familie.', 'guardian_accept' => 'Annehmen', 'guardian_invitation' => 'Einladung als erziehungsberechtigte Person', 'guardian_done' => 'Erledigt. Sie können sich jetzt mit Ihrer E-Mail-Adresse anmelden.', 'invite_guardian' => 'Weitere erziehungsberechtigte Person einladen', 'read_only' => 'Nur deine Erziehungsberechtigten können das ändern.',
+    'answers' => 'Antworten', 'save_answers' => 'Antworten speichern', 'answers_saved' => 'Antworten gespeichert.', 'answers_closed' => 'Die Antworten können nicht mehr geändert werden.', 'price' => 'Preis: :amount', 'price_hint' => 'Ermäßigungen stehen auf der Rechnung.', 'terms' => 'Stornobedingungen',
     'cancel_now' => 'Anmeldung stornieren', 'terms_not_refundable' => ':name: nicht erstattbar.', 'terms_too_late' => ':name: nicht mehr erstattbar.', 'terms_refundable_until' => ':name: erstattbar bis :date.', 'terms_refundable' => ':name: erstattbar.', 'terms_fee' => 'Stornogebühr: :amount.',
     'view_as' => 'Als Erziehungsberechtigte ansehen',
     'view_as_hint' => 'Zeigt das Portal genau so, wie diese Person es sieht, nur lesend. Die Vorschau wird im Audit-Protokoll vermerkt.',

@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property array<string, string>|null $help
  * @property array<string, mixed>|null $options
  * @property bool $required
+ * @property string $scope
  * @property string $sensitivity
  * @property bool $carry_over
  * @property list<string>|null $list_use
@@ -29,7 +30,7 @@ class FormField extends Model
 
     protected $guarded = ['id'];
 
-    protected $attributes = ['sensitivity' => 'normal', 'carry_over' => true, 'required' => false];
+    protected $attributes = ['sensitivity' => 'normal', 'carry_over' => true, 'required' => false, 'scope' => 'participant'];
 
     protected function casts(): array
     {

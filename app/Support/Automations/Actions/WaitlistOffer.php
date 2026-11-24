@@ -56,7 +56,7 @@ class WaitlistOffer implements Action
         }
         $p->fill(['status' => 'offered', 'offer_expires_at' => now()->addDays((int) $automation->setting('offer_days', 7))->endOfDay()])->save();
         Audit::record('participation.offered', $p, null, ['until' => $p->offer_expires_at?->toIso8601String()]);
-        foreach ($person->guardians->all() ?: [$person] as $recipient) {
+        foreach ($p->isOwn() ? [$person] : ($person->guardians->all() ?: [$person]) as $recipient) {
             app(Composer::class)->queue('waitlist_offer', $recipient, [
                 'event' => $e, 'participation' => $p, 'household' => $person->households->first(), 'children' => [$person],
             ]);

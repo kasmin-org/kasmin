@@ -14,6 +14,9 @@ use App\Models\OutgoingMail;
 use App\Models\Participation;
 use App\Models\Payment;
 use App\Models\Person;
+use App\Models\PublicSubmission;
+use App\Models\Refund;
+use App\Models\RegistrationAnswer;
 use App\Models\User;
 use App\Support\Audit\Audit;
 use App\Support\Settings;
@@ -79,9 +82,11 @@ class Privacy
             }
             FormResponse::query()->where('person_id', $person->id)->delete();
             OutgoingMail::query()->where('person_id', $person->id)->delete();
+            RegistrationAnswer::query()->whereIn('participation_id', $person->participations()->pluck('id'))->delete();
+            $person->participations()->update(['price_reason' => null, 'cancel_reason' => null]);
+            PublicSubmission::query()->where('person_id', $person->id)->delete();
             $person->households()->detach();
-            $person->guardians()->detach();
-            $person->wards()->detach();
+            DB::table('guardianships')->where('child_id', $person->id)->orWhere('guardian_id', $person->id)->delete(); // also ended ones
             $person->groups()->detach();
             $person->forceFill([
                 'first_name' => __('privacy.anonymous'), 'last_name' => '#'.$person->id, 'gender' => null,
@@ -126,6 +131,7 @@ class Privacy
         $paid = (clone $old)->where('payer_id', $person->id)->pluck('id');
         Invoice::query()->whereIn('id', $paid)->update(['payer_name' => $anonymous, 'payer_address' => null]);
         Payment::query()->whereIn('invoice_id', $paid)->update(['payer_name' => null, 'iban' => null, 'reference' => null, 'note' => null]);
+        Refund::query()->where('payer_id', $person->id)->where('created_at', '<', $limit)->update(['payer_name' => null, 'iban' => null, 'reason' => $anonymous]);
         foreach (InvoiceLine::query()->where('person_id', $person->id)->whereIn('invoice_id', $old->pluck('id'))->get() as $line) {
             $line->forceFill(['description' => str_replace($name, $anonymous, $line->description)])->saveQuietly();
         }
@@ -134,6 +140,8 @@ class Privacy
         foreach ($households as $household) {
             if ($household->members()->whereKeyNot($person->id)->doesntExist()) {
                 $household->emergencyContacts()->delete();
+                RegistrationAnswer::query()->where('household_id', $household->id)->delete();
+                Payment::query()->where('household_id', $household->id)->whereNull('invoice_id')->where('paid_on', '<', $limit)->update(['payer_name' => null, 'iban' => null, 'reference' => null, 'note' => null]);
                 $household->forceFill(['name' => $anonymous, 'street' => null, 'postal_code' => null, 'city' => null])->save();
             }
         }

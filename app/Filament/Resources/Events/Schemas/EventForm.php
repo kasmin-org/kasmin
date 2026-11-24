@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Events\Schemas;
 
 use App\Filament\Support\Money;
+use App\Models\Form;
 use App\Models\Group;
 use App\Models\MembershipType;
 use Filament\Forms\Components\DatePicker;
@@ -36,6 +37,8 @@ class EventForm
                     ->hintIcon('heroicon-m-question-mark-circle', tooltip: __('admin.event.binding_hint')),
                 DatePicker::make('age_reference_date')->label(__('admin.event.age_reference'))
                     ->hintIcon('heroicon-m-question-mark-circle', tooltip: __('admin.event.age_reference_hint')),
+                TextInput::make('max_guests')->label(__('public.guests'))->numeric()->minValue(0)->maxValue(10)->default(0)->required(),
+                DatePicker::make('answers_until')->label(__('admin.event.answers_until'))->hintIcon('heroicon-m-question-mark-circle', tooltip: __('admin.event.answers_until_hint')),
                 Textarea::make('description')->label(__('admin.event.description'))->columnSpanFull(),
             ]),
             Section::make(__('admin.event.roles'))->schema([
@@ -53,6 +56,8 @@ class EventForm
                             ->hintIcon('heroicon-m-question-mark-circle', tooltip: __('admin.finance.role_discount_hint')),
                         Toggle::make('counts_as_sibling')->label(__('admin.finance.counts_as_sibling'))->default(true)->inline(false)
                             ->hintIcon('heroicon-m-question-mark-circle', tooltip: __('admin.finance.counts_as_sibling_hint')),
+                        Select::make('registration_form_id')->label(__('admin.event.registration_form'))->options(fn () => Form::query()->where('kind', 'registration')->get()->mapWithKeys(fn (Form $f) => [$f->id => $f->label()])->all())
+                            ->columnSpanFull(),
                     ]),
             ]),
             Section::make(__('admin.finance.pricing'))->collapsible()->columnSpanFull()->columns(['md' => 3])->schema([

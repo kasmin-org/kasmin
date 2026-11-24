@@ -1,0 +1,50 @@
+# Registration: questions, public forms, families
+
+## Questions of an event
+
+1. *Forms → New*: kind **Questions of an event**. Each question is asked *per participant* or *once per family*; consents that
+   are marked required must be given.
+2. *Events → edit → Roles*: choose the form under **Questions when registering**. Every role can have its own form.
+
+Answers can be changed until **Answers can be changed until** (default: start of the event). They appear on the list
+*Answers*, at the participant (*Answers*) and in mails as `{{ registration.answers.<key> }}`. Fields with the sensitivity
+*health* or *identity* are encrypted, visible only to the safety role and never part of mails or of that list. The text of
+a consent is stored as it was shown.
+
+Before registering, legal guardians see places, price, instalments and cancellation conditions.
+
+## Public forms
+
+*Forms → Public forms*: address `/f/<name>`, title and text in both languages, opening and closing time.
+
+| Kind | After the confirmation |
+|---|---|
+| Register for an event | the person is registered in the chosen role (age rule, places and waitlist apply) |
+| Application | waits under *Forms → Submissions*; after approval: membership, group and welcome mail. Without approval it is done at once |
+| Stay informed | newsletter consent, optionally a group |
+
+Nothing happens before the link in the mail is opened **and** confirmed with the button (valid 3 days). Known people are
+recognised by address **and** name; their data is never overwritten. The page never shows whether an address is known.
+Submitted data is encrypted and deleted once it is carried out, declined or expired.
+
+## Adults and guests
+
+Roles that are registered by *the person itself* appear in the portal under *My registrations*. With **Guests** in the event, a
+participant can invite that many guests: each gets a personal link, registers personally and gets an own invoice.
+
+## Families
+
+*Settings → Organisation and invoices → Families*:
+
+| Setting | Default |
+|---|---|
+| Legal guardians per family | 5 – guardians invite each other in the portal; administrators are notified |
+| Own login from age | 14 – guardians create the login for their child; the child sees its safety sheet but cannot change it |
+| Guardianship ends at age | 18 – both sides get a mail; future invoices go to the person |
+| Legal guardians see what their child registers itself | off |
+
+## Duplicates
+
+*People → Duplicates* (administrator, board) lists probable duplicates: same name, similar name and same date of birth, or same
+address and similar first name. **Merge** lets you choose each field; everything else moves to the kept record. This cannot
+be undone. A merge never gives more rights, and it is refused if both have an invoiced registration for the same event.

@@ -10,7 +10,7 @@ use App\Models\MailTemplate;
  */
 class MailTemplateDefaults
 {
-    public const VERSION = 4;
+    public const VERSION = 5;
 
     public function install(): void
     {
@@ -53,6 +53,13 @@ class MailTemplateDefaults
             ], [
                 'Change for {{ children[0].full_name }}',
                 '<p>{{ salutation }}</p><p>{{ children[0].full_name }} has reached the age from which people manage their own data. Legal guardians no longer have access in the portal; future invoices go to {{ children[0].full_name }}.</p><p>Kind regards<br>{{ organisation.name }}</p>',
+            ]],
+            'round_offer' => ['registration', 'guardians', ['de' => 'Platzangebot (Anmelderunde)', 'en' => 'Place offered (registration round)'], [
+                '{{ event.title }}: Platz für {% for child in children %}{{ child.first_name }}{% if not loop.last %}, {% endif %}{% endfor %}',
+                '<p>{{ salutation }}</p><p>für {% for child in children %}<strong>{{ child.first_name }}</strong>{% if not loop.last %}, {% endif %}{% endfor %} ist bei <strong>{{ event.title }}</strong> ({{ event.starts_at }} – {{ event.ends_at }}) ein Platz reserviert, bis <strong>{{ registration.offer_until }}</strong>.</p>{% if registration.by_payment %}<p>Mit der Bezahlung der beiliegenden Rechnung bis zu diesem Termin nehmen Sie den Platz an. Ohne Zahlung wird er weitergegeben.</p>{% else %}<p>Bitte nehmen Sie den Platz im Portal an oder sagen Sie ab. Ohne Antwort wird er weitergegeben.</p>{% endif %}'.$button('Zum Portal').'<p>Mit freundlichen Grüßen<br>{{ organisation.name }}</p>',
+            ], [
+                '{{ event.title }}: place for {% for child in children %}{{ child.first_name }}{% if not loop.last %}, {% endif %}{% endfor %}',
+                '<p>{{ salutation }}</p><p>a place at <strong>{{ event.title }}</strong> ({{ event.starts_at }} – {{ event.ends_at }}) is reserved for {% for child in children %}<strong>{{ child.first_name }}</strong>{% if not loop.last %}, {% endif %}{% endfor %} until <strong>{{ registration.offer_until }}</strong>.</p>{% if registration.by_payment %}<p>By paying the attached invoice until then you accept the place. Without payment it is passed on.</p>{% else %}<p>Please accept or decline the place in the portal. Without an answer it is passed on.</p>{% endif %}'.$button('Open the portal').'<p>Kind regards<br>{{ organisation.name }}</p>',
             ]],
             'safety_sheet_request' => ['safety_sheet', 'guardians', ['de' => 'Sicherheitsblatt ausfüllen', 'en' => 'Fill in the safety sheet'], [
                 'Bitte Sicherheitsblatt ausfüllen oder bestätigen',

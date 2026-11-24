@@ -25,6 +25,7 @@ class Engine
     public const ACTIONS = [
         'waitlist_offer' => Actions\WaitlistOffer::class,
         'offer_expiry' => Actions\OfferExpiry::class,
+        'registration_rounds' => Actions\RegistrationRounds::class,
         'invoice_run' => Actions\InvoiceRun::class,
         'send_template' => Actions\SendTemplate::class,
         'safety_sheet_reminder' => Actions\SafetySheetReminder::class,

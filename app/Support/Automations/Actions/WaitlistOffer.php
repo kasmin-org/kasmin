@@ -7,6 +7,7 @@ use App\Models\Event;
 use App\Models\Participation;
 use App\Support\Audit\Audit;
 use App\Support\Automations\Action;
+use App\Support\Events\Rounds;
 use App\Support\Mail\Composer;
 use App\Support\Mail\Notifier;
 
@@ -24,7 +25,7 @@ class WaitlistOffer implements Action
         foreach ($events as $e) {
             foreach ($e->roles as $role) {
                 $free = $role->bookableLeft();
-                if ($free === null || $free < 1) {
+                if ($free === null || $free < 1 || ! Rounds::waitlistMoves($e, $role->role_key)) {
                     continue;
                 }
                 $next = Participation::query()->where('event_id', $e->id)->where('role_key', $role->role_key)->where('status', 'waitlist')
@@ -51,7 +52,7 @@ class WaitlistOffer implements Action
             return 'skipped: no longer on the waitlist';
         }
         $role = $e->roles->firstWhere('role_key', $p->role_key);
-        if ($role === null || ($role->bookableLeft() ?? 1) < 1) {
+        if ($role === null || ($role->bookableLeft() ?? 1) < 1 || ! Rounds::waitlistMoves($e, $p->role_key)) {
             return 'skipped: no free place';
         }
         $p->fill(['status' => 'offered', 'offer_expires_at' => now()->addDays((int) $automation->setting('offer_days', 7))->endOfDay()])->save();

@@ -6,6 +6,27 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ## [Unreleased]
 
+### Added
+
+- Event templates (with three default types), copying an event with all dates moved, saving an event as a template.
+- More event data, image and documents for participants or for everyone.
+- Status by date: announce, open and close the registration, running, finished.
+- Public event page; public pages and forms can be embedded in websites named in the settings.
+- Registration rounds: returning participants, selection by number of events, waitlist, open. Places are accepted in the portal or
+  by paying the first instalment; administrators can offer a place with a reason.
+
+### Changed
+
+- Events become *running* and *finished* by themselves.
+
+### Fixed
+
+- An empty field for reserve places in an event no longer causes an error.
+
+### Security
+
+- Pages can no longer be shown in frames of other websites (clickjacking); no addresses are passed on as referrer.
+
 ## [0.14.0] - 2026-11-24
 
 Pre-release for testing. Not ready for production use.

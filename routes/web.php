@@ -13,6 +13,7 @@ use App\Http\Controllers\MailPreferencesController;
 use App\Http\Controllers\PortalChildController;
 use App\Http\Controllers\PortalController;
 use App\Http\Controllers\PortalFormController;
+use App\Http\Controllers\PublicEventController;
 use App\Http\Controllers\PublicFormController;
 use App\Http\Controllers\PublicRegistrationController;
 use App\Http\Controllers\ViewAsController;
@@ -36,6 +37,9 @@ Route::post('/mail/preferences/{person}', [MailPreferencesController::class, 'up
 // Public forms (PF01), confirmation of the address and personal guest invitations (PA05).
 Route::get('/f/{slug}', [PublicFormController::class, 'show'])->where('slug', '[A-Za-z0-9_-]+')->name('public.form');
 Route::post('/f/{slug}', [PublicFormController::class, 'store'])->where('slug', '[A-Za-z0-9_-]+')->middleware('throttle:public-form')->name('public.form.store');
+Route::get('/events/{publicId}', [PublicEventController::class, 'show'])->name('public.event');
+Route::get('/events/{publicId}/image', [PublicEventController::class, 'image'])->name('public.event.image');
+Route::get('/event-documents/{document}', [PublicEventController::class, 'document'])->whereNumber('document')->name('event.document');
 Route::get('/confirm/{token}', [PublicFormController::class, 'confirmation'])->name('public.confirm');
 Route::post('/confirm/{token}', [PublicFormController::class, 'confirm'])->middleware('throttle:login-link')->name('public.confirm.store');
 Route::get('/guest/{token}', [PublicFormController::class, 'guest'])->name('public.guest');

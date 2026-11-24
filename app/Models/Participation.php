@@ -23,6 +23,7 @@ use Illuminate\Support\Carbon;
  * @property int|null $price_cents
  * @property string|null $price_reason
  * @property int|null $guest_of_id
+ * @property string|null $offer_mode
  * @property Carbon|null $cancelled_at
  * @property string|null $cancel_reason
  */

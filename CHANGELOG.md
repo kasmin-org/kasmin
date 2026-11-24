@@ -6,6 +6,10 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ## [Unreleased]
 
+## [0.14.0] - 2026-11-24
+
+Pre-release for testing. Not ready for production use.
+
 ### Added
 
 - Questions and consents per event and role, per participant or once per family; changeable until a date; on lists, in mails
@@ -295,8 +299,9 @@ First public pre-release for testing. Not ready for production use.
 - Docker image: system packages updated and build packages removed after compiling the PHP extensions – the
   container scan reports no high or critical findings any more (previously 75 in Debian packages).
 
-[Unreleased]: https://github.com/kasmin-org/kasmin/compare/v0.13.0...develop
-[0.13.0]: https://github.com/kasmin-org/kasmin/compare/v0.12.0...v0.13.0
+[Unreleased]: https://github.com/kasmin-org/kasmin/compare/v0.14.0...develop
+[0.14.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.14.0
+[0.13.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.13.0
 [0.12.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.12.0
 [0.11.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.11.0
 [0.10.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.10.0

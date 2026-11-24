@@ -6,6 +6,10 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ## [Unreleased]
 
+## [0.11.0] - 2026-11-24
+
+Pre-release for testing. Not ready for production use.
+
 ### Added
 
 - Docker: almost complete configuration by environment variables (also as files). They are written to the database at the
@@ -226,7 +230,8 @@ First public pre-release for testing. Not ready for production use.
 - Docker image: system packages updated and build packages removed after compiling the PHP extensions – the
   container scan reports no high or critical findings any more (previously 75 in Debian packages).
 
-[Unreleased]: https://github.com/kasmin-org/kasmin/compare/v0.10.0...develop
+[Unreleased]: https://github.com/kasmin-org/kasmin/compare/v0.11.0...develop
+[0.11.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.11.0
 [0.10.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.10.0
 [0.9.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.9.0
 [0.8.1]: https://github.com/kasmin-org/kasmin/releases/tag/v0.8.1

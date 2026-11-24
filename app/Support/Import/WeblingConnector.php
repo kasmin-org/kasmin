@@ -118,7 +118,7 @@ class WeblingConnector
     /** @return array<mixed> */
     private function get(string $base, string $key, string $path): array
     {
-        $response = Http::timeout(30)->withHeaders(['apikey' => $key, 'Accept' => 'application/json'])->get($base.'/'.$path);
+        $response = Http::timeout(30)->withoutRedirecting()->withHeaders(['apikey' => $key, 'Accept' => 'application/json'])->get($base.'/'.$path);
         if (! $response->successful()) {
             throw new RuntimeException('Webling answered '.$response->status().' for '.$path);
         }

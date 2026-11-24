@@ -73,6 +73,12 @@ class Event extends Model
     }
 
     /** Date at which ages are calculated (EE04, default: event start). */
+    /** @return HasMany<EventCost, $this> */
+    public function costs(): HasMany
+    {
+        return $this->hasMany(EventCost::class)->orderBy('sort');
+    }
+
     public function ageReferenceDate(): Carbon
     {
         return $this->age_reference_date ?? $this->starts_at;

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Invoice;
 use App\Models\OutgoingMail;
 use App\Models\User;
+use App\Support\Auth\PortalPerson;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -17,7 +18,7 @@ class PortalController extends Controller
     {
         /** @var User $user */
         $user = $request->user();
-        $person = $user->person;
+        $person = PortalPerson::for($request);
         $households = $person?->households()->with(['members.contactPoints'])->get() ?? collect();
 
         $householdIds = $person?->households()->wherePivot('role', 'guardian')->pluck('households.id') ?? collect();
@@ -39,7 +40,7 @@ class PortalController extends Controller
     {
         /** @var User $user */
         $user = $request->user();
-        $mail = OutgoingMail::query()->where('uuid', $uuid)->where('person_id', $user->person_id)->firstOrFail();
+        $mail = OutgoingMail::query()->where('uuid', $uuid)->where('person_id', PortalPerson::for($request)?->id)->firstOrFail();
 
         return view('portal.mail', ['mail' => $mail]);
     }

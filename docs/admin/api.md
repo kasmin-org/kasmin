@@ -1,7 +1,8 @@
 # REST API, MCP and webhooks
 
 Everything an integration or an AI assistant needs goes through **API tokens**. A token acts on behalf of the
-administrator who created it, limited to the **scopes** chosen for it.
+administrator who created it, limited to the **scopes** chosen for it. It stops working when that person loses the
+administrator role.
 
 ## API tokens
 

@@ -295,7 +295,9 @@ class InvoicesTest extends TestCase
         $user = User::query()->create(['name' => 'Alex', 'email' => 'alex@example.org', 'password' => 'x', 'person_id' => $this->guardian->id]);
         $other = User::query()->create(['name' => 'Other', 'email' => 'other@example.org', 'password' => 'x', 'person_id' => Person::factory()->create()->id]);
 
-        $this->actingAs($user)->get('/portal')->assertOk()->assertSee((string) $invoice->number)->assertSee((string) $invoice->reference);
+        // English dates are written day first, not in the ambiguous American order.
+        $this->assertSame('08/12/2026', Carbon::parse('2026-12-08')->isoFormat('L'));
+        $this->actingAs($user)->get('/portal')->assertOk()->assertSee((string) $invoice->number)->assertSee((string) $invoice->due_on?->isoFormat('LL'))->assertSee((string) $invoice->reference);
         $this->actingAs($user)->get('/portal/invoices/'.$invoice->id.'.pdf')->assertOk()->assertHeader('Content-Type', 'application/pdf');
         $this->actingAs($other)->get('/portal/invoices/'.$invoice->id.'.pdf')->assertNotFound();
         $this->actingAs($other)->get('/portal')->assertDontSee((string) $invoice->reference);

@@ -1,6 +1,11 @@
 <?php
 
 return [
+    'view_as' => 'View as legal guardian',
+    'view_as_hint' => 'Shows the portal exactly as this person sees it, read only. The preview is recorded in the audit log.',
+    'preview_banner' => 'Preview as :name – read only',
+    'preview_end' => 'End preview',
+    'preview_read_only' => 'This is a read-only preview – nothing can be changed.',
     'title' => 'Overview',
     'hello' => 'Hello, :name',
     'logout' => 'Log out',

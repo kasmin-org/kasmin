@@ -1,17 +1,20 @@
 # Production image of Kasmin: Alpine Linux with Apache + PHP, dependencies and built assets included.
 
-FROM node:24-slim AS assets
-WORKDIR /app
-COPY package.json package-lock.json vite.config.js ./
-COPY resources ./resources
-RUN npm ci --ignore-scripts --no-audit --no-fund && npm run build
-
 FROM composer:2 AS vendor
 WORKDIR /app
 COPY composer.json composer.lock ./
 RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist --no-interaction --ignore-platform-reqs
 COPY . .
 RUN composer dump-autoload --optimize --no-dev --no-scripts
+
+FROM node:24-slim AS assets
+WORKDIR /app
+COPY package.json package-lock.json vite.config.js ./
+COPY resources ./resources
+# The admin theme builds on Filament's styles and scans our own admin classes.
+COPY app ./app
+COPY --from=vendor /app/vendor/filament ./vendor/filament
+RUN npm ci --ignore-scripts --no-audit --no-fund && npm run build
 
 FROM alpine:3.24
 # Small image: Alpine Linux with its PHP 8.5 packages and Apache (mod_php); bash and vim for maintenance.
@@ -35,7 +38,10 @@ RUN apk upgrade --no-cache \
 WORKDIR /var/www/html
 COPY --from=vendor /app /var/www/html
 COPY --from=assets /app/public/build /var/www/html/public/build
-RUN php artisan package:discover --ansi && chown -R www-data:www-data storage bootstrap/cache
+# JavaScript, styles and fonts of the admin interface (created by a Composer script that the build skips).
+RUN php artisan package:discover --ansi && php artisan filament:assets \
+ && test -s public/js/filament/filament/app.js -a -s public/js/filament/support/support.js \
+ && chown -R www-data:www-data storage bootstrap/cache
 ARG KASMIN_VERSION=dev
 ENV KASMIN_VERSION=${KASMIN_VERSION} \
     KASMIN_RUNTIME=docker

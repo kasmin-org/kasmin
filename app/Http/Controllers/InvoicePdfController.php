@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Invoice;
+use App\Models\Person;
 use App\Models\User;
 use App\Support\Audit\Audit;
+use App\Support\Auth\PortalPerson;
 use App\Support\Finance\InvoicePdf;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -26,16 +28,16 @@ class InvoicePdfController extends Controller
     {
         /** @var User $user */
         $user = $request->user();
-        abort_unless($invoice->status !== 'draft' && self::visibleTo($invoice, $user), 404);
+        abort_unless($invoice->status !== 'draft' && self::visibleTo($invoice, $user, PortalPerson::for($request)), 404);
         Audit::record('invoice.downloaded', $invoice);
 
         return $this->pdf($invoice);
     }
 
     /** Payer, or a legal guardian of the invoice's family. */
-    public static function visibleTo(Invoice $invoice, User $user): bool
+    public static function visibleTo(Invoice $invoice, User $user, ?Person $person = null): bool
     {
-        $person = $user->person;
+        $person ??= $user->person;
         if ($person === null) {
             return false;
         }

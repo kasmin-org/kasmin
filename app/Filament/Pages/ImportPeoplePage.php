@@ -21,6 +21,7 @@ use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Livewire\Attributes\Locked;
 
 /**
  * Import wizard (MI01–MI04): source (CSV/XLSX file or Webling), field assignment, dry run with errors and family
@@ -45,6 +46,7 @@ class ImportPeoplePage extends Page
     /** @var array<string, mixed>|null */
     public ?array $plan = null;
 
+    #[Locked]
     public string $cacheKey = '';
 
     public static function getNavigationGroup(): ?string

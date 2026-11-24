@@ -1,6 +1,11 @@
 <?php
 
 return [
+    'view_as' => 'Als Erziehungsberechtigte ansehen',
+    'view_as_hint' => 'Zeigt das Portal genau so, wie diese Person es sieht, nur lesend. Die Vorschau wird im Audit-Protokoll vermerkt.',
+    'preview_banner' => 'Vorschau als :name – nur lesend',
+    'preview_end' => 'Vorschau beenden',
+    'preview_read_only' => 'Dies ist eine Vorschau nur zum Lesen – es kann nichts geändert werden.',
     'title' => 'Übersicht',
     'hello' => 'Guten Tag, :name',
     'logout' => 'Abmelden',

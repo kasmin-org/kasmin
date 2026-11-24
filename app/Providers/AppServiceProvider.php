@@ -12,10 +12,15 @@ use App\Support\Webhooks\Webhooks;
 use Dedoc\Scramble\Scramble;
 use Dedoc\Scramble\Support\Generator\OpenApi;
 use Dedoc\Scramble\Support\Generator\SecurityScheme;
+use Filament\Resources\Resource;
+use Filament\Schemas\Schema;
+use Filament\Tables\Table;
 use Illuminate\Cache\RateLimiter;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Console\Events\CommandStarting;
+use Illuminate\Foundation\Events\LocaleUpdated;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
@@ -60,6 +65,19 @@ class AppServiceProvider extends ServiceProvider
             }
         });
         Person::created(fn (Person $p) => app(Webhooks::class)->emit('person.created', Presenter::person($p)));
+
+        // English dates day first ("8 December 2026"), never the ambiguous American order.
+        $dates = fn (string $locale) => Date::setLocale($locale === 'en' ? 'en_GB' : $locale);
+        $dates(app()->getLocale());
+        Event::listen(LocaleUpdated::class, fn (LocaleUpdated $event) => $dates($event->locale));
+
+        // Admin interface: dates in the format of the language, labels as written (no title case).
+        Resource::titleCaseModelLabel(false);
+        $formats = fn (Table|Schema $c) => $c
+            ->defaultDateDisplayFormat(fn (): string => app()->getLocale() === 'de' ? 'd.m.Y' : 'j M Y')
+            ->defaultDateTimeDisplayFormat(fn (): string => app()->getLocale() === 'de' ? 'd.m.Y H:i' : 'j M Y H:i');
+        Table::configureUsing($formats);
+        Schema::configureUsing($formats);
 
         // OpenAPI documentation of the REST API (X02): public, contains no data.
         Gate::define('viewApiDocs', fn (?User $user = null) => true);

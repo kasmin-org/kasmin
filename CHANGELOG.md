@@ -10,6 +10,9 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 - The recommended cron interval is every 5 minutes; daily and hourly jobs run at the first call after their time instead
   of only in the exact minute.
+- English dates are written day first (the portal showed the due date in the ambiguous American order).
+- Admin interface: dates in the format of the language, labels without English capitalisation, instalment names instead of
+  keys, no internal requirement numbers.
 - Own admin theme, so tables, headings and links in Kasmin's admin pages are styled; menu in a fixed order.
 
 ### Security

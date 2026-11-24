@@ -1,4 +1,5 @@
 @php
+    $day = fn (?string $d) => $d ? \Illuminate\Support\Carbon::parse($d)->isoFormat('ll') : '–';
     $money = fn (int $c) => \App\Models\Invoice::money($c);
     $grid = 'display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:1rem';
     $max = max([1, ...array_values($ages)]);
@@ -38,7 +39,7 @@
                 </label>
                 @foreach ($ageGroups as $i => $g)
                     <details class="mt-2 text-sm">
-                        <summary><strong>{{ __('reports.group') }} {{ $i + 1 }}</strong>: {{ $g['size'] }} · {{ __('reports.age') }} {{ $g['min_age'] }}–{{ $g['max_age'] }} · {{ __('reports.born') }} {{ $g['from'] }} – {{ $g['to'] }}</summary>
+                        <summary><strong>{{ __('reports.group') }} {{ $i + 1 }}</strong>: {{ $g['size'] }} · {{ __('reports.age') }} {{ $g['min_age'] }}–{{ $g['max_age'] }} · {{ __('reports.born') }} {{ $day($g['from']) }} – {{ $day($g['to']) }}</summary>
                         <p>{{ implode(', ', $g['names']) }}</p>
                     </details>
                 @endforeach

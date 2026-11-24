@@ -16,7 +16,7 @@ class PersonFactory extends Factory
             'first_name' => fake()->firstName(),
             'last_name' => fake()->lastName(),
             'birth_date' => fake()->dateTimeBetween('-50 years', '-8 years')->format('Y-m-d'),
-            'locale' => 'de',
+            'locale' => 'en',
         ];
     }
 }

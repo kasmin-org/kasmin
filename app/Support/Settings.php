@@ -29,6 +29,7 @@ class Settings
         'retention_safety_years' => '7', // CO01
         'retention_invoice_years' => '7',
         'public_url' => '',
+        'timezone' => null, // UTC; stored times are in this time zone, so it is chosen at the set-up
         'digest_time' => null,
         'approval_days' => null,
         'ai_processing' => 'none', // none, non_confidential, all (MI12)

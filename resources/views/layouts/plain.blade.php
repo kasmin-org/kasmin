@@ -24,6 +24,14 @@
         @error('preview')<div class="mb-4 rounded-lg bg-summer-500/20 p-3 text-sm" role="alert">{{ $message }}</div>@enderror
         @yield('content')
     </div>
+    @unless (request()->routeIs('mail.preferences*', 'approvals.*', 'install'))
+        <form method="post" action="{{ route('language') }}" class="mt-4 flex justify-center gap-4 text-sm">
+            @csrf
+            @foreach (['de' => 'Deutsch', 'en' => 'English'] as $code => $label)
+                <button name="locale" value="{{ $code }}" lang="{{ $code }}" @class(['px-2 py-1', 'font-semibold' => app()->getLocale() === $code, 'underline' => app()->getLocale() !== $code])>{{ $label }}</button>
+            @endforeach
+        </form>
+    @endunless
 </main>
 </body>
 </html>

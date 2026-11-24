@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Invoices\Pages;
 
 use App\Filament\Resources\Invoices\InvoiceResource;
+use App\Filament\Support\ListTools;
 use App\Filament\Support\Money;
 use App\Models\Event;
 use App\Models\EventInstallment;
@@ -15,11 +16,13 @@ use Filament\Schemas\Components\Utilities\Get;
 
 class ListInvoices extends ListRecords
 {
+    use ListTools;
+
     protected static string $resource = InvoiceResource::class;
 
     protected function getHeaderActions(): array
     {
-        return [
+        return [...$this->listTools(),
             // Invoice run (AD40, IN01): drafts per family for one instalment; review, then "issue and send".
             Action::make('run')->label(__('admin.finance.invoice_run'))->icon('heroicon-o-document-duplicate')
                 ->visible(fn () => Money::canManage())

@@ -6,6 +6,29 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ## [Unreleased]
 
+## [0.13.0] - 2026-11-24
+
+Pre-release for testing. Not ready for production use.
+
+### Added
+
+- Lists per event: participants, contacts, bus, birthdays, answers, missing safety sheets; for the safety role also
+  emergency contacts, kitchen, medical needs, medication, insurance, swimmers, consents and changes since the last event –
+  on screen, as PDF, XLSX and CSV.
+- Camp folder: one confidential PDF page per child, for the whole event or one child.
+- Export of tables as XLSX, CSV and PDF; saved views, also shared; filters with AND, OR and NOT and by age at a date.
+- Time zone in the settings; new installations start with the time zone of their language.
+- Language switch on public pages and in the portal.
+
+### Changed
+
+- The interface uses the language of the logged-in person; guests get the language of their browser.
+
+### Fixed
+
+- MySQL: the order of choices and sub-fields of form questions was lost (MariaDB was not affected). Forms that already exist on
+  MySQL keep the changed order; save the choices again in the form builder to correct it.
+
 ## [0.12.0] - 2026-11-24
 
 Pre-release for testing. Not ready for production use.
@@ -252,7 +275,8 @@ First public pre-release for testing. Not ready for production use.
 - Docker image: system packages updated and build packages removed after compiling the PHP extensions – the
   container scan reports no high or critical findings any more (previously 75 in Debian packages).
 
-[Unreleased]: https://github.com/kasmin-org/kasmin/compare/v0.12.0...develop
+[Unreleased]: https://github.com/kasmin-org/kasmin/compare/v0.13.0...develop
+[0.13.0]: https://github.com/kasmin-org/kasmin/compare/v0.12.0...v0.13.0
 [0.12.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.12.0
 [0.11.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.11.0
 [0.10.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.10.0

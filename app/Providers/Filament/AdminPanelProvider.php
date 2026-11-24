@@ -4,6 +4,7 @@ namespace App\Providers\Filament;
 
 use App\Http\Middleware\RequireFullLogin;
 use App\Http\Middleware\RequireSecondFactor;
+use App\Http\Middleware\SetLocale;
 use App\Livewire\SystemNotificationsPopup;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
@@ -59,6 +60,7 @@ class AdminPanelProvider extends PanelProvider
                 ShareErrorsFromSession::class,
                 PreventRequestForgery::class,
                 SubstituteBindings::class,
+                SetLocale::class,
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
             ])

@@ -36,7 +36,6 @@ SSLSessionCache none
   SSLProtocol -all +TLSv1.2 +TLSv1.3
   SSLCertificateFile $CERT
   SSLCertificateKeyFile $CERT_KEY
-  RequestHeader set X-Forwarded-Proto https
 </VirtualHost>
 VHOSTS
   } > "$CONF"

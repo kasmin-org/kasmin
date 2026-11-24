@@ -23,6 +23,9 @@ if [ -z "${APP_KEY:-}" ]; then
 fi
 export APP_KEY
 if [ -z "${DB_PASSWORD:-}" ] && [ -n "${DB_PASSWORD_FILE:-}" ]; then DB_PASSWORD="$(cat "$DB_PASSWORD_FILE")"; export DB_PASSWORD; fi
+# Additional certificate authorities (e.g. of an internal mail server), mounted to /usr/local/share/ca-certificates.
+if ls /usr/local/share/ca-certificates/*.crt >/dev/null 2>&1; then update-ca-certificates >/dev/null 2>&1 || log "WARNING: a CA certificate could not be added."; fi
+export HOME=/tmp
 export SESSION_DRIVER="${SESSION_DRIVER:-file}" CACHE_STORE="${CACHE_STORE:-file}"
 
 # Wait for the database server (not for SQLite).

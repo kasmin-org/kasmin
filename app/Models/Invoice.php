@@ -25,6 +25,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $due_on
  * @property string|null $payer_name
  * @property string|null $payer_address
+ * @property int|null $fee_for_id
  */
 class Invoice extends Model
 {
@@ -33,6 +34,23 @@ class Invoice extends Model
     public const STATUSES = ['draft', 'issued', 'partially_paid', 'paid', 'cancelled', 'corrected'];
 
     protected $guarded = ['id'];
+
+    /** What an issued invoice says never changes; only status, payments and due date (IN10). */
+    private const FIXED = ['number', 'type', 'household_id', 'payer_id', 'event_id', 'installment_key', 'currency', 'total_cents', 'reference', 'issued_on', 'payer_name', 'payer_address', 'corrects_id', 'fee_for_id'];
+
+    protected static function booted(): void
+    {
+        static::updating(function (Invoice $invoice): void {
+            if ($invoice->getOriginal('status') !== 'draft' && $invoice->isDirty(self::FIXED)) {
+                throw new \RuntimeException('Issued invoices cannot be changed; use a correction.');
+            }
+        });
+        static::deleting(function (Invoice $invoice): void {
+            if ($invoice->status !== 'draft') {
+                throw new \RuntimeException('Issued invoices cannot be deleted; cancel them.');
+            }
+        });
+    }
 
     protected $attributes = ['status' => 'draft', 'type' => 'invoice', 'currency' => 'EUR', 'total_cents' => 0, 'paid_cents' => 0];
 

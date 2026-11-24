@@ -49,9 +49,15 @@
                     <p class="mt-2 font-medium">{{ __('events.waitlist_position', ['position' => $p->waitlistPosition(), 'total' => $role?->waitlistLength()]) }}</p>
                 @endif
                 @if (! in_array($p->status, ['cancelled', 'declined', 'attended', 'no_show', 'offered'], true))
+                    <details class="mt-2 text-sm">
+                    <summary class="cursor-pointer underline">{{ __('portal.cancel') }}</summary>
+                    <div class="mt-2 rounded-lg bg-kasmin-50 p-3">
+                        @foreach (\App\Support\Finance\CancellationTerms::for($p) as $term)<p class="mb-1">{{ $term }}</p>@endforeach
                     <form method="post" action="{{ route('portal.child.cancel', [$child->public_id, $p->id]) }}" class="mt-2" onsubmit="return confirm('{{ __('portal.cancel_confirm') }}')">
-                        @csrf<button class="text-sm underline">{{ __('portal.cancel') }}</button>
+                        @csrf<button class="mt-2 rounded-lg bg-white px-4 py-2 font-semibold text-red-800 ring-1 ring-red-200">{{ __('portal.cancel_now') }}</button>
                     </form>
+                    </div>
+                    </details>
                 @endif
             </article>
         @empty

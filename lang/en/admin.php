@@ -3,6 +3,12 @@
 return [
     'nav' => ['people' => 'People', 'events' => 'Events', 'forms' => 'Forms', 'finance' => 'Finance', 'settings' => 'Settings', 'automations' => 'Automations', 'privacy' => 'Data protection', 'reports' => 'Reports', 'communication' => 'Communication', 'system' => 'System'],
     'finance' => [
+        'proposed_on' => 'Proposed on',
+        'cancellation_fee' => 'Cancellation fee', 'cancellation_fee_hint' => 'Charged once when an instalment is refunded after a cancellation.', 'cancellation_text' => 'Cancellation conditions',
+        'prices' => 'Prices by age or registration date', 'add_price' => 'Add price', 'prices_hint' => 'The first line that fits counts; without a fitting line the price of the role.', 'from_date' => 'Registered from', 'until_date' => 'Registered until',
+        'refund_until_days' => 'Refundable until … days before the start', 'refund_until_hint' => 'Empty = always refundable.', 'confirms_place' => 'Payment confirms the place', 'paid_add_group' => 'After payment: add to group', 'paid_remove_group' => 'After payment: remove from group',
+        'membership_type' => 'Membership type', 'membership_types' => 'Membership types', 'pays_fee' => 'Pays a fee', 'yearly_fee' => 'Yearly fee', 'reduced_place' => 'Reduced place', 'reduced_place_hint' => 'Total price for this person, 0 = free. Empty = normal price. Visible only to finance roles.',
+        'split' => 'Split', 'split_hint' => 'One transfer for several invoices; the rest stays unassigned.', 'use_credit' => 'Use for an invoice', 'propose_refund' => 'Propose refund', 'refund_done' => 'Paid back', 'keep_credit' => 'Keep as credit',
         'costs' => 'Costs (for the cost report)', 'add_cost' => 'Add cost item', 'cost_label' => 'Item', 'cost_category' => 'Category',
         'cost_categories' => ['accommodation' => 'Accommodation', 'food' => 'Food', 'transport' => 'Transport', 'material' => 'Material', 'staff' => 'Staff', 'other' => 'Other'],
         'price' => 'Price', 'role_discount' => 'Role discount', 'role_discount_hint' => 'E.g. for junior counsellors. Replaces the sibling discount; the person still counts as a sibling.',
@@ -39,6 +45,8 @@ return [
         'ai_hint' => 'Only allow what your privacy policy and a data processing agreement with the AI provider cover. See the documentation "Migrate with an AI assistant".',
         'retention' => 'Retention', 'retention_safety_years' => 'Keep safety sheets and health data (years after the last event)', 'retention_invoice_years' => 'Keep invoices (years, legal requirement)',
         'system' => 'System', 'public_url' => 'Public URL', 'public_url_hint' => 'Address of this installation, used for links in mails and, in the container, for the certificate.', 'digest_time' => 'Time of the daily digest', 'approval_days' => 'Days an approval request stays open',
+        'overdue_fees' => 'Reminder fees', 'overdue_fees_hint' => 'Optional, off by default: amount per reminder after the due date, separated by semicolons in the same order, e.g. 0;5. The fee is an own invoice.', 'number_format_invalid' => 'The format needs {number}; with own numbers per year also {year}.',
+        'number_per_year' => 'Own numbers per year', 'number_per_year_hint' => 'Numbers start with 1 every year; use a number format with {year}.',
         'save' => 'Save', 'saved' => 'Saved',
     ],
     'person' => [
@@ -57,6 +65,7 @@ return [
         'street' => 'Street', 'postal_code' => 'Postcode', 'city' => 'City', 'country' => 'Country (ISO)',
     ],
     'event' => [
+        'cancel_participation' => 'Cancel registration', 'cancelled_hint' => 'Cancelled. Corrections of issued invoices are proposed under Automations.',
         'singular' => 'Event', 'plural' => 'Events', 'title' => 'Title', 'series' => 'Series', 'status' => 'Status',
         'starts_at' => 'Start', 'ends_at' => 'End', 'location' => 'Location', 'meeting_point' => 'Meeting point', 'description' => 'Description',
         'binding' => 'Registration binding immediately', 'binding_hint' => 'Off: registrations are requests that the team confirms.',

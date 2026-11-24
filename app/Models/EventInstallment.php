@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\Auditable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
@@ -11,6 +12,11 @@ use Illuminate\Support\Carbon;
  *
  * @property int $event_id
  * @property string $key
+ * @property int|null $refund_until_days
+ * @property int|null $membership_type_id
+ * @property bool $confirms_place
+ * @property int|null $paid_add_group_id
+ * @property int|null $paid_remove_group_id
  * @property array<string, string> $label
  * @property string $kind
  * @property int|null $amount_cents
@@ -27,7 +33,13 @@ class EventInstallment extends Model
 
     protected function casts(): array
     {
-        return ['label' => 'array', 'due_date' => 'date', 'refundable' => 'boolean', 'discounts_apply' => 'boolean'];
+        return ['label' => 'array', 'due_date' => 'date', 'refundable' => 'boolean', 'discounts_apply' => 'boolean', 'confirms_place' => 'boolean'];
+    }
+
+    /** @return BelongsTo<MembershipType, $this> */
+    public function membershipType(): BelongsTo
+    {
+        return $this->belongsTo(MembershipType::class);
     }
 
     public function labelText(?string $locale = null): string

@@ -7,7 +7,9 @@ use App\Models\EventSeries;
 use App\Models\Household;
 use App\Models\Invoice;
 use App\Models\MembershipType;
+use App\Models\Payment;
 use App\Models\Person;
+use App\Models\Refund;
 use App\Models\Role;
 use App\Models\User;
 use App\Support\Events\Registrations;
@@ -102,6 +104,10 @@ class DemoData
             'starts_at' => now()->addYear()->setDate($year, 8, 15)->setTime(9, 0), 'ends_at' => now()->addYear()->setDate($year, 8, 22)->setTime(16, 0),
             'location' => $this->faker->city(), 'meeting_point' => $this->faker->streetAddress(), 'status' => 'open',
             'sibling_mode' => 'staggered', 'sibling_amount_cents' => 2500, 'sibling_cap_position' => 3,
+            'cancellation_fee_cents' => 2000, 'cancellation_text' => [
+                'de' => 'Die Anzahlung wird nicht erstattet. Bis 30 Tage vor Beginn wird der Restbetrag abzüglich der Stornogebühr zurückgezahlt.',
+                'en' => 'The deposit is not refunded. Until 30 days before the start, the balance is refunded minus the cancellation fee.',
+            ],
         ]);
         $next->roles()->createMany([
             ['role_key' => 'child', 'capacity' => 20, 'reserve_places' => 1, 'min_age' => 8, 'max_age' => 13, 'price_cents' => 42000],
@@ -109,9 +115,10 @@ class DemoData
             ['role_key' => 'staff', 'capacity' => null, 'min_age' => 16, 'registered_by' => 'admin', 'counts_as_sibling' => false],
         ]);
         $next->installments()->createMany([
-            ['key' => 'deposit', 'label' => ['de' => 'Anzahlung', 'en' => 'Deposit'], 'kind' => 'fixed', 'amount_cents' => 10000, 'due_days' => 14, 'discounts_apply' => false, 'sort' => 1],
-            ['key' => 'balance', 'label' => ['de' => 'Restbetrag', 'en' => 'Balance'], 'kind' => 'rest', 'due_date' => now()->addYear()->setDate($year, 6, 1)->toDateString(), 'discounts_apply' => true, 'sort' => 2],
+            ['key' => 'deposit', 'label' => ['de' => 'Anzahlung', 'en' => 'Deposit'], 'kind' => 'fixed', 'amount_cents' => 10000, 'due_days' => 14, 'discounts_apply' => false, 'refundable' => false, 'confirms_place' => true, 'sort' => 1],
+            ['key' => 'balance', 'label' => ['de' => 'Restbetrag', 'en' => 'Balance'], 'kind' => 'rest', 'due_date' => now()->addYear()->setDate($year, 6, 1)->toDateString(), 'discounts_apply' => true, 'refundable' => true, 'refund_until_days' => 30, 'sort' => 2],
         ]);
+        $next->prices()->create(['role_key' => 'child', 'until_date' => now()->subDay()->toDateString(), 'price_cents' => 39000, 'sort' => 1]);
         Event::query()->create([
             'event_series_id' => $alumni->id, 'title' => ($de ? 'Alumni-Wochenende ' : 'Alumni weekend ').$year,
             'starts_at' => now()->addYear()->setDate($year, 7, 4)->setTime(15, 0), 'ends_at' => now()->addYear()->setDate($year, 7, 6)->setTime(14, 0),
@@ -150,6 +157,14 @@ class DemoData
                     'method' => 'bank', 'reference' => $issued->reference, 'payer_name' => $issued->payer_name, 'match' => 'auto']);
                 $issued->forceFill(['paid_cents' => $issued->total_cents, 'status' => 'paid'])->save();
             }
+        }
+        // An overpaid deposit: the rest is a credit of the family with a refund proposal.
+        $family = Invoice::query()->where('status', 'paid')->first();
+        if ($family !== null) {
+            $credit = Payment::query()->create(['amount_cents' => 2000, 'paid_on' => now()->subDays(3)->toDateString(), 'method' => 'bank', 'match' => 'credit',
+                'household_id' => $family->household_id, 'reference' => $family->reference, 'payer_name' => $family->payer_name, 'iban' => 'AT611904300234573201']);
+            Refund::query()->create(['household_id' => $family->household_id, 'payer_id' => $family->payer_id, 'payment_id' => $credit->id, 'amount_cents' => 2000,
+                'iban' => $credit->iban, 'payer_name' => $credit->payer_name, 'reason' => __('finance.overpaid', ['number' => $family->number], $locale)]);
         }
     }
 

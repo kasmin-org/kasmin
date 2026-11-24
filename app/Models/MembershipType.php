@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 /**
  * @property string $key
+ * @property int $fee_cents
  * @property array<string, string> $name translations, e.g. ['de' => …, 'en' => …]
  */
 class MembershipType extends Model

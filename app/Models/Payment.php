@@ -18,6 +18,9 @@ use Illuminate\Support\Carbon;
  * @property string|null $iban
  * @property string $match
  * @property int|null $suggested_invoice_id
+ * @property int|null $household_id
+ * @property int|null $parent_id
+ * @property string|null $note
  */
 class Payment extends Model
 {
@@ -34,6 +37,12 @@ class Payment extends Model
     public function invoice(): BelongsTo
     {
         return $this->belongsTo(Invoice::class);
+    }
+
+    /** @return BelongsTo<Household, $this> */
+    public function household(): BelongsTo
+    {
+        return $this->belongsTo(Household::class);
     }
 
     /** @return BelongsTo<Invoice, $this> */

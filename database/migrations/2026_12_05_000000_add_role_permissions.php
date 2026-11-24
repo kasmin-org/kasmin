@@ -1,0 +1,23 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+/**
+ * Permissions per role (RO04); null = the defaults of the built-in role.
+ */
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::table('roles', function (Blueprint $table) {
+            $table->json('permissions')->nullable();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::table('roles', fn (Blueprint $table) => $table->dropColumn('permissions'));
+    }
+};

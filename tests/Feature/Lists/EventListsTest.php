@@ -67,6 +67,7 @@ class EventListsTest extends TestCase
 
     private function actAs(string $role): User
     {
+        auth()->forgetUser(); // roles are assigned by the system here
         $person = Person::factory()->create();
         $person->roleAssignments()->create(['role_id' => Role::query()->where('key', $role)->value('id')]);
         $user = User::query()->create(['name' => $role, 'email' => $role.'@example.org', 'password' => 'x', 'person_id' => $person->id]);

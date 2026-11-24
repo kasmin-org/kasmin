@@ -7,6 +7,7 @@ use App\Models\EventDocument;
 use App\Models\Participation;
 use App\Models\PublicForm;
 use App\Models\User;
+use App\Support\Auth\Permissions;
 use App\Support\Lists\EventLists;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -55,7 +56,7 @@ class PublicEventController extends Controller
         if ($user->person === null) {
             return false;
         }
-        if ($user->hasAnyRole(['administrator', 'board', 'camp_leader'])) {
+        if (Permissions::allows($user, 'events')) {
             return true;
         }
         $active = Participation::query()->where('event_id', $event->id)->whereIn('status', [...EventLists::STATUSES, 'offered']);

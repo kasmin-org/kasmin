@@ -7,6 +7,7 @@ use App\Filament\Resources\MailTemplates\Pages\EditMailTemplate;
 use App\Filament\Resources\MailTemplates\Pages\ListMailTemplates;
 use App\Filament\Resources\MailTemplates\Schemas\MailTemplateForm;
 use App\Filament\Resources\MailTemplates\Tables\MailTemplatesTable;
+use App\Filament\Support\AreaAccess;
 use App\Models\MailTemplate;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -16,6 +17,13 @@ use Filament\Tables\Table;
 
 class MailTemplateResource extends Resource
 {
+    use AreaAccess;
+
+    public static function area(): string
+    {
+        return 'mailings';
+    }
+
     protected static ?string $model = MailTemplate::class;
 
     public static function getModelLabel(): string

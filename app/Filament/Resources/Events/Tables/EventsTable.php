@@ -33,12 +33,12 @@ class EventsTable
             ->recordActions([
                 EditAction::make(),
                 ActionGroup::make([
-                    Action::make('copy')->label(__('admin.event.copy'))->icon('heroicon-o-document-duplicate')
+                    Action::make('copy')->visible(fn () => EventResource::canCreate())->label(__('admin.event.copy'))->icon('heroicon-o-document-duplicate')
                         ->fillForm(fn (Event $record) => ['title' => self::nextTitle($record), 'starts_on' => $record->starts_at->copy()->addWeeks(52)->toDateString()])
                         ->schema(self::copyFields())
                         ->action(fn (Event $record, array $data, $livewire) => $livewire->redirect(EventResource::getUrl('edit', ['record' => app(EventCopier::class)->copy($record, (string) $data['title'], Carbon::parse((string) $data['starts_on']))]))),
                     Action::make('template')->label(__('admin.event.save_template'))->icon('heroicon-o-bookmark-square')
-                        ->visible(fn () => EventTemplateResource::canViewAny())
+                        ->visible(fn () => EventTemplateResource::canCreate())
                         ->fillForm(fn (Event $record) => ['title' => $record->series->name ?? $record->title])
                         ->schema([TextInput::make('title')->label(__('admin.event.title'))->required()->maxLength(200)])
                         ->action(function (Event $record, array $data) {

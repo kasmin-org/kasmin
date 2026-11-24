@@ -3,6 +3,7 @@
 namespace App\Filament\Widgets;
 
 use App\Models\User;
+use App\Support\Auth\Permissions;
 use App\Support\Reports\DashboardData;
 use Filament\Widgets\Widget;
 
@@ -18,6 +19,11 @@ class EventSeriesOverview extends Widget
     protected static ?int $sort = 1;
 
     protected static bool $isLazy = false;
+
+    public static function canView(): bool
+    {
+        return Permissions::current('events') || Permissions::current('finance');
+    }
 
     /** @return array<string, mixed> */
     protected function getViewData(): array

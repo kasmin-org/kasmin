@@ -7,6 +7,7 @@ use App\Filament\Resources\SenderProfiles\Pages\EditSenderProfile;
 use App\Filament\Resources\SenderProfiles\Pages\ListSenderProfiles;
 use App\Filament\Resources\SenderProfiles\Schemas\SenderProfileForm;
 use App\Filament\Resources\SenderProfiles\Tables\SenderProfilesTable;
+use App\Filament\Support\AreaAccess;
 use App\Models\SenderProfile;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -16,6 +17,13 @@ use Filament\Tables\Table;
 
 class SenderProfileResource extends Resource
 {
+    use AreaAccess;
+
+    public static function area(): string
+    {
+        return 'mail_settings';
+    }
+
     protected static ?string $model = SenderProfile::class;
 
     public static function getModelLabel(): string

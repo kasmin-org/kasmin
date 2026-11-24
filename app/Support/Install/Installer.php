@@ -65,9 +65,8 @@ class Installer
         }
 
         // Login works with one-time links; the random password is never shown or used.
-        return User::query()->create([
+        return User::query()->updateOrCreate(['email' => $email], [
             'name' => $adminName,
-            'email' => $email,
             'password' => Str::password(64),
             'person_id' => $person->id,
         ]);

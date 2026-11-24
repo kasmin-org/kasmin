@@ -3,8 +3,8 @@
 namespace App\Filament\Resources\AuditEvents;
 
 use App\Filament\Resources\AuditEvents\Pages\ListAuditEvents;
+use App\Filament\Support\AreaAccess;
 use App\Models\AuditEvent;
-use App\Models\User;
 use BackedEnum;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DatePicker;
@@ -25,6 +25,13 @@ use Illuminate\Database\Eloquent\Model;
  */
 class AuditEventResource extends Resource
 {
+    use AreaAccess;
+
+    public static function area(): string
+    {
+        return 'audit';
+    }
+
     protected static ?string $model = AuditEvent::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedClipboardDocumentList;
@@ -42,13 +49,6 @@ class AuditEventResource extends Resource
     public static function getNavigationGroup(): ?string
     {
         return __('admin.nav.privacy');
-    }
-
-    public static function canViewAny(): bool
-    {
-        $user = auth()->user();
-
-        return $user instanceof User && $user->hasAnyRole(['administrator', 'auditor']);
     }
 
     public static function canCreate(): bool

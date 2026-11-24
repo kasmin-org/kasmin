@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Automations;
 use App\Filament\Resources\AutomationRuns\AutomationRunResource;
 use App\Filament\Resources\Automations\Pages\EditAutomation;
 use App\Filament\Resources\Automations\Pages\ListAutomations;
+use App\Filament\Support\AreaAccess;
 use App\Models\Automation;
 use App\Models\Event;
 use App\Models\EventSeries;
@@ -28,7 +29,6 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\HtmlString;
 
 /**
@@ -36,6 +36,13 @@ use Illuminate\Support\HtmlString;
  */
 class AutomationResource extends Resource
 {
+    use AreaAccess;
+
+    public static function area(): string
+    {
+        return 'automations';
+    }
+
     protected static ?string $model = Automation::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBolt;
@@ -60,13 +67,6 @@ class AutomationResource extends Resource
     public static function canCreate(): bool
     {
         return false;
-    }
-
-    public static function canEdit(Model $record): bool
-    {
-        $user = auth()->user();
-
-        return $user instanceof User && $user->hasAnyRole(['administrator', 'board']);
     }
 
     public static function form(Schema $schema): Schema

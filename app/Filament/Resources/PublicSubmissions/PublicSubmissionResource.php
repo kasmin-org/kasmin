@@ -2,11 +2,12 @@
 
 namespace App\Filament\Resources\PublicSubmissions;
 
-use App\Filament\Resources\PublicForms\PublicFormResource;
 use App\Filament\Resources\PublicSubmissions\Pages\ListPublicSubmissions;
+use App\Filament\Support\AreaAccess;
 use App\Models\FormField;
 use App\Models\PublicSubmission;
 use App\Models\User;
+use App\Support\Auth\Permissions;
 use App\Support\Events\PublicForms;
 use App\Support\Forms\FormValue;
 use App\Support\Lists\EventLists;
@@ -28,6 +29,13 @@ use Illuminate\Database\Eloquent\Builder;
  */
 class PublicSubmissionResource extends Resource
 {
+    use AreaAccess;
+
+    public static function area(): string
+    {
+        return 'forms';
+    }
+
     protected static ?string $model = PublicSubmission::class;
 
     protected static ?string $slug = 'public-submissions';
@@ -58,11 +66,6 @@ class PublicSubmissionResource extends Resource
         return $open > 0 ? (string) $open : null;
     }
 
-    public static function canViewAny(): bool
-    {
-        return PublicFormResource::canViewAny();
-    }
-
     public static function canCreate(): bool
     {
         return false;
@@ -91,9 +94,9 @@ class PublicSubmissionResource extends Resource
             ActionGroup::make([
                 Action::make('show')->label(__('public.answers'))->icon('heroicon-o-eye')->modalSubmitAction(false)->visible(fn (PublicSubmission $record) => $record->data !== null)
                     ->schema(fn (PublicSubmission $record) => self::entries($record)),
-                Action::make('approve')->label(__('public.approve'))->icon('heroicon-o-check')->color('success')->requiresConfirmation()->visible(fn (PublicSubmission $record) => $record->status === 'pending')
+                Action::make('approve')->label(__('public.approve'))->icon('heroicon-o-check')->color('success')->requiresConfirmation()->visible(fn (PublicSubmission $record) => Permissions::current('forms', 'edit') && $record->status === 'pending')
                     ->action(fn (PublicSubmission $record) => app(PublicForms::class)->approve($record)),
-                Action::make('decline')->label(__('public.decline'))->icon('heroicon-o-x-mark')->color('danger')->visible(fn (PublicSubmission $record) => $record->status === 'pending')
+                Action::make('decline')->label(__('public.decline'))->icon('heroicon-o-x-mark')->color('danger')->visible(fn (PublicSubmission $record) => Permissions::current('forms', 'edit') && $record->status === 'pending')
                     ->schema([Textarea::make('note')->label(__('admin.finance.reason'))->maxLength(250)])
                     ->action(fn (PublicSubmission $record, array $data) => app(PublicForms::class)->decline($record, $data['note'] ?? null)),
             ]),

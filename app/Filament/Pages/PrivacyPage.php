@@ -4,6 +4,7 @@ namespace App\Filament\Pages;
 
 use App\Models\Person;
 use App\Models\User;
+use App\Support\Auth\Permissions;
 use App\Support\Privacy\Privacy;
 use App\Support\Settings;
 use BackedEnum;
@@ -46,7 +47,7 @@ class PrivacyPage extends Page
     {
         $user = auth()->user();
 
-        return $user instanceof User && $user->hasAnyRole(['administrator', 'board']);
+        return $user instanceof User && Permissions::allows($user, 'privacy', 'edit');
     }
 
     public function review(int $person): void

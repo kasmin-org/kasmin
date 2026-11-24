@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $key
  * @property array<string, string> $name
  * @property bool $is_admin
+ * @property array<string, string>|null $permissions
  * @property bool $requires_second_factor
  */
 class Role extends Model
@@ -22,7 +23,7 @@ class Role extends Model
 
     protected function casts(): array
     {
-        return ['name' => 'array', 'is_admin' => 'boolean', 'requires_second_factor' => 'boolean'];
+        return ['name' => 'array', 'is_admin' => 'boolean', 'requires_second_factor' => 'boolean', 'permissions' => 'array'];
     }
 
     public function label(): string

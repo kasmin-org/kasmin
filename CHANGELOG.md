@@ -12,6 +12,7 @@ Pre-release for testing. Not ready for production use.
 
 ### Added
 
+- Roles can be assigned to people with a period, and the permissions of every role can be edited (administrators only).
 - Event templates (with three default types), copying an event with all dates moved, saving an event as a template.
 - More event data, image and documents for participants or for everyone.
 - Status by date: announce, open and close the registration, running, finished.
@@ -21,6 +22,10 @@ Pre-release for testing. Not ready for production use.
 
 ### Changed
 
+- Every page of the admin interface checks the permissions of the role. Treasurers change prices and invoice data only, auditors
+  only view finance, consents and the audit log; camp leaders no longer see finance, mailings or settings. Mail accounts,
+  roles, API tokens, public address and AI settings are for administrators.
+- There is always at least one administrator.
 - Events become *running* and *finished* by themselves.
 
 ### Fixed
@@ -29,6 +34,9 @@ Pre-release for testing. Not ready for production use.
 
 ### Security
 
+- Until 0.14.0 every administrative role, including auditors, could change people, mailings and mail accounts, and through them
+  take over the login of an administrator. Pages are restricted now, and login addresses and roles of people with an
+  administrative role can only be changed by administrators, whatever page or import is used.
 - Pages can no longer be shown in frames of other websites (clickjacking); no addresses are passed on as referrer.
 
 ## [0.14.0] - 2026-11-24

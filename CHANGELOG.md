@@ -6,6 +6,10 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-11-24
+
+Pre-release for testing. Not ready for production use.
+
 ### Added
 
 - REST API v1 with API tokens (scopes, expiry, revoke, last use, shown once), OpenAPI 3.1 documentation at
@@ -140,7 +144,8 @@ First public pre-release for testing. Not ready for production use.
 - Docker image: system packages updated and build packages removed after compiling the PHP extensions – the
   container scan reports no high or critical findings any more (previously 75 in Debian packages).
 
-[Unreleased]: https://github.com/kasmin-org/kasmin/compare/v0.7.0...develop
+[Unreleased]: https://github.com/kasmin-org/kasmin/compare/v0.8.0...develop
+[0.8.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.8.0
 [0.7.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.7.0
 [0.5.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.5.0
 [0.4.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.4.0

@@ -6,10 +6,6 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ## [Unreleased]
 
-## [0.12.0] - 2026-11-24
-
-Pre-release for testing. Not ready for production use.
-
 ### Added
 
 - Lists per event: participants, contacts, bus, birthdays, answers, missing safety sheets; for the safety role also
@@ -23,6 +19,10 @@ Pre-release for testing. Not ready for production use.
 ### Changed
 
 - The interface uses the language of the logged-in person; guests get the language of their browser.
+
+## [0.12.0] - 2026-11-24
+
+Pre-release for testing. Not ready for production use.
 
 ### Added
 

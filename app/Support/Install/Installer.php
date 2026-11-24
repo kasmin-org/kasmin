@@ -45,6 +45,7 @@ class Installer
             'organisation_name' => $organisation,
             'default_locale' => $locale,
             'installed_defaults' => $defaults,
+            'timezone' => $locale === 'de' ? 'Europe/Vienna' : 'Europe/London', // can be changed in the settings
             'installed_at' => now()->toIso8601String(),
         ] as $key => $value) {
             DB::table('system_meta')->updateOrInsert(['key' => $key], ['value' => $value, 'created_at' => now(), 'updated_at' => now()]);

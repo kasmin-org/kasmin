@@ -8,6 +8,20 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ### Added
 
+- Lists per event: participants, contacts, bus, birthdays, answers, missing safety sheets; for the safety role also
+  emergency contacts, kitchen, medical needs, medication, insurance, swimmers, consents and changes since the last event –
+  on screen, as PDF, XLSX and CSV.
+- Camp folder: one confidential PDF page per child, for the whole event or one child.
+- Export of tables as XLSX, CSV and PDF; saved views, also shared; filters with AND, OR and NOT and by age at a date.
+- Time zone in the settings; new installations start with the time zone of their language.
+- Language switch on public pages and in the portal.
+
+### Changed
+
+- The interface uses the language of the logged-in person; guests get the language of their browser.
+
+### Added
+
 - Prices by age and registration date, reduced and free places with reason (finance roles only).
 - Cancellation rules per event: refundable until, cancellation fee, conditions shown in the portal before cancelling.
 - Corrections: issued invoices that no longer fit are corrected with a credit note and a new invoice, after approval.

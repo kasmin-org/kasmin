@@ -38,6 +38,7 @@ class EnvConfig
         'KASMIN_RETENTION_SAFETY_YEARS' => 'retention_safety_years',
         'KASMIN_RETENTION_INVOICE_YEARS' => 'retention_invoice_years',
         'KASMIN_AI_PROCESSING' => 'ai_processing',
+        'KASMIN_TIMEZONE' => 'timezone',
         'KASMIN_DIGEST_TIME' => 'digest_time',
         'KASMIN_APPROVAL_DAYS' => 'approval_days',
     ];
@@ -108,6 +109,7 @@ class EnvConfig
         $oneOf = fn (array $values) => fn (string $v) => in_array($v, $values, true);
         $number = fn (string $v) => ctype_digit($v);
         $check('KASMIN_PUBLIC_URL', fn (string $v) => preg_match('#^https?://[A-Za-z0-9.-]+(:\d+)?$#', $v) === 1, 'must be like https://camp.example.org');
+        $check('KASMIN_TIMEZONE', fn (string $v) => in_array($v, timezone_identifiers_list(), true), 'must be a time zone such as Europe/Vienna');
         $check('KASMIN_LOCALE', $oneOf(['de', 'en']), 'must be de or en');
         $check('KASMIN_DEFAULTS', $oneOf(['de', 'en', 'none']), 'must be de, en or none');
         $check('KASMIN_AI_PROCESSING', $oneOf(['none', 'non_confidential', 'all']), 'must be none, non_confidential or all');

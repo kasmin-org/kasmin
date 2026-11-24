@@ -57,7 +57,8 @@ class EventListsPage extends Page
 
     public function mount(): void
     {
-        $this->event ??= Event::query()->whereNotIn('status', ['draft', 'archived'])->where('ends_at', '>=', now()->subMonths(2))->orderBy('starts_at')->value('id')
+        $this->event ??= Event::query()->whereNotIn('status', ['draft', 'archived'])->where('ends_at', '>=', now()->subMonths(2))->whereHas('participations')->orderBy('starts_at')->value('id')
+            ?? Event::query()->whereNotIn('status', ['draft', 'archived'])->where('ends_at', '>=', now()->subMonths(2))->orderBy('starts_at')->value('id')
             ?? Event::query()->orderByDesc('starts_at')->value('id');
         $this->logView();
     }

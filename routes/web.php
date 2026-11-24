@@ -7,6 +7,7 @@ use App\Http\Controllers\Auth\TwoFactorController;
 use App\Http\Controllers\EventListController;
 use App\Http\Controllers\InstallController;
 use App\Http\Controllers\InvoicePdfController;
+use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\MailPreferencesController;
 use App\Http\Controllers\PortalChildController;
 use App\Http\Controllers\PortalController;
@@ -21,6 +22,8 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return auth()->check() ? redirect()->route('portal') : view('welcome');
 });
+
+Route::post('/language', [LanguageController::class, 'update'])->middleware('throttle:60,1,language')->name('language');
 
 Route::get('/install', [InstallController::class, 'show'])->name('install');
 Route::post('/install', [InstallController::class, 'store'])->middleware('throttle:install');

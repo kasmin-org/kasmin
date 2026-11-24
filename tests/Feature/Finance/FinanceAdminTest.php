@@ -203,7 +203,7 @@ class FinanceAdminTest extends TestCase
         $user = User::query()->create(['name' => 'Alex', 'email' => 'alex@example.org', 'password' => 'x', 'person_id' => $this->guardian->id]);
         $child = $this->participation->person ?? $this->guardian;
         $this->actingAs($user)->get(route('portal.child', $child->public_id))->assertOk()
-            ->assertSee('Our conditions')->assertSee('Deposit: not refundable.')->assertSee('Balance: refundable until July 2, 2027.')->assertSee('Cancellation fee: '.Invoice::money(1500));
+            ->assertSee('Our conditions')->assertSee('Deposit: not refundable.')->assertSee('Balance: refundable until 2 July 2027.')->assertSee('Cancellation fee: '.Invoice::money(1500));
         $this->travelTo(Carbon::parse('2027-07-03 12:00'));
         $this->actingAs($user)->get(route('portal.child', $child->public_id))->assertSee('Balance: no longer refundable.');
     }

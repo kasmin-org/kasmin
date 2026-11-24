@@ -7,7 +7,7 @@ use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\URL;
 
 /**
- * Applies settings from the database to the running application: public URL, digest time, approval days, and the default
+ * Applies settings from the database to the running application: public URL, time zone, digest time, approval days, and the default
  * mail account for mails sent directly (login links). The database wins over environment variables (DK02).
  */
 class RuntimeSettings
@@ -21,6 +21,11 @@ class RuntimeSettings
                 if (app()->runningInConsole()) {
                     URL::useOrigin($url); // links in mails and commands; web requests use their own address
                 }
+            }
+            $zone = Settings::get('timezone');
+            if ($zone !== null && in_array($zone, timezone_identifiers_list(), true)) {
+                config(['app.timezone' => $zone]);
+                date_default_timezone_set($zone);
             }
             foreach (['digest_time' => 'kasmin.digest_time', 'approval_days' => 'kasmin.approval_days'] as $key => $config) {
                 $value = Settings::get($key);

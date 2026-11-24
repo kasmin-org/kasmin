@@ -7,6 +7,7 @@ use App\Support\Audit\Audit;
 use App\Support\Settings;
 use BackedEnum;
 use Filament\Forms\Components\Radio;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -37,7 +38,7 @@ class OrganisationSettingsPage extends Page
     private const KEYS = [
         'organisation_name', 'organisation_address', 'organisation_email', 'organisation_website', 'organisation_iban',
         'organisation_bic', 'organisation_bank', 'organisation_legal_footer', 'invoice_number_format', 'invoice_next_number',
-        'invoice_number_per_year', 'invoice_due_days', 'invoice_attach_paid', 'invoice_reminder_days_before', 'invoice_overdue_days', 'invoice_overdue_fees', 'public_url', 'digest_time', 'approval_days', 'ai_processing', 'retention_safety_years', 'retention_invoice_years',
+        'invoice_number_per_year', 'invoice_due_days', 'invoice_attach_paid', 'invoice_reminder_days_before', 'invoice_overdue_days', 'invoice_overdue_fees', 'public_url', 'timezone', 'digest_time', 'approval_days', 'ai_processing', 'retention_safety_years', 'retention_invoice_years',
     ];
 
     public static function getNavigationGroup(): ?string
@@ -115,6 +116,7 @@ class OrganisationSettingsPage extends Page
             ]),
             Section::make(__('admin.settings.system'))->columns(3)->schema([
                 TextInput::make('public_url')->label(__('admin.settings.public_url'))->url()->maxLength(200)->placeholder((string) config('app.url'))->hintIcon(...$hint('public_url')),
+                Select::make('timezone')->label(__('admin.settings.timezone'))->searchable()->placeholder('UTC')->options(fn () => array_combine(timezone_identifiers_list(), timezone_identifiers_list()))->hintIcon(...$hint('timezone')),
                 TextInput::make('digest_time')->label(__('admin.settings.digest_time'))->regex('/^([01]\d|2[0-3]):[0-5]\d$/')->placeholder('07:00'),
                 TextInput::make('approval_days')->label(__('admin.settings.approval_days'))->numeric()->minValue(1)->maxValue(60)->placeholder('7'),
             ]),

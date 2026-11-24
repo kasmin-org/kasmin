@@ -9,11 +9,13 @@ use App\Models\Refund;
 use App\Support\Finance\Credits;
 use BackedEnum;
 use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
 use Filament\Forms\Components\DatePicker;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Enums\RecordActionsPosition;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Support\Carbon;
@@ -64,7 +66,7 @@ class RefundResource extends Resource
     public static function table(Table $table): Table
     {
         return $table->defaultSort('id', 'desc')->columns([
-            TextColumn::make('created_at')->label(__('finance.issued_on'))->date(),
+            TextColumn::make('created_at')->label(__('admin.finance.proposed_on'))->date(),
             TextColumn::make('amount_cents')->label(__('finance.amount'))->alignEnd()->formatStateUsing(fn (Refund $record) => Invoice::money($record->amount_cents, $record->currency)),
             TextColumn::make('household.name')->label(__('admin.household.singular'))->placeholder('–'),
             TextColumn::make('payer_name')->label(__('finance.recipient'))->placeholder('–')->description(fn (Refund $record) => $record->iban),
@@ -77,20 +79,22 @@ class RefundResource extends Resource
         ])->filters([
             SelectFilter::make('status')->label(__('admin.event.status'))->options(__('finance.refund_status'))->default('proposed'),
         ])->recordActions([
-            Action::make('done')->label(__('admin.finance.refund_done'))->icon('heroicon-o-check')->color('success')
-                ->visible(fn (Refund $record) => Money::canManage() && $record->status === 'proposed')
-                ->schema([DatePicker::make('on')->label(__('admin.finance.paid_on'))->default(now())->maxDate(now())->required()])
-                ->action(function (Refund $record, array $data) {
-                    try {
-                        app(Credits::class)->markRefunded($record, Carbon::parse((string) $data['on']));
-                    } catch (\RuntimeException $e) {
-                        Notification::make()->title($e->getMessage())->danger()->send();
-                    }
-                }),
-            Action::make('keep')->label(__('admin.finance.keep_credit'))->icon('heroicon-o-archive-box')->color('gray')->requiresConfirmation()
-                ->visible(fn (Refund $record) => Money::canManage() && $record->status === 'proposed')
-                ->action(fn (Refund $record) => app(Credits::class)->decline($record)),
-        ]);
+            ActionGroup::make([
+                Action::make('done')->label(__('admin.finance.refund_done'))->icon('heroicon-o-check')->color('success')
+                    ->visible(fn (Refund $record) => Money::canManage() && $record->status === 'proposed')
+                    ->schema([DatePicker::make('on')->label(__('admin.finance.paid_on'))->default(now())->maxDate(now())->required()])
+                    ->action(function (Refund $record, array $data) {
+                        try {
+                            app(Credits::class)->markRefunded($record, Carbon::parse((string) $data['on']));
+                        } catch (\RuntimeException $e) {
+                            Notification::make()->title($e->getMessage())->danger()->send();
+                        }
+                    }),
+                Action::make('keep')->label(__('admin.finance.keep_credit'))->icon('heroicon-o-archive-box')->color('gray')->requiresConfirmation()
+                    ->visible(fn (Refund $record) => Money::canManage() && $record->status === 'proposed')
+                    ->action(fn (Refund $record) => app(Credits::class)->decline($record)),
+            ]),
+        ], RecordActionsPosition::BeforeColumns);
     }
 
     public static function getPages(): array

@@ -55,7 +55,7 @@ class EventForm
                             ->hintIcon('heroicon-m-question-mark-circle', tooltip: __('admin.finance.counts_as_sibling_hint')),
                     ]),
             ]),
-            Section::make(__('admin.finance.pricing'))->collapsible()->columns(3)->schema([
+            Section::make(__('admin.finance.pricing'))->collapsible()->columnSpanFull()->columns(['md' => 3])->schema([
                 Select::make('sibling_mode')->label(__('admin.finance.sibling_mode'))->options(__('finance.sibling_mode'))->default('none')->required()->live()->columnSpan(2),
                 Select::make('sibling_order')->label(__('admin.finance.sibling_order'))->options(__('finance.sibling_order'))->default('oldest')->required(),
                 Money::input('sibling_amount_cents', __('admin.finance.sibling_amount'))
@@ -71,7 +71,7 @@ class EventForm
                 Money::input('cancellation_fee_cents', __('admin.finance.cancellation_fee'))->hintIcon('heroicon-m-question-mark-circle', tooltip: __('admin.finance.cancellation_fee_hint')),
                 Textarea::make('cancellation_text.de')->label(__('admin.finance.cancellation_text').' (DE)')->rows(2),
                 Textarea::make('cancellation_text.en')->label(__('admin.finance.cancellation_text').' (EN)')->rows(2),
-                Repeater::make('prices')->relationship()->label(__('admin.finance.prices'))->columnSpanFull()->columns(6)
+                Repeater::make('prices')->relationship()->label(__('admin.finance.prices'))->columnSpanFull()->columns(['md' => 3, 'xl' => 6])
                     ->orderColumn('sort')->addActionLabel(__('admin.finance.add_price'))->defaultItems(0)->helperText(__('admin.finance.prices_hint'))
                     ->schema([
                         Select::make('role_key')->label(__('admin.event.role'))->options(__('events.roles'))->default('child')->required(),
@@ -81,7 +81,7 @@ class EventForm
                         DatePicker::make('until_date')->label(__('admin.finance.until_date')),
                         Money::input('price_cents', __('admin.finance.price'))->required(),
                     ]),
-                Repeater::make('installments')->relationship()->label(__('admin.finance.installments'))->columnSpanFull()->columns(4)
+                Repeater::make('installments')->relationship()->label(__('admin.finance.installments'))->columnSpanFull()->columns(['md' => 2, 'xl' => 4])
                     ->orderColumn('sort')->addActionLabel(__('admin.finance.add_installment'))->defaultItems(0)
                     ->schema([
                         TextInput::make('key')->label(__('admin.finance.installment_key'))->required()->alphaDash()->maxLength(32)->distinct(),

@@ -3,6 +3,7 @@
 return [
     'nav' => ['people' => 'Personen', 'events' => 'Veranstaltungen', 'forms' => 'Formulare', 'finance' => 'Finanzen', 'settings' => 'Einstellungen', 'automations' => 'Automatisierungen', 'privacy' => 'Datenschutz', 'reports' => 'Auswertungen', 'communication' => 'Kommunikation', 'system' => 'System'],
     'finance' => [
+        'proposed_on' => 'Vorgeschlagen am',
         'cancellation_fee' => 'Stornogebühr', 'cancellation_fee_hint' => 'Wird einmal verrechnet, wenn nach einer Stornierung eine Rate erstattet wird.', 'cancellation_text' => 'Stornobedingungen',
         'prices' => 'Preise nach Alter oder Anmeldedatum', 'add_price' => 'Preis hinzufügen', 'prices_hint' => 'Die erste passende Zeile zählt; sonst der Preis der Rolle.', 'from_date' => 'Angemeldet ab', 'until_date' => 'Angemeldet bis',
         'refund_until_days' => 'Erstattbar bis … Tage vor Beginn', 'refund_until_hint' => 'Leer = immer erstattbar.', 'confirms_place' => 'Zahlung bestätigt den Platz', 'paid_add_group' => 'Nach Zahlung: zu Gruppe hinzufügen', 'paid_remove_group' => 'Nach Zahlung: aus Gruppe entfernen',

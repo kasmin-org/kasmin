@@ -3,6 +3,7 @@
 return [
     'nav' => ['people' => 'People', 'events' => 'Events', 'forms' => 'Forms', 'finance' => 'Finance', 'settings' => 'Settings', 'automations' => 'Automations', 'privacy' => 'Data protection', 'reports' => 'Reports', 'communication' => 'Communication', 'system' => 'System'],
     'finance' => [
+        'proposed_on' => 'Proposed on',
         'cancellation_fee' => 'Cancellation fee', 'cancellation_fee_hint' => 'Charged once when an instalment is refunded after a cancellation.', 'cancellation_text' => 'Cancellation conditions',
         'prices' => 'Prices by age or registration date', 'add_price' => 'Add price', 'prices_hint' => 'The first line that fits counts; without a fitting line the price of the role.', 'from_date' => 'Registered from', 'until_date' => 'Registered until',
         'refund_until_days' => 'Refundable until … days before the start', 'refund_until_hint' => 'Empty = always refundable.', 'confirms_place' => 'Payment confirms the place', 'paid_add_group' => 'After payment: add to group', 'paid_remove_group' => 'After payment: remove from group',

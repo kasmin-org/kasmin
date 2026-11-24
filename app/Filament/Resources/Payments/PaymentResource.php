@@ -11,6 +11,7 @@ use App\Support\Finance\Credits;
 use App\Support\Finance\Payments;
 use BackedEnum;
 use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkAction;
 use Filament\Actions\DeleteAction;
 use Filament\Forms\Components\Repeater;
@@ -20,6 +21,7 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Enums\RecordActionsPosition;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Collection;
@@ -89,60 +91,68 @@ class PaymentResource extends Resource
                 SelectFilter::make('match')->label(__('admin.finance.match'))->options(__('finance.match')),
             ])
             ->recordActions([
-                Action::make('confirm')->label(__('admin.finance.confirm_match'))->icon('heroicon-o-check')->color('success')
-                    ->visible(fn (Payment $record) => Money::canManage() && $record->match === 'suggested' && $record->suggestedInvoice !== null)
-                    ->action(fn (Payment $record) => app(Payments::class)->assign($record, $record->suggestedInvoice ?? throw new \RuntimeException)),
-                Action::make('assign')->label(__('admin.finance.assign'))->icon('heroicon-o-link')
-                    ->visible(fn (Payment $record) => Money::canManage() && in_array($record->match, ['suggested', 'unmatched'], true))
-                    ->schema([
-                        Select::make('invoice_id')->label(__('finance.invoice'))->required()->searchable()->options(fn () => self::openInvoices()),
-                    ])
-                    ->action(function (Payment $record, array $data) {
-                        try {
-                            app(Payments::class)->assign($record, Invoice::query()->findOrFail((int) $data['invoice_id']));
-                        } catch (\RuntimeException $e) {
-                            Notification::make()->title($e->getMessage())->danger()->send();
-                        }
-                    }),
-                Action::make('split')->label(__('admin.finance.split'))->icon('heroicon-o-scissors')
-                    ->visible(fn (Payment $record) => Money::canManage() && $record->invoice_id === null && in_array($record->match, ['suggested', 'unmatched'], true))
-                    ->modalDescription(__('admin.finance.split_hint'))
-                    ->schema([
-                        Repeater::make('parts')->label('')->columns(2)->minItems(1)->defaultItems(2)->schema([
-                            Select::make('invoice_id')->label(__('finance.invoice'))->required()->searchable()->distinct()->options(fn () => self::openInvoices()),
-                            TextInput::make('amount')->label(__('finance.amount'))->numeric()->minValue(0.01)->suffix('€')->required(),
-                        ]),
-                    ])
-                    ->action(function (Payment $record, array $data) {
-                        $amounts = [];
-                        foreach ((array) $data['parts'] as $part) {
-                            $amounts[(int) $part['invoice_id']] = Money::toCents($part['amount']);
-                        }
-                        try {
-                            app(Payments::class)->split($record, $amounts);
-                        } catch (\RuntimeException $e) {
-                            Notification::make()->title($e->getMessage())->danger()->send();
-                        }
-                    }),
-                Action::make('use_credit')->label(__('admin.finance.use_credit'))->icon('heroicon-o-arrow-right-circle')
-                    ->visible(fn (Payment $record) => Money::canManage() && $record->match === 'credit')
-                    ->schema([Select::make('invoice_id')->label(__('finance.invoice'))->required()->searchable()->options(fn () => self::openInvoices())])
-                    ->action(function (Payment $record, array $data) {
-                        try {
-                            app(Credits::class)->useFor($record, Invoice::query()->findOrFail((int) $data['invoice_id']));
-                        } catch (\RuntimeException $e) {
-                            Notification::make()->title($e->getMessage())->danger()->send();
-                        }
-                    }),
-                Action::make('refund')->label(__('admin.finance.propose_refund'))->icon('heroicon-o-arrow-uturn-left')->requiresConfirmation()
-                    ->visible(fn (Payment $record) => Money::canManage() && $record->invoice_id === null && in_array($record->match, ['credit', 'unmatched'], true))
-                    ->schema([TextInput::make('reason')->label(__('admin.finance.reason'))->required()->maxLength(250)])
-                    ->action(function (Payment $record, array $data) {
-                        $record->forceFill(['match' => 'credit'])->save();
-                        app(Credits::class)->proposeRefund($record, (string) $data['reason']);
-                    }),
-                DeleteAction::make()->label(__('admin.finance.ignore'))->visible(fn (Payment $record) => Money::canManage() && $record->invoice_id === null && $record->match === 'unmatched' && $record->parent_id === null),
-            ])
+                ActionGroup::make([
+                    Action::make('confirm')->label(__('admin.finance.confirm_match'))->icon('heroicon-o-check')->color('success')
+                        ->visible(fn (Payment $record) => Money::canManage() && $record->match === 'suggested' && $record->suggestedInvoice !== null)
+                        ->action(function (Payment $record) {
+                            try {
+                                app(Payments::class)->assign($record, $record->suggestedInvoice ?? throw new \RuntimeException(__('finance.not_open')));
+                            } catch (\RuntimeException $e) {
+                                Notification::make()->title($e->getMessage())->danger()->send();
+                            }
+                        }),
+                    Action::make('assign')->label(__('admin.finance.assign'))->icon('heroicon-o-link')
+                        ->visible(fn (Payment $record) => Money::canManage() && in_array($record->match, ['suggested', 'unmatched'], true))
+                        ->schema([
+                            Select::make('invoice_id')->label(__('finance.invoice'))->required()->searchable()->options(fn () => self::openInvoices()),
+                        ])
+                        ->action(function (Payment $record, array $data) {
+                            try {
+                                app(Payments::class)->assign($record, Invoice::query()->findOrFail((int) $data['invoice_id']));
+                            } catch (\RuntimeException $e) {
+                                Notification::make()->title($e->getMessage())->danger()->send();
+                            }
+                        }),
+                    Action::make('split')->label(__('admin.finance.split'))->icon('heroicon-o-scissors')
+                        ->visible(fn (Payment $record) => Money::canManage() && $record->invoice_id === null && in_array($record->match, ['suggested', 'unmatched'], true))
+                        ->modalDescription(__('admin.finance.split_hint'))
+                        ->schema([
+                            Repeater::make('parts')->label('')->columns(2)->minItems(1)->defaultItems(2)->schema([
+                                Select::make('invoice_id')->label(__('finance.invoice'))->required()->searchable()->distinct()->options(fn () => self::openInvoices()),
+                                TextInput::make('amount')->label(__('finance.amount'))->numeric()->minValue(0.01)->suffix('€')->required(),
+                            ]),
+                        ])
+                        ->action(function (Payment $record, array $data) {
+                            $amounts = [];
+                            foreach ((array) $data['parts'] as $part) {
+                                $amounts[(int) $part['invoice_id']] = Money::toCents($part['amount']);
+                            }
+                            try {
+                                app(Payments::class)->split($record, $amounts);
+                            } catch (\RuntimeException $e) {
+                                Notification::make()->title($e->getMessage())->danger()->send();
+                            }
+                        }),
+                    Action::make('use_credit')->label(__('admin.finance.use_credit'))->icon('heroicon-o-arrow-right-circle')
+                        ->visible(fn (Payment $record) => Money::canManage() && $record->match === 'credit')
+                        ->schema([Select::make('invoice_id')->label(__('finance.invoice'))->required()->searchable()->options(fn () => self::openInvoices())])
+                        ->action(function (Payment $record, array $data) {
+                            try {
+                                app(Credits::class)->useFor($record, Invoice::query()->findOrFail((int) $data['invoice_id']));
+                            } catch (\RuntimeException $e) {
+                                Notification::make()->title($e->getMessage())->danger()->send();
+                            }
+                        }),
+                    Action::make('refund')->label(__('admin.finance.propose_refund'))->icon('heroicon-o-arrow-uturn-left')->requiresConfirmation()
+                        ->visible(fn (Payment $record) => Money::canManage() && $record->invoice_id === null && in_array($record->match, ['credit', 'unmatched'], true))
+                        ->schema([TextInput::make('reason')->label(__('admin.finance.reason'))->required()->maxLength(250)])
+                        ->action(function (Payment $record, array $data) {
+                            $record->forceFill(['match' => 'credit'])->save();
+                            app(Credits::class)->proposeRefund($record, (string) $data['reason']);
+                        }),
+                    DeleteAction::make()->label(__('admin.finance.ignore'))->visible(fn (Payment $record) => Money::canManage() && $record->invoice_id === null && $record->match === 'unmatched' && $record->parent_id === null),
+                ]),
+            ], RecordActionsPosition::BeforeColumns)
             ->toolbarActions([
                 BulkAction::make('confirm_all')->label(__('admin.finance.confirm_suggestions'))->icon('heroicon-o-check')->visible(fn () => Money::canManage())
                     ->requiresConfirmation()
@@ -150,7 +160,11 @@ class PaymentResource extends Resource
                         foreach ($records as $payment) {
                             /** @var Payment $payment */
                             if ($payment->match === 'suggested' && $payment->suggestedInvoice !== null) {
-                                app(Payments::class)->assign($payment, $payment->suggestedInvoice);
+                                try {
+                                    app(Payments::class)->assign($payment, $payment->suggestedInvoice);
+                                } catch (\RuntimeException $e) {
+                                    Notification::make()->title($e->getMessage())->danger()->send();
+                                }
                             }
                         }
                     }),

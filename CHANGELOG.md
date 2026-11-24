@@ -20,6 +20,11 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 - The interface uses the language of the logged-in person; guests get the language of their browser.
 
+### Fixed
+
+- MySQL: the order of choices and sub-fields of form questions was lost (MariaDB was not affected). Forms that already exist on
+  MySQL keep the changed order; save the choices again in the form builder to correct it.
+
 ## [0.12.0] - 2026-11-24
 
 Pre-release for testing. Not ready for production use.

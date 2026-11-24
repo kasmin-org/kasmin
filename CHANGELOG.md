@@ -6,6 +6,12 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ## [Unreleased]
 
+### Changed
+
+- The recommended cron interval is every 5 minutes; daily and hourly jobs run at the first call after their time instead
+  of only in the exact minute.
+- Own admin theme, so tables, headings and links in Kasmin's admin pages are styled; menu in a fixed order.
+
 ### Security
 
 - API tokens stop working when their owner loses the administrator role (before, they stayed valid until they expired

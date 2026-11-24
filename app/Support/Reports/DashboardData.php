@@ -59,7 +59,7 @@ class DashboardData
             'days' => (int) now()->startOfDay()->diffInDays($event->starts_at->copy()->startOfDay(), false),
             'registrations' => Participation::query()->where('event_id', $event->id)->whereIn('status', $occupying)->count(),
             'waitlist' => array_sum(array_column($roles, 'waitlist')),
-            'open_places' => collect($roles)->every(fn ($r) => $r['capacity'] !== null) ? array_sum(array_column($roles, 'bookable_left')) : null,
+            'open_places' => collect($roles)->contains(fn ($r) => $r['capacity'] !== null) ? (int) collect($roles)->sum(fn ($r) => $r['bookable_left'] ?? 0) : null, // roles without a limit do not count
             'reserve_left' => array_sum(array_column($roles, 'reserve_left')),
             'roles' => $roles,
             'latest' => Participation::query()->where('event_id', $event->id)->whereNotIn('status', ['cancelled', 'declined'])->with('person')

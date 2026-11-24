@@ -27,6 +27,7 @@ class DashboardTest extends TestCase
         $camp = collect($blocks)->firstWhere('series', 'Summer camp');
         $this->assertNotNull($camp);
         $this->assertGreaterThan(0, $camp['registrations']);
+        $this->assertIsInt($camp['open_places'], 'roles without a limit (team) do not make the places infinite');
         $this->assertCount(min(3, $camp['registrations']), $camp['latest']);
         $this->assertSame($camp['finance']['paid']['count'] + $camp['finance']['open']['count'] + $camp['finance']['overdue']['count'], Invoice::query()->where('event_id', $camp['id'])->count());
 

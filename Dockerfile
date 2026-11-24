@@ -1,17 +1,20 @@
 # Production image of Kasmin: Alpine Linux with Apache + PHP, dependencies and built assets included.
 
-FROM node:24-slim AS assets
-WORKDIR /app
-COPY package.json package-lock.json vite.config.js ./
-COPY resources ./resources
-RUN npm ci --ignore-scripts --no-audit --no-fund && npm run build
-
 FROM composer:2 AS vendor
 WORKDIR /app
 COPY composer.json composer.lock ./
 RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist --no-interaction --ignore-platform-reqs
 COPY . .
 RUN composer dump-autoload --optimize --no-dev --no-scripts
+
+FROM node:24-slim AS assets
+WORKDIR /app
+COPY package.json package-lock.json vite.config.js ./
+COPY resources ./resources
+# The admin theme builds on Filament's styles and scans our own admin classes.
+COPY app ./app
+COPY --from=vendor /app/vendor/filament ./vendor/filament
+RUN npm ci --ignore-scripts --no-audit --no-fund && npm run build
 
 FROM alpine:3.24
 # Small image: Alpine Linux with its PHP 8.5 packages and Apache (mod_php); bash and vim for maintenance.

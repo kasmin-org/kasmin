@@ -25,7 +25,7 @@ class SystemStatus
         private readonly SchemaGuard $schema,
     ) {}
 
-    /** Called by the scheduler every minute. */
+    /** Called on every run of the scheduler. */
     public static function heartbeat(): void
     {
         DB::table('system_meta')->updateOrInsert(['key' => self::HEARTBEAT_KEY], ['value' => now()->toIso8601String(), 'updated_at' => now(), 'created_at' => now()]);
@@ -101,8 +101,8 @@ class SystemStatus
         if ($this->cronMissing()) {
             $notifications->raise('cron_missing', 'danger',
                 ['de' => 'Cronjob nicht eingerichtet', 'en' => 'Cron job not configured'],
-                ['de' => 'Kasmin braucht einen Cronjob, der jede Minute läuft (Mailversand, Erinnerungen, Automatisierungen). Seit über '.self::CRON_STALE_MINUTES.' Minuten wurde keiner ausgeführt. Die Dokumentation zeigt, wie Sie ihn einrichten.',
-                    'en' => 'Kasmin needs a cron job running every minute (sending mails, reminders, automations). None has run for more than '.self::CRON_STALE_MINUTES.' minutes. The documentation shows how to set it up.'], $docs);
+                ['de' => 'Kasmin braucht einen Cronjob, der alle 5 Minuten läuft (Mailversand, Erinnerungen, Automatisierungen). Seit über '.self::CRON_STALE_MINUTES.' Minuten wurde keiner ausgeführt. Die Dokumentation zeigt, wie Sie ihn einrichten.',
+                    'en' => 'Kasmin needs a cron job running every 5 minutes (sending mails, reminders, automations). None has run for more than '.self::CRON_STALE_MINUTES.' minutes. The documentation shows how to set it up.'], $docs);
         } else {
             $notifications->resolve('cron_missing');
         }

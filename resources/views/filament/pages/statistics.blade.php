@@ -23,8 +23,8 @@
             <x-filament::section :heading="__('reports.ages')">
                 @forelse ($ages as $age => $count)
                     <div style="display:flex;align-items:center;gap:.5rem" class="text-sm">
-                        <span style="width:2.5rem;text-align:right">{{ $age }}</span>
-                        <span style="display:inline-block;height:.9rem;border-radius:4px;background:#1da029;width:{{ max(4, (int) round($count / $max * 100)) }}%" aria-hidden="true"></span>
+                        <span style="width:2rem;flex:none;text-align:right">{{ $age }}</span>
+                        <span style="display:inline-block;height:.9rem;border-radius:4px;background:#1da029;width:{{ max(4, (int) round($count / $max * 80)) }}%" aria-hidden="true"></span>
                         <span>{{ $count }}</span>
                     </div>
                 @empty
@@ -47,14 +47,14 @@
             @if ($costs)
                 <x-filament::section :heading="__('reports.costs')">
                     <table class="w-full text-sm">
-                        <tr><td>{{ __('reports.income') }}</td><td style="text-align:right">{{ $money($costs['income']) }}</td></tr>
+                        <tr><td class="py-1 pe-4">{{ __('reports.income') }}</td><td class="py-1 ps-4" style="text-align:right">{{ $money($costs['income']) }}</td></tr>
                         <tr><td class="text-gray-500">{{ __('reports.of_which_open') }}</td><td style="text-align:right" class="text-gray-500">{{ $money($costs['open']) }}</td></tr>
                         <tr><td class="text-gray-500">{{ __('reports.discounts_given') }}</td><td style="text-align:right" class="text-gray-500">{{ $money($costs['discounts']) }}</td></tr>
                         @foreach ($costs['costs_by_category'] as $cat => $cents)
-                            <tr><td>– {{ __('admin.finance.cost_categories.'.$cat) }}</td><td style="text-align:right">{{ $money($cents) }}</td></tr>
+                            <tr><td class="py-1 pe-4">– {{ __('admin.finance.cost_categories.'.$cat) }}</td><td class="py-1 ps-4" style="text-align:right">{{ $money($cents) }}</td></tr>
                         @endforeach
-                        <tr><td><strong>{{ __('reports.result') }}</strong></td><td style="text-align:right"><strong @if ($costs['result'] < 0) style="color:#b91c1c" @endif>{{ $money($costs['result']) }}</strong></td></tr>
-                        <tr><td>{{ __('reports.cost_per_participant', ['count' => $costs['participants']]) }}</td><td style="text-align:right">{{ $costs['per_participant'] !== null ? $money($costs['per_participant']) : '–' }}</td></tr>
+                        <tr><td class="py-1 pe-4"><strong>{{ __('reports.result') }}</strong></td><td class="py-1 ps-4" style="text-align:right"><strong @if ($costs['result'] < 0) style="color:#b91c1c" @endif>{{ $money($costs['result']) }}</strong></td></tr>
+                        <tr><td class="py-1 pe-4">{{ __('reports.cost_per_participant', ['count' => $costs['participants']]) }}</td><td class="py-1 ps-4" style="text-align:right">{{ $costs['per_participant'] !== null ? $money($costs['per_participant']) : '–' }}</td></tr>
                     </table>
                     @if ($costs['costs'] === 0)<p class="mt-2 text-xs text-gray-500">{{ __('reports.no_costs') }}</p>@endif
                 </x-filament::section>
@@ -78,10 +78,10 @@
     <x-filament::section :heading="__('reports.years')">
         <div style="overflow-x:auto">
             <table class="w-full text-sm">
-                <thead><tr style="text-align:left"><th>{{ __('reports.series') }}</th><th>{{ __('reports.event') }}</th><th style="text-align:right">{{ __('reports.participants') }}</th><th style="text-align:right">{{ __('reports.returning') }}</th><th style="text-align:right">{{ __('reports.new') }}</th></tr></thead>
+                <thead><tr style="text-align:left"><th class="py-1 pe-4">{{ __('reports.series') }}</th><th class="py-1 pe-4">{{ __('reports.event') }}</th><th class="py-1 ps-4" style="text-align:right">{{ __('reports.participants') }}</th><th class="py-1 ps-4" style="text-align:right">{{ __('reports.returning') }}</th><th class="py-1 ps-4" style="text-align:right">{{ __('reports.new') }}</th></tr></thead>
                 <tbody>
                 @forelse ($years as $y)
-                    <tr class="border-t border-gray-200 dark:border-white/10"><td>{{ $y['series'] }}</td><td>{{ $y['title'] }}</td><td style="text-align:right">{{ $y['participants'] }}</td><td style="text-align:right">{{ $y['returning'] }}</td><td style="text-align:right">{{ $y['new'] }}</td></tr>
+                    <tr class="border-t border-gray-200 dark:border-white/10"><td class="py-1 pe-4">{{ $y['series'] }}</td><td class="py-1 pe-4">{{ $y['title'] }}</td><td class="py-1 ps-4" style="text-align:right">{{ $y['participants'] }}</td><td class="py-1 ps-4" style="text-align:right">{{ $y['returning'] }}</td><td class="py-1 ps-4" style="text-align:right">{{ $y['new'] }}</td></tr>
                 @empty
                     <tr><td colspan="5">–</td></tr>
                 @endforelse

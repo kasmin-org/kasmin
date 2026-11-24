@@ -51,7 +51,9 @@ class StatisticsPage extends Page
 
     public function mount(): void
     {
-        $this->event = Event::query()->whereNotIn('status', ['draft', 'cancelled'])->where('ends_at', '>=', now()->subMonths(2))->orderBy('starts_at')->value('id')
+        // The next event with participants, otherwise the next or the latest one.
+        $this->event = Event::query()->whereNotIn('status', ['draft', 'cancelled'])->where('ends_at', '>=', now()->subMonths(2))->whereHas('participations')->orderBy('starts_at')->value('id')
+            ?? Event::query()->whereNotIn('status', ['draft', 'cancelled'])->where('ends_at', '>=', now()->subMonths(2))->orderBy('starts_at')->value('id')
             ?? Event::query()->orderByDesc('starts_at')->value('id');
     }
 

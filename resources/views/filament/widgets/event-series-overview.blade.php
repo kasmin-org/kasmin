@@ -29,7 +29,7 @@
                             @foreach ($b['roles'] as $r){{ __('events.roles.'.$r['role']) }}: {{ $r['occupied'] }}{{ $r['capacity'] !== null ? '/'.$r['capacity'] : '' }}{{ $r['waitlist'] ? ' (+'.$r['waitlist'].')' : '' }}@if (! $loop->last) · @endif @endforeach
                         </p>
                     @endif
-                    <h4 class="mt-3 text-sm font-semibold">{{ __('dashboard.latest') }}</h4>
+                    <h4 class="mt-4 mb-1 text-sm font-semibold">{{ __('dashboard.latest') }}</h4>
                     <ul class="text-sm">
                         @forelse ($b['latest'] as $l)
                             <li>{{ $l['name'] }} <span class="text-gray-500">· {{ __('events.roles.'.$l['role']) }} · {{ __('events.status.'.$l['status']) }} · {{ $l['at']->diffForHumans() }}</span></li>
@@ -38,7 +38,7 @@
                         @endforelse
                     </ul>
                     @isset($b['finance'])
-                        <h4 class="mt-3 text-sm font-semibold">{{ __('dashboard.invoices') }}</h4>
+                        <h4 class="mt-4 mb-1 text-sm font-semibold">{{ __('dashboard.invoices') }}</h4>
                         <p class="text-sm">
                             <span style="color:#15803d">{{ __('dashboard.paid') }} {{ $b['finance']['paid']['count'] }} ({{ $money($b['finance']['paid']['cents']) }})</span> ·
                             {{ __('dashboard.open') }} {{ $b['finance']['open']['count'] }} ({{ $money($b['finance']['open']['cents']) }}) ·

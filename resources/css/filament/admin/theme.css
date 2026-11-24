@@ -1,0 +1,7 @@
+/* Admin theme: Filament's styles plus the utility classes used in Kasmin's own admin views. */
+@import '../../../../vendor/filament/filament/resources/css/theme.css';
+
+@source '../../../../app/Filament/**/*';
+@source '../../../../app/Livewire/**/*';
+@source '../../../views/filament/**/*';
+@source '../../../views/livewire/**/*';

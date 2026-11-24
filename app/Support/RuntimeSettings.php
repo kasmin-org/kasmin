@@ -3,8 +3,7 @@
 namespace App\Support;
 
 use App\Models\MailAccount;
-use App\Support\Schema\SchemaGuard;
-use App\Support\Schema\SchemaStatus;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\URL;
 
 /**
@@ -16,9 +15,6 @@ class RuntimeSettings
     public static function apply(): void
     {
         try {
-            if (app(SchemaGuard::class)->status() !== SchemaStatus::Ok) {
-                return;
-            }
             $url = Settings::get('public_url');
             if ($url !== null && $url !== '') {
                 config(['app.url' => $url]);
@@ -46,6 +42,8 @@ class RuntimeSettings
                     config(['mail.from' => ['address' => $from->from_address, 'name' => $from->from_name]]);
                 }
             }
+        } catch (QueryException) {
+            // Not installed yet, or an older database that needs the upgrade first.
         } catch (\Throwable $e) {
             report($e); // e.g. an unreadable password after a changed APP_KEY: keep the environment's settings
         }

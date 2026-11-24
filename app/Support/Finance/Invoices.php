@@ -23,7 +23,7 @@ use RuntimeException;
  */
 class Invoices
 {
-    public function __construct(private readonly SiblingDiscounts $discounts) {}
+    public function __construct(private readonly Billing $billing) {}
 
     /**
      * Creates draft invoices for all families with occupying participations that have no invoice for this
@@ -50,7 +50,7 @@ class Invoices
     {
         $event->loadMissing('roles', 'installments');
         $participations = Participation::query()->where('event_id', $event->id)
-            ->whereIn('status', ['registered', 'confirmed', 'offered', 'attended'])->with(['person.guardians', 'person.households'])->get();
+            ->whereIn('status', Billing::BILLED)->with(['person.guardians', 'person.households'])->get();
 
         /** @var Collection<string, Collection<int, Participation>> $groups */
         $groups = collect($participations->groupBy(fn (Participation $p) => (string) ($p->person?->households->first()->id ?? 'p'.$p->person_id))->all());
@@ -70,12 +70,9 @@ class Invoices
      */
     public function draftFor(Event $event, EventInstallment $installment, Collection $participations, ?Household $household): Invoice
     {
-        $roles = $event->roles->keyBy('role_key');
-        $discounts = $installment->discounts_apply ? $this->discounts->compute($event, $participations) : [];
-        $fixedOthers = $event->installments->where('kind', 'fixed')->where('key', '!=', $installment->key)->sum('amount_cents');
         $payer = $this->payer($household, $participations);
 
-        return DB::transaction(function () use ($event, $installment, $participations, $household, $roles, $discounts, $fixedOthers, $payer) {
+        return DB::transaction(function () use ($event, $installment, $participations, $household, $payer) {
             $invoice = Invoice::query()->create([
                 'household_id' => $household?->id, 'payer_id' => $payer?->id, 'event_id' => $event->id,
                 'installment_key' => $installment->key, 'currency' => $event->currency, 'created_by_id' => auth()->id(),
@@ -84,22 +81,9 @@ class Invoices
             $total = 0;
             $sort = 0;
             $locale = $payer->locale ?? app()->getLocale();
-            foreach ($participations->sortBy(fn (Participation $p) => $discounts[$p->id]['position'] ?? 99) as $p) {
-                /** @var EventRole|null $role */
-                $role = $roles[$p->role_key] ?? null;
-                $base = $installment->kind === 'fixed' ? (int) $installment->amount_cents : max(0, ($role->price_cents ?? 0) - (int) $fixedOthers);
-                $d = $discounts[$p->id] ?? ['discount' => 0, 'kind' => null, 'position' => 0];
-                $discount = min($base, $d['discount']);
-                $name = $p->person?->fullName() ?? '';
-                $description = trans('finance.line', ['installment' => $installment->labelText($locale), 'name' => $name], $locale);
-                if ($discount > 0) {
-                    $description .= ' – '.trans('finance.discount_'.$d['kind'], ['position' => $d['position']], $locale);
-                }
-                $invoice->lines()->create([
-                    'participation_id' => $p->id, 'person_id' => $p->person_id, 'description' => $description,
-                    'amount_cents' => $base - $discount, 'discount_cents' => $discount, 'discount_kind' => $discount > 0 ? $d['kind'] : null, 'sort' => $sort++,
-                ]);
-                $total += $base - $discount;
+            foreach ($this->billing->lines($event, $installment, $participations, $locale) as $line) {
+                $invoice->lines()->create($line + ['sort' => $sort++]);
+                $total += $line['amount_cents'];
             }
             $invoice->forceFill(['total_cents' => $total])->save();
 
@@ -115,9 +99,11 @@ class Invoices
         }
 
         return DB::transaction(function () use ($invoice) {
-            DB::table('system_meta')->insertOrIgnore(['key' => 'invoice_next_number', 'value' => Settings::get('invoice_next_number'), 'created_at' => now(), 'updated_at' => now()]);
-            $next = max(1, (int) DB::table('system_meta')->where('key', 'invoice_next_number')->lockForUpdate()->value('value'));
-            Settings::set('invoice_next_number', (string) ($next + 1));
+            // One number range, or one per year (IN03); the row is locked, so numbers have no gaps.
+            $range = Settings::bool('invoice_number_per_year') ? 'invoice_next_number_'.now()->format('Y') : 'invoice_next_number';
+            DB::table('system_meta')->insertOrIgnore(['key' => $range, 'value' => $range === 'invoice_next_number' ? Settings::get($range) : '1', 'created_at' => now(), 'updated_at' => now()]);
+            $next = max(1, (int) DB::table('system_meta')->where('key', $range)->lockForUpdate()->value('value'));
+            Settings::set($range, (string) ($next + 1));
             $number = str_replace(['{number}', '{year}'], [(string) $next, now()->format('Y')], (string) Settings::get('invoice_number_format'));
 
             $installment = $invoice->event?->installments()->where('key', $invoice->installment_key)->first();
@@ -145,17 +131,35 @@ class Invoices
     }
 
     /** Cancels an issued invoice with a credit note (IN10). */
-    public function cancel(Invoice $invoice, string $reason): Invoice
+    public function cancel(Invoice $invoice, string $reason, string $status = 'cancelled', ?string $refundReason = null): Invoice
     {
+        if ($invoice->type !== 'invoice' || ! in_array($invoice->status, ['issued', 'partially_paid', 'paid'], true)) {
+            throw new RuntimeException('Only issued invoices can be cancelled.');
+        }
+
+        return DB::transaction(function () use ($invoice, $reason, $status, $refundReason) {
         $credit = $invoice->replicate(['number', 'reference', 'issued_on', 'due_on', 'paid_cents']);
         $credit->fill(['type' => 'credit_note', 'status' => 'draft', 'total_cents' => -$invoice->total_cents, 'corrects_id' => $invoice->id])->save();
         foreach ($invoice->lines as $line) {
             $credit->lines()->create(['person_id' => $line->person_id, 'participation_id' => $line->participation_id, 'description' => $line->description.' ('.$reason.')', 'amount_cents' => -$line->amount_cents, 'sort' => $line->getAttribute('sort')]);
         }
         $this->issue($credit);
-        $invoice->forceFill(['status' => 'cancelled'])->save();
+        $invoice->forceFill(['status' => $status])->save();
+        $this->release($invoice, $refundReason ?? $reason);
 
         return $credit;
+        });
+    }
+
+    /** Payments of an invoice that is no longer valid become a credit of the family, with a refund proposal (RF02). */
+    private function release(Invoice $invoice, ?string $refundReason): void
+    {
+        foreach ($invoice->payments()->get() as $payment) {
+            $payment->forceFill(['invoice_id' => null, 'household_id' => $invoice->household_id, 'match' => 'credit'])->save();
+            if ($refundReason !== null && $refundReason !== '') {
+                app(Credits::class)->proposeRefund($payment, $refundReason, $invoice->payer_id);
+            }
+        }
     }
 
     /**

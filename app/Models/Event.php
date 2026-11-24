@@ -19,6 +19,8 @@ use Illuminate\Support\Carbon;
  * @property bool $registration_binding
  * @property Carbon|null $age_reference_date
  * @property string $currency
+ * @property int $cancellation_fee_cents
+ * @property array<string, string>|null $cancellation_text
  * @property string $sibling_mode
  * @property int $sibling_amount_cents
  * @property int|null $sibling_cap_position
@@ -45,7 +47,7 @@ class Event extends Model
 
     protected function casts(): array
     {
-        return ['starts_at' => 'datetime', 'ends_at' => 'datetime', 'registration_binding' => 'boolean', 'age_reference_date' => 'date', 'reminder_days_before' => 'array'];
+        return ['starts_at' => 'datetime', 'ends_at' => 'datetime', 'registration_binding' => 'boolean', 'age_reference_date' => 'date', 'reminder_days_before' => 'array', 'cancellation_text' => 'array'];
     }
 
     /** @return BelongsTo<EventSeries, $this> */
@@ -73,6 +75,12 @@ class Event extends Model
     }
 
     /** Date at which ages are calculated (EE04, default: event start). */
+    /** @return HasMany<EventPrice, $this> */
+    public function prices(): HasMany
+    {
+        return $this->hasMany(EventPrice::class)->orderBy('sort')->orderBy('id');
+    }
+
     /** @return HasMany<EventCost, $this> */
     public function costs(): HasMany
     {

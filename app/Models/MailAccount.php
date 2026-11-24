@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\Auditable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * SMTP account for sending and optionally IMAP for copies, replies and bounces (MS02, MS03, MS06, ML04).
@@ -43,6 +44,12 @@ class MailAccount extends Model
     }
 
     /** "send and receive" accounts have IMAP; only they can store copies and assign replies (ML04). */
+    /** @return HasMany<SenderProfile, $this> */
+    public function senderProfiles(): HasMany
+    {
+        return $this->hasMany(SenderProfile::class);
+    }
+
     public function isDirect(): bool
     {
         return $this->delivery === 'direct';

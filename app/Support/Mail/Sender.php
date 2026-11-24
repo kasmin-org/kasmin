@@ -167,7 +167,7 @@ class Sender
         }
 
         return $this->transports[$account->id] ??= Transport::fromDsn(sprintf(
-            '%s://%s:%s@%s:%d',
+            '%s://%s:%s@%s:%d?require_tls=true', // STARTTLS without fallback to an unencrypted connection
             $account->smtp_encryption === 'ssl' ? 'smtps' : 'smtp',
             rawurlencode((string) $account->smtp_username),
             rawurlencode((string) $account->smtp_password),

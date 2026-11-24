@@ -36,7 +36,7 @@ class OrganisationSettingsPage extends Page
     private const KEYS = [
         'organisation_name', 'organisation_address', 'organisation_email', 'organisation_website', 'organisation_iban',
         'organisation_bic', 'organisation_bank', 'organisation_legal_footer', 'invoice_number_format', 'invoice_next_number',
-        'invoice_due_days', 'invoice_attach_paid', 'invoice_reminder_days_before', 'invoice_overdue_days', 'ai_processing', 'retention_safety_years', 'retention_invoice_years',
+        'invoice_due_days', 'invoice_attach_paid', 'invoice_reminder_days_before', 'invoice_overdue_days', 'public_url', 'digest_time', 'approval_days', 'ai_processing', 'retention_safety_years', 'retention_invoice_years',
     ];
 
     public static function getNavigationGroup(): ?string
@@ -102,6 +102,11 @@ class OrganisationSettingsPage extends Page
                 TextInput::make('invoice_reminder_days_before')->label(__('admin.settings.reminder_before'))->numeric()->minValue(0)->hintIcon(...$hint('reminder_before')),
                 TextInput::make('invoice_overdue_days')->label(__('admin.settings.overdue_days'))->regex('/^\s*\d+(\s*,\s*\d+)*\s*$/')->hintIcon(...$hint('overdue_days')),
                 Toggle::make('invoice_attach_paid')->label(__('admin.settings.attach_paid'))->inline(false),
+            ]),
+            Section::make(__('admin.settings.system'))->columns(3)->schema([
+                TextInput::make('public_url')->label(__('admin.settings.public_url'))->url()->maxLength(200)->placeholder((string) config('app.url'))->hintIcon(...$hint('public_url')),
+                TextInput::make('digest_time')->label(__('admin.settings.digest_time'))->regex('/^([01]\d|2[0-3]):[0-5]\d$/')->placeholder('07:00'),
+                TextInput::make('approval_days')->label(__('admin.settings.approval_days'))->numeric()->minValue(1)->maxValue(60)->placeholder('7'),
             ]),
             Section::make(__('admin.settings.retention'))->columns(2)->schema([
                 TextInput::make('retention_safety_years')->label(__('admin.settings.retention_safety_years'))->numeric()->minValue(1)->maxValue(30)->required(),

@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Support\Demo\DemoData;
 use App\Support\Install\Defaults;
 use App\Support\Reports\DashboardData;
+use Filament\Facades\Filament;
 use Filament\Http\Middleware\AuthenticateSession;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -40,5 +41,23 @@ class DashboardTest extends TestCase
             ->assertOk()->assertSee('Summer camp')->assertSee('Latest registrations')->assertSee('Invoices')->assertSee('To do');
         $this->actingAs($make('camp_leader'))->withSession(['two_factor_passed' => true])->get('/admin')
             ->assertOk()->assertSee('Summer camp')->assertDontSee('Last bank import');
+    }
+
+    public function test_global_search_finds_people_families_events_and_invoices(): void
+    {
+        app(Defaults::class)->install('en');
+        app(DemoData::class)->generate('en', 3, 1);
+        $person = Person::query()->whereHas('contactPoints')->firstOrFail();
+        $invoice = Invoice::query()->whereNotNull('number')->firstOrFail();
+        $admin = Person::factory()->create();
+        $admin->roleAssignments()->create(['role_id' => Role::query()->where('key', 'administrator')->value('id')]);
+        $this->actingAs(User::query()->create(['name' => 'a', 'email' => 'admin@example.org', 'password' => 'x', 'person_id' => $admin->id]));
+
+        $search = fn (string $q) => collect(Filament::getPanel('admin')->getGlobalSearchProvider()->getResults($q)?->getCategories() ?? [])
+            ->flatten(1)->map(fn ($r) => $r->title)->all();
+        $this->assertContains($person->fullName(), $search($person->last_name));
+        $this->assertContains($person->fullName(), $search((string) $person->contactPoints()->value('value')));
+        $this->assertContains((string) $invoice->number, $search((string) $invoice->reference));
+        $this->assertNotEmpty($search('Summer'));
     }
 }

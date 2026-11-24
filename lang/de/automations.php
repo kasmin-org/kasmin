@@ -12,6 +12,7 @@ return [
     'form' => 'Formular (Schlüssel)', 'interval_days' => 'Tage zwischen Erinnerungen', 'max' => 'Höchstens … Erinnerungen', 'window_days' => 'Veranstaltungen, die in … Tagen beginnen',
     'age' => 'Alter', 'role' => 'Rolle', 'next_role' => 'Nächste Rolle (Vorschlag)',
     'actions' => [
+        'payment_reminders' => 'Zahlungserinnerungen', 'invoice_corrections' => 'Rechnungen korrigieren', 'payment_followup' => 'Unbezahlte Plätze freigeben', 'membership_invoices' => 'Rechnungen Mitgliedsbeitrag',
         'waitlist_offer' => 'Freie Plätze der Warteliste anbieten',
         'offer_expiry' => 'Unbeantwortete Angebote verfallen lassen',
         'invoice_run' => 'Rechnungen erstellen und senden',
@@ -46,6 +47,8 @@ return [
     'planned' => 'Geplante Aktionen', 'results' => 'Ergebnisse', 'decided_by' => 'Entschieden von', 'excluded' => 'Nicht ausgeführt',
     'item' => 'Aktion', 'result' => 'Ergebnis', 'trigger_label' => 'Ausgelöst durch', 'created' => 'Erstellt', 'expires' => 'Läuft ab',
     'items' => [
+        'reminder' => 'Erinnerung zu Rechnung :number (:name)', 'reminder_before_due' => ':days Tage vor Fälligkeit', 'reminder_overdue' => ':days Tage überfällig',
+        'correction' => 'Rechnung :number korrigieren (:name)', 'release' => 'Platz freigeben: :name (:event)', 'release_reason' => 'Rechnung nicht bezahlt',
         'offer' => 'Platz anbieten: :name (:event, Wartelistenplatz :position)',
         'offer_until' => 'Antwort bis :date',
         'offer_expired' => 'Angebot an :name am :date abgelaufen (:event)',

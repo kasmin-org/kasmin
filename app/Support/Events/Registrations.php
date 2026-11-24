@@ -46,7 +46,7 @@ class Registrations
             $status = ($left === null || $left > 0) ? ($event->registration_binding ? 'registered' : 'requested') : 'waitlist';
 
             $participation = $existing ?? new Participation(['event_id' => $event->id, 'person_id' => $person->id, 'role_key' => $role->role_key]);
-            $participation->fill(['status' => $status, 'registered_at' => now(), 'registered_by_id' => $registeredBy?->id, 'reserve_place' => false, 'reserve_reason' => null])->save();
+            $participation->fill(['status' => $status, 'registered_at' => now(), 'registered_by_id' => $registeredBy?->id, 'reserve_place' => false, 'reserve_reason' => null, 'cancelled_at' => null, 'cancel_reason' => null])->save();
 
             return $participation;
         });
@@ -96,10 +96,10 @@ class Registrations
         return $participation;
     }
 
-    public function cancel(Participation $participation): Participation
+    public function cancel(Participation $participation, ?string $reason = null): Participation
     {
         $freed = in_array($participation->status, EventRole::OCCUPYING, true);
-        $participation->fill(['status' => 'cancelled', 'offer_expires_at' => null])->save();
+        $participation->fill(['status' => 'cancelled', 'offer_expires_at' => null, 'cancelled_at' => now(), 'cancel_reason' => $reason !== null ? mb_substr($reason, 0, 250) : null])->save();
         if ($freed && $participation->event !== null) {
             app(Engine::class)->placeFreed($participation->event);
         }

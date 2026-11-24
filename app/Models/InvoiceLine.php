@@ -38,6 +38,12 @@ class InvoiceLine extends Model
         return $this->belongsTo(Invoice::class);
     }
 
+    /** @return BelongsTo<Participation, $this> */
+    public function participation(): BelongsTo
+    {
+        return $this->belongsTo(Participation::class);
+    }
+
     /** @return BelongsTo<Person, $this> */
     public function person(): BelongsTo
     {

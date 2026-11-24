@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\Auditable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
@@ -35,8 +36,8 @@ class EventInstallment extends Model
         return ['label' => 'array', 'due_date' => 'date', 'refundable' => 'boolean', 'discounts_apply' => 'boolean', 'confirms_place' => 'boolean'];
     }
 
-    /** @return \Illuminate\Database\Eloquent\Relations\BelongsTo<MembershipType, $this> */
-    public function membershipType(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    /** @return BelongsTo<MembershipType, $this> */
+    public function membershipType(): BelongsTo
     {
         return $this->belongsTo(MembershipType::class);
     }

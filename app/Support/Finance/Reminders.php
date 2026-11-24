@@ -13,30 +13,44 @@ use Illuminate\Support\Facades\DB;
  */
 class Reminders
 {
-    /** @return int number of reminders queued */
+    /** @return int number of reminders queued (everything that is due) */
     public function run(): int
     {
-        $sent = 0;
+        return collect($this->pending())->filter(fn (array $r) => $this->send($r['invoice'], $r['kind'], $r['days']))->count();
+    }
+
+    /**
+     * Reminders due today that were not sent yet.
+     *
+     * @return list<array{invoice: Invoice, kind: string, days: int}>
+     */
+    public function pending(): array
+    {
+        $result = [];
         $invoices = Invoice::query()->where('type', 'invoice')->whereIn('status', ['issued', 'partially_paid'])->whereNotNull('due_on')->with('event', 'payer', 'household')->get();
         foreach ($invoices as $invoice) {
-            $kind = $this->due($invoice);
-            if ($kind === null) {
-                continue;
-            }
-            [$type, $days] = $kind;
-            $inserted = DB::table('invoice_reminders')->insertOrIgnore(['invoice_id' => $invoice->id, 'kind' => $type, 'days' => $days, 'sent_at' => now()]);
-            if ($inserted === 0 || $invoice->payer === null) {
-                continue;
-            }
-            $mail = app(Composer::class)->queue($type === 'before_due' ? 'payment_reminder' : 'payment_overdue', $invoice->payer, [
-                'household' => $invoice->household, 'event' => $invoice->event, 'invoice' => $invoice,
-            ], attachments: [['invoice_id' => $invoice->id, 'paid' => false]]);
-            if ($mail !== null) {
-                $sent++;
+            $due = $this->due($invoice);
+            if ($due !== null && $invoice->payer !== null
+                && ! DB::table('invoice_reminders')->where('invoice_id', $invoice->id)->where('kind', $due[0])->where('days', $due[1])->exists()) {
+                $result[] = ['invoice' => $invoice, 'kind' => $due[0], 'days' => $due[1]];
             }
         }
 
-        return $sent;
+        return $result;
+    }
+
+    public function send(Invoice $invoice, string $kind, int $days): bool
+    {
+        if ($invoice->payer === null || ! in_array($invoice->status, ['issued', 'partially_paid'], true)) {
+            return false;
+        }
+        if (DB::table('invoice_reminders')->insertOrIgnore(['invoice_id' => $invoice->id, 'kind' => $kind, 'days' => $days, 'sent_at' => now()]) === 0) {
+            return false;
+        }
+
+        return app(Composer::class)->queue($kind === 'before_due' ? 'payment_reminder' : 'payment_overdue', $invoice->payer, [
+            'household' => $invoice->household, 'event' => $invoice->event, 'invoice' => $invoice,
+        ], attachments: [['invoice_id' => $invoice->id, 'paid' => false]]) !== null;
     }
 
     /** @return array{0: string, 1: int}|null the reminder that is due today (kind, days) */

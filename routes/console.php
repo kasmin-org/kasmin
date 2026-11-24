@@ -10,7 +10,6 @@ Schedule::command('kasmin:mail:fetch')->everyMinute()->when(fn () => DueOnce::mi
 Schedule::command('kasmin:notifications:digest')->everyMinute()->when(fn () => DueOnce::day('kasmin:notifications:digest', (string) config('kasmin.digest_time', '07:00')));
 Schedule::call(fn () => SystemStatus::heartbeat())->everyMinute()->name('kasmin-heartbeat');
 Schedule::command('kasmin:system:check')->everyMinute()->when(fn () => DueOnce::hour('kasmin:system:check'));
-Schedule::command('kasmin:invoices:remind')->everyMinute()->when(fn () => DueOnce::day('kasmin:invoices:remind', '09:00'));
 Schedule::command('kasmin:automations:run')->everyMinute()->when(fn () => DueOnce::hour('kasmin:automations:run'))->withoutOverlapping();
 Schedule::command('kasmin:webhooks:deliver')->everyMinute()->withoutOverlapping();
 Schedule::command('kasmin:privacy:retention')->everyMinute()->when(fn () => DueOnce::day('kasmin:privacy:retention', '03:30'));

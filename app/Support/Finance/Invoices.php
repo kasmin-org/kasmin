@@ -4,7 +4,6 @@ namespace App\Support\Finance;
 
 use App\Models\Event;
 use App\Models\EventInstallment;
-use App\Models\EventRole;
 use App\Models\Household;
 use App\Models\Invoice;
 use App\Models\Participation;
@@ -138,16 +137,16 @@ class Invoices
         }
 
         return DB::transaction(function () use ($invoice, $reason, $status, $refundReason) {
-        $credit = $invoice->replicate(['number', 'reference', 'issued_on', 'due_on', 'paid_cents']);
-        $credit->fill(['type' => 'credit_note', 'status' => 'draft', 'total_cents' => -$invoice->total_cents, 'corrects_id' => $invoice->id])->save();
-        foreach ($invoice->lines as $line) {
-            $credit->lines()->create(['person_id' => $line->person_id, 'participation_id' => $line->participation_id, 'description' => $line->description.' ('.$reason.')', 'amount_cents' => -$line->amount_cents, 'sort' => $line->getAttribute('sort')]);
-        }
-        $this->issue($credit);
-        $invoice->forceFill(['status' => $status])->save();
-        $this->release($invoice, $refundReason ?? $reason);
+            $credit = $invoice->replicate(['number', 'reference', 'issued_on', 'due_on', 'paid_cents']);
+            $credit->fill(['type' => 'credit_note', 'status' => 'draft', 'total_cents' => -$invoice->total_cents, 'corrects_id' => $invoice->id])->save();
+            foreach ($invoice->lines as $line) {
+                $credit->lines()->create(['person_id' => $line->person_id, 'participation_id' => $line->participation_id, 'description' => $line->description.' ('.$reason.')', 'amount_cents' => -$line->amount_cents, 'sort' => $line->getAttribute('sort')]);
+            }
+            $this->issue($credit);
+            $invoice->forceFill(['status' => $status])->save();
+            $this->release($invoice, $refundReason ?? $reason);
 
-        return $credit;
+            return $credit;
         });
     }
 

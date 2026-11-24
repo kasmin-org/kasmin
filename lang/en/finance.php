@@ -1,6 +1,11 @@
 <?php
 
 return [
+    'cancellation_fee' => 'Cancellation fee – :name', 'membership_line' => 'Membership fee :year – :name', 'membership_fee' => 'Membership fee :year',
+    'notify_refund' => 'Refund proposed: :amount', 'refund_outdated' => 'This refund no longer fits the credit.', 'not_a_credit' => 'This is not a free credit.',
+    'not_open' => 'Only open invoices can be paid.', 'overpaid' => 'Overpaid invoice :number', 'split_invalid' => 'The parts are more than the payment.',
+    'correction_reason' => 'Corrected because of changed registrations or prices', 'refunds' => 'Refunds', 'refund' => 'Refund',
+    'refund_status' => ['proposed' => 'Proposed', 'done' => 'Paid back', 'declined' => 'Kept as credit'],
     'invoice' => 'Invoice',
     'invoices' => 'Invoices',
     'credit_note' => 'Credit note',
@@ -38,6 +43,7 @@ return [
         'credit_note' => 'Credit note',
     ],
     'match' => [
+        'credit' => 'Credit', 'refunded' => 'Paid back',
         'auto' => 'Matched automatically',
         'suggested' => 'Suggestion',
         'manual' => 'Matched manually',

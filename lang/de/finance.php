@@ -1,6 +1,11 @@
 <?php
 
 return [
+    'cancellation_fee' => 'Stornogebühr – :name', 'membership_line' => 'Mitgliedsbeitrag :year – :name', 'membership_fee' => 'Mitgliedsbeitrag :year',
+    'notify_refund' => 'Rückzahlung vorgeschlagen: :amount', 'refund_outdated' => 'Diese Rückzahlung passt nicht mehr zum Guthaben.', 'not_a_credit' => 'Das ist kein freies Guthaben.',
+    'not_open' => 'Nur offene Rechnungen können bezahlt werden.', 'overpaid' => 'Überzahlte Rechnung :number', 'split_invalid' => 'Die Teile sind mehr als die Zahlung.',
+    'correction_reason' => 'Korrigiert wegen geänderter Anmeldungen oder Preise', 'refunds' => 'Rückzahlungen', 'refund' => 'Rückzahlung',
+    'refund_status' => ['proposed' => 'Vorgeschlagen', 'done' => 'Zurückgezahlt', 'declined' => 'Als Guthaben behalten'],
     'invoice' => 'Rechnung',
     'invoices' => 'Rechnungen',
     'credit_note' => 'Gutschrift',
@@ -38,6 +43,7 @@ return [
         'credit_note' => 'Gutschrift',
     ],
     'match' => [
+        'credit' => 'Guthaben', 'refunded' => 'Zurückgezahlt',
         'auto' => 'Automatisch zugeordnet',
         'suggested' => 'Vorschlag',
         'manual' => 'Manuell zugeordnet',

@@ -11,6 +11,10 @@ All notable changes to Kasmin are documented in this file. The format is based o
 - Backups in the browser: back up now, download (also encrypted), and open an encrypted backup again – no shell needed.
 - Backup outside the server: every night an encrypted copy goes to a storage folder by WebDAV (https); the system status shows the result.
 
+### Fixed
+
+- After a version without changes to the database, the system status kept showing the old database version.
+
 ## [0.22.0] - 2026-11-25
 
 ### Added

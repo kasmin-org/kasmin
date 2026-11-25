@@ -40,6 +40,14 @@ class SchemaGuardTest extends TestCase
         $this->assertSame(SchemaStatus::DatabaseNewer, $this->guard()->status(fresh: true));
     }
 
+    public function test_a_version_without_database_changes_needs_no_upgrade(): void
+    {
+        DB::table('system_meta')->updateOrInsert(['key' => SchemaGuard::VERSION_KEY], ['value' => '9.8.0']);
+        config(['kasmin.version' => '9.9.0']);
+        $this->assertSame(SchemaStatus::Ok, $this->guard()->status(fresh: true));
+        $this->assertSame('9.9.0', $this->guard()->databaseVersion(), 'only the number is written down');
+    }
+
     public function test_missing_migration_means_upgrade_required(): void
     {
         DB::table('migrations')->where('migration', 'like', '%create_system_meta_table')->delete();

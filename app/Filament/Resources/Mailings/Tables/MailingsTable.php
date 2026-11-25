@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Support\Auth\Permissions;
 use App\Support\Mail\Mailings;
 use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\EditAction;
 use Filament\Notifications\Notification;
 use Filament\Tables\Columns\TextColumn;
@@ -28,7 +29,7 @@ class MailingsTable
             TextColumn::make('status')->label(__('admin.event.status'))->formatStateUsing(fn ($state) => __('admin.mail.mailing_status.'.$state))->badge(),
             TextColumn::make('mails_count')->counts('mails')->label(__('admin.mail.mails')),
             TextColumn::make('sent_at')->label(__('admin.mail.sent_at'))->dateTime(),
-        ])->recordActions([
+        ])->recordActions([ActionGroup::make([
             Action::make('review')->label(__('admin.mail.review'))->icon('heroicon-o-eye')->color('gray')->url(fn (Mailing $r) => MailingResource::getUrl('review', ['record' => $r])),
             Action::make('prepare')->label(__('admin.mail.prepare'))->icon('heroicon-o-document-magnifying-glass')
                 ->visible(fn (Mailing $r) => self::mayEdit() && in_array($r->status, ['draft', 'prepared'], true))
@@ -48,6 +49,6 @@ class MailingsTable
                 ->visible(fn (Mailing $r) => self::mayEdit() && in_array($r->status, ['prepared', 'waiting', 'sending', 'paused'], true))->requiresConfirmation()
                 ->action(fn (Mailing $r) => app(Mailings::class)->cancel($r)),
             EditAction::make()->visible(fn (Mailing $r) => in_array($r->status, ['draft', 'prepared'], true)),
-        ], RecordActionsPosition::BeforeColumns);
+        ])], RecordActionsPosition::BeforeColumns);
     }
 }

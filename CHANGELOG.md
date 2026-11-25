@@ -6,10 +6,6 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ## [Unreleased]
 
-## [0.18.0] - 2026-11-25
-
-Pre-release for testing. Not ready for production use.
-
 ### Added
 
 - Mails: logo, colour and footer; images (embedded); HTML source; buttons.
@@ -22,6 +18,10 @@ Pre-release for testing. Not ready for production use.
 
 - Mail templates could not be saved in the interface, and the editor would have damaged conditions and buttons.
 - Editing a single mail of a mailing removed the layout and the footer links.
+
+## [0.18.0] - 2026-11-25
+
+Pre-release for testing. Not ready for production use.
 
 ### Added
 

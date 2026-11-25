@@ -34,7 +34,7 @@ return [
         'import_done' => ':imported imported, :matched matched automatically, :suggested suggestions, :duplicates already present',
     ],
     'settings' => [
-        'mail_layout' => 'Look of the e-mails', 'mail_logo' => 'Logo (PNG, JPG, GIF)', 'mail_color' => 'Colour', 'mail_footer' => 'Footer', 'mail_footer_hint' => 'Shown in every e-mail, e.g. name, address, registration number.', 'retention_mail_years' => 'Mail log: years', 'retention_mail_years_hint' => '0 = as long as the person exists. Mails with invoices stay at least as long as the invoices.',
+        'mail_layout' => 'Look of the e-mails', 'mail_logo' => 'Logo (PNG, JPG, GIF)', 'mail_color' => 'Colour', 'mail_footer' => 'Footer of the e-mails', 'mail_footer_hint' => 'Shown in every e-mail, e.g. name, address, registration number.', 'retention_mail_years' => 'Mail log: years', 'retention_mail_years_hint' => '0 = as long as the person exists. Mails with invoices stay at least as long as the invoices.',
         'organisation' => 'Organisation and invoices', 'name' => 'Name of the organisation', 'email' => 'E-mail address', 'address' => 'Postal address', 'website' => 'Website',
         'legal_footer' => 'Footer (legal notice)', 'legal_footer_hint' => 'Shown on every invoice, e.g. register number, seat, contact.',
         'bank' => 'Bank account', 'bank_name' => 'Bank', 'bic_hint' => 'Optional; included in the QR code.', 'iban_invalid' => 'The IBAN is not valid.',
@@ -142,7 +142,7 @@ return [
         'category' => 'Category', 'audience' => 'Recipients', 'standard' => 'Default template',
         'contents' => 'Content per language', 'subject' => 'Subject', 'body' => 'Body', 'text' => 'Plain-text version (optional)',
         'text_hint' => 'Leave empty: generated automatically from the formatted text.',
-        'placeholder_help' => 'Placeholders: {{{{ salutation }}}}, {{{{ recipient.first_name }}}}, {{{{ children }}}}, {{{{ event.title }}}}, {{{{ event.starts_at }}}}, {{{{ registration.status }}}}, {{{{ registration.waitlist_position }}}}, {{{{ links.login }}}}, {{{{ organisation.name }}}} – see the documentation. Confidential fields are not available.',
+        'placeholder_help' => 'Placeholders: {{ salutation }}, {{ recipient.first_name }}, {{ children }}, {{ event.title }}, {{ event.starts_at }}, {{ registration.status }}, {{ registration.waitlist_position }}, {{ links.login }}, {{ organisation.name }} – see the documentation. Confidential fields are not available.',
         'template_error' => 'Error in the template: :error',
         'preview' => 'Preview', 'recipients' => 'Recipients', 'routing' => 'Send to',
         'one_per_family' => 'One mail per family', 'edit_before_sending' => 'Edit single mails before sending',

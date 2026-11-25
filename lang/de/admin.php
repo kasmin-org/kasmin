@@ -34,7 +34,7 @@ return [
         'import_done' => ':imported importiert, :matched automatisch zugeordnet, :suggested Vorschläge, :duplicates bereits vorhanden',
     ],
     'settings' => [
-        'mail_layout' => 'Aussehen der E-Mails', 'mail_logo' => 'Logo (PNG, JPG, GIF)', 'mail_color' => 'Farbe', 'mail_footer' => 'Fußzeile', 'mail_footer_hint' => 'Steht in jeder E-Mail, z. B. Name, Adresse, Registernummer.', 'retention_mail_years' => 'Mailprotokoll: Jahre', 'retention_mail_years_hint' => '0 = solange es die Person gibt. Mails mit Rechnungen bleiben mindestens so lange wie die Rechnungen.',
+        'mail_layout' => 'Aussehen der E-Mails', 'mail_logo' => 'Logo (PNG, JPG, GIF)', 'mail_color' => 'Farbe', 'mail_footer' => 'Fußzeile der E-Mails', 'mail_footer_hint' => 'Steht in jeder E-Mail, z. B. Name, Adresse, Registernummer.', 'retention_mail_years' => 'Mailprotokoll: Jahre', 'retention_mail_years_hint' => '0 = solange es die Person gibt. Mails mit Rechnungen bleiben mindestens so lange wie die Rechnungen.',
         'organisation' => 'Organisation und Rechnungen', 'name' => 'Name der Organisation', 'email' => 'E-Mail-Adresse', 'address' => 'Anschrift', 'website' => 'Website',
         'legal_footer' => 'Fußzeile (Impressum)', 'legal_footer_hint' => 'Erscheint auf jeder Rechnung, z. B. Vereinsregisternummer, Sitz, Kontakt.',
         'bank' => 'Bankverbindung', 'bank_name' => 'Bank', 'bic_hint' => 'Optional; wird im QR-Code mitgegeben.', 'iban_invalid' => 'Die IBAN ist ungültig.',
@@ -142,7 +142,7 @@ return [
         'category' => 'Kategorie', 'audience' => 'Empfänger', 'standard' => 'Standardvorlage',
         'contents' => 'Inhalt je Sprache', 'subject' => 'Betreff', 'body' => 'Text', 'text' => 'Nur-Text-Version (optional)',
         'text_hint' => 'Leer lassen: wird automatisch aus dem formatierten Text erzeugt.',
-        'placeholder_help' => 'Platzhalter: {{{{ salutation }}}}, {{{{ recipient.first_name }}}}, {{{{ children }}}}, {{{{ event.title }}}}, {{{{ event.starts_at }}}}, {{{{ registration.status }}}}, {{{{ registration.waitlist_position }}}}, {{{{ links.login }}}}, {{{{ organisation.name }}}} – siehe Dokumentation. Vertrauliche Felder gibt es nicht.',
+        'placeholder_help' => 'Platzhalter: {{ salutation }}, {{ recipient.first_name }}, {{ children }}, {{ event.title }}, {{ event.starts_at }}, {{ registration.status }}, {{ registration.waitlist_position }}, {{ links.login }}, {{ organisation.name }} – siehe Dokumentation. Vertrauliche Felder gibt es nicht.',
         'template_error' => 'Fehler in der Vorlage: :error',
         'preview' => 'Vorschau', 'recipients' => 'Empfängerkreis', 'routing' => 'Senden an',
         'one_per_family' => 'Eine Mail pro Familie', 'edit_before_sending' => 'Einzelne Mails vor dem Senden bearbeiten',

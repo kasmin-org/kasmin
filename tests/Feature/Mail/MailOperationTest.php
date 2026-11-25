@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Mail;
 
+use App\Filament\Pages\OrganisationSettingsPage;
 use App\Filament\Resources\BadAddresses\Pages\ListBadAddresses;
 use App\Filament\Resources\Mailings\Pages\ReviewMailing;
 use App\Models\ContactPoint;
@@ -136,6 +137,22 @@ class MailOperationTest extends TestCase
         $this->assertStringContainsString('cid:', (string) $email->getHtmlBody());
         $this->assertStringNotContainsString('/mail-images/', (string) $email->getHtmlBody());
         $this->assertCount(1, $email->getAttachments());
+    }
+
+    public function test_the_logo_stays_when_the_settings_are_saved_again_and_can_be_replaced(): void
+    {
+        Storage::fake('local');
+        $page = Livewire::test(OrganisationSettingsPage::class)->set('data.mail_logo', UploadedFile::fake()->image('a.png', 40, 10))->call('save')->assertHasNoErrors();
+        $first = (string) Settings::get('mail_logo');
+        $this->assertTrue(MailImages::exists(basename($first)), 'stored as '.$first);
+        $page->call('save')->assertHasNoErrors();
+        $this->assertSame($first, Settings::get('mail_logo'), 'saved twice on the same page');
+        Livewire::test(OrganisationSettingsPage::class)->call('save')->assertHasNoErrors();
+        $this->assertSame($first, Settings::get('mail_logo'), 'opened and saved again');
+        Livewire::test(OrganisationSettingsPage::class)->set('data.mail_logo', [])->set('data.mail_logo', UploadedFile::fake()->image('b.png', 40, 10))->call('save')->assertHasNoErrors();
+        $second = (string) Settings::get('mail_logo');
+        $this->assertNotSame($first, $second, 'removed and uploaded again');
+        $this->assertTrue(MailImages::exists(basename($second)), 'replaced by '.$second);
     }
 
     public function test_retention_of_the_mail_log(): void

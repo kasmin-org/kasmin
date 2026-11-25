@@ -7,6 +7,7 @@ use App\Models\MailTemplate;
 use App\Support\Auth\Permissions;
 use App\Support\Mail\TemplateStandards;
 use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\EditAction;
 use Filament\Notifications\Notification;
 use Filament\Tables\Columns\IconColumn;
@@ -27,7 +28,7 @@ class MailTemplatesTable
             IconColumn::make('is_standard')->label(__('admin.mail.standard'))->boolean(),
         ])->filters([
             SelectFilter::make('category')->label(__('admin.mail.category'))->options(array_combine(MailTemplate::CATEGORIES, array_map(fn ($c) => __('admin.mail.categories.'.$c), MailTemplate::CATEGORIES))),
-        ])->recordActions([
+        ])->recordActions([ActionGroup::make([
             Action::make('preview')->label(__('admin.mail.preview'))->icon('heroicon-o-eye')->color('gray')->url(fn (MailTemplate $record) => MailTemplateResource::getUrl('preview', ['record' => $record])),
             EditAction::make(),
             Action::make('standard')->label(__('admin.mail.compare'))->icon('heroicon-o-arrows-right-left')
@@ -44,6 +45,6 @@ class MailTemplatesTable
                     app(TemplateStandards::class)->adopt($record);
                     Notification::make()->title(__('admin.mail.adopted'))->success()->send();
                 }),
-        ], RecordActionsPosition::BeforeColumns);
+        ])], RecordActionsPosition::BeforeColumns);
     }
 }

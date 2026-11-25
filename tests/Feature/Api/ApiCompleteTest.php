@@ -63,7 +63,8 @@ class ApiCompleteTest extends TestCase
         $token = $this->token(['people:read', 'people:write']);
         $ann = Person::factory()->create(['birth_date' => now()->subYears(14)->toDateString()]);
         $id = (int) $this->withToken($token)->postJson('/api/v1/groups', ['name' => 'Choir', 'kind' => 'manual'])->assertCreated()->json('data.id');
-        $this->withToken($token)->postJson("/api/v1/groups/$id/members", ['person' => $ann->public_id])->assertOk()->assertJsonPath('data.members_count', 1);
+        $this->withToken($token)->postJson("/api/v1/groups/$id/members", ['person' => $ann->public_id])->assertCreated()->assertJsonPath('data.members_count', 1);
+        $this->withToken($token)->postJson("/api/v1/groups/$id/members", ['person' => $ann->public_id])->assertOk()->assertJsonPath('data.members_count', 1); // already a member
         $this->withToken($token)->getJson("/api/v1/groups/$id")->assertJsonPath('data.members.0.id', $ann->public_id);
         $this->withToken($token)->deleteJson("/api/v1/groups/$id/members/{$ann->public_id}")->assertOk()->assertJsonPath('data.members_count', 0);
         $dynamic = $this->withToken($token)->postJson('/api/v1/groups', ['name' => 'Teens', 'kind' => 'dynamic', 'filter' => ['match' => 'all', 'rules' => [['field' => 'age', 'min' => 14, 'max' => 14]]]])->assertCreated();

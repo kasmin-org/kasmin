@@ -38,7 +38,7 @@
                                 <div style="display:flex;flex-wrap:wrap;gap:.25rem .5rem;align-items:center;padding:.2rem 0;border-top:1px solid rgba(128,128,128,.15)">
                                     <span style="flex:1 1 9rem;min-width:0;overflow-wrap:anywhere">{{ $p['name'] }} <span class="text-gray-500">{{ $short($p) }}{{ $p['role'] !== 'child' ? ' · '.__('events.roles.'.$p['role']) : '' }}</span></span>
                                     @if ($edit)
-                                        <select wire:change="move({{ $d['model']->id }}, {{ $p['id'] }}, $event.target.value === '' ? null : parseInt($event.target.value))" aria-label="{{ __('events.divisions.move') }}" style="{{ $input }}">
+                                        <select wire:change="move({{ $d['model']->id }}, {{ $p['id'] }}, $event.target.value)" aria-label="{{ __('events.divisions.move') }}" style="{{ $input }}">
                                             @foreach ($d['units'] as $o)<option value="{{ $o['model']->id }}" @selected($o['model']->id === $u['model']->id)>{{ $o['model']->name }}</option>@endforeach
                                             <option value="">{{ __('events.divisions.none') }}</option>
                                         </select>
@@ -57,7 +57,7 @@
                         <div style="display:flex;flex-wrap:wrap;gap:.25rem .5rem;align-items:center;padding:.2rem 0;border-top:1px solid rgba(128,128,128,.15)">
                             <span style="flex:1 1 9rem;min-width:0;overflow-wrap:anywhere">{{ $p['name'] }} <span class="text-gray-500">{{ $short($p) }}{{ $p['role'] !== 'child' ? ' · '.__('events.roles.'.$p['role']) : '' }}</span></span>
                             @if ($edit)
-                                <select wire:change="move({{ $d['model']->id }}, {{ $p['id'] }}, $event.target.value === '' ? null : parseInt($event.target.value))" aria-label="{{ __('events.divisions.move') }}" style="{{ $input }}">
+                                <select wire:change="move({{ $d['model']->id }}, {{ $p['id'] }}, $event.target.value)" aria-label="{{ __('events.divisions.move') }}" style="{{ $input }}">
                                     <option value="">{{ __('events.divisions.none') }}</option>
                                     @foreach ($d['units'] as $o)<option value="{{ $o['model']->id }}">{{ $o['model']->name }}</option>@endforeach
                                 </select>

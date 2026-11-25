@@ -145,7 +145,9 @@ class DivisionsTest extends TestCase
         $this->assertCount(2, app(Divisions::class)->placed($division));
 
         $second = $division->units()->where('sort', 2)->firstOrFail();
-        $page->call('move', $division->id, $a->id, $second->id)->call('unit', $second->id, 'note', 'led by Kim')->call('unit', $second->id, 'capacity', '6');
+        $page->call('move', $division->id, $a->id, '')->assertOk();
+        $this->assertArrayNotHasKey($a->id, app(Divisions::class)->placed($division));
+        $page->call('move', $division->id, $a->id, (string) $second->id)->call('unit', $second->id, 'note', 'led by Kim')->call('unit', $second->id, 'capacity', '6');
         $this->assertSame($second->id, app(Divisions::class)->placed($division)[$a->id]);
         $this->assertSame(['led by Kim', 6], [$second->refresh()->note, $second->capacity]);
         $this->get(route('admin.lists.export', ['event' => $this->event->id, 'key' => 'groups', 'format' => 'csv']))->assertOk()->assertSee('led by Kim');

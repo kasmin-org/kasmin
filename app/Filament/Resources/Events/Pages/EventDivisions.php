@@ -103,8 +103,10 @@ class EventDivisions extends Page
         $division->delete();
     }
 
-    public function move(int $divisionId, int $participationId, ?int $unitId): void
+    /** $unitId comes from a selection in the page: the id as text, or empty for "not placed". */
+    public function move(int $divisionId, int $participationId, int|string|null $unitId): void
     {
+        $unitId = is_numeric($unitId) ? (int) $unitId : null;
         $division = $this->division($divisionId);
         $participation = Participation::query()->where('event_id', $this->event()->id)->findOrFail($participationId);
         app(Divisions::class)->move($division, $participation, $unitId ? EventUnit::query()->where('event_division_id', $division->id)->findOrFail($unitId) : null);

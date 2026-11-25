@@ -8,12 +8,24 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ### Added
 
+- Invoice archive: invoices from the system used before are imported from a table and a ZIP with the PDFs and kept read-only; the own numbering continues after the highest imported number.
 - Groups, rooms and duties within an event: divisions with any number of groups or rooms, a proposal that spreads the people (equal sizes, ages and genders mixed or genders separated, siblings apart or together, junior counsellors spread, beds of a room respected), changes by hand, notes on what to check, and a list to print.
-- Demo data has genders, so lists by gender and group proposals show something.
+- Demo data has genders, a team that takes part, a booked bus that is a little too small, and groups and rooms.
+- MCP tools for what the REST API already offered: contact data of a person (`list_contact_points`, `add_contact_point`, `remove_contact_point`), legal guardians (`list_guardians`, `add_guardian`, `end_guardianship`), membership types (`list_membership_types`, `create_membership_type`, `update_membership_type`), automations (`get_automation`, `update_automation`), events (`create_event`, `update_event`) and travel by bus or car (`set_participation_travel`).
+- REST API: automations have `approver_roles_default` – `true` while no approvers are stored and `approver_roles` shows the default roles.
+- Development: the CI scans the running application with OWASP ZAP (public pages, and admin interface and portal as administrator); findings of risk medium or higher fail the run unless `tests/zap/rules.tsv` lists them with a reason.
 
 ### Changed
 
 - Travel by bus: children can be set to travel by car too, for legal guardians who bring them themselves. The list *Travel by car* names who brings a child, with phone.
+- An AI assistant cannot switch an approval off: via MCP, changing the mode, the approvers, the number of approvals or the limit of an automation needs the scope `approvals:decide` in addition to `automations:write`; so does changing or switching on an automation that runs without approval.
+- REST API: `GET /events` and `GET /automation-runs` come in pages like people, families and invoices (`page`, `per_page`, answer with `meta`). Before, they returned up to 200 events and 100 runs at once; now 50 per page unless `per_page` (at most 200) is sent. The MCP tools `list_events` and `list_approvals` take `page` and `per_page`.
+- REST API: `POST /groups/{id}/members` answers `201` when the person was added and `200` when it already was a member (before: always `200`).
+
+### Security
+
+- Pages only load scripts, styles, images and fonts from Kasmin itself and only send forms to it (content security policy); features of the device such as camera and location are switched off, pages are not kept in the cache of the browser, and the PHP version is no longer sent.
+- The admin interface no longer asks another website (ui-avatars.com) for the picture with the user's initials, and the health page `/up` no longer loads a script and fonts from other servers.
 
 ## [0.23.0] - 2026-11-25
 

@@ -65,4 +65,14 @@ return [
         'fixed' => 'Fixed amount (e.g. deposit)',
         'rest' => 'Remaining amount (price minus fixed instalments)',
     ],
+    'archive' => [
+        'title' => 'Invoice archive', 'singular' => 'Archived invoice', 'import' => 'Import invoices', 'empty' => 'Invoices from the system you used before can be kept here to look them up. They are never changed, and nothing is sent.',
+        'import_hint' => 'A table (CSV or XLSX) with one invoice per row. Columns: number, date, name, e-mail, amount, status (paid, open, cancelled), paid (date), note. An import can be repeated: rows with a number that exists are updated.',
+        'table' => 'Table with the invoices', 'zip' => 'PDFs (ZIP, optional)', 'zip_hint' => 'The PDFs are named like the invoice numbers, e.g. R142.pdf or 2025-0142.pdf.',
+        'done' => 'Import finished', 'result' => ':imported new, :updated updated, :pdfs PDFs.', 'next' => 'The next own invoice gets the number :number.',
+        'no_number' => 'Row :row has no number.', 'no_match' => ':file fits no invoice.', 'bad_zip' => 'The ZIP file could not be read.',
+        'status' => ['paid' => 'Paid', 'open' => 'Open', 'cancelled' => 'Cancelled'],
+    ],
+    'number' => 'Number',
+    'date' => 'Date',
 ];

@@ -91,6 +91,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/decrypt', [BackupController::class, 'decrypt'])->name('admin.backups.decrypt');
         Route::get('/{name}', [BackupController::class, 'download'])->where('name', '[A-Za-z0-9_.-]+')->name('admin.backups.download');
     });
+    Route::get('/admin/invoice-archive/{archived}/pdf', [InvoicePdfController::class, 'archived'])->middleware([RequireSecondFactor::class, RequireFullLogin::class])->whereNumber('archived')->name('admin.invoice-archive.pdf');
     Route::get('/admin/invoices/{invoice}/pdf', [InvoicePdfController::class, 'admin'])->middleware([RequireSecondFactor::class, RequireFullLogin::class])->name('admin.invoices.pdf');
     Route::middleware([RequireSecondFactor::class, RequireFullLogin::class])->group(function () {
         Route::get('/admin/events/{event}/lists/{key}.{format}', [EventListController::class, 'list'])->whereNumber('event')->where('key', '[a-z_]+')->where('format', 'pdf|xlsx|csv')->name('admin.lists.export');

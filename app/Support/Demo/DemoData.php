@@ -7,12 +7,15 @@ use App\Models\EventSeries;
 use App\Models\Household;
 use App\Models\Invoice;
 use App\Models\MembershipType;
+use App\Models\Participation;
 use App\Models\Payment;
 use App\Models\Person;
 use App\Models\Refund;
 use App\Models\Role;
 use App\Models\User;
 use App\Support\Automations\Triggers;
+use App\Support\Events\Bus;
+use App\Support\Events\Divisions;
 use App\Support\Events\Registrations;
 use App\Support\Finance\Invoices;
 use App\Support\Settings;
@@ -139,6 +142,26 @@ class DemoData
         }
 
         $this->invoices($next, $locale);
+        $this->travelAndGroups($next, $locale);
+    }
+
+    /** The team takes part, the bus is a little too small, and the children are divided into groups and rooms. */
+    private function travelAndGroups(Event $event, string $locale): void
+    {
+        $team = Person::query()->whereHas('roleAssignments', fn ($q) => $q->whereHas('role', fn ($r) => $r->whereIn('key', ['counsellor', 'camp_leader'])))->limit(8)->get();
+        foreach ($team as $person) {
+            Participation::query()->create(['event_id' => $event->id, 'person_id' => $person->id, 'role_key' => 'staff', 'status' => 'registered', 'registered_at' => now()]);
+        }
+        $children = Participation::query()->where('event_id', $event->id)->where('role_key', 'child')->whereIn('status', Bus::STATUSES)->count();
+        $event->update(['bus_booked' => true, 'bus_seats' => $children + max(1, $team->count() - 3)]);
+        $driver = Participation::query()->where('event_id', $event->id)->where('role_key', 'staff')->first();
+        if ($driver !== null) {
+            Bus::set($driver, 'car');
+        }
+        $de = $locale !== 'en';
+        $divisions = app(Divisions::class);
+        $divisions->propose($divisions->create($event, $de ? 'Gruppen' : 'Groups', 'groups', 4));
+        $divisions->propose($divisions->create($event, $de ? 'Zimmer' : 'Rooms', 'rooms', (int) ceil($children / 4) + 2, 4));
     }
 
     /** Organisation data with an example IBAN, deposit invoices for the camp, about two thirds paid (0.6). */

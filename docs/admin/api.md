@@ -17,7 +17,7 @@ each token was last used. Every write via the API is recorded in the audit log w
 | `finance:read` / `finance:write` | read invoices (incl. PDF) / record payments |
 | `mail:read` / `mail:write` | read mail templates and mailings / change templates, create, prepare and release mailings |
 | `automations:read` | read automations and runs, dry runs |
-| `automations:write` | change automations: active, mode, trigger, settings, approvers. It can switch an approval off – give it only to tokens a person controls |
+| `automations:write` | change automations: active, mode, trigger, settings, approvers. It can switch an approval off – give it only to tokens a person controls. Via MCP, changes to an approval also need `approvals:decide` |
 | `automations:run` | start runs – **as approval requests** (the approvers decide) |
 | `approvals:decide` | decide approvals (and start runs directly). Give it only to tokens a person controls |
 | `import:write` | import people, roll imports back |
@@ -53,6 +53,13 @@ Base URL `https://your-kasmin.example/api/v1`, header `Authorization: Bearer kas
 - Automations: `GET|PATCH /automations/{key}` for `active`, `mode`, `trigger`, `trigger_config`, `config`,
   `approver_roles`, `approvals_needed`, `max_items` and `name`, with the checks of the automation form.
   `trigger_config` and `config` replace the stored object. Key and action cannot be changed.
+  `approver_roles_default` is `true` while no approvers are stored: `approver_roles` then shows the default roles.
+  An empty list for `approver_roles` goes back to the default.
+- Lists that can get long (`/people`, `/households`, `/events`, `/invoices`, `/automation-runs`) come in pages:
+  `page` and `per_page` (default 50, at most 200) in the query, and `meta` with `total`, `page` and `last_page` in
+  the answer. Events and runs are sorted newest first.
+- Creating answers with `201`. Where the entry already existed (a person that already is a member of the group
+  in `POST /groups/{id}/members`, or already is a legal guardian) the answer is `200` and nothing changes.
 - Ids of people, families and events are their public ids (ULIDs), not database numbers.
 
 ```
@@ -78,7 +85,29 @@ confirmation mail, and the answer is the same for known and unknown addresses.
 
 Kasmin has a built-in MCP server (Model Context Protocol, streamable HTTP) at `https://your-kasmin.example/mcp`.
 It offers the REST API as tools (search people, events, participants, invoices, automations with dry run, approval
-requests, import with dry run and rollback, audit log) with the same token and scopes.
+requests, import with dry run and rollback, audit log) with the same token and scopes. A tool calls the REST
+endpoint, so the same checks apply and the audit log shows the change with "mcp".
+
+| Tools | Scope |
+|---|---|
+| `list_contact_points` / `add_contact_point`, `remove_contact_point` | `people:read` / `people:write` |
+| `list_guardians` / `add_guardian`, `end_guardianship` (legal guardians) | `people:read` / `people:write` |
+| `list_membership_types` / `create_membership_type`, `update_membership_type` | `people:read` / `people:write` |
+| `create_event`, `update_event`, `set_participation_travel` (bus or car) | `events:write` |
+| `get_automation` / `update_automation` | `automations:read` / `automations:write` |
+
+The other tools (people, groups, forms, events, invoices, mailings, imports, automation runs, audit log) follow
+the same pattern; the assistant lists the ones its token allows.
+
+**An assistant cannot switch an approval off.** Via MCP, `automations:write` alone allows `update_automation` to
+change the name, trigger and settings of an automation and to switch it on or off. A token without
+`approvals:decide` is refused (403) when it tries to
+
+- change who approves and when: `mode`, `max_items`, `approvals_needed` or `approver_roles`;
+- change the trigger or the settings of an automation in the mode *automatic* (it runs without approval), or
+  switch such an automation on. Switching off and renaming stay possible.
+
+This limit applies to MCP only; in the REST API `automations:write` is enough for all of these.
 
 Requirements:
 
@@ -103,7 +132,8 @@ Example configuration of an MCP client (the exact format depends on the client):
 ```
 
 Recommendation: give an AI assistant `automations:run` but not `approvals:decide` – it can prepare runs, the
-approvers decide by e-mail.
+approvers decide by e-mail. Give it `automations:write` only if it should set up automations; without
+`approvals:decide` the approvals stay as they are.
 
 ## Webhooks
 

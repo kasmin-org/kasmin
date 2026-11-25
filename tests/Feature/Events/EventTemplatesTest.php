@@ -129,10 +129,13 @@ class EventTemplatesTest extends TestCase
         $url = '/events/'.$this->event->public_id;
         $this->get($url)->assertNotFound();
         $this->event->update(['public_page' => true, 'map_url' => 'https://example.org/map']);
-        $this->get($url)->assertOk()->assertSee('Camp 2027')->assertSee('Places left: 2')->assertHeader('X-Frame-Options', 'SAMEORIGIN')->assertHeader('Content-Security-Policy', "frame-ancestors 'self'");
+        $this->get($url)->assertOk()->assertSee('Camp 2027')->assertSee('Places left: 2')->assertHeader('X-Frame-Options', 'SAMEORIGIN');
+        $this->assertStringEndsWith("; frame-ancestors 'self'", (string) $this->get($url)->headers->get('Content-Security-Policy'));
         $this->get($url.'?embed=1')->assertHeader('X-Frame-Options', 'SAMEORIGIN');
         Settings::set('embed_origins', 'https://www.example.org https://bad.example;script-src http://insecure.example');
-        $this->get($url.'?embed=1')->assertHeaderMissing('X-Frame-Options')->assertHeader('Content-Security-Policy', "frame-ancestors 'self' https://www.example.org");
+        $embedded = $this->get($url.'?embed=1')->assertHeaderMissing('X-Frame-Options');
+        $this->assertStringEndsWith("; frame-ancestors 'self' https://www.example.org", (string) $embedded->headers->get('Content-Security-Policy'));
+        $this->assertStringNotContainsString('insecure.example', (string) $embedded->headers->get('Content-Security-Policy'));
         foreach (['/login?embed=1', '/admin?embed=1', '/portal?embed=1', $url] as $other) {
             $this->get($other)->assertHeader('X-Frame-Options', 'SAMEORIGIN')->assertHeader('Referrer-Policy', 'same-origin');
         }

@@ -6,6 +6,15 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ## [Unreleased]
 
+### Added
+
+- Development: the CI scans the running application with OWASP ZAP (public pages, and admin interface and portal as administrator); findings of risk medium or higher fail the run unless `tests/zap/rules.tsv` lists them with a reason.
+
+### Security
+
+- Pages only load scripts, styles, images and fonts from Kasmin itself and only send forms to it (content security policy); features of the device such as camera and location are switched off, pages are not kept in the cache of the browser, and the PHP version is no longer sent.
+- The admin interface no longer asks another website (ui-avatars.com) for the picture with the user's initials, and the health page `/up` no longer loads a script and fonts from other servers.
+
 ## [0.23.0] - 2026-11-25
 
 ### Added

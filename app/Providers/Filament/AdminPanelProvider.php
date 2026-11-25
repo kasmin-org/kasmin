@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Support\InitialsAvatar;
 use App\Http\Middleware\RequireFullLogin;
 use App\Http\Middleware\RequireSecondFactor;
 use App\Http\Middleware\SetLocale;
@@ -39,6 +40,7 @@ class AdminPanelProvider extends PanelProvider
             ->darkModeBrandLogo(fn () => asset('brand/kasmin-logo-horizontal-on-dark.svg'))
             ->brandLogoHeight('2rem')
             ->favicon(asset('favicon.svg'))
+            ->defaultAvatarProvider(InitialsAvatar::class)
             ->globalSearchKeyBindings(['mod+k'])
             ->viteTheme('resources/css/filament/admin/theme.css')
             // Menu order as specified (AD, section 1).

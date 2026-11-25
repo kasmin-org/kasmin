@@ -37,7 +37,7 @@ class ApiContext
             return false;
         }
         // AI processing setting (MI12): via MCP, health data only if the organisation allows all data.
-        if (self::$viaMcp && $scope === 'health:read') {
+        if (self::$viaMcp && in_array($scope, ['health:read', 'health:write'], true)) {
             return Settings::get('ai_processing') === 'all';
         }
 

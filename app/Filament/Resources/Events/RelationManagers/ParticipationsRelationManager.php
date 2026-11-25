@@ -17,6 +17,7 @@ use App\Support\Forms\FormValue;
 use App\Support\Forms\RegistrationAnswers;
 use App\Support\Lists\EventLists;
 use App\Support\Mail\Composer;
+use App\Support\Mail\Routing;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\CreateAction;
@@ -103,7 +104,7 @@ class ParticipationsRelationManager extends RelationManager
 
                             return;
                         }
-                        foreach ($person->guardians()->get()->all() ?: [$person] as $recipient) {
+                        foreach (Routing::recipients('round_offer', $person, $offered) as $recipient) {
                             app(Composer::class)->queue('round_offer', $recipient, ['event' => $event, 'participation' => $offered->load('event', 'person'), 'household' => $person->households()->first(), 'children' => [$person]]);
                         }
                     }),

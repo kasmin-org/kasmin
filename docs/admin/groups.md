@@ -11,3 +11,5 @@ subgroups.
 
 Groups by rules and of events are recalculated every hour, when they are saved, with *Recalculate*, and before every mailing. A group
 without rules has no members. Memberships are ended and not deleted, so the history shows who was in a group, when and why.
+
+The list shows how many people joined and left in the last 30 days.

@@ -2,6 +2,7 @@
 
 return [
     'status' => [
+        'backup' => 'Backup', 'backup_none' => 'There is no backup yet.', 'backup_last' => 'Last backup :time (:size MB)',
         'title' => 'System status', 'checks' => 'Checks', 'docs' => 'Guide', 'more' => 'Learn more', 'dismiss' => 'Dismiss',
         'levels' => ['ok' => 'OK', 'warning' => 'Warning', 'error' => 'Error', 'info' => 'Info'],
         'php_eol' => 'security updates until :date', 'php_unknown' => 'end of support unknown',

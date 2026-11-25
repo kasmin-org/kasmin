@@ -33,6 +33,7 @@ class Settings
         'retention_safety_years' => '7', // CO01
         'retention_invoice_years' => '7',
         'public_url' => '',
+        'backup_keep' => '7',
         'mail_test_address' => '',       // MS08: all mails go here
         'mailing_approval_above' => '50', // MM07; 0 = never
         'embed_origins' => '', // websites that may show public pages in a frame

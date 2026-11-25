@@ -3,6 +3,7 @@
 return [
     'nav' => ['people' => 'Personen', 'events' => 'Veranstaltungen', 'forms' => 'Formulare', 'finance' => 'Finanzen', 'settings' => 'Einstellungen', 'automations' => 'Automatisierungen', 'privacy' => 'Datenschutz', 'reports' => 'Auswertungen', 'communication' => 'Kommunikation', 'system' => 'System'],
     'finance' => [
+        'single_invoice' => 'Einzelrechnung',
         'proposed_on' => 'Vorgeschlagen am',
         'cancellation_fee' => 'Stornogebühr', 'cancellation_fee_hint' => 'Wird einmal verrechnet, wenn nach einer Stornierung eine Rate erstattet wird.', 'cancellation_text' => 'Stornobedingungen',
         'prices' => 'Preise nach Alter oder Anmeldedatum', 'add_price' => 'Preis hinzufügen', 'prices_hint' => 'Die erste passende Zeile zählt; sonst der Preis der Rolle.', 'from_date' => 'Angemeldet ab', 'until_date' => 'Angemeldet bis',
@@ -50,6 +51,7 @@ return [
         'families' => 'Familien', 'max_guardians' => 'Erziehungsberechtigte pro Familie (höchstens)', 'min_login_age' => 'Eigener Zugang ab Alter', 'guardian_until_age' => 'Erziehungsberechtigung endet mit Alter', 'own_registrations_visible' => 'Erziehungsberechtigte sehen eigene Anmeldungen des Kindes', 'own_registrations_visible_hint' => 'Aus: Anmeldungen, die das Kind mit eigenem Zugang macht, sind privat.',
         'embed_origins' => 'Websites, die öffentliche Seiten einbetten dürfen', 'embed_origins_hint' => 'Adressen mit https, durch Leerzeichen getrennt. Nur öffentliche Veranstaltungsseiten und Formulare (mit ?embed=1) können dort angezeigt werden, alles andere nie in Frames.',
         'mail_test_address' => 'Mail-Testmodus: alles senden an', 'mail_test_address_hint' => 'Wenn gesetzt, geht jede Mail – auch Anmeldelinks – nur an diese Adresse. Leer = Normalbetrieb.', 'mailing_approval_above' => 'Freigabe für Aussendungen ab mehr als … Mails', 'mailing_approval_above_hint' => '0 = nie.', 'test_mode_on' => 'Testmodus: alle Mails gehen an :address.',
+        'backup_keep' => 'Tägliche Sicherungen behalten (Tage)',
         'number_per_year' => 'Eigene Nummern pro Jahr', 'number_per_year_hint' => 'Die Nummern beginnen jedes Jahr mit 1; dazu ein Nummernformat mit {year} verwenden.',
         'save' => 'Speichern', 'saved' => 'Gespeichert',
     ],
@@ -86,7 +88,7 @@ return [
         'change_status' => 'Status ändern', 'occupied' => 'Belegung', 'waitlist_short' => 'WL',
     ],
     'series' => ['singular' => 'Veranstaltungsreihe', 'plural' => 'Veranstaltungsreihen'],
-    'group' => ['singular' => 'Gruppe', 'plural' => 'Gruppen', 'parent' => 'Gehört zu', 'members' => 'Mitglieder', 'kinds' => ['manual' => 'Von Hand', 'dynamic' => 'Nach Regeln', 'event' => 'Teilnehmende einer Veranstaltung'], 'event_hint' => 'Das Alter zählt bei dieser Veranstaltung, und nur Veranstaltungen ihrer Reihe werden gezählt. Leer = heute, alle Veranstaltungen.', 'rules' => 'Regeln', 'match' => 'Personen müssen passen zu', 'matches' => ['all' => 'allen Regeln', 'any' => 'mindestens einer Regel'], 'add_rule' => 'Regel hinzufügen', 'field' => 'Feld', 'fields' => ['age' => 'Alter', 'membership' => 'Mitgliedschaft', 'role' => 'Rolle', 'group' => 'Mitglied der Gruppe', 'events' => 'Anzahl bisheriger Veranstaltungen'], 'value' => 'Wert', 'min' => 'Von', 'max' => 'Bis', 'not' => 'Nicht', 'source' => 'Herkunft', 'update' => 'Neu berechnen', 'add' => 'Person hinzufügen', 'remove' => 'Entfernen'],
+    'group' => ['changes' => 'Letzte 30 Tage', 'singular' => 'Gruppe', 'plural' => 'Gruppen', 'parent' => 'Gehört zu', 'members' => 'Mitglieder', 'kinds' => ['manual' => 'Von Hand', 'dynamic' => 'Nach Regeln', 'event' => 'Teilnehmende einer Veranstaltung'], 'event_hint' => 'Das Alter zählt bei dieser Veranstaltung, und nur Veranstaltungen ihrer Reihe werden gezählt. Leer = heute, alle Veranstaltungen.', 'rules' => 'Regeln', 'match' => 'Personen müssen passen zu', 'matches' => ['all' => 'allen Regeln', 'any' => 'mindestens einer Regel'], 'add_rule' => 'Regel hinzufügen', 'field' => 'Feld', 'fields' => ['age' => 'Alter', 'membership' => 'Mitgliedschaft', 'role' => 'Rolle', 'group' => 'Mitglied der Gruppe', 'events' => 'Anzahl bisheriger Veranstaltungen'], 'value' => 'Wert', 'min' => 'Von', 'max' => 'Bis', 'not' => 'Nicht', 'source' => 'Herkunft', 'update' => 'Neu berechnen', 'add' => 'Person hinzufügen', 'remove' => 'Entfernen'],
     'form' => [
         'kind' => 'Art', 'kinds' => ['person' => 'Person (gilt für alle Veranstaltungen)', 'registration' => 'Fragen einer Veranstaltung'], 'scope' => 'Gefragt', 'scopes' => ['participant' => 'pro teilnehmender Person', 'family' => 'einmal pro Familie'],
         'singular' => 'Formular', 'plural' => 'Formulare', 'key' => 'Schlüssel', 'active' => 'Aktiv', 'name' => 'Name', 'description' => 'Beschreibung',

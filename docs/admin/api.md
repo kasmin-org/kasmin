@@ -20,8 +20,9 @@ each token was last used. Every write via the API is recorded in the audit log w
 | `approvals:decide` | decide approvals (and start runs directly). Give it only to tokens a person controls |
 | `import:write` | import people, roll imports back |
 | `audit:read` | read the audit log |
-| `health:read` | health and safety data (separate on purpose) |
-| `settings:write` | change settings |
+| `health:read` | confidential values of forms, e.g. the safety sheet (separate on purpose; every read is logged) |
+| `health:write` | change confidential values; the legal guardians have to confirm them in the portal |
+| `settings:write` | read and change settings – not bank data, public address, test mode, embedding, time zone and AI settings |
 
 Rate limit: 120 requests per minute per token.
 
@@ -45,6 +46,18 @@ curl -H "Authorization: Bearer kas_…" https://your-kasmin.example/api/v1/event
 
 **Dangerous actions need a human** (X05): starting an automation via the API (invoice runs, mailings …) creates an
 approval request unless the token has `approvals:decide`.
+
+## Repeating requests safely
+
+Send the header `Idempotency-Key: <your unique key>` with a write request. If the same request arrives again within 24 hours, it is not
+carried out again; you get the first answer with `Idempotent-Replayed: true`. The same key with another request is refused (422), while
+the first one is still running you get 409.
+
+## Public events and forms
+
+Without a token, for your own website: `GET /api/v1/public/events`, `GET /api/v1/public/forms/{name}` and
+`POST /api/v1/public/forms/{name}`. Only events with a public page and active forms are available. Sending a form only sends the
+confirmation mail, and the answer is the same for known and unknown addresses.
 
 ## MCP for AI assistants
 

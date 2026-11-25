@@ -27,7 +27,7 @@ class ApiToken extends Model
     public const SCOPES = [
         'people:read', 'people:write', 'events:read', 'events:write', 'finance:read', 'finance:write',
         'mail:read', 'mail:write', 'automations:read', 'automations:run', 'approvals:decide',
-        'import:write', 'audit:read', 'health:read', 'settings:write',
+        'import:write', 'audit:read', 'health:read', 'health:write', 'settings:write',
     ];
 
     protected $guarded = ['id'];

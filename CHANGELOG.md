@@ -6,6 +6,16 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ## [Unreleased]
 
+### Added
+
+- Waitlist: order by rules per role (priority, took part last time, number of events, registration date), page with reasons, offers and manual actions, skipping with a reason.
+- Release of reserve places, reminder to all administrators at a date, automatic release (off by default).
+- Waitlists of groups with offers in the portal.
+
+### Fixed
+
+- Free places were no longer offered to the waitlist by the daily automation once the registration was closed.
+
 ## [0.19.0] - 2026-11-25
 
 Pre-release for testing. Not ready for production use.

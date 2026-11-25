@@ -6,13 +6,12 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ## [Unreleased]
 
+## [0.21.0] - 2026-11-25
+
 ### Added
 
 - Roles that count only for the own events: camp leaders see their events and their people, counsellors have lists of their events in the portal. This also applies to existing installations.
 - *My notifications*: choose topics immediately or as a digest, and the latest notifications. Until now there was no page for it, so nobody could get notifications. Administrators get deletion requests immediately and errors of automations daily by default.
-
-### Added
-
 - Automatic updates (off by default): a version is installed in the night once it has been out for the configured days (default 10, 04:00), with a notice two days before, a notice if a newer version resets the waiting time, and a mail with the changes afterwards.
 
 ### Added
@@ -488,7 +487,8 @@ First public pre-release for testing. Not ready for production use.
 - Docker image: system packages updated and build packages removed after compiling the PHP extensions – the
   container scan reports no high or critical findings any more (previously 75 in Debian packages).
 
-[Unreleased]: https://github.com/kasmin-org/kasmin/compare/v0.20.0...develop
+[Unreleased]: https://github.com/kasmin-org/kasmin/compare/v0.21.0...develop
+[0.21.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.21.0
 [0.20.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.20.0
 [0.19.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.19.0
 [0.18.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.18.0

@@ -28,7 +28,7 @@ class EventForm
     public static function configure(Schema $schema): Schema
     {
         return $schema->components([
-            Section::make(__('admin.event.singular'))->disabled(fn () => ! Permissions::current('events', 'edit'))->columnSpanFull()->columns(['md' => 2])->schema([
+            Section::make(__('admin.event.singular'))->disabled(fn (?Event $record) => ! self::mayEdit($record))->columnSpanFull()->columns(['md' => 2])->schema([
                 TextInput::make('title')->label(__('admin.event.title'))->required()->maxLength(200)->columnSpanFull(),
                 Select::make('event_series_id')->label(__('admin.event.series'))->relationship('series', 'name')->createOptionForm([
                     TextInput::make('name')->label(__('admin.event.title'))->required(),
@@ -68,7 +68,7 @@ class EventForm
                 TextInput::make('safety_confirm_days')->label(__('admin.event.safety_confirm_days'))->numeric()->minValue(1)->maxValue(365)->hintIcon('heroicon-m-question-mark-circle', tooltip: __('admin.event.safety_confirm_hint')),
                 Textarea::make('description')->label(__('admin.event.description'))->columnSpanFull(),
             ]),
-            Section::make(__('admin.event.roles'))->disabled(fn () => ! Permissions::current('events', 'edit'))->columnSpanFull()->schema([
+            Section::make(__('admin.event.roles'))->disabled(fn (?Event $record) => ! self::mayEdit($record))->columnSpanFull()->schema([
                 Repeater::make('roles')->relationship()->label(__('admin.event.roles'))->hiddenLabel()->columns(['md' => 3])->defaultItems(1)->addActionLabel(__('admin.event.add_role'))
                     ->schema([
                         Select::make('role_key')->label(__('admin.event.role'))->options(__('events.roles'))->required()->distinct(),
@@ -89,7 +89,7 @@ class EventForm
                             ->columnSpanFull(),
                     ]),
             ]),
-            Section::make(__('admin.finance.pricing'))->disabled(fn () => ! Permissions::current('events', 'edit') && ! Permissions::current('finance', 'edit'))->collapsible()->columnSpanFull()->columns(['md' => 3])->schema([
+            Section::make(__('admin.finance.pricing'))->disabled(fn (?Event $record) => ! self::mayEdit($record) && ! Permissions::current('finance', 'edit'))->collapsible()->columnSpanFull()->columns(['md' => 3])->schema([
                 Select::make('sibling_mode')->label(__('admin.finance.sibling_mode'))->options(__('finance.sibling_mode'))->default('none')->required()->live()->columnSpan(2),
                 Select::make('sibling_order')->label(__('admin.finance.sibling_order'))->options(__('finance.sibling_order'))->default('oldest')->required(),
                 Money::input('sibling_amount_cents', __('admin.finance.sibling_amount'))
@@ -138,7 +138,7 @@ class EventForm
                             ->hintIcon('heroicon-m-question-mark-circle', tooltip: __('admin.finance.discounts_apply_hint')),
                     ]),
             ]),
-            Section::make(__('admin.event.rounds'))->disabled(fn () => ! Permissions::current('events', 'edit'))->collapsible()->collapsed(fn (?Event $record) => $record === null || ! $record->rounds()->exists())->columnSpanFull()->description(__('admin.event.rounds_hint'))->schema([
+            Section::make(__('admin.event.rounds'))->disabled(fn (?Event $record) => ! self::mayEdit($record))->collapsible()->collapsed(fn (?Event $record) => $record === null || ! $record->rounds()->exists())->columnSpanFull()->description(__('admin.event.rounds_hint'))->schema([
                 Repeater::make('rounds')->relationship()->label(__('admin.event.rounds'))->hiddenLabel()->columns(['md' => 3])->orderColumn('sort')->defaultItems(0)->addActionLabel(__('admin.event.add_round'))
                     ->schema([
                         Select::make('role_key')->label(__('admin.event.role'))->options(__('events.roles'))->default('child')->required(),
@@ -159,5 +159,10 @@ class EventForm
                     ]),
             ]),
         ]);
+    }
+
+    private static function mayEdit(?Event $event): bool
+    {
+        return $event?->exists ? Permissions::currentEvent($event->id, 'edit') : Permissions::current('events', 'edit');
     }
 }

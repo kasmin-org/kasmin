@@ -12,6 +12,7 @@ use BackedEnum;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Database\Eloquent\Builder;
 use Livewire\Attributes\Url;
 
 /**
@@ -60,9 +61,9 @@ class EventListsPage extends Page
 
     public function mount(): void
     {
-        $this->event ??= Event::query()->whereNotIn('status', ['draft', 'archived'])->where('ends_at', '>=', now()->subMonths(2))->whereHas('participations')->orderBy('starts_at')->value('id')
-            ?? Event::query()->whereNotIn('status', ['draft', 'archived'])->where('ends_at', '>=', now()->subMonths(2))->orderBy('starts_at')->value('id')
-            ?? Event::query()->orderByDesc('starts_at')->value('id');
+        $this->event ??= $this->events()->whereNotIn('status', ['draft', 'archived'])->where('ends_at', '>=', now()->subMonths(2))->whereHas('participations')->orderBy('starts_at')->value('id')
+            ?? $this->events()->whereNotIn('status', ['draft', 'archived'])->where('ends_at', '>=', now()->subMonths(2))->orderBy('starts_at')->value('id')
+            ?? $this->events()->orderByDesc('starts_at')->value('id');
         $this->logView();
     }
 
@@ -74,7 +75,7 @@ class EventListsPage extends Page
     private function logView(): void
     {
         $user = auth()->user();
-        if ($user instanceof User && (EventLists::LISTS[$this->list] ?? false) && EventLists::mayView($user, $this->list) && $this->event !== null) {
+        if ($user instanceof User && (EventLists::LISTS[$this->list] ?? false) && $this->event !== null && EventLists::mayView($user, $this->list, $this->event)) {
             Audit::record('list.viewed', Event::query()->find($this->event), null, ['list' => $this->list]);
         }
     }
@@ -85,9 +86,9 @@ class EventListsPage extends Page
     /** One-click reminder to the selected families in the list "still missing" (SF19a). */
     public function remind(): void
     {
-        abort_unless(Permissions::current('events', 'edit') || Permissions::current('safety', 'edit'), 403);
-        $event = Event::query()->find($this->event);
-        if ($event === null || $this->selected === []) {
+        $event = $this->events()->find($this->event);
+        abort_unless($event !== null && $this->mayRemind($event), 403);
+        if ($this->selected === []) {
             return;
         }
         $result = app(MissingSheets::class)->remind($event, $this->selected, $this->role ?: null);
@@ -100,16 +101,30 @@ class EventListsPage extends Page
     {
         /** @var User $user */
         $user = auth()->user();
-        $event = $this->event !== null ? Event::query()->with('roles')->find($this->event) : null;
-        $keys = EventLists::keysFor($user);
+        $event = $this->event !== null ? $this->events()->with('roles')->find($this->event) : null;
+        $keys = $event !== null ? EventLists::keysFor($user, $event->id) : [];
         $key = in_array($this->list, $keys, true) ? $this->list : 'participants';
 
         return [
-            'events' => Event::query()->orderByDesc('starts_at')->limit(100)->pluck('title', 'id')->all(),
+            'events' => $this->events()->orderByDesc('starts_at')->limit(100)->pluck('title', 'id')->all(),
             'model' => $event, 'keys' => $keys, 'key' => $key, 'roleOptions' => $event?->roles->pluck('role_key')->all() ?? [],
-            'table' => $event !== null ? app(EventLists::class)->build($event, $key, $this->role ?: null) : null,
-            'safety' => EventLists::mayViewSafety($user),
-            'families' => $event !== null && $key === 'missing' && (Permissions::current('events', 'edit') || Permissions::current('safety', 'edit')) ? app(MissingSheets::class)->labels($event, $this->role ?: null) : [],
+            'table' => $event !== null && in_array($key, $keys, true) ? app(EventLists::class)->build($event, $key, $this->role ?: null) : null,
+            'safety' => $event !== null && EventLists::mayViewSafety($user, $event->id),
+            'families' => $event !== null && $key === 'missing' && $this->mayRemind($event) ? app(MissingSheets::class)->labels($event, $this->role ?: null) : [],
         ];
+    }
+
+    /** @return Builder<Event> */
+    private function events(): Builder
+    {
+        $events = Permissions::restriction();
+        $safety = Permissions::restriction('safety');
+
+        return Event::query()->when($events !== null && $safety !== null, fn ($q) => $q->whereIn('id', [...$events ?? [], ...$safety ?? []]));
+    }
+
+    private function mayRemind(Event $event): bool
+    {
+        return Permissions::currentEvent($event->id, 'edit') || Permissions::currentEvent($event->id, 'edit', 'safety');
     }
 }

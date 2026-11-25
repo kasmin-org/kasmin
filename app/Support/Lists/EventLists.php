@@ -34,24 +34,31 @@ class EventLists
 
     public function __construct(private readonly Forms $forms, private readonly RegistrationAnswers $answers) {}
 
-    public static function mayView(User $user, string $key): bool
+    /** Without an event: whether there is any event for which the list may be seen. */
+    public static function mayView(User $user, string $key, ?int $eventId = null): bool
     {
         if (! array_key_exists($key, self::LISTS)) {
             return false;
         }
 
-        return self::LISTS[$key] ? self::mayViewSafety($user) : Permissions::allows($user, 'events');
+        $area = self::LISTS[$key] ? 'safety' : 'events';
+        if (Permissions::allows($user, $area)) {
+            return true;
+        }
+        $own = Permissions::ownEvents($user, $area);
+
+        return $eventId === null ? $own !== [] : in_array($eventId, $own, true);
     }
 
-    public static function mayViewSafety(User $user): bool
+    public static function mayViewSafety(User $user, ?int $eventId = null): bool
     {
-        return Permissions::allows($user, 'safety');
+        return $eventId === null ? Permissions::allows($user, 'safety') : Permissions::allowsEvent($user, $eventId, 'view', 'safety');
     }
 
     /** @return list<string> */
-    public static function keysFor(User $user): array
+    public static function keysFor(User $user, ?int $eventId = null): array
     {
-        return array_values(array_filter(array_keys(self::LISTS), fn (string $key) => self::mayView($user, $key)));
+        return array_values(array_filter(array_keys(self::LISTS), fn (string $key) => self::mayView($user, $key, $eventId)));
     }
 
     public function build(Event $event, string $key, ?string $role = null): ListTable

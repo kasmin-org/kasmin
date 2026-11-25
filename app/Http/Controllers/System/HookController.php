@@ -12,13 +12,15 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Schema;
 
 /**
  * HTTP endpoints for hosting without a command line (e.g. shared hosting whose cron jobs can only call URLs):
  *
  * - POST /system/hooks/upgrade   – runs kasmin:upgrade (used by deployment pipelines after uploading a new release)
- * - POST /system/hooks/demo      – demo instances only: installs Kasmin with demo data if the database is empty
+ * - POST /system/hooks/demo      – demo instances only: installs Kasmin with demo data if the database is empty;
+ *                                  with ?reset=1 everything is deleted first
  * - GET|POST /system/cron        – runs the scheduler once (web cron, P03)
  *
  * All endpoints are disabled unless KASMIN_HOOK_TOKEN is set (at least 32 characters). The token is sent as
@@ -39,6 +41,11 @@ class HookController extends Controller
         $this->authorizeHook($request);
         abort_unless(app()->environment('demo'), 404);
 
+        // Demo instances can be emptied and filled again (never anywhere else).
+        if ($request->boolean('reset') && $installer->isInstalled()) {
+            Schema::dropAllTables();
+            Cache::flush();
+        }
         if ($installer->isInstalled()) {
             return response()->json(['ok' => true, 'installed' => false, 'message' => 'Already installed.']);
         }

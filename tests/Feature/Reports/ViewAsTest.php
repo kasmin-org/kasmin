@@ -48,6 +48,7 @@ class ViewAsTest extends TestCase
     public function test_other_administrative_roles_cannot_preview(): void
     {
         app(Defaults::class)->install('en');
+        Role::query()->where('key', 'camp_leader')->update(['scope' => 'all']);
         $family = Person::factory()->create(['first_name' => 'Secretfamily']);
         foreach (['treasurer', 'board', 'camp_leader', 'auditor'] as $role) {
             auth()->forgetUser(); // roles are assigned by the system here
@@ -57,7 +58,7 @@ class ViewAsTest extends TestCase
             $this->actingAs($user)->withSession(['two_factor_passed' => true, 'portal_view_as' => $family->id]);
             $this->get('/portal')->assertDontSee('Secretfamily');
             $page = Livewire::test(ViewPerson::class, ['record' => $family->id]);
-            $role === 'auditor' ? $page->assertForbidden() : $page->assertActionHidden('view_as');
+            $role === 'auditor' ? $page->assertNotFound() : $page->assertActionHidden('view_as');
         }
     }
 

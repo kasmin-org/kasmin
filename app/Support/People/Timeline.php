@@ -31,8 +31,9 @@ class Timeline
                 $items[] = ['at' => $at, 'type' => $kind, 'text' => $text, 'url' => $url];
             }
         };
-        if (Permissions::allows($viewer, 'events')) {
-            $participations = Participation::query()->where('person_id', $person->id)->with('event')->get()->keyBy('id');
+        $events = Permissions::allows($viewer, 'events') ? null : Permissions::ownEvents($viewer);
+        if ($events !== []) {
+            $participations = Participation::query()->where('person_id', $person->id)->when($events !== null, fn ($q) => $q->whereIn('event_id', $events ?? []))->with('event')->get()->keyBy('id');
             foreach (AuditEvent::query()->where('subject_type', (new Participation)->getMorphClass())->whereIn('subject_id', $participations->keys())->latest('id')->limit($limit)->get() as $audit) {
                 $p = $participations->get($audit->getAttribute('subject_id'));
                 $status = data_get($audit->changes, 'status');
@@ -40,7 +41,7 @@ class Timeline
                 $add($this->date($audit->getAttribute('occurred_at')), 'registration', trim($p?->event?->title.': '.(is_string($new) ? __('events.status.'.$new) : $audit->getAttribute('action'))));
             }
         }
-        foreach (DB::table('group_memberships')->join('groups', 'groups.id', '=', 'group_memberships.group_id')->where('person_id', $person->id)->get(['groups.name', 'starts_on', 'ends_on', 'source']) as $row) {
+        foreach (! Permissions::allows($viewer, 'people') ? [] : DB::table('group_memberships')->join('groups', 'groups.id', '=', 'group_memberships.group_id')->where('person_id', $person->id)->get(['groups.name', 'starts_on', 'ends_on', 'source']) as $row) {
             $add($this->date($row->starts_on), 'group', (string) __('people.timeline_joined', ['group' => $row->name, 'source' => $row->source ?? '–']));
             $add($this->date($row->ends_on), 'group', (string) __('people.timeline_left', ['group' => $row->name]));
         }

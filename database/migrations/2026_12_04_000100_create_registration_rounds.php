@@ -5,7 +5,6 @@ use App\Support\Install\AutomationDefaults;
 use App\Support\Install\MailTemplateDefaults;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 /**
@@ -32,10 +31,8 @@ return new class extends Migration
             $table->string('offer_mode', 16)->nullable(); // payment: paying the invoice accepts the place
             $table->string('offer_reason')->nullable();   // offered by an administrator (RR03)
         });
-        if (DB::table('mail_templates')->where('is_standard', true)->exists()) {
-            AfterMigrations::request(MailTemplateDefaults::class);
-            AfterMigrations::request(AutomationDefaults::class);
-        }
+        AfterMigrations::request(MailTemplateDefaults::class);
+        AfterMigrations::request(AutomationDefaults::class);
     }
 
     public function down(): void

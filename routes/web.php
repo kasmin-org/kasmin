@@ -15,9 +15,11 @@ use App\Http\Controllers\PortalChildController;
 use App\Http\Controllers\PortalController;
 use App\Http\Controllers\PortalFormController;
 use App\Http\Controllers\PortalProfileController;
+use App\Http\Controllers\PortalTeamController;
 use App\Http\Controllers\PublicEventController;
 use App\Http\Controllers\PublicFormController;
 use App\Http\Controllers\PublicRegistrationController;
+use App\Http\Controllers\System\UpgradeController;
 use App\Http\Controllers\ViewAsController;
 use App\Http\Middleware\ReadOnlyPortalPreview;
 use App\Http\Middleware\RequireFullLogin;
@@ -54,6 +56,10 @@ Route::post('/guest/{token}', [PublicFormController::class, 'acceptGuest'])->mid
 
 Route::get('/guardian/{token}', [GuardianController::class, 'show'])->name('guardian.invitation');
 Route::post('/guardian/{token}', [GuardianController::class, 'accept'])->middleware('throttle:login-link')->name('guardian.invitation.accept');
+
+// Upgrade of the database in the browser, for administrators (no command line needed).
+Route::get('/system/upgrade', [UpgradeController::class, 'show'])->name('system.upgrade');
+Route::post('/system/upgrade', [UpgradeController::class, 'run'])->middleware('throttle:install')->name('system.upgrade.run');
 
 Route::middleware('guest')->group(function () {
     Route::get('/register', [PublicRegistrationController::class, 'show'])->name('register');
@@ -93,6 +99,7 @@ Route::middleware('auth')->group(function () {
             Route::post('/families/{household}', [PortalProfileController::class, 'saveFamily'])->name('portal.profile.family');
             Route::get('/export', [PortalProfileController::class, 'export'])->middleware('throttle:login-send')->name('portal.profile.export');
         });
+        Route::get('/team/{event}/{list?}', [PortalTeamController::class, 'show'])->middleware(RequireFullLogin::class)->name('portal.team');
         Route::get('/mails/{uuid}', [PortalController::class, 'mail'])->name('portal.mail');
         Route::get('/invoices/{invoice}.pdf', [InvoicePdfController::class, 'portal'])->name('portal.invoice.pdf');
         Route::get('/children/new', [PortalChildController::class, 'create'])->middleware(RequireFullLogin::class)->name('portal.child.create');

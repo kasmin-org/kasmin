@@ -54,4 +54,5 @@ return [
     'have_account' => 'Already signed up? Log in here',
     'notify_signup' => 'New sign-up: :name',
     'mails' => 'Your e-mails',
+    'team' => 'My events (team)', 'team_hint' => 'Lists for the team. Please treat them confidentially. Every view is logged.',
 ];

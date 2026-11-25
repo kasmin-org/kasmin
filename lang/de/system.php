@@ -42,4 +42,20 @@ return [
         ],
         'versions' => 'Installierte Version: :code · Datenbank: :database',
     ],
+    'upgrade' => [
+        'banner' => 'Eine neue Version wurde installiert. Bis das Upgrade abgeschlossen ist, können sich nur Administratorinnen und Administratoren anmelden.',
+        'only_administrators' => 'Ein Upgrade steht an. Bis es abgeschlossen ist, können sich nur Administratorinnen und Administratoren anmelden – mit einem neuen Anmeldelink.',
+        'title' => 'Kasmin aktualisieren', 'text' => 'Die Dateien einer neuen Version sind installiert. Die Datenbank muss aktualisiert werden, bevor Kasmin wieder benutzt werden kann.',
+        'steps' => '{1} 1 Schritt|[2,*] :count Schritte', 'backup' => 'Zuerst wird eine Sicherung der Datenbank erstellt.', 'wait' => 'Das kann einige Minuten dauern. Bitte die Seite nicht schließen.',
+        'start' => 'Jetzt aktualisieren', 'again' => 'Erneut versuchen', 'running' => 'Upgrade läuft …', 'done' => 'Kasmin ist jetzt auf Version :version. Alle können sich wieder anmelden.', 'continue' => 'Weiter zur Verwaltung',
+        'failed' => 'Das Upgrade wurde nicht abgeschlossen. Es ist nichts verloren: Die vorher erstellte Sicherung liegt im Sicherungsordner. Bitte erneut versuchen; schlägt es wieder fehl, die Details unten für die Support-Anfrage aufbewahren.', 'details' => 'Details',
+    ],
+    'auto_update' => [
+        'title' => 'Automatische Updates', 'enabled' => 'Neue Versionen automatisch installieren', 'days' => 'Tage nach der Veröffentlichung', 'time' => 'Uhrzeit',
+        'hint' => 'Eine neue Version wird in der Nacht installiert, sobald sie so viele Tage veröffentlicht ist. Administratorinnen und Administratoren werden zwei Tage vorher und danach informiert. Erscheint dazwischen eine neuere Version, beginnt die Wartezeit von vorne; eine Version, die kurz darauf korrigiert wird, wird so übersprungen. Braucht den Cronjob.',
+        'notice_subject' => 'Update auf :version am :date', 'notice' => 'Kasmin :version wird am :date automatisch installiert. Vorher wird eine Sicherung erstellt. Sie müssen nichts tun; Sie können auch früher aktualisieren oder automatische Updates in den Einstellungen ausschalten. Änderungen: :url',
+        'cancelled_subject' => 'Update auf :old abgesagt', 'cancelled' => 'Das angekündigte Update auf Kasmin :old ist abgesagt, weil die neuere Version :new veröffentlicht wurde. Die Wartezeit beginnt von vorne: :new ist für :date geplant.',
+        'done_subject' => 'Auf :version aktualisiert', 'done' => 'Kasmin wurde automatisch von :from auf :version aktualisiert. Das sind die Änderungen:',
+        'failed_subject' => 'Update auf :version hat nicht funktioniert', 'failed' => 'Das automatische Update auf Kasmin :version hat nicht funktioniert; die bisherige Version läuft weiter. Morgen wird es erneut versucht. Grund: :error',
+    ],
 ];

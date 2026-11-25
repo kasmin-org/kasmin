@@ -16,6 +16,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 class EventResource extends Resource
@@ -30,12 +31,30 @@ class EventResource extends Resource
     /** Finance roles open events for prices and reduced places; everything else is read-only for them. */
     public static function canViewAny(): bool
     {
-        return Permissions::current('events') || Permissions::current('finance');
+        return Permissions::current('events') || Permissions::current('finance') || Permissions::restriction() !== [];
+    }
+
+    /**
+     * Only the own events for roles that count for these (RO01).
+     *
+     * @return Builder<Event>
+     */
+    public static function getEloquentQuery(): Builder
+    {
+        $query = Event::query();
+        $own = Permissions::current('finance') ? null : Permissions::restriction();
+
+        return $own === null ? $query : $query->whereIn('events.id', $own);
+    }
+
+    public static function canView(Model $record): bool
+    {
+        return $record instanceof Event && (Permissions::current('finance') || Permissions::currentEvent($record->id));
     }
 
     public static function canEdit(Model $record): bool
     {
-        return Permissions::current('events', 'edit') || Permissions::current('finance', 'edit');
+        return $record instanceof Event && (Permissions::currentEvent($record->id, 'edit') || Permissions::current('finance', 'edit'));
     }
 
     protected static ?string $recordTitleAttribute = 'title';

@@ -13,6 +13,12 @@
             <ul class="space-y-2 text-sm">@foreach ($tasks as $task)<li><a class="underline @if ($task['urgent']) font-semibold @endif" href="{{ $task['url'] }}">{{ $task['text'] }}</a></li>@endforeach</ul>
         </section>
     @endif
+    @if ($teamEvents->isNotEmpty())
+        <section class="mb-6" aria-labelledby="team">
+            <h2 id="team" class="mb-2 text-lg font-semibold">{{ __('portal.team') }}</h2>
+            <ul class="space-y-1 text-sm">@foreach ($teamEvents as $e)<li><a class="underline" href="{{ route('portal.team', $e->public_id) }}">{{ $e->title }}</a> · {{ $e->starts_at->isoFormat('LL') }}</li>@endforeach</ul>
+        </section>
+    @endif
     @forelse ($households as $household)
         <section class="mb-6" aria-labelledby="h{{ $household->id }}">
             <h2 id="h{{ $household->id }}" class="mb-3 text-lg font-semibold">{{ $household->name }}</h2>

@@ -31,3 +31,22 @@ embedding, time zone and AI settings.
 
 The e-mail address of a person with an administrative role is the key to the admin interface. Only administrators and the person
 itself can change it. This also holds for imports and for merging duplicates. Only administrators can delete such a person.
+
+## Own events only
+
+A role can count for **everything** or for **own events only** (*Settings → Roles → Counts for*). Camp leaders and counsellors
+are set to own events, also in existing installations; an administrator can change it.
+
+Own events are events
+
+- the role was assigned for (*Person → Roles → Event*), and
+- the person takes part in as team member or junior counsellor. Somebody who only registered itself does not count until the team
+  confirms it.
+
+They count until 180 days after the end. People with such a role see these events, their participants and the legal guardians of these,
+the lists, and the schedule. Registrations a child made itself do not show its legal guardians. Everything else is closed: other events,
+families, groups, imports, statistics, mailings, the to-do list, and searching for other people. Health data needs the additional right
+*Safety* in the role and then also only counts for the own events.
+
+**Counsellors** have no admin interface. They find *My events (team)* in the portal, with participants, contacts, bus list and
+birthdays. Every view is logged, and a link in a mail is not enough to open it.

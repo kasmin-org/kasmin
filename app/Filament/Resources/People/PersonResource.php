@@ -11,12 +11,15 @@ use App\Filament\Resources\People\Schemas\PersonForm;
 use App\Filament\Resources\People\Schemas\PersonInfolist;
 use App\Filament\Resources\People\Tables\PeopleTable;
 use App\Filament\Support\AreaAccess;
+use App\Models\Participation;
 use App\Models\Person;
+use App\Support\Auth\Permissions;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 class PersonResource extends Resource
@@ -26,6 +29,36 @@ class PersonResource extends Resource
     public static function area(): string
     {
         return 'people';
+    }
+
+    public static function canViewAny(): bool
+    {
+        return Permissions::current('people') || Permissions::restriction('people') !== [];
+    }
+
+    public static function canView(Model $record): bool
+    {
+        return self::canViewAny() && self::getEloquentQuery()->whereKey($record->getKey())->exists();
+    }
+
+    /**
+     * Roles for the own events only see the people of these events and their legal guardians (RO01). What somebody
+     * registered without the legal guardians stays private, also for them (PE05a).
+     *
+     * @return Builder<Person>
+     */
+    public static function getEloquentQuery(): Builder
+    {
+        $own = Permissions::restriction('people');
+        $query = Person::query();
+        if ($own === null) {
+            return $query;
+        }
+        $active = Participation::query()->whereIn('event_id', $own)->whereNotIn('status', ['cancelled', 'declined']);
+        $people = (clone $active)->pluck('person_id');
+        $shared = (clone $active)->get()->reject(fn (Participation $p) => $p->isOwn())->pluck('person_id');
+
+        return $query->where(fn ($q) => $q->whereIn('people.id', $people)->orWhereHas('wards', fn ($q) => $q->whereIn($q->qualifyColumn('id'), $shared)));
     }
 
     protected static ?string $model = Person::class;

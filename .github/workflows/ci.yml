@@ -155,6 +155,7 @@ jobs:
       CACHE_STORE: file
       SESSION_DRIVER: file
       MAIL_MAILER: log
+      APP_URL: http://127.0.0.1:8000
       DB_HOST: 127.0.0.1
       DB_PORT: "3306"
       DB_USERNAME: root
@@ -176,10 +177,13 @@ jobs:
           php artisan kasmin:install --organisation="Old Camp" --locale=de --defaults=de --admin-name="Alex Admin" --admin-email=admin@example.org
           php artisan kasmin:demo --locale=de --families=8 --staff=4 --force
           git checkout -q -f "$new"
+      - uses: actions/setup-node@v4
+        with: { node-version: "24" }
       - name: Upgrade
         run: |
           composer install --no-interaction --no-progress --prefer-dist --no-scripts -q && php artisan package:discover -q
-          php artisan kasmin:upgrade
+          npm ci --ignore-scripts --no-audit --no-fund && npm run build
+          sh tests/upgrade-web.sh
           php tests/upgrade-check.php
 
   semgrep:

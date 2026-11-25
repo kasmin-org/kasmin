@@ -44,10 +44,8 @@ return new class extends Migration
         if (DB::table('system_meta')->where('key', 'own_registrations_visible')->where('value', '1')->exists()) {
             DB::table('system_meta')->updateOrInsert(['key' => 'own_registrations'], ['value' => 'visible', 'created_at' => now(), 'updated_at' => now()]);
         }
-        if (DB::table('mail_templates')->where('is_standard', true)->exists()) {
-            AfterMigrations::request(MailTemplateDefaults::class);
-            AfterMigrations::request(AutomationDefaults::class);
-        }
+        AfterMigrations::request(MailTemplateDefaults::class);
+        AfterMigrations::request(AutomationDefaults::class);
     }
 
     public function down(): void

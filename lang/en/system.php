@@ -42,4 +42,20 @@ return [
         ],
         'versions' => 'Installed version: :code · database: :database',
     ],
+    'upgrade' => [
+        'banner' => 'A new version was installed. Until the upgrade is finished, only administrators can log in.',
+        'only_administrators' => 'An upgrade is pending. Until it is finished, only administrators can log in – with a new login link.',
+        'title' => 'Upgrade Kasmin', 'text' => 'The files of a new version are installed. The database has to be upgraded before Kasmin can be used again.',
+        'steps' => '{1} 1 step|[2,*] :count steps', 'backup' => 'A backup of the database is made first.', 'wait' => 'This can take a few minutes. Please do not close the page.',
+        'start' => 'Upgrade now', 'again' => 'Try again', 'running' => 'Upgrade is running …', 'done' => 'Kasmin is now at version :version. Everybody can log in again.', 'continue' => 'Continue to the administration',
+        'failed' => 'The upgrade did not finish. Nothing was lost: the backup made before is in the backup folder. Please try again; if it fails again, keep the details below for the support request.', 'details' => 'Details',
+    ],
+    'auto_update' => [
+        'title' => 'Automatic updates', 'enabled' => 'Install new versions automatically', 'days' => 'Days after the release', 'time' => 'Time of day',
+        'hint' => 'A new version is installed in the night once it has been out for this number of days. Administrators get a notice two days before and afterwards. If a newer version appears in between, the waiting time starts again, so a version that is corrected shortly after is skipped. Needs the cron job.',
+        'notice_subject' => 'Update to :version on :date', 'notice' => 'Kasmin :version will be installed automatically on :date. A backup is made first. You do not have to do anything; you can also update earlier or switch automatic updates off in the settings. Changes: :url',
+        'cancelled_subject' => 'Update to :old cancelled', 'cancelled' => 'The announced update to Kasmin :old is cancelled, because the newer version :new was released. The waiting time starts again: :new is planned for :date.',
+        'done_subject' => 'Updated to :version', 'done' => 'Kasmin was updated automatically from :from to :version. These are the changes:',
+        'failed_subject' => 'Update to :version did not work', 'failed' => 'The automatic update to Kasmin :version did not work; the previous version keeps running. It is tried again tomorrow. Reason: :error',
+    ],
 ];

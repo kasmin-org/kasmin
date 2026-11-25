@@ -82,6 +82,10 @@ requests are not executed automatically – administrators are notified and deci
 
 ## Notifications for administrators
 
+*System → My notifications*: everyone with access to the admin interface chooses per topic. Only topics with the needed rights are
+offered, and the rights are checked again whenever something is sent. Administrators who have not chosen anything get deletion requests
+immediately and errors of automations once a day. The page also shows the latest notifications.
+
 Topics (new registrations, waitlist, changed information, safety sheets, bounces, deletion requests …) can be
 received immediately or as a daily digest (07:00, last 24 hours) or weekly digest (Mondays, last 7 days). They never
 contain confidential values.

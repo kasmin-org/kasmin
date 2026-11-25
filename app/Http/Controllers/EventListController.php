@@ -20,7 +20,7 @@ class EventListController extends Controller
     public function list(Request $request, Event $event, string $key, string $format): Response
     {
         $user = $request->user();
-        abort_unless($user instanceof User && EventLists::mayView($user, $key), 403);
+        abort_unless($user instanceof User && EventLists::mayView($user, $key, $event->id), 403);
         abort_unless(in_array($format, ListExport::FORMATS, true), 404);
         $role = $request->string('role')->toString() ?: null;
         $list = app(EventLists::class)->build($event, $key, $role);
@@ -32,7 +32,7 @@ class EventListController extends Controller
     public function folder(Request $request, Event $event, ?Person $person = null): Response
     {
         $user = $request->user();
-        abort_unless($user instanceof User && EventLists::mayViewSafety($user), 403);
+        abort_unless($user instanceof User && EventLists::mayViewSafety($user, $event->id), 403);
         if ($person !== null) {
             abort_unless($event->participations()->where('person_id', $person->id)->whereIn('status', EventLists::STATUSES)->exists(), 404);
         }

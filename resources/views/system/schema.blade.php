@@ -19,9 +19,6 @@
     <h1>{{ __('system.schema.title.'.$status->value) }}</h1>
     <p>{{ __('system.schema.text.'.$status->value) }}</p>
     <p>{{ __('system.schema.versions', ['code' => $codeVersion, 'database' => $databaseVersion ?? '–']) }}</p>
-    @if ($status === \App\Support\Schema\SchemaStatus::UpgradeRequired)
-        <p><code>php artisan kasmin:upgrade</code></p>
-    @endif
 </main>
 </body>
 </html>

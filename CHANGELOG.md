@@ -6,6 +6,10 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ## [Unreleased]
 
+## [0.18.0] - 2026-11-25
+
+Pre-release for testing. Not ready for production use.
+
 ### Added
 
 - Mails: logo, colour and footer; images (embedded); HTML source; buttons.
@@ -422,7 +426,8 @@ First public pre-release for testing. Not ready for production use.
 - Docker image: system packages updated and build packages removed after compiling the PHP extensions – the
   container scan reports no high or critical findings any more (previously 75 in Debian packages).
 
-[Unreleased]: https://github.com/kasmin-org/kasmin/compare/v0.17.0...develop
+[Unreleased]: https://github.com/kasmin-org/kasmin/compare/v0.18.0...develop
+[0.18.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.18.0
 [0.17.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.17.0
 [0.16.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.16.0
 [0.15.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.15.0

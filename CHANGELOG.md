@@ -27,6 +27,8 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ### Fixed
 
+- Backups could not be restored with the usual commands, because they did not switch off the foreign key checks (the data in them was
+  complete). Older backups: run `SET FOREIGN_KEY_CHECKS=0;` first, see *Upgrading*. Backups are now read at one point in time.
 - Mailings about an event no longer go to the legal guardians of people who registered themselves.
 - People whose group membership has ended no longer get its mailings.
 - Newsletter: the latest choice counts; people who subscribed again stayed excluded.

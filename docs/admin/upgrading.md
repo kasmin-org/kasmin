@@ -28,3 +28,20 @@ Kasmin writes a database backup every night (02:30, needs the cron job) to `stor
 (*Settings → Keep daily backups*); backups before upgrades are kept. *System → System status* shows the last one. `php artisan kasmin:backup`
 makes one at once. **Copy the backups to another place too**: they are on the same server, and they contain personal data. Uploaded files
 and the `.env` file with the `APP_KEY` are not included; without this key, encrypted data such as safety sheets cannot be read.
+
+### Restore a backup
+
+Restoring replaces **all** data of the target database. Stop Kasmin first (maintenance mode or stop the container), and keep a copy of the
+current state. A complete backup ends with the line `-- End of backup`.
+
+```
+zcat kasmin-daily-….sql.gz | mysql -u USER -p DATABASE          # or mariadb; phpMyAdmin: Import
+```
+
+Backups made before 0.16 need the foreign key checks switched off by hand:
+
+```
+(echo "SET FOREIGN_KEY_CHECKS=0;"; zcat kasmin-….sql.gz) | mysql -u USER -p DATABASE
+```
+
+Afterwards run `php artisan kasmin:upgrade`. The `APP_KEY` in `.env` must be the one the backup was made with.

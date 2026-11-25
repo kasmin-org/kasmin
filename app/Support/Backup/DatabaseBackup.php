@@ -3,6 +3,7 @@
 namespace App\Support\Backup;
 
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use RuntimeException;
 
@@ -11,6 +12,9 @@ use RuntimeException;
  */
 class DatabaseBackup
 {
+    /** Last line of a complete backup. */
+    public const END = '-- End of backup';
+
     public function create(string $label): string
     {
         $connection = DB::connection();
@@ -19,29 +23,55 @@ class DatabaseBackup
         $absolute = Storage::disk('local')->path($relative);
         @mkdir(dirname($absolute), 0700, true);
 
-        $gz = gzopen($absolute, 'wb6');
+        // Written under another name first, so an interrupted backup is never mistaken for a complete one.
+        $part = $absolute.'.part';
+        $gz = gzopen($part, 'wb6');
         if ($gz === false) {
             throw new RuntimeException("Cannot write backup file {$absolute}");
         }
+        @chmod($part, 0600);
 
-        gzwrite($gz, "-- Kasmin database backup ({$driver}), ".now()->toIso8601String()."\n");
+        $write = function (string $sql) use ($gz, $absolute): void {
+            if (gzwrite($gz, $sql) !== strlen($sql)) {
+                throw new RuntimeException("Cannot write backup file {$absolute}"); // e.g. disk full
+            }
+        };
+        $mysql = $driver !== 'sqlite';
+        $write("-- Kasmin database backup ({$driver}), ".now()->toIso8601String()."\n");
+        // Without this, restoring stops at the first table that refers to a later one.
+        $write($mysql ? "SET NAMES utf8mb4;\nSET FOREIGN_KEY_CHECKS=0;\nSET SQL_MODE='NO_AUTO_VALUE_ON_ZERO';\n" : "PRAGMA foreign_keys=OFF;\n");
 
-        foreach ($this->tables($driver) as $table) {
-            gzwrite($gz, "\n".$this->createStatement($driver, $table).";\n");
-            DB::table($table)->orderByRaw('1')->chunk(500, function ($rows) use ($gz, $table, $connection) {
-                foreach ($rows as $row) {
-                    $values = array_map(
-                        fn ($v) => $v === null ? 'NULL' : $connection->getPdo()->quote((string) $v),
-                        (array) $row,
-                    );
-                    $columns = implode(',', array_map(fn ($c) => '`'.$c.'`', array_keys((array) $row)));
-                    gzwrite($gz, "INSERT INTO `{$table}` ({$columns}) VALUES (".implode(',', $values).");\n");
+        try {
+            // One transaction: all tables are read at the same point in time.
+            $connection->transaction(function () use ($driver, $write, $connection) {
+                foreach ($this->tables($driver) as $table) {
+                    $write("\n".$this->createStatement($driver, $table).";\n");
+                    $query = DB::table($table);
+                    $columns = Schema::getColumnListing($table);
+                    // A complete order, otherwise rows could be missed or doubled between two chunks.
+                    foreach (in_array('id', $columns, true) ? ['id'] : $columns as $column) {
+                        $query->orderBy($column);
+                    }
+                    $query->chunk(500, function ($rows) use ($write, $table, $connection) {
+                        foreach ($rows as $row) {
+                            $values = array_map(
+                                fn ($v) => $v === null ? 'NULL' : $connection->getPdo()->quote((string) $v),
+                                (array) $row,
+                            );
+                            $columns = implode(',', array_map(fn ($c) => '`'.$c.'`', array_keys((array) $row)));
+                            $write("INSERT INTO `{$table}` ({$columns}) VALUES (".implode(',', $values).");\n");
+                        }
+                    });
                 }
             });
-        }
+            $write("\n".($mysql ? "SET FOREIGN_KEY_CHECKS=1;\n" : "PRAGMA foreign_keys=ON;\n").self::END."\n");
+            gzclose($gz);
+        } catch (\Throwable $e) {
+            @unlink($part);
 
-        gzclose($gz);
-        @chmod($absolute, 0600);
+            throw $e;
+        }
+        rename($part, $absolute);
 
         return $absolute;
     }
@@ -57,7 +87,7 @@ class DatabaseBackup
         return array_values(array_map(fn ($row) => (string) array_values((array) $row)[0], $rows));
     }
 
-    private function createStatement(string $driver, string $table): string
+    protected function createStatement(string $driver, string $table): string
     {
         if ($driver === 'sqlite') {
             return (string) DB::table('sqlite_master')->where('name', $table)->value('sql');

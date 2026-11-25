@@ -112,7 +112,7 @@ class EventsController extends ApiController
         $model = Participation::query()->with('event', 'person')->findOrFail($participation);
         $data = $request->validate(['status' => ['required_without:travel', Rule::in(Participation::STATUSES)], 'travel' => ['sometimes', Rule::in(['bus', 'car'])]]);
         if (isset($data['travel'])) {
-            abort_unless(Bus::set($model, (string) $data['travel']), 422, 'Only adults can travel by car.');
+            Bus::set($model, (string) $data['travel']);
         }
         if (! isset($data['status'])) {
             // only the travel was changed

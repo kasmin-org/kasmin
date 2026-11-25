@@ -19,11 +19,24 @@ team confirms.
 
 ## Travel by bus
 
-In the event, *Travel by bus*: switch on **A bus is booked for this event** and enter the **seats**. Everybody who takes part (registered,
-confirmed) counts as travelling by bus. The participants and the dashboard show how full the bus is – in red when it is **overbooked**, with
-the number of adults who are on the bus. Set adults to **Travels by car** (per row, or tick several and choose *Travel by car*); the
-bus count goes down at once. Children always travel by bus. The lists *Bus list* and *Travel by car* follow these settings; the API
-returns and accepts `travel` (`bus`/`car`) on a participation.
+In the event, *Travel by bus*: switch on **A bus is booked for this event** and enter the **seats** (without the driver).
+
+- **Everybody travels by bus** unless set otherwise: everybody who takes part (registered, confirmed) needs a seat. People on the
+  waitlist and cancelled registrations do not count.
+- The participants of the event and the dashboard show how full the bus is, e.g. *Bus: 48 of 50 seats taken, 2 free. By car: 6.* When
+  more people are on the bus than it has seats, the line turns red (**overbooked**) and names how many are too many and how many adults
+  are still on the bus. Administrators, the board and the camp leaders of the event see it.
+- **Adults** – when the bus is too small, set adults to **Travels by car**: in the menu of a row, or tick several rows and choose
+  *Travel by car* under *Bulk actions*. The number on the bus goes down at once.
+- **Children** – a child normally takes the bus. If the legal guardians bring it themselves, e.g. because the camp is on the way to their
+  holidays, set the child to *Travels by car* in the same way. The column *Travel* then shows *Car (brought)*, and the seat is free.
+- *Travels by bus* puts somebody back on the bus.
+- **Lists** (*Events → Lists*): the *Bus list* holds exactly the people on the bus, with boxes to tick for the outward and return
+  journey. *Travel by car* lists everybody else: adults with their phone number, children with the legal guardian who brings them and
+  that person's phone number – so the team knows at the meeting point who is not missing, and at the camp who still arrives.
+- The API returns and accepts `travel` (`bus` or `car`) on a participation.
+
+If no bus is booked, nothing of this is shown.
 
 ## Waitlist
 

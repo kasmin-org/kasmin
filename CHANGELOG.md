@@ -6,6 +6,10 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ## [Unreleased]
 
+### Changed
+
+- Travel by bus: children can be set to travel by car too, for legal guardians who bring them themselves. The list *Travel by car* names who brings a child, with phone.
+
 ## [0.23.0] - 2026-11-25
 
 ### Added

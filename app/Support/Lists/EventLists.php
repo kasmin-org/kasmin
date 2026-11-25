@@ -187,7 +187,7 @@ class EventLists
     }
 
     /**
-     * Adults who travel by car instead of the bus (ST06).
+     * People who do not take the bus (ST06): adults in cars, children brought by their legal guardians.
      *
      * @param  Collection<int, Participation>  $participants
      */
@@ -196,10 +196,12 @@ class EventLists
         $rows = [];
         foreach ($participants as $i => $p) {
             $person = $this->person($p);
-            $rows[] = [(string) ($i + 1), $person->fullName(), (string) __('events.roles.'.$p->role_key), $this->points($person, 'phone')];
+            $guardian = Bus::adult($p) ? null : $person->guardians->first();
+            $rows[] = [(string) ($i + 1), $person->fullName(), (string) __('events.roles.'.$p->role_key), $guardian !== null ? (string) __('events.bus.brought_by', ['name' => $guardian->fullName()]) : '–',
+                $guardian !== null ? $this->points($guardian, 'phone') : $this->points($person, 'phone')];
         }
 
-        return $this->table('cars', [__('lists.no'), __('lists.name'), __('admin.event.role'), __('lists.phone')], $rows);
+        return $this->table('cars', [__('lists.no'), __('lists.name'), __('admin.event.role'), __('events.bus.brought'), __('lists.phone')], $rows);
     }
 
     /** @param  Collection<int, Participation>  $participants */

@@ -7,8 +7,8 @@ use App\Models\Participation;
 use Illuminate\Support\Collection;
 
 /**
- * The bus of an event (ST06). Everybody who takes part travels by bus; adults can be moved to cars when the bus is
- * too small. Children always go by bus.
+ * The bus of an event (ST06). Everybody who takes part travels by bus. Adults can be moved to cars when the bus is
+ * too small; a child can be set to "car" when the legal guardians bring it themselves, e.g. because of their holidays.
  */
 class Bus
 {
@@ -17,7 +17,7 @@ class Bus
 
     public const ADULT_AGE = 18;
 
-    /** @return array{booked: bool, seats: int|null, riders: int, cars: int, free: int|null, over: int, adults_on_bus: int} */
+    /** @return array{booked: bool, seats: int|null, riders: int, cars: int, free: int|null, over: int, adults_on_bus: int, children_by_car: int} */
     public static function status(Event $event): array
     {
         $people = self::travellers($event);
@@ -30,6 +30,7 @@ class Bus
             'free' => $booked && $seats !== null ? max(0, $seats - $riders->count()) : null,
             'over' => $booked && $seats !== null ? max(0, $riders->count() - $seats) : 0,
             'adults_on_bus' => $riders->filter(fn (Participation $p) => self::adult($p, $event))->count(),
+            'children_by_car' => $people->filter(fn (Participation $p) => self::travel($p) === 'car' && ! self::adult($p, $event))->count(),
         ];
     }
 
@@ -54,7 +55,7 @@ class Bus
         return $participation->getAttribute('travel') === 'car' ? 'car' : 'bus';
     }
 
-    /** Only adults can go by car (age at the start of the event; without a date of birth: team roles count as adults). */
+    /** Adult at the start of the event (without a date of birth: team roles count as adults). Used for the hint who could go by car. */
     public static function adult(Participation $participation, ?Event $event = null): bool
     {
         $event ??= $participation->event;
@@ -63,13 +64,10 @@ class Bus
         return $age !== null ? $age >= self::ADULT_AGE : ! in_array($participation->role_key, ['child', 'junior_counsellor'], true);
     }
 
-    /** Sets how somebody travels. Children stay on the bus: returns false and changes nothing. */
+    /** Sets how somebody travels: by bus, or by car (adults in cars of the team, children brought by their legal guardians). */
     public static function set(Participation $participation, string $travel): bool
     {
         $travel = $travel === 'car' ? 'car' : 'bus';
-        if ($travel === 'car' && ! self::adult($participation)) {
-            return false;
-        }
         if (self::travel($participation) !== $travel) {
             $participation->forceFill(['travel' => $travel])->save();
         }

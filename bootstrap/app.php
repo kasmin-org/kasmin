@@ -7,7 +7,9 @@ use App\Support\System\BootCache;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Foundation\Events\DiagnosingHealth;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
 
 // A new release must not run with the package list cached by the previous one.
@@ -21,6 +23,12 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
         then: function () {
             Route::group([], base_path('routes/hooks.php'));
+            // Replaces the health page of the framework, which loads a script and fonts from other servers.
+            Route::get('/up', function () {
+                Event::dispatch(new DiagnosingHealth);
+
+                return response('OK', 200, ['Content-Type' => 'text/plain; charset=utf-8']);
+            });
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {

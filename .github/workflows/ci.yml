@@ -194,6 +194,49 @@ jobs:
       - uses: actions/checkout@v4
       - run: semgrep scan --config p/php --config p/secrets --error --exclude vendor --exclude node_modules
 
+  dast:
+    name: Dynamic security scan (OWASP ZAP)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      APP_ENV: production
+      APP_KEY: base64:a2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2s=
+      APP_URL: http://127.0.0.1:8000
+      CACHE_STORE: file
+      SESSION_DRIVER: file
+      MAIL_MAILER: log
+      DB_CONNECTION: sqlite
+      DB_DATABASE: /tmp/kasmin.sqlite
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with: { php-version: "8.5", extensions: "intl, zip, gd, bcmath, pdo_sqlite", coverage: none }
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with: { node-version: "24" }
+      - name: Install a demo instance
+        run: |
+          composer install --no-interaction --no-progress --prefer-dist --no-scripts -q && php artisan package:discover -q
+          npm ci --ignore-scripts --no-audit --no-fund && npm run build
+          php artisan filament:assets
+          touch /tmp/kasmin.sqlite
+          php artisan kasmin:install --organisation="Demo Camp" --locale=en --defaults=en --admin-name="Alex Demo" --admin-email=admin@example.org
+          php artisan kasmin:demo --locale=en --families=10 --staff=4 --force
+      - name: Start Kasmin
+        run: |
+          php artisan serve --no-reload --host=127.0.0.1 --port=8000 > /tmp/kasmin-serve.log 2>&1 &
+          for i in $(seq 1 30); do curl -sf http://127.0.0.1:8000/up > /dev/null && break; sleep 1; done
+          curl -sf -o /dev/null http://127.0.0.1:8000/login
+      # Public pages, then admin interface and portal as administrator. Fails on findings of risk medium or higher
+      # that tests/zap/rules.tsv does not list with a reason.
+      - name: ZAP baseline scan
+        run: sh tests/zap/scan.sh http://127.0.0.1:8000 zap-report
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: ${{ always() }}
+        with: { name: zap-report, path: zap-report, retention-days: 30, if-no-files-found: ignore }
+      - name: Show logs on failure
+        if: ${{ failure() }}
+        run: tail -n 60 storage/logs/laravel.log /tmp/kasmin-serve.log 2>/dev/null || true
+
   docker:
     name: Docker image
     needs: [quality, tests]
@@ -341,7 +384,7 @@ jobs:
 
   report:
     name: Report a failed weekly run
-    needs: [quality, tests, installer, upgrade, semgrep, docker, container, gui, security]
+    needs: [quality, tests, installer, upgrade, semgrep, dast, docker, container, gui, security]
     if: ${{ always() && github.event_name == 'schedule' && contains(needs.*.result, 'failure') }}
     runs-on: ubuntu-latest
     permissions: { issues: write }

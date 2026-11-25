@@ -10,7 +10,7 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 - Invoice archive: invoices from the system used before are imported from a table and a ZIP with the PDFs and kept read-only; the own numbering continues after the highest imported number.
 - Groups, rooms and duties within an event: divisions with any number of groups or rooms, a proposal that spreads the people (equal sizes, ages and genders mixed or genders separated, siblings apart or together, junior counsellors spread, beds of a room respected), changes by hand, notes on what to check, and a list to print.
-- Demo data has genders, so lists by gender and group proposals show something.
+- Demo data has genders, a team that takes part, a booked bus that is a little too small, and groups and rooms.
 
 ### Changed
 

@@ -24,6 +24,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $price_reason
  * @property int|null $guest_of_id
  * @property string|null $offer_mode
+ * @property int|null $notified_position
  * @property Carbon|null $cancelled_at
  * @property string|null $cancel_reason
  */
@@ -61,7 +62,7 @@ class Participation extends Model
     /** What a child registers for itself is not shown to its legal guardians, unless the organisation allows it (PE05a). */
     public function visibleInPortal(Person $viewer): bool
     {
-        return ! $this->isOwn() || $viewer->id === $this->person_id || Settings::bool('own_registrations_visible');
+        return ! $this->isOwn() || $viewer->id === $this->person_id || Settings::get('own_registrations') === 'visible';
     }
 
     /** Position on the waitlist (1-based) by registration time, or null if not waiting. */

@@ -34,6 +34,8 @@
                 @include('portal.forms.field', ['field' => $field, 'values' => old('values', [])])
             @endforeach
             <label class="flex items-start gap-2 text-sm"><input type="checkbox" name="privacy" value="1" required class="mt-1"> <span>{{ __('portal.privacy_consent') }}</span></label>
+            @if ($askNewsletter)<label class="flex items-start gap-2 text-sm"><input type="checkbox" name="newsletter" value="1" class="mt-1"> <span>{{ __('public.newsletter_consent') }}</span></label>@endif
+            @if ($askEmail)<x-proof-of-work />@endif
             <button class="w-full rounded-lg bg-kasmin-600 px-4 py-3 font-semibold text-white">{{ __('public.submit') }}</button>
         </form>
     @endif

@@ -44,6 +44,11 @@ class AutomationDefaults
                 'description' => ['de' => 'Erstellt und versendet die Rechnungen der Rate „balance“ 90 Tage vor Beginn.', 'en' => 'Creates and sends the invoices of the instalment "balance" 90 days before the start.'],
                 'action' => 'invoice_run', 'config' => ['installment' => 'balance', 'send' => true], 'trigger' => 'before_event', 'trigger_config' => ['days' => 90], 'mode' => 'confirm',
             ],
+            'waitlist_positions' => [
+                'name' => ['de' => 'Neuer Platz auf der Warteliste', 'en' => 'New position on the waitlist'],
+                'description' => ['de' => 'Informiert Familien, wenn ein Kind auf der Warteliste vorgerückt ist.', 'en' => 'Tells families that a child has moved up on the waitlist.'],
+                'action' => 'waitlist_positions', 'trigger' => 'daily', 'trigger_config' => ['time' => '10:00'], 'mode' => 'confirm',
+            ],
             'mailing_release' => [
                 'name' => ['de' => 'Große Aussendungen freigeben', 'en' => 'Approve large mailings'],
                 'description' => ['de' => 'Aussendungen mit vielen Mails werden erst nach Freigabe verschickt (Einstellungen).', 'en' => 'Mailings with many mails are sent after an approval (settings).'],

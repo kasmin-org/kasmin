@@ -2,12 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Form;
 use App\Models\Household;
 use App\Models\Invoice;
 use App\Models\OutgoingMail;
+use App\Models\Person;
 use App\Models\User;
 use App\Support\Auth\PortalPerson;
+use App\Support\Finance\InvoicePdf;
+use App\Support\Forms\Forms;
 use App\Support\People\Guardians;
+use App\Support\People\Tasks;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -33,10 +38,21 @@ class PortalController extends Controller
             'mails' => $person !== null ? OutgoingMail::query()->where('kind', '!=', 'notification')->where('person_id', $person->id)->whereIn('status', ['sent', 'queued', 'sending'])->latest('id')->limit(10)->get() : collect(),
             'person' => $person,
             'households' => $households,
+            'tasks' => $person !== null ? app(Tasks::class)->for($person, $households->toBase(), $invoices->toBase()) : [],
+            'sheets' => $person !== null ? $this->sheets($person) : [],
+            'pay' => InvoicePdf::organisation(),
             'wardIds' => $person !== null ? $person->wards()->pluck('people.id')->all() : [],
             'guardiansLeft' => $households->mapWithKeys(fn (Household $h) => [$h->id => app(Guardians::class)->left($h)])->all(),
             'limited' => $request->session()->get('login_scope') === 'limited',
         ]);
+    }
+
+    /** @return array<int, string> person id => status of the safety sheet (GP10) */
+    private function sheets(Person $person): array
+    {
+        $form = Form::query()->where('kind', 'person')->where('active', true)->where('family_emergency_contacts', true)->with('fields')->orderBy('sort')->first();
+
+        return $form === null ? [] : $person->wards()->get()->mapWithKeys(fn (Person $c) => [$c->id => app(Forms::class)->status($form, $c)])->all();
     }
 
     /** A mail that was sent to the logged-in person (ML02). */

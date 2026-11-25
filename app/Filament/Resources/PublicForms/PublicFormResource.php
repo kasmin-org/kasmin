@@ -79,6 +79,7 @@ class PublicFormResource extends Resource
             Toggle::make('needs_approval')->label(__('public.needs_approval'))->default(true)->visible($is('application')),
             DateTimePicker::make('opens_at')->label(__('public.opens_at'))->seconds(false),
             DateTimePicker::make('closes_at')->label(__('public.closes_at'))->seconds(false)->after('opens_at'),
+            Toggle::make('ask_newsletter')->label(__('public.ask_newsletter'))->visible($is('event', 'application')),
             Toggle::make('active')->label(__('admin.form.active')),
         ]);
     }

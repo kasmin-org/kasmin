@@ -6,8 +6,10 @@ use App\Models\Consent;
 use App\Models\Person;
 use App\Support\Audit\Audit;
 use App\Support\Mail\Notifier;
+use App\Support\Mail\Optouts;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\View\View;
 
 /**
@@ -24,20 +26,37 @@ class MailPreferencesController extends Controller
 
         return view('mail.preferences', [
             'person' => $model,
-            'newsletter' => ! Consent::query()->where('person_id', $model->id)->where('kind', 'newsletter')->latest('id')->value('granted') === false,
+            // Without a choice mails are sent, so unsubscribing has to be offered.
+            'newsletter' => Optouts::latest($model->id, 'newsletter') !== false,
+            'all' => Optouts::latest($model->id, 'optout_all') !== false,
+            'topics' => Optouts::topics($model),
             'action' => $request->fullUrl(),
         ]);
     }
 
-    public function update(Request $request, string $person): RedirectResponse
+    public function update(Request $request, string $person): RedirectResponse|Response
     {
         $model = Person::query()->where('public_id', $person)->firstOrFail();
-        $choice = (string) $request->validate(['choice' => ['required', 'in:newsletter_off,newsletter_on,optout_all,deletion_request']])['choice'];
         app()->setLocale($model->locale);
+        // One-click unsubscribe of mail programs (RFC 8058): no page, no session.
+        if ($request->input('List-Unsubscribe') === 'One-Click') {
+            foreach (['newsletter', 'optout_all'] as $kind) {
+                Optouts::set($model, $kind, false, 'one_click');
+            }
+
+            return response()->noContent();
+        }
+        $choice = (string) $request->validate(['choice' => ['required', 'regex:/^(newsletter_(on|off)|optout_all|optin_all|deletion_request|topic_(on|off):(series|group):\d+)$/']])['choice'];
+        if (preg_match('/^topic_(on|off):(series|group):(\d+)$/', $choice, $m) === 1) {
+            abort_unless(collect(Optouts::topics($model))->contains(fn (array $t) => $t['type'] === $m[2] && $t['id'] === (int) $m[3]), 404);
+            Optouts::set($model, 'optout_'.$m[2], $m[1] === 'on', 'mail_link', (int) $m[3]);
+
+            return back()->with('status', __('mail.preferences_saved'));
+        }
 
         match ($choice) {
-            'newsletter_off', 'newsletter_on' => Consent::query()->create(['person_id' => $model->id, 'kind' => 'newsletter', 'granted' => $choice === 'newsletter_on', 'source' => 'mail_link']),
-            'optout_all' => Consent::query()->create(['person_id' => $model->id, 'kind' => 'optout_all', 'granted' => false, 'source' => 'mail_link']),
+            'newsletter_off', 'newsletter_on' => Optouts::set($model, 'newsletter', $choice === 'newsletter_on', 'mail_link'),
+            'optout_all', 'optin_all' => Optouts::set($model, 'optout_all', $choice === 'optin_all', 'mail_link'),
             default => $this->deletionRequest($model),
         };
 

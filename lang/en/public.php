@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'needs_javascript' => 'Please switch on JavaScript: it is needed for the protection against spam.', 'checking' => 'Checking, one moment please …', 'check_failed' => 'The check against spam has expired or failed. Please send the form again.', 'newsletter_consent' => 'I would like to receive the newsletter by e-mail. I can unsubscribe at any time.', 'ask_newsletter' => 'Ask for the newsletter',
     'register_child' => 'Register a child', 'not_open' => 'Registration is not open yet.', 'closed_event' => 'Registration is closed.',
     'submit' => 'Send', 'confirm' => 'Confirm', 'sent' => 'Thank you! We have sent you an e-mail. Please open the link in it to confirm.',
     'early' => 'This form opens on :date.', 'closed' => 'This form is closed.', 'invalid_title' => 'Link no longer valid', 'invalid' => 'This link has already been used or has expired.',

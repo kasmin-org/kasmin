@@ -20,6 +20,7 @@ use Illuminate\Support\Carbon;
  * @property int|null $group_id
  * @property int|null $membership_type_id
  * @property bool $needs_approval
+ * @property bool $ask_newsletter
  * @property Carbon|null $opens_at
  * @property Carbon|null $closes_at
  * @property bool $active
@@ -32,11 +33,11 @@ class PublicForm extends Model
 
     protected $guarded = ['id'];
 
-    protected $attributes = ['needs_approval' => true, 'active' => false];
+    protected $attributes = ['needs_approval' => true, 'active' => false, 'ask_newsletter' => false];
 
     protected function casts(): array
     {
-        return ['title' => 'array', 'intro' => 'array', 'needs_approval' => 'boolean', 'active' => 'boolean', 'opens_at' => 'datetime', 'closes_at' => 'datetime'];
+        return ['title' => 'array', 'intro' => 'array', 'needs_approval' => 'boolean', 'ask_newsletter' => 'boolean', 'active' => 'boolean', 'opens_at' => 'datetime', 'closes_at' => 'datetime'];
     }
 
     /** @return BelongsTo<Event, $this> */

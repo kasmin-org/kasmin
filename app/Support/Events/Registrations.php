@@ -11,6 +11,7 @@ use App\Support\Automations\Engine;
 use App\Support\Mail\Composer;
 use App\Support\Mail\Notifier;
 use App\Support\Mail\Routing;
+use App\Support\Settings;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -75,6 +76,11 @@ class Registrations
             app(Composer::class)->queue('registration_confirmation', $recipient, [
                 'event' => $event, 'participation' => $participation, 'household' => $person->households()->first(), 'children' => [$person],
             ]);
+        }
+        if ($participation->isOwn() && Settings::get('own_registrations') === 'informed') {
+            foreach ($person->guardians()->get() as $guardian) { // only that there is a registration (PE05a)
+                app(Composer::class)->queue('own_registration_notice', $guardian, ['children' => [$person]]);
+            }
         }
         app(Notifier::class)->event($participation->status === 'waitlist' ? 'waitlist' : 'registrations',
             __('events.notify_registration', ['name' => $person->fullName(), 'event' => $event->title, 'status' => __('events.status.'.$participation->status)]),

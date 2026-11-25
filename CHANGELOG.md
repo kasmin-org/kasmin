@@ -6,6 +6,26 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ## [Unreleased]
 
+### Added
+
+- *My data* in the portal: phone numbers, e-mail addresses (confirmed, old addresses are told), family address, invoice recipient.
+- Copy of the own data as a file (portal, and for administrators on the person page).
+- Start page of the portal: open tasks, status of the safety sheet, payment data with QR code. Child page: invoices and consents.
+- Newsletter question on public forms (can be switched off); the wording of a consent is stored.
+- Unsubscribe from single event series and groups. Notice when a child moves up on the waitlist (automation, off by default).
+- Spam protection of public forms without third parties (proof of work, `KASMIN_PROOF_OF_WORK`).
+
+### Changed
+
+- Sign-up of legal guardians: nothing is created before the address is confirmed; unconfirmed sign-ups expire after 3 days.
+- Own registrations of children: hidden, told without details, or visible.
+- Public forms by the API need the proof of work, too.
+
+### Fixed
+
+- People who had never made a choice could not unsubscribe from the newsletter with the link in the mail.
+- One-click unsubscribe of mail programs did not work.
+
 ## [0.16.0] - 2026-11-25
 
 Pre-release for testing. Not ready for production use.

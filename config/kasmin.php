@@ -26,6 +26,9 @@ return [
      */
     'digest_time' => env('KASMIN_DIGEST_TIME', '07:00'),
 
+    // Spam protection of public forms (RG08).
+    'proof_of_work' => (bool) env('KASMIN_PROOF_OF_WORK', true),
+
     // Second factor for administrative roles (authenticator app). Off: login only with the token sent by e-mail (LG01).
     'second_factor' => (bool) env('KASMIN_SECOND_FACTOR', false),
 

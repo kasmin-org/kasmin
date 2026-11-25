@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Consent;
 use App\Models\Event;
 use App\Models\EventInstallment;
 use App\Models\Form;
 use App\Models\FormField;
 use App\Models\Household;
+use App\Models\Invoice;
 use App\Models\Participation;
 use App\Models\Person;
 use App\Models\User;
@@ -76,6 +78,8 @@ class PortalChildController extends Controller
             'participations' => $participations,
             'open' => $this->registrations->openFor($child, $this->by($request, $child)),
             'self' => $child->is($this->guardian($request)),
+            'childInvoices' => Invoice::query()->where('status', '!=', 'draft')->whereHas('lines', fn ($q) => $q->where('person_id', $child->id))->latest('id')->limit(20)->get()->filter(fn (Invoice $i) => $request->user() instanceof User && InvoicePdfController::visibleTo($i, $request->user(), $viewer)),
+            'consents' => Consent::query()->where('person_id', $child->id)->latest('id')->get()->unique(fn (Consent $c) => $c->getAttribute('kind').$c->getAttribute('subject_id')),
             'mayHaveLogin' => ! $child->is($this->guardian($request)) && app(Guardians::class)->mayHaveLogin($child),
             'guestsLeft' => $participations->mapWithKeys(fn (Participation $p) => [$p->id => app(Guests::class)->left($p)])->all(),
             'registeredIds' => $participations->whereNotIn('status', ['cancelled', 'declined'])->pluck('event_id')->all(),

@@ -13,6 +13,7 @@ use App\Http\Controllers\MailPreferencesController;
 use App\Http\Controllers\PortalChildController;
 use App\Http\Controllers\PortalController;
 use App\Http\Controllers\PortalFormController;
+use App\Http\Controllers\PortalProfileController;
 use App\Http\Controllers\PublicEventController;
 use App\Http\Controllers\PublicFormController;
 use App\Http\Controllers\PublicRegistrationController;
@@ -40,6 +41,10 @@ Route::post('/f/{slug}', [PublicFormController::class, 'store'])->where('slug', 
 Route::get('/events/{publicId}', [PublicEventController::class, 'show'])->name('public.event');
 Route::get('/events/{publicId}/image', [PublicEventController::class, 'image'])->name('public.event.image');
 Route::get('/event-documents/{document}', [PublicEventController::class, 'document'])->whereNumber('document')->name('event.document');
+Route::get('/address/{token}', [PortalProfileController::class, 'confirmation'])->name('address.confirm');
+Route::post('/address/{token}', [PortalProfileController::class, 'confirm'])->middleware('throttle:login-link')->name('address.confirm.store');
+Route::get('/register/confirm/{token}', [PublicRegistrationController::class, 'confirmation'])->name('register.confirm');
+Route::post('/register/confirm/{token}', [PublicRegistrationController::class, 'confirm'])->middleware('throttle:login-link')->name('register.confirm.store');
 Route::get('/confirm/{token}', [PublicFormController::class, 'confirmation'])->name('public.confirm');
 Route::post('/confirm/{token}', [PublicFormController::class, 'confirm'])->middleware('throttle:login-link')->name('public.confirm.store');
 Route::get('/guest/{token}', [PublicFormController::class, 'guest'])->name('public.guest');
@@ -78,6 +83,14 @@ Route::middleware('auth')->group(function () {
     Route::post('/portal/view-as/end', [ViewAsController::class, 'end'])->name('portal.view-as.end');
     Route::middleware([RequireSecondFactor::class, ReadOnlyPortalPreview::class])->prefix('portal')->group(function () {
         Route::get('/', [PortalController::class, 'index'])->name('portal');
+        Route::middleware(RequireFullLogin::class)->prefix('profile')->group(function () {
+            Route::get('/', [PortalProfileController::class, 'edit'])->name('portal.profile');
+            Route::post('/phones', [PortalProfileController::class, 'savePhones'])->name('portal.profile.phones');
+            Route::post('/email', [PortalProfileController::class, 'changeEmail'])->middleware('throttle:login-send')->name('portal.profile.email');
+            Route::post('/email/{point}/remove', [PortalProfileController::class, 'removeEmail'])->whereNumber('point')->name('portal.profile.email.remove');
+            Route::post('/families/{household}', [PortalProfileController::class, 'saveFamily'])->name('portal.profile.family');
+            Route::get('/export', [PortalProfileController::class, 'export'])->middleware('throttle:login-send')->name('portal.profile.export');
+        });
         Route::get('/mails/{uuid}', [PortalController::class, 'mail'])->name('portal.mail');
         Route::get('/invoices/{invoice}.pdf', [InvoicePdfController::class, 'portal'])->name('portal.invoice.pdf');
         Route::get('/children/new', [PortalChildController::class, 'create'])->middleware(RequireFullLogin::class)->name('portal.child.create');

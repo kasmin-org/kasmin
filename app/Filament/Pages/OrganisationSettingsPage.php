@@ -40,7 +40,7 @@ class OrganisationSettingsPage extends Page
         'organisation_name', 'organisation_address', 'organisation_email', 'organisation_website', 'organisation_iban',
         'organisation_bic', 'organisation_bank', 'organisation_legal_footer', 'invoice_number_format', 'invoice_next_number',
         'invoice_number_per_year', 'invoice_due_days', 'invoice_attach_paid', 'invoice_reminder_days_before', 'invoice_overdue_days', 'invoice_overdue_fees', 'public_url', 'mail_test_address', 'mailing_approval_above', 'backup_keep', 'embed_origins', 'timezone', 'digest_time', 'approval_days', 'ai_processing', 'retention_safety_years', 'retention_invoice_years',
-        'max_guardians', 'min_login_age', 'guardian_until_age', 'own_registrations_visible',
+        'max_guardians', 'min_login_age', 'guardian_until_age', 'own_registrations', 'newsletter_ask',
     ];
 
     public static function getNavigationGroup(): ?string
@@ -72,7 +72,7 @@ class OrganisationSettingsPage extends Page
             $data[$key] = Settings::get($key);
         }
         $data['organisation_name'] ??= config('app.name');
-        foreach (['invoice_attach_paid', 'invoice_number_per_year', 'own_registrations_visible'] as $key) {
+        foreach (['invoice_attach_paid', 'invoice_number_per_year', 'newsletter_ask'] as $key) {
             $data[$key] = Settings::bool($key);
         }
         $this->form->fill($data);
@@ -130,7 +130,8 @@ class OrganisationSettingsPage extends Page
                 TextInput::make('max_guardians')->label(__('admin.settings.max_guardians'))->numeric()->minValue(1)->maxValue(20)->required(),
                 TextInput::make('min_login_age')->label(__('admin.settings.min_login_age'))->numeric()->minValue(6)->maxValue(18)->required(),
                 TextInput::make('guardian_until_age')->label(__('admin.settings.guardian_until_age'))->numeric()->minValue(14)->maxValue(25)->required(),
-                Toggle::make('own_registrations_visible')->label(__('admin.settings.own_registrations_visible'))->inline(false)->hintIcon(...$hint('own_registrations_visible')),
+                Select::make('own_registrations')->label(__('admin.settings.own_registrations'))->options(__('admin.settings.own_registrations_options'))->required()->hintIcon(...$hint('own_registrations')),
+                Toggle::make('newsletter_ask')->label(__('admin.settings.newsletter_ask'))->inline(false)->hintIcon(...$hint('newsletter_ask')),
             ]),
             Section::make(__('admin.settings.retention'))->visible(fn () => Permissions::current('settings', 'edit'))->columns(2)->schema([
                 TextInput::make('retention_safety_years')->label(__('admin.settings.retention_safety_years'))->numeric()->minValue(1)->maxValue(30)->required(),
@@ -151,7 +152,7 @@ class OrganisationSettingsPage extends Page
                 continue; // sections this person may not change
             }
             $value = $data[$key];
-            if (in_array($key, ['invoice_attach_paid', 'invoice_number_per_year', 'own_registrations_visible'], true)) {
+            if (in_array($key, ['invoice_attach_paid', 'invoice_number_per_year', 'newsletter_ask'], true)) {
                 $value = $value ? '1' : '0';
             }
             if (in_array($key, ['organisation_iban', 'organisation_bic'], true)) {

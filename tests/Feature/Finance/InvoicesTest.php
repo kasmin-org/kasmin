@@ -149,6 +149,8 @@ class InvoicesTest extends TestCase
         $this->assertSame($invoice->reference, $lines[9]);
 
         $pdf = app(InvoicePdf::class)->render($invoice);
+        // Found by sending the mails of two camp years for real: the whole font was embedded, 880 KB per invoice.
+        $this->assertLessThan(150 * 1024, strlen($pdf), 'an invoice PDF stays small');
         $this->assertStringStartsWith('%PDF', $pdf);
         $this->assertSame('Invoice-'.$invoice->number.'.pdf', app(InvoicePdf::class)->fileName($invoice));
     }

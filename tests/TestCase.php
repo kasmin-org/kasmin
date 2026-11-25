@@ -11,6 +11,8 @@ abstract class TestCase extends BaseTestCase
     protected function setUp(): void
     {
         parent::setUp();
+        // The same random people in every run, so no test fails by chance.
+        fake()->seed(crc32(static::class.'::'.$this->name()));
         // Tests do not need built frontend assets.
         $this->withoutVite();
         Settings::flush();

@@ -35,7 +35,7 @@ class ApiCompleteTest extends TestCase
         parent::setUp();
         app(Defaults::class)->install('en');
         app()->setLocale('en');
-        $person = Person::factory()->create(['locale' => 'en']);
+        $person = Person::factory()->create(['locale' => 'en', 'birth_date' => '1980-01-01']);
         $person->roleAssignments()->create(['role_id' => Role::query()->where('key', 'administrator')->value('id')]);
         $this->user = User::query()->create(['name' => 'Owner', 'email' => 'owner@example.org', 'password' => 'x', 'person_id' => $person->id]);
     }

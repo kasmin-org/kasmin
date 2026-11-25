@@ -623,6 +623,14 @@ class ApiParityTest extends TestCase
         $this->withToken($this->token(['audit:read']))->getJson($url)->assertForbidden();
         $this->withToken($read)->getJson($url)->assertOk()->assertJsonPath('data.person.first_name', 'Ann')->assertJsonPath('data.person.contacts.0.value', 'ann@example.org');
         $this->assertSame('api', AuditEvent::query()->where('action', 'privacy.data_exported')->sole()->meta['source'] ?? null);
+        // Emergency contacts of the family are safety data too.
+        $family = Household::query()->create(['name' => 'Ash']);
+        $family->members()->attach($ann->id, ['role' => 'guardian']);
+        $contact = $family->emergencyContacts()->create(['name' => 'Robin Birch', 'relation' => 'aunt', 'phone' => '+43 1 555']);
+        $this->withToken($read)->getJson($url)->assertForbidden();
+        $contact->delete();
+        $this->withToken($read)->getJson($url)->assertOk();
+        AuditEvent::query()->where('action', 'privacy.data_exported')->latest('id')->limit(1)->delete();
         $child = $this->person('Cleo', 'Ash');
         DB::table('guardianships')->insert(['guardian_id' => $ann->id, 'child_id' => $child->id, 'created_at' => now(), 'updated_at' => now()]);
         app(Forms::class)->save(Form::query()->where('key', 'safety_sheet')->with('fields')->firstOrFail(), $child, ['allergies' => 'Nuts', 'swimmer' => 'yes'], null);

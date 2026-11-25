@@ -49,7 +49,7 @@ class PrivacyController extends ApiController
     /**
      * The copy of the data of a person and the children it is a legal guardian of – the same export as in the admin
      * interface and the portal. Needs audit:read and people:read, and health:read when the export holds answers to
-     * confidential questions (e.g. a safety sheet); via MCP also when it holds emergency contacts. Every export is
+     * confidential questions (e.g. a safety sheet) or emergency contacts of the family. Every export is
      * recorded in the audit log.
      */
     public function export(string $person): JsonResponse
@@ -60,8 +60,9 @@ class PrivacyController extends ApiController
         if ($this->hasConfidentialAnswers($model)) {
             $this->scope('health:read');
         }
-        // Emergency contacts are safety data: an AI assistant only gets them when all data may be processed (MI12).
-        if (ApiContext::viaMcp() && $this->hasEmergencyContacts($model)) {
+        // Emergency contacts are safety data like the emergency list of an event: they need health:read, and an AI
+        // assistant only gets them when all data may be processed (MI12).
+        if ($this->hasEmergencyContacts($model)) {
             $this->scope('health:read');
         }
         Audit::record('privacy.data_exported', $model, null, ['source' => ApiContext::viaMcp() ? 'mcp' : 'api']);

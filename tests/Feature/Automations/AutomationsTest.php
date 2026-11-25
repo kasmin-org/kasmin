@@ -3,6 +3,7 @@
 namespace Tests\Feature\Automations;
 
 use App\Models\Automation;
+use App\Models\AutomationApprovalToken;
 use App\Models\AutomationRun;
 use App\Models\Event;
 use App\Models\Form;
@@ -20,6 +21,7 @@ use App\Support\Install\AutomationDefaults;
 use App\Support\Install\Defaults;
 use App\Support\Install\FormDefaults;
 use App\Support\Install\MailTemplateDefaults;
+use App\Support\Mail\MailLinks;
 use App\Support\Settings;
 use Filament\Http\Middleware\AuthenticateSession;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -93,7 +95,13 @@ class AutomationsTest extends TestCase
         $this->assertStringContainsString('Approval needed', $request->subject);
 
         // A link opens a page; GET does not decide.
-        $this->assertSame(1, preg_match('#/approvals/([A-Za-z0-9]+)#', $request->html, $m));
+        $this->assertSame(0, AutomationApprovalToken::query()->count(), 'the stored mail has no link that decides');
+        $this->assertStringContainsString('/approvals/'.MailLinks::PLACEHOLDER, $request->html);
+        $this->post('/approvals/'.MailLinks::PLACEHOLDER, ['decision' => 'approve']);
+        $this->assertSame('pending_approval', $run->refresh()->status);
+        $sent = MailLinks::resolve($request);
+        $this->assertSame(1, preg_match('#/approvals/([A-Za-z0-9]{48})\?decision=approve#', $sent['html'], $m));
+        $this->assertDoesNotMatchRegularExpression('#/approvals/[A-Za-z0-9]{48}#', $request->refresh()->html.$request->text);
         $token = $m[1] ?? '';
         $this->get('/approvals/'.$token)->assertOk()->assertSee('Yes, run it')->assertSee('Kid Gamma');
         $this->assertSame('pending_approval', $run->refresh()->status);
@@ -197,13 +205,39 @@ class AutomationsTest extends TestCase
         $engine->decide($third, $outsider, true);
     }
 
+    public function test_approval_links_only_for_the_approver_and_not_in_the_test_mode(): void
+    {
+        $this->family('Alpha');
+        $run = app(Engine::class)->trigger($this->automation('deposit_invoices'), 'scheduled', $this->event, 'x');
+        $this->assertNotNull($run);
+        $mail = OutgoingMail::query()->where('to_address', 'board@example.org')->latest('id')->firstOrFail();
+        $safe = fn (): bool => ! preg_match('#/approvals/[A-Za-z0-9]{48}#', MailLinks::resolve($mail)['html']) && str_contains(MailLinks::resolve($mail)['html'], '/admin/automation-runs/');
+        $other = Person::factory()->create();
+        $person = $mail->person_id;
+        $mail->forceFill(['person_id' => $other->id]);
+        $this->assertTrue($safe(), 'somebody else');
+        $mail->forceFill(['person_id' => $person, 'to_address' => 'else@example.org']);
+        $this->assertTrue($safe(), 'another address');
+        $mail->forceFill(['to_address' => 'board@example.org']);
+        Settings::set('mail_test_address', 'test@example.org');
+        $this->assertTrue($safe(), 'test mode');
+        Settings::set('mail_test_address', '');
+        app(Engine::class)->decide($run, $this->board, false);
+        $this->assertTrue($safe(), 'already decided');
+
+        $token = str_repeat('aB1x', 12);
+        $mail->forceFill(['html' => 'https://example.org/approvals/'.$token.'?decision=approve', 'text' => 'https://example.org/approvals/'.$token])->save();
+        (require database_path('migrations/2026_12_11_000100_remove_approval_links_from_stored_mails.php'))->up();
+        $this->assertStringNotContainsString($token, $mail->refresh()->html.$mail->text);
+    }
+
     public function test_mail_link_is_invalid_once_someone_decided_elsewhere(): void
     {
         $this->family('Alpha');
         $run = app(Engine::class)->trigger($this->automation('deposit_invoices'), 'scheduled', $this->event, 'x');
         $this->assertNotNull($run);
-        $html = (string) OutgoingMail::query()->where('to_address', 'board@example.org')->latest('id')->value('html');
-        $this->assertSame(1, preg_match('#/approvals/([A-Za-z0-9]+)#', $html, $m));
+        $mail = OutgoingMail::query()->where('to_address', 'board@example.org')->latest('id')->firstOrFail();
+        $this->assertSame(1, preg_match('#/approvals/([A-Za-z0-9]{48})#', MailLinks::resolve($mail)['html'], $m));
         $token = $m[1] ?? '';
 
         app(Engine::class)->decide($run, $this->board, false, [], 'decided in the inbox');

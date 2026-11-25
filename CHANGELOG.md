@@ -12,6 +12,10 @@ All notable changes to Kasmin are documented in this file. The format is based o
 - Release of reserve places, reminder to all administrators at a date, automatic release (off by default).
 - Waitlists of groups with offers in the portal.
 
+### Security
+
+- Stored approval mails no longer contain the link that decides without a login; it is made when the mail is sent. Until now, people with access to the mail log could decide about automations in the name of an approver, e.g. about their own large mailing.
+
 ### Fixed
 
 - Free places were no longer offered to the waitlist by the daily automation once the registration was closed.

@@ -9,6 +9,7 @@ use App\Models\Form;
 use App\Models\Group;
 use App\Models\MembershipType;
 use App\Support\Auth\Permissions;
+use App\Support\Events\Bus;
 use App\Support\Events\Waitlist;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\DateTimePicker;
@@ -68,6 +69,12 @@ class EventForm
                 TextInput::make('safety_confirm_days')->label(__('admin.event.safety_confirm_days'))->numeric()->minValue(1)->maxValue(365)->hintIcon('heroicon-m-question-mark-circle', tooltip: __('admin.event.safety_confirm_hint')),
                 Textarea::make('description')->label(__('admin.event.description'))->columnSpanFull(),
             ]),
+            Section::make(__('events.bus.title'))->disabled(fn (?Event $record) => ! self::mayEdit($record))->columnSpanFull()->columns(2)
+                ->description(fn (?Event $record) => $record !== null ? Bus::summary($record) : null)->schema([
+                    Toggle::make('bus_booked')->label(__('events.bus.booked'))->inline(false)->live()->helperText(__('events.bus.booked_hint')),
+                    TextInput::make('bus_seats')->label(__('events.bus.seats'))->numeric()->minValue(1)->maxValue(1000)->visible(fn ($get) => (bool) $get('bus_booked'))->required(fn ($get) => (bool) $get('bus_booked'))
+                        ->helperText(__('events.bus.seats_hint')),
+                ]),
             Section::make(__('admin.event.roles'))->disabled(fn (?Event $record) => ! self::mayEdit($record))->columnSpanFull()->schema([
                 Repeater::make('roles')->relationship()->label(__('admin.event.roles'))->hiddenLabel()->columns(['md' => 3])->defaultItems(1)->addActionLabel(__('admin.event.add_role'))
                     ->schema([

@@ -13,7 +13,7 @@ versions, and deployment scripts can call `POST /system/hooks/upgrade` (see [Hos
 
 ## Automatic updates
 
-*Settings → Organisation and invoices → Automatic updates* (administrators, not in Docker; off by default): a new version is installed by
+*Settings → Organisation and invoices → Automatic updates* (administrators, not in Docker; **on by default**, can be switched off): a new version is installed by
 the cron job once it has been out for the configured number of days (default 10), at the configured time of day (default 04:00, in the time
 zone of the settings). A backup of the database and the program files is made first.
 

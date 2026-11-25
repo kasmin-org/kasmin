@@ -29,6 +29,9 @@
                             @foreach ($b['roles'] as $r){{ __('events.roles.'.$r['role']) }}: {{ $r['occupied'] }}{{ $r['capacity'] !== null ? '/'.$r['capacity'] : '' }}{{ $r['waitlist'] ? ' (+'.$r['waitlist'].')' : '' }}@if (! $loop->last) · @endif @endforeach
                         </p>
                     @endif
+                    @if ($b['bus_summary'])
+                        <p class="mt-3 rounded-lg p-2 text-sm" data-bus style="{{ $b['bus']['over'] > 0 ? 'background:#fde2e2;color:#7f1d1d;font-weight:600' : 'background:rgba(128,128,128,.12)' }}">{{ $b['bus_summary'] }}</p>
+                    @endif
                     <h4 class="mt-4 mb-1 text-sm font-semibold">{{ __('dashboard.latest') }}</h4>
                     <ul class="text-sm">
                         @forelse ($b['latest'] as $l)

@@ -17,6 +17,14 @@ place, meeting point, a status (draft → announced → registration open → re
 Registrations are **binding immediately** by default; switch this off to treat registrations as requests that the
 team confirms.
 
+## Travel by bus
+
+In the event, *Travel by bus*: switch on **A bus is booked for this event** and enter the **seats**. Everybody who takes part (registered,
+confirmed) counts as travelling by bus. The participants and the dashboard show how full the bus is – in red when it is **overbooked**, with
+the number of adults who are on the bus. Set adults to **Travels by car** (per row, or tick several and choose *Travel by car*); the
+bus count goes down at once. Children always travel by bus. The lists *Bus list* and *Travel by car* follow these settings; the API
+returns and accepts `travel` (`bus`/`car`) on a participation.
+
 ## Waitlist
 
 When the bookable places of a role are taken, further registrations go to the **waitlist**, ordered by

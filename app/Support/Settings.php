@@ -43,7 +43,7 @@ class Settings
         'audit_ip_days' => '30',         // AU03; 0 = never shortened
         'retention_audit_years' => '10', // AU05; 0 = kept for good
         'retention_mail_years' => '0',   // ML05; 0 = as long as the person exists
-        'auto_update' => '0',            // UP03
+        'auto_update' => '1',            // UP03
         'auto_update_days' => '10',
         'auto_update_time' => '04:00',
         'mail_test_address' => '',       // MS08: all mails go here

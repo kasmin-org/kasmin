@@ -10,6 +10,7 @@ use App\Models\Participation;
 use App\Models\Person;
 use App\Models\User;
 use App\Support\Auth\Permissions;
+use App\Support\Events\Bus;
 use App\Support\Events\ParticipationConfirmation;
 use App\Support\Events\RegistrationException;
 use App\Support\Events\Registrations;
@@ -75,10 +76,14 @@ class ParticipationsRelationManager extends RelationManager
     {
         return $table
             ->defaultSort('registered_at')
+            ->description(fn () => $this->getOwnerRecord() instanceof Event ? Bus::summary($this->getOwnerRecord()) : null)
             ->columns([
                 TextColumn::make('person.last_name')->label(__('admin.person.singular'))
                     ->formatStateUsing(fn (Participation $record) => $record->person?->fullName())->searchable(['first_name', 'last_name']),
                 TextColumn::make('role_key')->label(__('admin.event.role'))->formatStateUsing(fn (string $state) => __('events.roles.'.$state))->badge(),
+                TextColumn::make('travel')->label(__('events.bus.travel'))->badge()->visible(fn () => (bool) $this->getOwnerRecord()->getAttribute('bus_booked'))
+                    ->state(fn (Participation $record) => in_array($record->status, Bus::STATUSES, true) ? Bus::travel($record) : null)
+                    ->formatStateUsing(fn (string $state) => __('events.bus.'.$state))->color(fn (string $state) => $state === 'car' ? 'gray' : 'info')->placeholder('–'),
                 TextColumn::make('status')->label(__('admin.event.status'))->formatStateUsing(fn (string $state) => __('events.status.'.$state))->badge()
                     ->color(fn (string $state) => match ($state) {
                         'registered', 'confirmed', 'attended' => 'success', 'waitlist', 'requested', 'offered' => 'warning', default => 'gray',
@@ -175,6 +180,10 @@ class ParticipationsRelationManager extends RelationManager
                     Action::make('confirmation')->label(__('events.confirmation.title'))->icon('heroicon-o-document-check')->openUrlInNewTab()
                         ->visible(fn (Participation $record) => ParticipationConfirmation::available($record))
                         ->url(fn (Participation $record) => route('admin.participation.confirmation', $record)),
+                    Action::make('travel')->icon('heroicon-o-truck')
+                        ->label(fn (Participation $record) => __(Bus::travel($record) === 'car' ? 'events.bus.to_bus' : 'events.bus.to_car'))
+                        ->visible(fn (Participation $record) => $this->mayEdit() && (bool) $this->getOwnerRecord()->getAttribute('bus_booked') && in_array($record->status, Bus::STATUSES, true) && Bus::adult($record))
+                        ->action(fn (Participation $record) => Bus::set($record, Bus::travel($record) === 'car' ? 'bus' : 'car')),
                     Action::make('cancel')->label(__('admin.event.cancel_participation'))->icon('heroicon-o-x-circle')->color('danger')->requiresConfirmation()
                         ->visible(fn (Participation $record) => $this->mayEdit() && ! in_array($record->status, ['cancelled', 'declined', 'attended', 'no_show'], true))
                         ->schema([Textarea::make('reason')->label(__('admin.finance.reason'))->required()->maxLength(250)])
@@ -201,6 +210,13 @@ class ParticipationsRelationManager extends RelationManager
                         }
                         Notification::make()->title(trans_choice('admin.bulk.status_done', $changed, ['count' => $changed]))->success()->send();
                     })->deselectRecordsAfterCompletion(),
+                ...array_map(fn (string $travel) => BulkAction::make('travel_'.$travel)->label(__('events.bus.bulk_'.$travel))->icon('heroicon-o-truck')
+                    ->visible(fn () => $this->mayEdit() && (bool) $this->getOwnerRecord()->getAttribute('bus_booked'))
+                    ->action(function (Collection $records) use ($travel) {
+                        $done = $records->filter(fn ($record) => $record instanceof Participation && in_array($record->status, Bus::STATUSES, true) && Bus::set($record, $travel))->count();
+                        $note = Notification::make()->title(trans_choice('events.bus.bulk_done_'.$travel, $done, ['count' => $done]));
+                        $done < $records->count() ? $note->body(__('events.bus.children_stay'))->warning()->send() : $note->success()->send();
+                    })->deselectRecordsAfterCompletion(), ['car', 'bus']),
                 ...PeopleBulkActions::make(PeopleBulkActions::ofParticipations()),
             ])]);
     }

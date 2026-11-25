@@ -10,6 +10,7 @@ use App\Models\Participation;
 use App\Models\Person;
 use App\Models\User;
 use App\Support\Auth\Permissions;
+use App\Support\Events\Bus;
 use App\Support\Forms\Forms;
 use App\Support\Forms\FormValue;
 use App\Support\Forms\RegistrationAnswers;
@@ -25,7 +26,7 @@ class EventLists
 {
     /** Key => confidential. */
     public const LISTS = [
-        'participants' => false, 'figures' => false, 'contacts' => false, 'bus' => false, 'birthdays' => false, 'answers' => false, 'missing' => false,
+        'participants' => false, 'figures' => false, 'contacts' => false, 'bus' => false, 'cars' => false, 'birthdays' => false, 'answers' => false, 'missing' => false,
         'emergency' => true, 'kitchen' => true, 'medical' => true, 'medication' => true, 'insurance' => true, 'swimmers' => true, 'consents' => true, 'changes' => true,
     ];
 
@@ -69,7 +70,8 @@ class EventLists
             'participants' => $this->participantList($event, $participants),
             'figures' => $this->figures($event, $participants),
             'contacts' => $this->contacts($participants),
-            'bus' => $this->bus($participants),
+            'bus' => $this->bus($participants->filter(fn (Participation $p) => Bus::travel($p) === 'bus')->values()),
+            'cars' => $this->cars($participants->filter(fn (Participation $p) => Bus::travel($p) === 'car')->values()),
             'birthdays' => $this->birthdays($event, $participants),
             'answers' => $this->answers($participants),
             'missing' => $this->missing($participants),
@@ -182,6 +184,22 @@ class EventLists
         }
 
         return $this->table('contacts', [__('lists.name'), __('forms.legal_guardian'), __('lists.phone'), __('lists.email')], $rows);
+    }
+
+    /**
+     * Adults who travel by car instead of the bus (ST06).
+     *
+     * @param  Collection<int, Participation>  $participants
+     */
+    private function cars(Collection $participants): ListTable
+    {
+        $rows = [];
+        foreach ($participants as $i => $p) {
+            $person = $this->person($p);
+            $rows[] = [(string) ($i + 1), $person->fullName(), (string) __('events.roles.'.$p->role_key), $this->points($person, 'phone')];
+        }
+
+        return $this->table('cars', [__('lists.no'), __('lists.name'), __('admin.event.role'), __('lists.phone')], $rows);
     }
 
     /** @param  Collection<int, Participation>  $participants */

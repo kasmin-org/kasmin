@@ -8,6 +8,7 @@ use App\Models\Participation;
 use App\Support\Audit\Audit;
 use App\Support\Automations\Action;
 use App\Support\Events\Rounds;
+use App\Support\Events\Waitlist;
 use App\Support\Mail\Composer;
 use App\Support\Mail\Notifier;
 use App\Support\Mail\Routing;
@@ -20,7 +21,7 @@ class WaitlistOffer implements Action
 {
     public function plan(Automation $automation, ?Event $event): array
     {
-        $events = $event !== null ? collect([$event]) : Event::query()->whereIn('status', ['open', 'full'])->where('starts_at', '>', now())->get();
+        $events = $event !== null ? collect([$event]) : Event::query()->whereIn('status', ['open', 'closed'])->where('starts_at', '>', now())->get();
         $days = (int) $automation->setting('offer_days', 7);
         $items = [];
         foreach ($events as $e) {
@@ -29,12 +30,12 @@ class WaitlistOffer implements Action
                 if ($free === null || $free < 1 || ! Rounds::waitlistMoves($e, $role->role_key)) {
                     continue;
                 }
-                $next = Participation::query()->where('event_id', $e->id)->where('role_key', $role->role_key)->where('status', 'waitlist')
-                    ->orderBy('registered_at')->orderBy('id')->limit($free)->with('person')->get();
-                foreach ($next as $p) {
+                $next = array_filter(app(Waitlist::class)->ofEvent($e, $role->role_key), fn (array $place) => $place['entry']->skipped_at === null);
+                foreach (array_slice($next, 0, $free) as $place) {
+                    $p = $place['entry'];
                     $items[] = [
                         'key' => 'participation:'.$p->id,
-                        'label' => __('automations.items.offer', ['name' => $p->person?->fullName(), 'event' => $e->title, 'position' => $p->waitlistPosition()]),
+                        'label' => __('automations.items.offer', ['name' => $p->person?->fullName(), 'event' => $e->title, 'position' => $place['position']]),
                         'details' => __('automations.items.offer_until', ['date' => now()->addDays($days)->isoFormat('L')]),
                     ];
                 }
@@ -49,7 +50,7 @@ class WaitlistOffer implements Action
         $p = Participation::query()->with('event.roles', 'person.guardians', 'person.households')->find((int) substr($item['key'], 14));
         $person = $p?->person;
         $e = $p?->event;
-        if ($p === null || $p->status !== 'waitlist' || $e === null || $person === null) {
+        if ($p === null || $p->status !== 'waitlist' || $p->skipped_at !== null || $e === null || $person === null) {
             return 'skipped: no longer on the waitlist';
         }
         $role = $e->roles->firstWhere('role_key', $p->role_key);

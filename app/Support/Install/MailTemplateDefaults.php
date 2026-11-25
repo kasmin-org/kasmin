@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Schema;
  */
 class MailTemplateDefaults
 {
-    public const VERSION = 7;
+    public const VERSION = 8;
 
     public function install(): void
     {
@@ -157,6 +157,13 @@ class MailTemplateDefaults
             ], [
                 'A place is free: {{ event.title }} for {{ registration.child }}',
                 '<p>{{ salutation }}</p><p>good news: a place has become free for <strong>{{ event.title }}</strong> ({{ event.starts_at }} – {{ event.ends_at }}), and {{ registration.child }} is next in line.</p><p>Please accept or decline the place in the portal <strong>by {{ registration.offer_until }}</strong>. Without an answer the place goes to the next person on the waitlist.</p>'.$button('Accept or decline the place').'<p>Kind regards<br>{{ organisation.name }}</p>',
+            ]],
+            'group_place_offer' => ['waitlist', 'guardians', ['de' => 'Platzangebot in einer Gruppe', 'en' => 'Place offered in a group'], [
+                'Ein Platz ist frei: {{ group.name }}',
+                '<p>{{ salutation }}</p><p>gute Nachrichten: In <strong>{{ group.name }}</strong> ist ein Platz{% if children|length > 0 %} für {% for child in children %}{{ child.first_name }}{% if not loop.last %}, {% endif %}{% endfor %}{% endif %} frei geworden.</p><p>Bitte nehmen Sie den Platz bis <strong>{{ group.offer_until }}</strong> im Portal an oder lehnen Sie ihn ab.</p>'.$button('Platz annehmen oder ablehnen').'<p>Mit freundlichen Grüßen<br>{{ organisation.name }}</p>',
+            ], [
+                'A place is free: {{ group.name }}',
+                '<p>{{ salutation }}</p><p>good news: a place has become free in <strong>{{ group.name }}</strong>{% if children|length > 0 %} for {% for child in children %}{{ child.first_name }}{% if not loop.last %}, {% endif %}{% endfor %}{% endif %}.</p><p>Please accept or decline the place in the portal by <strong>{{ group.offer_until }}</strong>.</p>'.$button('Accept or decline the place').'<p>Kind regards<br>{{ organisation.name }}</p>',
             ]],
             'newsletter' => ['newsletter', 'both', ['de' => 'Newsletter', 'en' => 'Newsletter'], [
                 'Neuigkeiten von {{ organisation.name }}',

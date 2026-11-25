@@ -13,6 +13,7 @@ return [
     'form' => 'Formular (Schlüssel)', 'interval_days' => 'Tage zwischen Erinnerungen', 'max' => 'Höchstens … Erinnerungen', 'window_days' => 'Veranstaltungen, die in … Tagen beginnen',
     'age' => 'Alter', 'role' => 'Rolle', 'next_role' => 'Nächste Rolle (Vorschlag)',
     'actions' => [
+        'group_waitlist_offer' => 'Freie Plätze in Gruppen anbieten',
         'waitlist_positions' => 'Neuer Platz auf der Warteliste', 'mailing_release' => 'Große Aussendungen freigeben', 'registration_rounds' => 'Anmelderunden', 'payment_reminders' => 'Zahlungserinnerungen', 'invoice_corrections' => 'Rechnungen korrigieren', 'payment_followup' => 'Unbezahlte Plätze freigeben', 'membership_invoices' => 'Rechnungen Mitgliedsbeitrag',
         'waitlist_offer' => 'Freie Plätze der Warteliste anbieten',
         'offer_expiry' => 'Unbeantwortete Angebote verfallen lassen',

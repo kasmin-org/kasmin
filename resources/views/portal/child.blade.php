@@ -49,6 +49,7 @@
                 @if ($p->status === 'waitlist')
                     @php($role = $p->event->roles()->where('role_key', $p->role_key)->first())
                     <p class="mt-2 font-medium">{{ __('events.waitlist_position', ['position' => $p->waitlistPosition(), 'total' => $role?->waitlistLength()]) }}</p>
+                    <p class="text-sm text-kasmin-700">{{ __('events.waitlist_order') }} {{ \App\Support\Events\Waitlist::ruleText($role) }}</p>
                 @endif
                 @if (! in_array($p->status, ['cancelled', 'declined'], true) && isset($answerForms[$p->id]))
                     <p class="mt-2 text-sm"><a class="underline" href="{{ route('portal.child.answers', [$child->public_id, $p->id]) }}">{{ __('portal.answers') }}</a></p>
@@ -80,6 +81,32 @@
             <p class="text-sm">{{ __('portal.no_registrations') }}</p>
         @endforelse
     </div>
+
+    @if ($groupWaitlists->isNotEmpty())
+        <h2 class="mb-2 text-lg font-semibold">{{ __('events.group_waitlists') }}</h2>
+        <div class="mb-6 grid gap-3">
+            @foreach ($groupWaitlists as $entry)
+                <article class="rounded-xl border border-kasmin-100 p-4">
+                    <h3 class="font-semibold">{{ $entry->group->name }}</h3>
+                    @if ($entry->status === 'offered')
+                        <div class="mt-2 rounded-lg bg-summer-500/20 p-3 text-sm">
+                            <p class="font-semibold">{{ __('portal.offer_title') }}</p>
+                            <p>{{ __('portal.offer_text', ['date' => $entry->offer_expires_at?->isoFormat('LLL') ?? '–']) }}</p>
+                            <div class="mt-2 grid gap-2 sm:grid-cols-2">
+                                @foreach (['accept' => 'bg-kasmin-600 text-white', 'decline' => 'bg-white ring-1 ring-kasmin-200'] as $answer => $style)
+                                    <form method="post" action="{{ route('portal.child.waitlist', [$child->public_id, $entry->id]) }}">@csrf<input type="hidden" name="answer" value="{{ $answer }}">
+                                        <button class="w-full rounded-lg px-4 py-3 font-semibold {{ $style }}">{{ __('portal.offer_'.$answer) }}</button></form>
+                                @endforeach
+                            </div>
+                        </div>
+                    @else
+                        <p class="mt-1 font-medium">{{ __('events.waitlist_place', ['position' => app(\App\Support\People\GroupWaitlist::class)->position($entry) ?? '–']) }}</p>
+                        <p class="text-sm text-kasmin-700">{{ __('events.waitlist_order') }} {{ \App\Support\Events\Waitlist::text(\App\Support\Events\Waitlist::criteria($entry->group->waitlist_order)) }}</p>
+                    @endif
+                </article>
+            @endforeach
+        </div>
+    @endif
 
     <h2 class="mb-2 text-lg font-semibold">{{ __('portal.open_events') }}</h2>
     <div class="grid gap-3">

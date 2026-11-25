@@ -107,6 +107,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/children/{child}/register', [PortalChildController::class, 'register'])->middleware(RequireFullLogin::class)->name('portal.child.register');
         Route::post('/children/{child}/participations/{participation}/cancel', [PortalChildController::class, 'cancel'])->middleware(RequireFullLogin::class)->name('portal.child.cancel');
         Route::post('/children/{child}/participations/{participation}/offer', [PortalChildController::class, 'answerOffer'])->name('portal.child.offer');
+        Route::post('/children/{child}/waitlists/{entry}', [PortalChildController::class, 'answerGroupOffer'])->whereNumber('entry')->name('portal.child.waitlist');
         Route::get('/children/{child}/forms/{form}', [PortalFormController::class, 'edit'])->middleware(RequireFullLogin::class)->name('portal.form.edit');
         Route::post('/children/{child}/forms/{form}', [PortalFormController::class, 'update'])->middleware(RequireFullLogin::class)->name('portal.form.update');
         Route::post('/children/{child}/forms/{form}/confirm', [PortalFormController::class, 'confirm'])->middleware(RequireFullLogin::class)->name('portal.form.confirm');

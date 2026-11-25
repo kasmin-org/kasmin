@@ -7,6 +7,7 @@ use App\Models\Event;
 use App\Models\EventInstallment;
 use App\Models\Form;
 use App\Models\FormField;
+use App\Models\GroupWaitlistEntry;
 use App\Models\Household;
 use App\Models\Invoice;
 use App\Models\Participation;
@@ -23,6 +24,7 @@ use App\Support\Forms\Forms;
 use App\Support\Forms\RegistrationAnswers;
 use App\Support\Mail\Notifier;
 use App\Support\People\Duplicates;
+use App\Support\People\GroupWaitlist;
 use App\Support\People\Guardians;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -76,6 +78,7 @@ class PortalChildController extends Controller
             'child' => $child,
             'answerForms' => $participations->filter(fn (Participation $p) => $p->event !== null && $this->answers->form($p->event, $p->role_key) !== null)->keyBy('id')->all(),
             'participations' => $participations,
+            'groupWaitlists' => GroupWaitlistEntry::query()->where('person_id', $child->id)->whereIn('status', GroupWaitlistEntry::ACTIVE)->with('group')->get(),
             'open' => $this->registrations->openFor($child, $this->by($request, $child)),
             'self' => $child->is($this->guardian($request)),
             'childInvoices' => Invoice::query()->where('status', '!=', 'draft')->whereHas('lines', fn ($q) => $q->where('person_id', $child->id))->latest('id')->limit(20)->get()->filter(fn (Invoice $i) => $request->user() instanceof User && InvoicePdfController::visibleTo($i, $request->user(), $viewer)),
@@ -215,6 +218,21 @@ class PortalChildController extends Controller
         $accept = $request->validate(['answer' => ['required', 'in:accept,decline']])['answer'] === 'accept';
         try {
             $this->registrations->answerOffer($model, $accept);
+        } catch (RegistrationException $e) {
+            return back()->withErrors(['offer' => $e->getMessage()]);
+        }
+
+        return back()->with('status', __($accept ? 'portal.offer_accepted' : 'portal.offer_declined'));
+    }
+
+    /** Place offered in a group (WL01). */
+    public function answerGroupOffer(Request $request, string $publicId, int $entry): RedirectResponse
+    {
+        $child = $this->child($request, $publicId);
+        $model = GroupWaitlistEntry::query()->where('person_id', $child->id)->whereIn('status', GroupWaitlistEntry::ACTIVE)->findOrFail($entry);
+        $accept = $request->validate(['answer' => ['required', 'in:accept,decline']])['answer'] === 'accept';
+        try {
+            app(GroupWaitlist::class)->answer($model, $accept);
         } catch (RegistrationException $e) {
             return back()->withErrors(['offer' => $e->getMessage()]);
         }

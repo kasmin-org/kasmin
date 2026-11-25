@@ -6,6 +6,7 @@ use App\Models\Event;
 use App\Models\Group;
 use App\Models\MembershipType;
 use App\Models\Role;
+use App\Support\Events\Waitlist;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -34,6 +35,10 @@ class GroupForm
                 Select::make('filter.statuses')->label(__('admin.event.status'))->multiple()->options(__('events.status'))->default(['registered', 'confirmed', 'attended'])->visible($kind('event')),
                 Select::make('filter.roles')->label(__('admin.event.role'))->multiple()->options(__('events.roles'))->visible($kind('event')),
                 Textarea::make('description')->label(__('admin.form.description'))->rows(2)->columnSpanFull(),
+                Toggle::make('has_waitlist')->label(__('events.group_waitlist'))->inline(false)->live()->visible($kind('manual')),
+                TextInput::make('capacity')->label(__('admin.event.capacity'))->numeric()->minValue(1)->visible(fn ($get) => $get('kind') === 'manual' && $get('has_waitlist')),
+                Select::make('waitlist_order')->label(__('events.waitlist_order'))->multiple()->reorderable()->options(collect(__('events.waitlist_criteria'))->only(Waitlist::CRITERIA)->all())
+                    ->visible(fn ($get) => $get('kind') === 'manual' && $get('has_waitlist'))->hintIcon('heroicon-m-question-mark-circle', tooltip: __('events.waitlist_order_hint')),
             ]),
             Section::make(__('admin.group.rules'))->visible($kind('dynamic'))->columnSpanFull()->schema([
                 Select::make('filter.match')->label(__('admin.group.match'))->options(__('admin.group.matches'))->default('all')->required(),

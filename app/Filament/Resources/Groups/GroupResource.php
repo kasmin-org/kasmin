@@ -57,6 +57,7 @@ class GroupResource extends Resource
     {
         return [
             RelationManagers\PeopleRelationManager::class,
+            RelationManagers\WaitlistRelationManager::class,
         ];
     }
 

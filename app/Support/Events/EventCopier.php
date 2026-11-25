@@ -19,7 +19,7 @@ use Illuminate\Support\Facades\DB;
  */
 class EventCopier
 {
-    private const DATES = ['starts_at', 'ends_at', 'age_reference_date', 'answers_until', 'announce_at', 'registration_opens_at', 'registration_closes_at'];
+    private const DATES = ['starts_at', 'ends_at', 'age_reference_date', 'answers_until', 'reserve_reminder_on', 'announce_at', 'registration_opens_at', 'registration_closes_at'];
 
     public function copy(Event $source, string $title, Carbon $startsOn, bool $asTemplate = false): Event
     {
@@ -28,7 +28,7 @@ class EventCopier
         return DB::transaction(function () use ($source, $title, $days, $asTemplate) {
             $event = new Event;
             // Raw values: casts must not encode JSON a second time.
-            $event->setRawAttributes(array_diff_key($source->getAttributes(), array_flip(['id', 'public_id', 'created_at', 'updated_at', 'status_checked_at'])));
+            $event->setRawAttributes(array_diff_key($source->getAttributes(), array_flip(['id', 'public_id', 'created_at', 'updated_at', 'status_checked_at', 'reserve_reminded_at'])));
             $event->forceFill(['title' => $title, 'status' => 'draft', 'is_template' => $asTemplate, 'public_page' => ! $asTemplate && $source->public_page]);
             foreach (self::DATES as $field) {
                 $date = $source->getAttribute($field);

@@ -6,8 +6,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 /*
- * Roles that only count for the own events (RO01). Existing administrative roles keep their rights; new installations
- * restrict camp leaders to their events. Upgrade-only.
+ * Roles that only count for the own events (RO01). Camp leaders and counsellors are restricted to their events, also in
+ * existing installations. Upgrade-only.
  */
 return new class extends Migration
 {
@@ -20,6 +20,6 @@ return new class extends Migration
             // Deleting the event must never turn the assignment into one for all events.
             $table->foreignId('event_id')->nullable()->constrained()->cascadeOnDelete();
         });
-        DB::table('roles')->where('key', 'counsellor')->where('is_admin', false)->update(['scope' => 'own']);
+        DB::table('roles')->whereIn('key', ['camp_leader', 'counsellor'])->update(['scope' => 'own']);
     }
 };

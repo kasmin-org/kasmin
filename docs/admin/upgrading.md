@@ -2,18 +2,14 @@
 
 Kasmin only upgrades; there are no downgrades.
 
-1. Install the new version (release ZIP via the installer, or a new Docker image tag).
-2. Until the database is upgraded, Kasmin shows "Upgrade required" and does not process requests.
-3. Run the upgrade:
+1. Install the new version (*System → System status → Update*, the release ZIP via the installer, or a new Docker image tag).
+2. Until the database is upgraded, the login page shows a notice, and **only administrators can log in**. Everything else waits.
+3. Log in as administrator with a new login link and press **Upgrade now**. Kasmin writes a compressed backup of the database to
+   `storage/app/private/backups` first, then upgrades the database and records the new version. This can take a few minutes; only one
+   upgrade runs at a time. If it does not finish, the page shows the details and can be tried again.
 
-   ```sh
-   php artisan kasmin:upgrade
-   ```
-
-   It writes a compressed backup of the database to `storage/app/backups/` first, then runs the migrations and
-   records the new version. Only one upgrade can run at a time.
-
-4. `php artisan kasmin:status` shows the installed version, the database version and the schema status.
+No command line is needed. Where there is one, `php artisan kasmin:upgrade` does the same, `php artisan kasmin:status` shows the
+versions, and deployment scripts can call `POST /system/hooks/upgrade` (see [Hosting](hosting.md)). Docker upgrades by itself at the start.
 
 ## Why Kasmin refuses to start after a downgrade
 

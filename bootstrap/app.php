@@ -29,7 +29,9 @@ return Application::configure(basePath: dirname(__DIR__))
         if ($proxies !== []) {
             $middleware->trustProxies(at: array_values($proxies));
         }
-        $middleware->web(prepend: [EnsureSchemaIsCompatible::class], append: [SetLocale::class]);
+        // For every request, also the admin interface, the API and Livewire.
+        $middleware->prepend(EnsureSchemaIsCompatible::class);
+        $middleware->web(append: [SetLocale::class]);
         $middleware->append(SecurityHeaders::class);
         // Public forms work in frames of other websites, where browsers send no cookies. They change nothing before the
         // address is confirmed by mail, and they never use a login.

@@ -229,8 +229,7 @@ class McpGapsTest extends TestCase
         $travel = $this->tool($token, 'set_participation_travel', ['id' => $adult->id, 'travel' => 'car']);
         $this->assertSame('car', $travel['data']['travel'] ?? null);
         $this->assertSame('confirmed', $travel['data']['status'], 'the status is not touched');
-        $error = $this->refused($token, 'set_participation_travel', ['id' => $child->id, 'travel' => 'car'], 'children go by bus');
-        $this->assertStringContainsString('Only adults', $error);
+        $this->assertSame('car', $this->tool($token, 'set_participation_travel', ['id' => $child->id, 'travel' => 'car'])['data']['travel'] ?? null, 'a child that is brought by its legal guardians');
         $this->assertSame('bus', $this->tool($token, 'set_participation_travel', ['id' => $adult->id, 'travel' => 'bus'])['data']['travel'] ?? null);
     }
 

@@ -14,7 +14,7 @@ use Illuminate\Support\Carbon;
  */
 class NotificationSubscription extends Model
 {
-    public const TOPICS = ['registrations', 'profile_updates', 'safety_updates', 'waitlist', 'payments', 'bounces', 'approvals', 'deletion_requests', 'automation_errors'];
+    public const TOPICS = ['registrations', 'profile_updates', 'safety_updates', 'waitlist', 'payments', 'bounces', 'approvals', 'deletion_requests', 'automation_errors', 'tasks'];
 
     public const FREQUENCIES = ['immediate', 'daily', 'weekly', 'off'];
 

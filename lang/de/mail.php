@@ -20,6 +20,7 @@ return [
     'notify_deletion' => 'Löschantrag von :name',
     'digest_subject' => 'Kasmin: :count neue Ereignisse',
     'topics' => [
+        'tasks' => 'Aufgaben aus Automatisierungen',
         'registrations' => 'Neue Registrierungen und Anmeldungen',
         'profile_updates' => 'Geänderte Angaben',
         'safety_updates' => 'Sicherheitsblätter',

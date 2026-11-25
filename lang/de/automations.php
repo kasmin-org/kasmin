@@ -13,6 +13,7 @@ return [
     'form' => 'Formular (Schlüssel)', 'interval_days' => 'Tage zwischen Erinnerungen', 'max' => 'Höchstens … Erinnerungen', 'window_days' => 'Veranstaltungen, die in … Tagen beginnen',
     'age' => 'Alter', 'role' => 'Rolle', 'next_role' => 'Nächste Rolle (Vorschlag)',
     'actions' => [
+        'custom' => 'Eigene Schritte',
         'group_waitlist_offer' => 'Freie Plätze in Gruppen anbieten',
         'waitlist_positions' => 'Neuer Platz auf der Warteliste', 'mailing_release' => 'Große Aussendungen freigeben', 'registration_rounds' => 'Anmelderunden', 'payment_reminders' => 'Zahlungserinnerungen', 'invoice_corrections' => 'Rechnungen korrigieren', 'payment_followup' => 'Unbezahlte Plätze freigeben', 'membership_invoices' => 'Rechnungen Mitgliedsbeitrag',
         'waitlist_offer' => 'Freie Plätze der Warteliste anbieten',
@@ -25,6 +26,7 @@ return [
         'age_notice' => 'Hinweis, wenn ein Kind ein Alter erreicht',
     ],
     'triggers' => [
+        'weekly' => 'Wöchentlich', 'monthly' => 'Monatlich', 'once' => 'Einmal an einem Tag', 'on_status' => 'Status einer Anmeldung ändert sich', 'on_group_joined' => 'Person kommt in eine Gruppe', 'on_group_left' => 'Person verlässt eine Gruppe', 'on_person_created' => 'Neue Person', 'on_person_changed' => 'Feld einer Person ändert sich',
         'manual' => 'Nur per Schaltfläche',
         'daily' => 'Täglich',
         'before_event' => 'Tage vor Beginn einer Veranstaltung',
@@ -74,11 +76,13 @@ return [
         'safety_missing' => ':event: Sicherheitsblätter fehlen noch bei :count Familie(n): :names',
     ],
     'errors' => [
+        'already_approved' => 'Sie haben bereits zugestimmt.',
         'decided' => 'Über diesen Lauf wurde bereits entschieden.',
         'expired' => 'Die Freigabe-Anfrage ist abgelaufen.',
         'not_allowed' => 'Sie dürfen diese Automatisierung nicht freigeben.',
     ],
     'mail' => [
+        'decided_subject' => 'Entschieden: :name', 'decided_approved' => ':by hat „:name“ freigegeben. Sie müssen nichts mehr tun.', 'decided_denied' => ':by hat „:name“ abgebrochen. Sie müssen nichts mehr tun.',
         'subject' => 'Freigabe nötig: :name',
         'reminder_subject' => 'Erinnerung – Freigabe nötig: :name',
         'greeting' => 'Guten Tag :name,',
@@ -107,4 +111,13 @@ return [
         'invalid_title' => 'Link nicht mehr gültig',
         'invalid' => 'Dieser Freigabe-Link wurde bereits verwendet, ist abgelaufen oder jemand anderes hat schon entschieden. Öffnen Sie die Freigaben in der Verwaltung.',
     ],
+    'create' => 'Eigene Automatisierung', 'approvals_needed' => 'Nötige Freigaben', 'approvals_needed_hint' => 'So viele Personen müssen zustimmen, bevor etwas passiert. Eine Ablehnung bricht ab.', 'approvals_so_far' => 'Freigaben',
+    'weekday' => 'Wochentag', 'weekdays' => [1 => 'Montag', 2 => 'Dienstag', 3 => 'Mittwoch', 4 => 'Donnerstag', 5 => 'Freitag', 6 => 'Samstag', 7 => 'Sonntag'], 'month_day' => 'Tag des Monats',
+    'fields_label' => 'Geänderte Felder', 'fields' => ['birth_date' => 'Geburtsdatum', 'locale' => 'Sprache', 'first_name' => 'Vorname', 'last_name' => 'Nachname', 'gender' => 'Geschlecht'],
+    'target' => 'Für wen', 'source' => 'Personen', 'sources' => ['subject' => 'Die Person des Auslösers', 'event' => 'Teilnehmende der Veranstaltung', 'group' => 'Mitglieder einer Gruppe', 'people' => 'Alle Personen, auf die die Bedingungen zutreffen'],
+    'source_mismatch' => 'Bei Änderungen als Auslöser „Die Person des Auslösers“ wählen, bei allen anderen etwas anderes.', 'event_needed' => 'Dieser Auslöser hat keine Veranstaltung. Bitte andere Personen wählen oder einen Auslöser vor oder nach einer Veranstaltung.',
+    'conditions' => 'Bedingungen', 'once' => 'Nur einmal pro Person', 'steps_title' => 'Was passiert', 'step' => 'Schritt', 'add_step' => 'Schritt hinzufügen',
+    'steps' => ['send_mail' => 'E-Mail senden', 'add_group' => 'In Gruppe aufnehmen', 'remove_group' => 'Aus Gruppe entfernen', 'set_status' => 'Status der Anmeldung ändern', 'notify_team' => 'Aufgabe für das Team', 'webhook' => 'Webhook aufrufen', 'invoice' => 'Rechnungsentwurf erstellen'],
+    'step_to' => ['template' => 'wie in der Vorlage', 'guardians' => 'Erziehungsberechtigte', 'person' => 'Die Person'], 'task' => 'Aufgabe', 'webhook_name' => 'Name', 'invoice_rights' => 'Diesen Schritt können nur Personen hinzufügen, die Rechnungen erstellen dürfen.', 'by_automation' => 'durch eine Automatisierung',
+    'schedule' => ['title' => 'Zeitplan', 'announce' => 'Ankündigung', 'opens' => 'Anmeldung öffnet', 'closes' => 'Anmeldung schließt', 'answers' => 'Antworten änderbar bis', 'reserve' => 'Erinnerung: Reserveplätze', 'reserve_release' => 'Reserveplätze werden freigegeben', 'start' => 'Beginn', 'end' => 'Ende', 'round' => 'Anmelderunde', 'due' => 'Fällig', 'planned' => 'geplant', 'manual' => 'nur per Schaltfläche', 'off' => 'ausgeschaltet', 'day' => 'erster Tag', 'before' => ':days Tage vorher', 'after' => ':days Tage nach Beginn'],
 ];

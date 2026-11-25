@@ -23,7 +23,6 @@ class GroupForm
     public static function configure(Schema $schema): Schema
     {
         $kind = fn (string ...$kinds) => fn ($get) => in_array($get('kind'), $kinds, true);
-        $number = fn ($get) => in_array($get('field'), ['age', 'events'], true);
 
         return $schema->components([
             Section::make(__('admin.group.singular'))->columns(['md' => 2])->columnSpanFull()->schema([
@@ -42,22 +41,30 @@ class GroupForm
             ]),
             Section::make(__('admin.group.rules'))->visible($kind('dynamic'))->columnSpanFull()->schema([
                 Select::make('filter.match')->label(__('admin.group.match'))->options(__('admin.group.matches'))->default('all')->required(),
-                Repeater::make('filter.rules')->label('')->columns(['md' => 4])->minItems(1)->addActionLabel(__('admin.group.add_rule'))
-                    ->schema([
-                        Select::make('field')->label(__('admin.group.field'))->options(__('admin.group.fields'))->required()->live(),
-                        Select::make('value')->label(__('admin.group.value'))->visible(fn ($get) => filled($get('field')) && $get('field') !== 'age')->required(fn ($get) => ! in_array($get('field'), ['age', 'events'], true))
-                            ->options(fn ($get) => match ($get('field')) {
-                                'membership' => MembershipType::query()->get()->mapWithKeys(fn (MembershipType $t) => [$t->id => $t->label()])->all(),
-                                'role' => Role::query()->get()->mapWithKeys(fn (Role $r) => [$r->id => $r->label()])->all(),
-                                'group' => Group::query()->orderBy('name')->pluck('name', 'id')->all(),
-                                'events' => (array) __('events.roles'),
-                                default => [],
-                            }),
-                        TextInput::make('min')->label(__('admin.group.min'))->numeric()->visible($number),
-                        TextInput::make('max')->label(__('admin.group.max'))->numeric()->visible($number),
-                        Toggle::make('not')->label(__('admin.group.not'))->inline(false),
-                    ]),
+                self::rules('filter.rules')->minItems(1),
             ]),
         ]);
+    }
+
+    /** Rules about people, also used as conditions of automations. */
+    public static function rules(string $name): Repeater
+    {
+        $number = fn ($get) => in_array($get('field'), ['age', 'events'], true);
+
+        return Repeater::make($name)->label(__('admin.group.rules'))->hiddenLabel()->columns(['md' => 4])->addActionLabel(__('admin.group.add_rule'))
+            ->schema([
+                Select::make('field')->label(__('admin.group.field'))->options(__('admin.group.fields'))->required()->live(),
+                Select::make('value')->label(__('admin.group.value'))->visible(fn ($get) => filled($get('field')) && $get('field') !== 'age')->required(fn ($get) => ! in_array($get('field'), ['age', 'events'], true))
+                    ->options(fn ($get) => match ($get('field')) {
+                        'membership' => MembershipType::query()->get()->mapWithKeys(fn (MembershipType $t) => [$t->id => $t->label()])->all(),
+                        'role' => Role::query()->get()->mapWithKeys(fn (Role $r) => [$r->id => $r->label()])->all(),
+                        'group' => Group::query()->orderBy('name')->pluck('name', 'id')->all(),
+                        'events' => (array) __('events.roles'),
+                        default => [],
+                    }),
+                TextInput::make('min')->label(__('admin.group.min'))->numeric()->visible($number),
+                TextInput::make('max')->label(__('admin.group.max'))->numeric()->visible($number),
+                Toggle::make('not')->label(__('admin.group.not'))->inline(false),
+            ]);
     }
 }

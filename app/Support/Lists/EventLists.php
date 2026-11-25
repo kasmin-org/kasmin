@@ -25,7 +25,7 @@ class EventLists
 {
     /** Key => confidential. */
     public const LISTS = [
-        'participants' => false, 'contacts' => false, 'bus' => false, 'birthdays' => false, 'answers' => false, 'missing' => false,
+        'participants' => false, 'figures' => false, 'contacts' => false, 'bus' => false, 'birthdays' => false, 'answers' => false, 'missing' => false,
         'emergency' => true, 'kitchen' => true, 'medical' => true, 'medication' => true, 'insurance' => true, 'swimmers' => true, 'consents' => true, 'changes' => true,
     ];
 
@@ -67,6 +67,7 @@ class EventLists
 
         return match ($key) {
             'participants' => $this->participantList($event, $participants),
+            'figures' => $this->figures($event, $participants),
             'contacts' => $this->contacts($participants),
             'bus' => $this->bus($participants),
             'birthdays' => $this->birthdays($event, $participants),
@@ -132,11 +133,40 @@ class EventLists
     {
         $rows = [];
         foreach ($participants as $i => $p) {
-            $rows[] = [(string) ($i + 1), $this->person($p)->last_name, $this->person($p)->first_name, $this->date($this->person($p)->birth_date), (string) ($this->person($p)->ageAt($event->ageReferenceDate()) ?? '–'),
+            $rows[] = [(string) ($i + 1), $this->person($p)->last_name, $this->person($p)->first_name, $this->gender($this->person($p)), $this->date($this->person($p)->birth_date), (string) ($this->person($p)->ageAt($event->ageReferenceDate()) ?? '–'),
                 (string) __('events.roles.'.$p->role_key), (string) __('events.status.'.$p->status), $this->person($p)->guardians->map->fullName()->implode(', ')];
         }
 
-        return $this->table('participants', [__('lists.no'), __('admin.person.last_name'), __('admin.person.first_name'), __('admin.person.birth_date'), __('admin.person.age'), __('admin.event.role'), __('admin.event.status'), __('admin.household.guardians')], $rows);
+        return $this->table('participants', [__('lists.no'), __('admin.person.last_name'), __('admin.person.first_name'), __('admin.person.gender'), __('admin.person.birth_date'), __('admin.person.age'), __('admin.event.role'), __('admin.event.status'), __('admin.household.guardians')], $rows);
+    }
+
+    /**
+     * Figures for the team meeting (ST05): roles by gender, new and returning people, waitlist. Counts only.
+     *
+     * @param  Collection<int, Participation>  $participants
+     */
+    private function figures(Event $event, Collection $participants): ListTable
+    {
+        $genders = ['female', 'male', 'diverse', 'unspecified'];
+        $before = $event->event_series_id === null ? collect() : Participation::query()->whereIn('person_id', $participants->pluck('person_id'))->whereIn('status', self::STATUSES)
+            ->whereHas('event', fn ($q) => $q->where('event_series_id', $event->event_series_id)->where('starts_at', '<', $event->starts_at))->pluck('person_id')->unique();
+        $rows = [];
+        foreach ($participants->groupBy('role_key') as $role => $group) {
+            $count = fn (string $gender) => (string) $group->filter(fn (Participation $p) => ($this->person($p)->getAttribute('gender') ?: 'unspecified') === $gender)->count();
+            $returning = $group->filter(fn (Participation $p) => $before->contains($p->person_id))->count();
+            $waiting = Participation::query()->where('event_id', $event->id)->where('role_key', $role)->where('status', 'waitlist')->count();
+            $rows[] = [(string) __('events.roles.'.$role), ...array_map($count, $genders), (string) $group->count(), (string) $returning, (string) ($group->count() - $returning), (string) $waiting];
+        }
+        $rows[] = [(string) __('lists.total'), ...array_map(fn (int $i) => (string) array_sum(array_map(fn (array $r) => (int) $r[$i], $rows)), range(1, 8))];
+
+        return $this->table('figures', [__('admin.event.role'), ...array_map(fn (string $g) => __('admin.genders.'.$g), $genders), __('lists.total'), __('lists.returning'), __('lists.new'), __('admin.event.waitlist_position')], $rows);
+    }
+
+    private function gender(Person $person): string
+    {
+        $gender = (string) $person->getAttribute('gender');
+
+        return $gender === '' ? '–' : (string) __('admin.genders.'.$gender);
     }
 
     /** @param  Collection<int, Participation>  $participants */

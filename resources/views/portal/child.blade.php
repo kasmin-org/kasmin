@@ -57,6 +57,9 @@
                 @if (in_array($p->status, ['registered', 'confirmed', 'attended', 'offered'], true))
                     @foreach ($p->event->documents as $d)<p class="mt-1 text-sm"><a class="underline" href="{{ route('event.document', $d) }}">{{ $d->title }}</a></p>@endforeach
                 @endif
+                @if (\App\Support\Events\ParticipationConfirmation::available($p))
+                    <p class="mt-2 text-sm"><a class="underline" href="{{ route('portal.child.confirmation', [$child->public_id, $p->id]) }}" target="_blank" rel="noopener">{{ __('events.confirmation.title') }} (PDF)</a></p>
+                @endif
                 @if ($self && ($guestsLeft[$p->id] ?? 0) > 0)
                     <form method="post" action="{{ route('portal.child.guest', [$child->public_id, $p->id]) }}" class="mt-3 text-sm">
                         @csrf

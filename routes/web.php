@@ -11,6 +11,7 @@ use App\Http\Controllers\InvoicePdfController;
 use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\MailImageController;
 use App\Http\Controllers\MailPreferencesController;
+use App\Http\Controllers\ParticipationPdfController;
 use App\Http\Controllers\PortalChildController;
 use App\Http\Controllers\PortalController;
 use App\Http\Controllers\PortalFormController;
@@ -83,6 +84,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/login/confirm', [StepUpController::class, 'send'])->middleware('throttle:login-send')->name('step-up.send');
     Route::get('/two-factor', [TwoFactorController::class, 'show'])->name('two-factor');
     Route::post('/two-factor', [TwoFactorController::class, 'verify'])->middleware('throttle:two-factor')->name('two-factor.verify');
+    Route::get('/admin/participations/{participation}/confirmation.pdf', [ParticipationPdfController::class, 'admin'])->middleware([RequireSecondFactor::class, RequireFullLogin::class])->whereNumber('participation')->name('admin.participation.confirmation');
     Route::get('/admin/invoices/{invoice}/pdf', [InvoicePdfController::class, 'admin'])->middleware([RequireSecondFactor::class, RequireFullLogin::class])->name('admin.invoices.pdf');
     Route::middleware([RequireSecondFactor::class, RequireFullLogin::class])->group(function () {
         Route::get('/admin/events/{event}/lists/{key}.{format}', [EventListController::class, 'list'])->whereNumber('event')->where('key', '[a-z_]+')->where('format', 'pdf|xlsx|csv')->name('admin.lists.export');
@@ -102,6 +104,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/team/{event}/{list?}', [PortalTeamController::class, 'show'])->middleware(RequireFullLogin::class)->name('portal.team');
         Route::get('/mails/{uuid}', [PortalController::class, 'mail'])->name('portal.mail');
         Route::get('/invoices/{invoice}.pdf', [InvoicePdfController::class, 'portal'])->name('portal.invoice.pdf');
+        Route::get('/children/{child}/participations/{participation}/confirmation.pdf', [ParticipationPdfController::class, 'portal'])->whereNumber('participation')->name('portal.child.confirmation');
         Route::get('/children/new', [PortalChildController::class, 'create'])->middleware(RequireFullLogin::class)->name('portal.child.create');
         Route::post('/children', [PortalChildController::class, 'store'])->middleware(RequireFullLogin::class)->name('portal.child.store');
         Route::get('/children/{child}', [PortalChildController::class, 'show'])->name('portal.child');

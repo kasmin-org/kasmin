@@ -14,7 +14,8 @@ use App\Support\Mail\Notifier;
 /**
  * A02 "start season": children of the previous event of the same series are registered for the new event if their
  * age still fits (config: role, default child); those who are too old are proposed for the next role (config:
- * next_role, default junior_counsellor) or for leaving – as a notice to the team.
+ * next_role, default junior_counsellor) or for leaving – as a notice to the team. Children on the waitlist of the
+ * previous event stay on the waitlist of the new one with their date (WL08).
  */
 class StartSeason implements Action
 {
@@ -37,6 +38,18 @@ class StartSeason implements Action
         $person = Person::query()->find((int) $id);
         if ($event === null || $person === null) {
             return 'skipped';
+        }
+        if ($kind === 'waitlist') {
+            // Stays on the waitlist with the date of the first registration, so nobody loses the place in the queue (WL08).
+            $old = Participation::query()->where('person_id', $person->id)->where('status', 'waitlist')->where('role_key', (string) $automation->setting('role', 'child'))
+                ->whereHas('event', fn ($q) => $q->where('event_series_id', $event->event_series_id)->where('starts_at', '<', $event->starts_at))->orderByDesc('id')->first();
+            if ($old === null || Participation::query()->where('event_id', $event->id)->where('person_id', $person->id)->exists()) {
+                return 'skipped';
+            }
+            Participation::query()->create(['event_id' => $event->id, 'person_id' => $person->id, 'role_key' => $old->role_key, 'status' => 'waitlist', 'registered_at' => $old->registered_at,
+                'registered_by_id' => $old->registered_by_id, 'waitlist_flags' => $old->waitlist_flags, 'waitlist_note' => $old->waitlist_note]);
+
+            return 'waitlist';
         }
         if ($kind === 'register') {
             try {
@@ -70,6 +83,12 @@ class StartSeason implements Action
         $result = [];
         $people = Participation::query()->where('event_id', $previous->id)->where('role_key', $roleKey)
             ->whereIn('status', ['registered', 'confirmed', 'attended'])->whereNotIn('person_id', $already)->with('person')->get();
+        $waiting = Participation::query()->where('event_id', $previous->id)->where('role_key', $roleKey)->where('status', 'waitlist')->whereNotIn('person_id', $already)->with('person')->orderBy('registered_at')->get();
+        foreach ($waiting as $p) {
+            if ($p->person !== null && $p->person->getAttribute('anonymised_at') === null && $role !== null && $role->allowsAge($p->person->ageAt($event->ageReferenceDate()))) {
+                $result[] = ['kind' => 'waitlist', 'person' => $p->person, 'age' => $p->person->ageAt($event->ageReferenceDate())];
+            }
+        }
         foreach ($people as $p) {
             if ($p->person === null) {
                 continue;

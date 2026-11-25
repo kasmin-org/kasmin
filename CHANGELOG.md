@@ -15,6 +15,13 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 - Automatic updates (off by default): a version is installed in the night once it has been out for the configured days (default 10, 04:00), with a notice two days before, a notice if a newer version resets the waiting time, and a mail with the changes afterwards.
 
+### Added
+
+- Families get a confirmation when a registration is cancelled (by themselves, the team, or because an invoice was not paid) and when an offer of a place ran out.
+- *Start season* keeps the children on the waitlist of the last event on the waitlist of the new one, with their date.
+- Confirmation of participation as a PDF after the event, for the team and in the portal, with the amount paid.
+- List *Figures for the team meeting* (roles by gender, new and returning, waitlist); the participants list shows the gender.
+
 ### Fixed
 
 - Installations that started with a very old version never got the standard mail templates, automations and event types of later versions, so mails such as the registration confirmation were not sent. What is missing is installed with this update.

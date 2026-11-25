@@ -8,6 +8,7 @@ use App\Models\Participation;
 use App\Support\Audit\Audit;
 use App\Support\Automations\Action;
 use App\Support\Automations\Engine;
+use App\Support\Events\Registrations;
 use App\Support\Mail\Notifier;
 
 /**
@@ -38,6 +39,7 @@ class OfferExpiry implements Action
         }
         $p->fill(['status' => 'declined', 'offer_expires_at' => null])->save();
         Audit::record('participation.offer_expired', $p);
+        app(Registrations::class)->tell('offer_expired', $p);
         app(Notifier::class)->event('waitlist', __('automations.notify.offer_expired', ['name' => $p->person?->fullName(), 'event' => $p->event?->title]), url('/admin/events/'.$p->event_id.'/edit'));
         if ($p->event !== null) {
             app(Engine::class)->placeFreed($p->event);

@@ -51,7 +51,7 @@ return [
     'planned' => 'Geplante Aktionen', 'results' => 'Ergebnisse', 'decided_by' => 'Entschieden von', 'excluded' => 'Nicht ausgeführt',
     'item' => 'Aktion', 'result' => 'Ergebnis', 'trigger_label' => 'Ausgelöst durch', 'created' => 'Erstellt', 'expires' => 'Läuft ab',
     'items' => [
-        'position' => ':name ist jetzt auf Platz :position (:event)',
+        'season_waitlist' => ':name bleibt auf der Warteliste (Alter :age)', 'position' => ':name ist jetzt auf Platz :position (:event)',
         'mailing' => '„:name“ verschicken (:count Mails)',
         'round' => 'Angebot an :names (:event)',
         'reminder_fee' => 'Spesen :amount',

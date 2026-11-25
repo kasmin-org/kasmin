@@ -9,6 +9,7 @@ use App\Http\Controllers\GuardianController;
 use App\Http\Controllers\InstallController;
 use App\Http\Controllers\InvoicePdfController;
 use App\Http\Controllers\LanguageController;
+use App\Http\Controllers\MailImageController;
 use App\Http\Controllers\MailPreferencesController;
 use App\Http\Controllers\PortalChildController;
 use App\Http\Controllers\PortalController;
@@ -32,6 +33,7 @@ Route::post('/language', [LanguageController::class, 'update'])->middleware('thr
 Route::get('/install', [InstallController::class, 'show'])->name('install');
 Route::post('/install', [InstallController::class, 'store'])->middleware('throttle:install');
 
+Route::get('/mail-images/{file}', [MailImageController::class, 'show'])->where('file', '[A-Za-z0-9_.-]+')->name('mail.image');
 Route::get('/mail/preferences/{person}', [MailPreferencesController::class, 'show'])->middleware('signed')->name('mail.preferences');
 Route::post('/mail/preferences/{person}', [MailPreferencesController::class, 'update'])->middleware(['signed', 'throttle:preferences'])->name('mail.preferences.update');
 

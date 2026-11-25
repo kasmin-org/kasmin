@@ -15,7 +15,7 @@ class MailSendCommand extends Command
     public function handle(Sender $sender): int
     {
         $result = $sender->process((int) $this->option('limit'));
-        Mailing::query()->where('status', 'sending')->whereDoesntHave('mails', fn ($q) => $q->whereIn('status', ['queued', 'sending']))->update(['status' => 'sent']);
+        Mailing::query()->where('status', 'sending')->whereDoesntHave('mails', fn ($q) => $q->whereIn('status', ['queued', 'paused', 'sending']))->update(['status' => 'sent']);
         $this->info("sent {$result['sent']}, failed {$result['failed']}, deferred {$result['deferred']}");
 
         return self::SUCCESS;

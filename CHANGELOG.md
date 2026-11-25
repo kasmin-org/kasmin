@@ -6,6 +6,19 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ## [Unreleased]
 
+### Added
+
+- Mails: logo, colour and footer; images (embedded); HTML source; buttons.
+- Mail templates: preview with a real person in all languages for computer and phone, test mail to oneself, restoring versions, comparison with the shipped text and notice of a new one.
+- Mailings: review mail by mail, progress, pause and continue.
+- List of bad addresses; mailings leave them out. A permanent error is not tried again.
+- Retention of the mail log (off by default).
+
+### Fixed
+
+- Mail templates could not be saved in the interface, and the editor would have damaged conditions and buttons.
+- Editing a single mail of a mailing removed the layout and the footer links.
+
 ## [0.18.0] - 2026-11-25
 
 Pre-release for testing. Not ready for production use.

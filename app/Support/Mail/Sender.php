@@ -76,7 +76,11 @@ class Sender
 
             return true;
         } catch (Throwable $e) {
-            $final = $mail->attempts >= self::MAX_ATTEMPTS;
+            $bad = self::testAddress() === null && BadAddresses::permanent($e);
+            $final = $bad || $mail->attempts >= self::MAX_ATTEMPTS;
+            if ($bad) {
+                app(BadAddresses::class)->mark($mail, $e->getMessage());
+            }
             $mail->forceFill([
                 'status' => $final ? 'failed' : 'queued',
                 'last_error' => Str::limit($e->getMessage(), 1000),
@@ -101,8 +105,8 @@ class Sender
             ->from(new Address($fromAddress, $fromName))
             ->to(new Address(self::testAddress() ?? $mail->to_address, (string) $mail->to_name))
             ->subject(self::testAddress() !== null ? '[TEST → '.$mail->to_address.'] '.$mail->subject : $mail->subject)
-            ->html($content['html'])
             ->text($content['text']);
+        $email->html(MailImages::embed($email, $content['html']));
         if ($profile?->reply_to) {
             $email->replyTo($profile->reply_to);
         }

@@ -3,6 +3,8 @@
 namespace App\Support\Install;
 
 use App\Models\MailTemplate;
+use App\Support\Mail\TemplateStandards;
+use Illuminate\Support\Facades\Schema;
 
 /**
  * Default mail templates (German and English) installed with the defaults (H01, MT01). Placeholders: see
@@ -24,7 +26,18 @@ class MailTemplateDefaults
             ]);
             $template->contents()->create(['locale' => 'de', 'subject' => $de[0], 'html' => $de[1]]);
             $template->contents()->create(['locale' => 'en', 'subject' => $en[0], 'html' => $en[1]]);
+            if (Schema::hasColumn('mail_templates', 'standard_hash')) { // older migrations install templates, too
+                app(TemplateStandards::class)->keep($template);
+            }
         }
+    }
+
+    /** @return array<string, array{0: string, 1: string}>|null shipped subject and HTML per language */
+    public function contents(string $key): ?array
+    {
+        $template = $this->templates()[$key] ?? null;
+
+        return $template === null ? null : ['de' => $template[3], 'en' => $template[4]];
     }
 
     /** @return array<string, array{0: string, 1: string, 2: array<string, string>, 3: array{0: string, 1: string}, 4: array{0: string, 1: string}}> */

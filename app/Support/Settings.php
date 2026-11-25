@@ -35,6 +35,10 @@ class Settings
         'retention_invoice_years' => '7',
         'public_url' => '',
         'backup_keep' => '7',
+        'mail_logo' => '',
+        'mail_color' => '#1da029',       // MT06
+        'mail_footer' => '',
+        'retention_mail_years' => '0',   // ML05; 0 = as long as the person exists
         'mail_test_address' => '',       // MS08: all mails go here
         'mailing_approval_above' => '50', // MM07; 0 = never
         'embed_origins' => '', // websites that may show public pages in a frame

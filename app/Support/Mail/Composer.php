@@ -9,6 +9,7 @@ use App\Models\MailTemplate;
 use App\Models\OutgoingMail;
 use App\Models\Participation;
 use App\Models\Person;
+use App\Support\Settings;
 
 /**
  * Turns a template into queued mails for a recipient (MS01, MT03, MT06): placeholders, layout with the footer links
@@ -46,12 +47,19 @@ class Composer
             'to_name' => $recipient->fullName(),
             'subject' => $rendered['subject'],
             'html' => $this->layout($rendered['subject'], $rendered['html'], $locale, $context['links']['preferences']),
-            'text' => $rendered['text']."\n\n-- \n".__('mail.footer_preferences', [], $locale).': '.$context['links']['preferences'],
+            'text' => $rendered['text']."\n\n-- \n".self::textFooter().__('mail.footer_preferences', [], $locale).': '.$context['links']['preferences'],
             'kind' => $kind,
             'status' => $status,
             'attachments' => $attachments,
             'created_by_id' => auth()->id(),
         ]);
+    }
+
+    private static function textFooter(): string
+    {
+        $footer = trim((string) Settings::get('mail_footer'));
+
+        return $footer === '' ? '' : $footer."\n\n";
     }
 
     /**
@@ -66,10 +74,18 @@ class Composer
         ]);
     }
 
+    /** Colour of buttons and of the line on top (MT06). */
+    public static function colour(): string
+    {
+        $colour = (string) Settings::get('mail_color');
+
+        return preg_match('/^#[0-9a-f]{6}$/i', $colour) === 1 ? $colour : '#1da029';
+    }
+
     public function layout(string $subject, string $body, string $locale, ?string $preferences): string
     {
         return view('mail.layout', [
-            'subject' => $subject, 'body' => $body, 'locale' => $locale,
+            'subject' => $subject, 'body' => TemplateHtml::buttons($body, self::colour()), 'locale' => $locale,
             'organisation' => Placeholders::organisationName(), 'preferences' => $preferences,
         ])->render();
     }

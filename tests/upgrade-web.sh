@@ -10,7 +10,7 @@ SERVER=$!
 trap 'kill $SERVER 2>/dev/null || true' EXIT
 for i in $(seq 1 30); do curl -sf "$B/up" > /dev/null && break; sleep 1; done
 token() { grep -o 'name="_token" value="[^"]*"' | head -1 | cut -d'"' -f4; }
-fail() { echo "FAIL: $1"; tail -20 storage/logs/laravel.log | cut -c1-300; exit 1; }
+fail() { echo "FAIL: $1"; grep -E '\.ERROR:' storage/logs/laravel.log | tail -3 | cut -c1-400; exit 1; }
 
 curl -s -L -c "$J" -b "$J" "$B/" > /tmp/start.html
 grep -q 'data-upgrade-banner' /tmp/start.html || fail "no notice on the login page"

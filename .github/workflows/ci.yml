@@ -177,9 +177,12 @@ jobs:
           php artisan kasmin:install --organisation="Old Camp" --locale=de --defaults=de --admin-name="Alex Admin" --admin-email=admin@example.org
           php artisan kasmin:demo --locale=de --families=8 --staff=4 --force
           git checkout -q -f "$new"
+      - uses: actions/setup-node@v4
+        with: { node-version: "24" }
       - name: Upgrade
         run: |
           composer install --no-interaction --no-progress --prefer-dist --no-scripts -q && php artisan package:discover -q
+          npm ci --ignore-scripts --no-audit --no-fund && npm run build
           sh tests/upgrade-web.sh
           php tests/upgrade-check.php
 

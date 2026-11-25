@@ -74,7 +74,7 @@ class Event extends Model
 
     protected function casts(): array
     {
-        return ['starts_at' => 'datetime', 'ends_at' => 'datetime', 'registration_binding' => 'boolean', 'age_reference_date' => 'date', 'is_template' => 'boolean', 'public_page' => 'boolean', 'announce_at' => 'datetime', 'registration_opens_at' => 'datetime', 'registration_closes_at' => 'datetime', 'status_checked_at' => 'datetime', 'answers_until' => 'date', 'reserve_reminder_on' => 'date', 'reserve_auto_release' => 'boolean', 'reserve_reminded_at' => 'datetime', 'reminder_days_before' => 'array', 'cancellation_text' => 'array'];
+        return ['starts_at' => 'datetime', 'ends_at' => 'datetime', 'registration_binding' => 'boolean', 'bus_booked' => 'boolean', 'bus_seats' => 'integer', 'age_reference_date' => 'date', 'is_template' => 'boolean', 'public_page' => 'boolean', 'announce_at' => 'datetime', 'registration_opens_at' => 'datetime', 'registration_closes_at' => 'datetime', 'status_checked_at' => 'datetime', 'answers_until' => 'date', 'reserve_reminder_on' => 'date', 'reserve_auto_release' => 'boolean', 'reserve_reminded_at' => 'datetime', 'reminder_days_before' => 'array', 'cancellation_text' => 'array'];
     }
 
     /** @return BelongsTo<EventSeries, $this> */

@@ -16,6 +16,7 @@ use App\Models\Payment;
 use App\Models\PublicSubmission;
 use App\Support\Automations\Engine;
 use App\Support\Automations\Schedule;
+use App\Support\Events\Bus;
 use App\Support\Forms\Forms;
 use App\Support\Lists\EventLists;
 use App\Support\People\Duplicates;
@@ -66,6 +67,8 @@ class DashboardData
             'open_places' => collect($roles)->contains(fn ($r) => $r['capacity'] !== null) ? (int) collect($roles)->sum(fn ($r) => $r['bookable_left'] ?? 0) : null, // roles without a limit do not count
             'reserve_left' => array_sum(array_column($roles, 'reserve_left')),
             'roles' => $roles,
+            'bus' => Bus::status($event),
+            'bus_summary' => Bus::summary($event),
             'latest' => Participation::query()->where('event_id', $event->id)->whereNotIn('status', ['cancelled', 'declined'])->with('person')
                 ->orderByDesc('registered_at')->limit(3)->get()
                 ->map(fn (Participation $p) => ['name' => $p->person?->fullName(), 'at' => $p->registered_at, 'role' => $p->role_key, 'status' => $p->status])->all(),

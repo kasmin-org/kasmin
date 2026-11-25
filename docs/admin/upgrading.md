@@ -13,7 +13,7 @@ versions, and deployment scripts can call `POST /system/hooks/upgrade` (see [Hos
 
 ## Automatic updates
 
-*Settings → Organisation and invoices → Automatic updates* (administrators, not in Docker; off by default): a new version is installed by
+*Settings → Organisation and invoices → Automatic updates* (administrators, not in Docker; **on by default**, can be switched off): a new version is installed by
 the cron job once it has been out for the configured number of days (default 10), at the configured time of day (default 04:00, in the time
 zone of the settings). A backup of the database and the program files is made first.
 
@@ -36,6 +36,28 @@ Kasmin writes a database backup every night (02:30, needs the cron job) to `stor
 (*Settings → Keep daily backups*); backups before upgrades are kept. *System → System status* shows the last one. `php artisan kasmin:backup`
 makes one at once. **Copy the backups to another place too**: they are on the same server, and they contain personal data. Uploaded files
 and the `.env` file with the `APP_KEY` are not included; without this key, encrypted data such as safety sheets cannot be read.
+
+### Backups in the browser
+
+*System → System status → Backups* (administrators): **Back up now**, **Download** a backup, and – once a passphrase is set –
+**Download encrypted**. Every download is recorded in the audit log.
+
+### A copy outside the server
+
+A backup on the same server does not help if the server is lost. *Settings → Organisation and invoices → Backup outside the server*:
+
+| Setting | Meaning |
+|---|---|
+| Address of the folder | a folder of a storage service that speaks **WebDAV**, `https://` only – e.g. Nextcloud (`https://cloud.example.org/remote.php/dav/files/NAME/backups`) or a storage box |
+| User name, password | of the storage; use an app password if the service offers one |
+| Passphrase | at least 12 characters; **write it down outside of Kasmin** – without it the copies cannot be opened |
+
+Every night (and with *Back up now*) the backup is encrypted with the passphrase and sent there; as many copies are kept as daily backups.
+The system status shows when the last copy was sent, and an error if it failed. Password and passphrase are stored encrypted and are never
+shown again.
+
+**Open a copy again**: *System status → Backups → Open an encrypted backup*: upload the `.enc` file, get the `.sql.gz` back. Without Kasmin:
+`openssl enc -d -aes-256-cbc -pbkdf2 -iter 100000 -md sha256 -in FILE.sql.gz.enc -out FILE.sql.gz`.
 
 ### Restore a backup
 

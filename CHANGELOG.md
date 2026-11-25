@@ -6,6 +6,23 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ## [Unreleased]
 
+## [0.23.0] - 2026-11-25
+
+### Added
+
+- Setting for how long camp leaders and counsellors keep access to their own events after the end (default 180 days).
+- Travel by bus: an event can have a booked bus with a number of seats. Participants and dashboard show how full it is and warn when it is overbooked; adults can be set to travel by car (children always go by bus); lists *Bus list* and *Travel by car*.
+- Backups in the browser: back up now, download (also encrypted), and open an encrypted backup again – no shell needed.
+- Backup outside the server: every night an encrypted copy goes to a storage folder by WebDAV (https); the system status shows the result.
+
+### Changed
+
+- **Automatic updates are switched on by default** (not in Docker): a new version is installed 10 days after its release, with a notice two days before. Installations that never saved this setting follow the new default; switch it off under *Settings → Organisation and invoices*.
+
+### Fixed
+
+- After a version without changes to the database, the system status kept showing the old database version.
+
 ## [0.22.0] - 2026-11-25
 
 ### Added
@@ -514,7 +531,8 @@ First public pre-release for testing. Not ready for production use.
 - Docker image: system packages updated and build packages removed after compiling the PHP extensions – the
   container scan reports no high or critical findings any more (previously 75 in Debian packages).
 
-[Unreleased]: https://github.com/kasmin-org/kasmin/compare/v0.22.0...develop
+[Unreleased]: https://github.com/kasmin-org/kasmin/compare/v0.23.0...develop
+[0.23.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.23.0
 [0.22.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.22.0
 [0.21.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.21.0
 [0.20.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.20.0

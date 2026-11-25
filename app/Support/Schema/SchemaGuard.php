@@ -98,6 +98,10 @@ class SchemaGuard
         if ($this->pendingMigrations() !== []) {
             return SchemaStatus::UpgradeRequired;
         }
+        // A version without changes to the database needs no upgrade; only the number is written down.
+        if ($dbVersion !== null && version_compare($dbVersion, $this->codeVersion(), '<')) {
+            rescue(fn () => $this->recordCodeVersion(), report: false);
+        }
 
         return SchemaStatus::Ok;
     }

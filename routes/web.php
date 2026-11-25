@@ -20,6 +20,7 @@ use App\Http\Controllers\PortalTeamController;
 use App\Http\Controllers\PublicEventController;
 use App\Http\Controllers\PublicFormController;
 use App\Http\Controllers\PublicRegistrationController;
+use App\Http\Controllers\System\BackupController;
 use App\Http\Controllers\System\UpgradeController;
 use App\Http\Controllers\ViewAsController;
 use App\Http\Middleware\ReadOnlyPortalPreview;
@@ -85,6 +86,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/two-factor', [TwoFactorController::class, 'show'])->name('two-factor');
     Route::post('/two-factor', [TwoFactorController::class, 'verify'])->middleware('throttle:two-factor')->name('two-factor.verify');
     Route::get('/admin/participations/{participation}/confirmation.pdf', [ParticipationPdfController::class, 'admin'])->middleware([RequireSecondFactor::class, RequireFullLogin::class])->whereNumber('participation')->name('admin.participation.confirmation');
+    Route::middleware([RequireSecondFactor::class, RequireFullLogin::class])->prefix('admin/system/backups')->group(function () {
+        Route::post('/', [BackupController::class, 'create'])->middleware('throttle:install')->name('admin.backups.create');
+        Route::post('/decrypt', [BackupController::class, 'decrypt'])->name('admin.backups.decrypt');
+        Route::get('/{name}', [BackupController::class, 'download'])->where('name', '[A-Za-z0-9_.-]+')->name('admin.backups.download');
+    });
     Route::get('/admin/invoices/{invoice}/pdf', [InvoicePdfController::class, 'admin'])->middleware([RequireSecondFactor::class, RequireFullLogin::class])->name('admin.invoices.pdf');
     Route::middleware([RequireSecondFactor::class, RequireFullLogin::class])->group(function () {
         Route::get('/admin/events/{event}/lists/{key}.{format}', [EventListController::class, 'list'])->whereNumber('event')->where('key', '[a-z_]+')->where('format', 'pdf|xlsx|csv')->name('admin.lists.export');

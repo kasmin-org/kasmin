@@ -10,7 +10,8 @@ or CSV. Only people who take part are listed (registered, confirmed, attended).
 | Participants | name, gender, date of birth, age, role, status, legal guardians | administrator, board, camp leader, safety officer |
 | Figures for the team meeting | per role: counts by gender, total, were there before, new, waitlist – numbers only, no names | same |
 | Contacts | legal guardians with phone and e-mail | same |
-| Bus list | legal guardian with phone, boxes to tick for outward and return journey | same |
+| Bus list | everybody who travels by bus: legal guardian with phone, boxes to tick for outward and return journey | same |
+| Travel by car | adults who were set to travel by car, with phone | same |
 | Birthdays | birthdays during the event | same |
 | Answers | non-confidential answers of other forms, e.g. T-shirt sizes | same |
 | Safety sheets still missing | status and phone number, no health data | same |

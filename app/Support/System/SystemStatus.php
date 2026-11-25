@@ -3,6 +3,7 @@
 namespace App\Support\System;
 
 use App\Support\Backup\Backups;
+use App\Support\Backup\RemoteBackup;
 use App\Support\Install\Requirements;
 use App\Support\Mail\Sender;
 use App\Support\Schema\SchemaGuard;
@@ -88,6 +89,12 @@ class SystemStatus
             'key' => 'backup', 'label' => __('system.status.backup'), 'status' => $backup === null || $backup['at']->lt(now()->subDays(2)) ? 'warning' : 'ok',
             'detail' => $backup === null ? __('system.status.backup_none') : __('system.status.backup_last', ['time' => $backup['at']->diffForHumans(), 'size' => number_format($backup['size'] / 1048576, 1)]),
             'url' => self::docsUrl('admin/upgrading'),
+        ];
+        $remote = RemoteBackup::configured() ? RemoteBackup::state() : null;
+        $checks[] = [
+            'key' => 'backup_remote', 'label' => __('system.backup.remote'), 'url' => self::docsUrl('admin/upgrading'),
+            'status' => $remote === null ? 'warning' : ($remote['ok'] === false || ($remote['at'] !== null && Carbon::parse($remote['at'])->lt(now()->subDays(2))) ? 'error' : ($remote['ok'] === null ? 'info' : 'ok')),
+            'detail' => $remote === null ? __('system.backup.remote_off') : ($remote['ok'] === null ? __('system.backup.remote_never') : __($remote['ok'] ? 'system.backup.remote_ok' : 'system.backup.remote_failed', ['time' => Carbon::parse((string) $remote['at'])->diffForHumans(), 'error' => (string) $remote['error']])),
         ];
         if (Sender::testAddress() !== null) {
             $checks[] = ['key' => 'test_mode', 'label' => __('admin.settings.mail_test_address'), 'status' => 'warning', 'detail' => Sender::testAddress()];

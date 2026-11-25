@@ -13,7 +13,12 @@ token() { grep -o 'name="_token" value="[^"]*"' | head -1 | cut -d'"' -f4; }
 fail() { echo "FAIL: $1"; grep -E '\.ERROR:' storage/logs/laravel.log | tail -3 | cut -c1-400; exit 1; }
 
 curl -s -L -c "$J" -b "$J" "$B/" > /tmp/start.html
-grep -q 'data-upgrade-banner' /tmp/start.html || fail "no notice on the login page"
+if ! grep -q 'data-upgrade-banner' /tmp/start.html; then
+    # A version without changes to the database (e.g. right after a release) needs no upgrade.
+    if php artisan migrate:status | grep -q Pending; then fail "no notice on the login page"; fi
+    echo "OK: nothing to upgrade (no changes to the database since the old version)"
+    exit 0
+fi
 grep -q 'name="email"' /tmp/start.html || fail "no login form"
 [ "$(curl -s -o /dev/null -w '%{http_code}' "$B/api/v1/public/events")" = 503 ] || fail "the API answers during the upgrade"
 

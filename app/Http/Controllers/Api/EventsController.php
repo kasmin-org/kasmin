@@ -6,6 +6,7 @@ use App\Models\Event;
 use App\Models\EventRole;
 use App\Models\Participation;
 use App\Support\Api\Presenter;
+use App\Support\Events\Bus;
 use App\Support\Events\RegistrationException;
 use App\Support\Events\Registrations;
 use App\Support\Events\Waitlist;
@@ -109,8 +110,13 @@ class EventsController extends ApiController
     {
         $this->scope('events:write');
         $model = Participation::query()->with('event', 'person')->findOrFail($participation);
-        $data = $request->validate(['status' => ['required', Rule::in(Participation::STATUSES)]]);
-        if ($data['status'] === 'cancelled') {
+        $data = $request->validate(['status' => ['required_without:travel', Rule::in(Participation::STATUSES)], 'travel' => ['sometimes', Rule::in(['bus', 'car'])]]);
+        if (isset($data['travel'])) {
+            abort_unless(Bus::set($model, (string) $data['travel']), 422, 'Only adults can travel by car.');
+        }
+        if (! isset($data['status'])) {
+            // only the travel was changed
+        } elseif ($data['status'] === 'cancelled') {
             app(Registrations::class)->cancel($model);
         } else {
             $model->fill(['status' => $data['status']])->save();

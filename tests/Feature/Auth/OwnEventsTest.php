@@ -17,6 +17,7 @@ use App\Models\User;
 use App\Support\Auth\Permissions;
 use App\Support\Install\Defaults;
 use App\Support\Lists\EventLists;
+use App\Support\Settings;
 use Filament\Http\Middleware\AuthenticateSession;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -147,7 +148,10 @@ class OwnEventsTest extends TestCase
         $look(); // confirmed by the team
         $this->take($this->mine, $person, 'child');
         $look(); // taking part as a child does not count
-        $this->travel(37 + Permissions::OWN_EVENT_DAYS + 1)->days();
+        Settings::set('own_event_days', '30');
+        $this->travel(37 + 30 - 1)->days();
+        $this->assertNotSame([], Permissions::ownEvents($user), 'still inside the days set by the administrators');
+        $this->travel(2)->days();
         $look(); // too long ago
         $this->assertSame('[[],[],['.$this->other->id.'],['.$this->other->id.'],[]]', json_encode($seen));
     }

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\Auditable;
+use App\Support\Events\Waitlist;
 use App\Support\Settings;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -25,6 +26,10 @@ use Illuminate\Support\Carbon;
  * @property int|null $guest_of_id
  * @property string|null $offer_mode
  * @property int|null $notified_position
+ * @property list<string>|null $waitlist_flags
+ * @property string|null $waitlist_note
+ * @property Carbon|null $skipped_at
+ * @property string|null $skip_reason
  * @property Carbon|null $cancelled_at
  * @property string|null $cancel_reason
  */
@@ -38,7 +43,7 @@ class Participation extends Model
 
     protected function casts(): array
     {
-        return ['registered_at' => 'datetime', 'reserve_place' => 'boolean', 'offer_expires_at' => 'datetime', 'cancelled_at' => 'datetime'];
+        return ['registered_at' => 'datetime', 'reserve_place' => 'boolean', 'offer_expires_at' => 'datetime', 'cancelled_at' => 'datetime', 'waitlist_flags' => 'array', 'skipped_at' => 'datetime'];
     }
 
     /** @return BelongsTo<Event, $this> */
@@ -65,16 +70,9 @@ class Participation extends Model
         return ! $this->isOwn() || $viewer->id === $this->person_id || Settings::get('own_registrations') === 'visible';
     }
 
-    /** Position on the waitlist (1-based) by registration time, or null if not waiting. */
+    /** Position on the waitlist (1-based) by the rules of the role, or null if not waiting (WL02). */
     public function waitlistPosition(): ?int
     {
-        if ($this->status !== 'waitlist') {
-            return null;
-        }
-
-        return 1 + self::query()->where('event_id', $this->event_id)->where('role_key', $this->role_key)->where('status', 'waitlist')
-            ->where(fn ($q) => $q->where('registered_at', '<', $this->registered_at)
-                ->orWhere(fn ($q) => $q->where('registered_at', $this->registered_at)->where('id', '<', $this->id)))
-            ->count();
+        return $this->status !== 'waitlist' ? null : app(Waitlist::class)->position($this);
     }
 }

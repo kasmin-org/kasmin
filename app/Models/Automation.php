@@ -19,6 +19,7 @@ use Illuminate\Support\Carbon;
  * @property string $mode
  * @property list<string>|null $approver_roles
  * @property int $max_items
+ * @property int|null $approvals_needed
  * @property bool $active
  * @property bool $is_standard
  * @property Carbon|null $last_run_at
@@ -29,7 +30,14 @@ class Automation extends Model
 
     public const MODES = ['automatic', 'confirm', 'manual'];
 
-    public const TRIGGERS = ['manual', 'daily', 'before_event', 'after_event', 'on_place_freed'];
+    public const TRIGGERS = ['manual', 'daily', 'weekly', 'monthly', 'once', 'before_event', 'after_event', 'on_place_freed', 'on_status', 'on_group_joined', 'on_group_left', 'on_person_created', 'on_person_changed'];
+
+    /**
+     * Person and registration of the run that is planned or executed right now; not stored here.
+     *
+     * @var array<string, int>|null
+     */
+    public ?array $context = null;
 
     protected $guarded = ['id'];
 

@@ -4,6 +4,7 @@ namespace App\Support\Mail;
 
 use App\Models\Event;
 use App\Models\FormField;
+use App\Models\Group;
 use App\Models\Household;
 use App\Models\Invoice;
 use App\Models\Participation;
@@ -25,7 +26,7 @@ class Placeholders
     public const ADULT_AGE = 18;
 
     /**
-     * @param  array{event?: Event|null, participation?: Participation|null, household?: Household|null, invoice?: Invoice|null, children?: list<Person>, login?: bool}  $about
+     * @param  array{event?: Event|null, participation?: Participation|null, household?: Household|null, invoice?: Invoice|null, children?: list<Person>, login?: bool, group?: Group|null, offer_until?: Carbon|null}  $about
      * @return array<string, mixed>
      */
     public function for(Person $recipient, string $locale, array $about = []): array
@@ -37,6 +38,7 @@ class Placeholders
             'family' => ['name' => $about['household']->name ?? ''],
             'children' => array_map(fn (Person $c) => $this->person($c), $children),
             'organisation' => ['name' => self::organisationName()],
+            'group' => isset($about['group']) ? ['name' => $about['group']->name, 'offer_until' => isset($about['offer_until']) ? $about['offer_until']->copy()->settings(['locale' => $locale])->isoFormat('LL') : ''] : null,
             'event' => isset($about['event']) ? $this->event($about['event'], $locale) : null,
             'registration' => isset($about['participation']) ? $this->participation($about['participation'], $locale) : null,
             'invoice' => isset($about['invoice']) ? $this->invoice($about['invoice'], $locale) : null,
@@ -65,6 +67,7 @@ class Placeholders
             'family' => ['name' => 'Example'],
             'children' => [['first_name' => 'Kim', 'last_name' => 'Example', 'full_name' => 'Kim Example', 'age' => 10]],
             'organisation' => ['name' => 'Example Camp'],
+            'group' => ['name' => 'Junior team', 'offer_until' => '01.06.2027'],
             'event' => ['title' => 'Summer camp', 'starts_at' => '15.08.2027', 'ends_at' => '22.08.2027', 'location' => 'Example place', 'meeting_point' => 'Station'],
             'registration' => ['status' => 'Waitlist', 'waitlist_position' => 3, 'waitlist_total' => 9, 'child' => 'Kim Example', 'answers' => [], 'by_payment' => false, 'offer_until' => '20.03.2027 23:59'],
             'invoice' => ['number' => 'R17', 'total' => '250,00 €', 'open' => '250,00 €', 'paid' => '0,00 €', 'due_on' => '01.06.2027', 'reference' => 'RF72R17', 'iban' => 'AT61 1904 3002 3457 3201', 'overdue' => false, 'children' => 'Kim Example'],

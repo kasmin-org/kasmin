@@ -21,6 +21,9 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $age_reference_date
  * @property Carbon|null $answers_until
  * @property int $max_guests
+ * @property Carbon|null $reserve_reminder_on
+ * @property bool $reserve_auto_release
+ * @property Carbon|null $reserve_reminded_at
  * @property int|null $safety_confirm_days
  * @property bool $is_template
  * @property bool $public_page
@@ -49,12 +52,18 @@ class Event extends Model
     protected $guarded = ['id', 'public_id'];
 
     /** Defaults like in the database, also before the model is reloaded. */
-    protected $attributes = ['status' => 'draft', 'is_template' => false, 'public_page' => false, 'max_guests' => 0, 'registration_binding' => true, 'currency' => 'EUR', 'sibling_mode' => 'none', 'sibling_amount_cents' => 0, 'sibling_min_children' => 2, 'sibling_order' => 'oldest'];
+    protected $attributes = ['status' => 'draft', 'is_template' => false, 'public_page' => false, 'max_guests' => 0, 'registration_binding' => true, 'reserve_auto_release' => false, 'currency' => 'EUR', 'sibling_mode' => 'none', 'sibling_amount_cents' => 0, 'sibling_min_children' => 2, 'sibling_order' => 'oldest'];
 
     protected static function booted(): void
     {
         // Templates (ET01) are never shown or used as events.
         static::addGlobalScope('template', fn (Builder $query) => $query->where('events.is_template', static::class === EventTemplate::class));
+        // A new date for the reserve places means a new reminder (WL06).
+        static::updating(function (Event $event) {
+            if ($event->isDirty('reserve_reminder_on')) {
+                $event->reserve_reminded_at = null;
+            }
+        });
     }
 
     /** @return list<string> */
@@ -65,7 +74,7 @@ class Event extends Model
 
     protected function casts(): array
     {
-        return ['starts_at' => 'datetime', 'ends_at' => 'datetime', 'registration_binding' => 'boolean', 'age_reference_date' => 'date', 'is_template' => 'boolean', 'public_page' => 'boolean', 'announce_at' => 'datetime', 'registration_opens_at' => 'datetime', 'registration_closes_at' => 'datetime', 'status_checked_at' => 'datetime', 'answers_until' => 'date', 'reminder_days_before' => 'array', 'cancellation_text' => 'array'];
+        return ['starts_at' => 'datetime', 'ends_at' => 'datetime', 'registration_binding' => 'boolean', 'age_reference_date' => 'date', 'is_template' => 'boolean', 'public_page' => 'boolean', 'announce_at' => 'datetime', 'registration_opens_at' => 'datetime', 'registration_closes_at' => 'datetime', 'status_checked_at' => 'datetime', 'answers_until' => 'date', 'reserve_reminder_on' => 'date', 'reserve_auto_release' => 'boolean', 'reserve_reminded_at' => 'datetime', 'reminder_days_before' => 'array', 'cancellation_text' => 'array'];
     }
 
     /** @return BelongsTo<EventSeries, $this> */

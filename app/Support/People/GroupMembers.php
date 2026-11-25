@@ -7,6 +7,7 @@ use App\Models\Group;
 use App\Models\Participation;
 use App\Models\Person;
 use App\Support\Audit\Audit;
+use App\Support\Automations\Triggers;
 use App\Support\Lists\EventLists;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -123,13 +124,17 @@ class GroupMembers
     {
         if (! $group->people()->whereKey($personId)->exists()) {
             DB::table('group_memberships')->insert(['group_id' => $group->id, 'person_id' => $personId, 'starts_on' => now()->toDateString(), 'source' => $source, 'created_at' => now(), 'updated_at' => now()]);
+            Triggers::group('on_group_joined', $group, $personId);
         }
     }
 
     public static function leave(Group $group, int $personId): void
     {
-        DB::table('group_memberships')->where('group_id', $group->id)->where('person_id', $personId)
+        $ended = DB::table('group_memberships')->where('group_id', $group->id)->where('person_id', $personId)
             ->where(fn ($q) => $q->whereNull('ends_on')->orWhere('ends_on', '>=', now()->toDateString()))
             ->update(['ends_on' => now()->subDay()->toDateString(), 'updated_at' => now()]);
+        if ($ended > 0) {
+            Triggers::group('on_group_left', $group, $personId);
+        }
     }
 }

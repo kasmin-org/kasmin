@@ -44,6 +44,11 @@ class AutomationDefaults
                 'description' => ['de' => 'Erstellt und versendet die Restzahlungsrechnungen 90 Tage vor Beginn.', 'en' => 'Creates and sends the balance invoices 90 days before the start.'],
                 'action' => 'invoice_run', 'config' => ['installment' => 'balance', 'send' => true], 'trigger' => 'before_event', 'trigger_config' => ['days' => 90], 'mode' => 'confirm',
             ],
+            'group_waitlist_offers' => [
+                'name' => ['de' => 'Freie Plätze in Gruppen anbieten', 'en' => 'Offer free places in groups'],
+                'description' => ['de' => 'Bietet freie Plätze in Gruppen mit Warteliste den nächsten Personen an.', 'en' => 'Offers free places in groups with a waitlist to the next people.'],
+                'action' => 'group_waitlist_offer', 'config' => ['offer_days' => 14], 'trigger' => 'daily', 'trigger_config' => ['time' => '09:30'], 'mode' => 'confirm',
+            ],
             'waitlist_positions' => [
                 'name' => ['de' => 'Neuer Platz auf der Warteliste', 'en' => 'New position on the waitlist'],
                 'description' => ['de' => 'Informiert Familien, wenn ein Kind auf der Warteliste vorgerückt ist.', 'en' => 'Tells families that a child has moved up on the waitlist.'],

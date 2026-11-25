@@ -3,6 +3,7 @@
 namespace App\Support\Automations;
 
 use App\Models\Automation;
+use App\Models\AutomationApproval;
 use App\Models\AutomationRun;
 use App\Models\Event;
 use App\Models\User;
@@ -25,10 +26,12 @@ class Engine
     public const ACTIONS = [
         'waitlist_offer' => Actions\WaitlistOffer::class,
         'offer_expiry' => Actions\OfferExpiry::class,
+        'group_waitlist_offer' => Actions\GroupWaitlistOffer::class,
         'waitlist_positions' => Actions\WaitlistPositions::class,
         'mailing_release' => Actions\MailingRelease::class,
         'registration_rounds' => Actions\RegistrationRounds::class,
         'invoice_run' => Actions\InvoiceRun::class,
+        'custom' => Actions\Custom::class,
         'send_template' => Actions\SendTemplate::class,
         'safety_sheet_reminder' => Actions\SafetySheetReminder::class,
         'start_season' => Actions\StartSeason::class,
@@ -43,7 +46,12 @@ class Engine
     /** Actions that work on one event and need it from the trigger or the button. */
     public const NEEDS_EVENT = ['invoice_run', 'send_template', 'start_season', 'close_event'];
 
-    public function __construct(private readonly Approvals $approvals) {}
+    public function __construct(private readonly Approvals $approvals, private readonly Schedule $schedule) {}
+
+    public static function needsEvent(Automation $automation): bool
+    {
+        return in_array($automation->action, self::NEEDS_EVENT, true) || ($automation->action === 'custom' && Actions\Custom::needsEvent($automation));
+    }
 
     public function action(Automation $automation): Action
     {
@@ -55,18 +63,23 @@ class Engine
     /**
      * Dry run (AT07): what would happen now, without changing anything.
      *
+     * @param  array<string, int>|null  $context  person and registration the run is about (changes as trigger)
      * @return list<array{key: string, label: string, details?: string|null}>
      */
-    public function preview(Automation $automation, ?Event $event = null): array
+    public function preview(Automation $automation, ?Event $event = null, ?array $context = null): array
     {
+        $automation->context = $context;
+
         return $this->action($automation)->plan($automation, $event?->loadMissing('roles', 'installments'));
     }
 
     /**
      * Starts a run. $by: the person who pressed the button (runs directly if they may approve, after they saw the
      * preview); with $forceApproval the approvers always decide (API and MCP without approvals:decide). Returns null if there is nothing to do or the run already exists (dedupe key).
+     *
+     * @param  array<string, int>|null  $context
      */
-    public function trigger(Automation $automation, string $trigger, ?Event $event = null, ?string $dedupe = null, ?User $by = null, bool $forceApproval = false): ?AutomationRun
+    public function trigger(Automation $automation, string $trigger, ?Event $event = null, ?string $dedupe = null, ?User $by = null, bool $forceApproval = false, ?array $context = null): ?AutomationRun
     {
         if ($by === null && (! $automation->active || $automation->mode === 'manual')) {
             return null;
@@ -74,8 +87,9 @@ class Engine
         if ($dedupe !== null && $automation->runs()->where('dedupe_key', $dedupe)->exists()) {
             return null;
         }
-        // One open request per automation and event: the scheduler waits for the decision; a manual run replaces it.
-        $open = $automation->runs()->where('status', 'pending_approval')->where('event_id', $event?->id)->where('expires_at', '>', now())->get();
+        // One open request per automation, event and person: the scheduler waits for the decision; a manual run replaces it.
+        $open = $automation->runs()->where('status', 'pending_approval')->where('event_id', $event?->id)->where('expires_at', '>', now())->get()
+            ->filter(fn (AutomationRun $run) => ($run->context['person_id'] ?? null) === ($context['person_id'] ?? null));
         if ($open->isNotEmpty()) {
             if ($by === null) {
                 return null;
@@ -85,13 +99,13 @@ class Engine
                 $old->tokens()->whereNull('used_at')->update(['used_at' => now()]);
             }
         }
-        $plan = $this->preview($automation, $event);
+        $plan = $this->preview($automation, $event, $context);
         if ($plan === []) {
             return null;
         }
         try {
             $run = $automation->runs()->create([
-                'dedupe_key' => $dedupe, 'trigger' => $trigger, 'event_id' => $event?->id, 'plan' => $plan, 'status' => 'pending_approval',
+                'dedupe_key' => $dedupe, 'trigger' => $trigger, 'event_id' => $event?->id, 'context' => $context, 'plan' => $plan, 'status' => 'pending_approval',
                 'expires_at' => now()->addDays(max(1, (int) config('kasmin.approval_days', 7))),
             ]);
         } catch (UniqueConstraintViolationException) {
@@ -102,6 +116,9 @@ class Engine
         // $forceApproval: started via API/MCP without the scope approvals:decide – always a draft for humans (X05).
         if ($by !== null && ! $forceApproval && $this->mayApprove($automation, $by)) {
             $this->decide($run, $by, true);
+            if ($run->refresh()->status === 'pending_approval') { // more approvals needed (RO03)
+                $this->approvals->request($run);
+            }
         } elseif ($by === null && $automation->mode === 'automatic' && count($plan) <= $automation->max_items) {
             $this->execute($run);
         } else {
@@ -136,12 +153,28 @@ class Engine
             throw new RuntimeException(__('automations.errors.not_allowed'));
         }
         $keys = array_column($run->plan, 'key');
+        $needed = max(1, (int) $run->automation->approvals_needed);
+        if ($approve && $needed > 1) {
+            if ($run->approvals()->where('user_id', $user->id)->exists()) {
+                throw new RuntimeException(__('automations.errors.already_approved'));
+            }
+            $run->approvals()->create(['user_id' => $user->id, 'excluded' => array_values(array_intersect($excluded, $keys)) ?: null]);
+            // What one approver left out stays out.
+            $excluded = array_values(array_unique($run->approvals()->get()->flatMap(fn (AutomationApproval $a) => $a->excluded ?? [])->all()));
+            if ($run->approvals()->count() < $needed) {
+                $run->tokens()->where('user_id', $user->id)->whereNull('used_at')->update(['used_at' => now()]);
+                Audit::record('automation.approved_partly', $run->automation, null, ['run' => $run->id, 'approvals' => $run->approvals()->count(), 'needed' => $needed, 'comment' => $comment], null, $user->id);
+
+                return $run->refresh();
+            }
+        }
         $run->forceFill([
             'status' => $approve ? 'approved' : 'denied', 'decided_by_id' => $user->id, 'decided_at' => now(),
             'excluded' => array_values(array_intersect($excluded, $keys)) ?: null, 'comment' => $comment !== null ? Str::limit($comment, 490) : null,
         ])->save();
         $run->tokens()->whereNull('used_at')->update(['used_at' => now()]);
         Audit::record($approve ? 'automation.approved' : 'automation.denied', $run->automation, null, ['run' => $run->id, 'excluded' => count($run->excluded ?? []), 'comment' => $run->comment], null, $user->id);
+        $this->approvals->informOthers($run, $user);
         if ($approve) {
             $this->execute($run);
         }
@@ -154,6 +187,7 @@ class Engine
     {
         $automation = $run->automation ?? throw new RuntimeException('Run without automation');
         $action = $this->action($automation);
+        $automation->context = $run->context;
         $event = $run->event?->loadMissing('roles', 'installments');
         $results = [];
         $errors = 0;
@@ -194,7 +228,7 @@ class Engine
     public function tick(): int
     {
         $started = 0;
-        foreach (Automation::query()->where('active', true)->whereIn('trigger', ['daily', 'before_event', 'after_event'])->get() as $automation) {
+        foreach (Automation::query()->where('active', true)->whereIn('trigger', ['daily', 'weekly', 'monthly', 'once', 'before_event', 'after_event'])->get() as $automation) {
             foreach ($this->due($automation) as [$event, $dedupe]) {
                 $started += $this->trigger($automation, $automation->trigger, $event, $dedupe) !== null ? 1 : 0;
             }
@@ -208,10 +242,10 @@ class Engine
     public function due(Automation $automation): array
     {
         $days = (int) $automation->triggerSetting('days', 0);
-        if ($automation->trigger === 'daily') {
-            $time = (string) $automation->triggerSetting('time', '08:00');
+        if (in_array($automation->trigger, ['daily', 'weekly', 'monthly', 'once'], true)) {
+            $time = (string) ($automation->triggerSetting('time') ?: '08:00');
 
-            return now()->format('H:i') >= $time ? [[null, 'day:'.now()->toDateString()]] : [];
+            return $this->schedule->onDay($automation, now()) && now()->format('H:i') >= $time ? [[null, 'day:'.now()->toDateString()]] : [];
         }
         $events = Event::query()->whereNotIn('status', ['draft', 'cancelled'])
             ->when($automation->triggerSetting('series'), fn ($q, $series) => $q->where('event_series_id', (int) $series));

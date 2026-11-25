@@ -12,6 +12,7 @@ use App\Models\Person;
 use App\Models\User;
 use App\Support\Api\ApiContext;
 use App\Support\Audit\Audit;
+use App\Support\Automations\Triggers;
 use App\Support\Webhooks\Webhooks;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
@@ -83,6 +84,12 @@ class PeopleImporter
      * @param  list<array<string, mixed>>  $rows
      */
     public function import(array $rows, string $source, string $locale = 'de'): ImportBatch
+    {
+        return Triggers::muted(fn () => $this->importRows($rows, $source, $locale));
+    }
+
+    /** @param  list<array<string, mixed>>  $rows */
+    private function importRows(array $rows, string $source, string $locale): ImportBatch
     {
         $families = app(FamilyBuilder::class)->familyKeys($rows);
 

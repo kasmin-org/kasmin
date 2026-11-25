@@ -83,7 +83,8 @@ class Privacy
             FormResponse::query()->where('person_id', $person->id)->delete();
             OutgoingMail::query()->where('person_id', $person->id)->delete();
             RegistrationAnswer::query()->whereIn('participation_id', $person->participations()->pluck('id'))->delete();
-            $person->participations()->update(['price_reason' => null, 'cancel_reason' => null]);
+            $person->participations()->update(['price_reason' => null, 'cancel_reason' => null, 'waitlist_flags' => null, 'waitlist_note' => null, 'skip_reason' => null]);
+            DB::table('group_waitlist_entries')->where('person_id', $person->id)->delete();
             PublicSubmission::query()->where('person_id', $person->id)->delete();
             $person->households()->detach();
             DB::table('guardianships')->where('child_id', $person->id)->orWhere('guardian_id', $person->id)->delete(); // also ended ones

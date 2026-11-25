@@ -20,6 +20,7 @@ return [
     'notify_deletion' => 'Deletion request from :name',
     'digest_subject' => 'Kasmin: :count new events',
     'topics' => [
+        'tasks' => 'Tasks from automations',
         'registrations' => 'New sign-ups and registrations',
         'profile_updates' => 'Updated information',
         'safety_updates' => 'Safety sheets',

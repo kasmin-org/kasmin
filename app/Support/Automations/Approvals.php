@@ -4,9 +4,11 @@ namespace App\Support\Automations;
 
 use App\Models\AutomationApprovalToken;
 use App\Models\AutomationRun;
+use App\Models\OutgoingMail;
 use App\Models\Role;
 use App\Models\User;
 use App\Support\Mail\Composer;
+use App\Support\Mail\MailLinks;
 use App\Support\Mail\Notifier;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
@@ -33,17 +35,45 @@ class Approvals
     {
         $run->loadMissing('automation', 'event');
         $sent = 0;
+        $done = $run->approvals()->pluck('user_id')->all();
         foreach ($this->approvers($run) as $user) {
-            $token = Str::random(48);
-            $run->tokens()->create(['user_id' => $user->id, 'token_hash' => hash('sha256', $token), 'expires_at' => $run->expires_at ?? now()->addDays(7)]);
+            if (in_array($user->id, $done, true)) {
+                continue;
+            }
             $locale = $user->person->locale ?? app()->getLocale();
             $subject = __($reminder ? 'automations.mail.reminder_subject' : 'automations.mail.subject', ['name' => $run->automation?->label($locale)], $locale);
-            $html = view('mail.approval-request', ['run' => $run, 'url' => route('approvals.show', $token), 'locale' => $locale, 'user' => $user])->render();
-            app(Composer::class)->queueRaw($user->email, $user->name, $subject, $html, $locale, 'notification', $user->person_id);
+            $html = view('mail.approval-request', ['run' => $run, 'url' => route('approvals.show', MailLinks::PLACEHOLDER), 'locale' => $locale, 'user' => $user])->render();
+            $mail = app(Composer::class)->queueRaw($user->email, $user->name, $subject, $html, $locale, 'notification', $user->person_id);
+            $mail->forceFill(['attachments' => [['approval_run_id' => $run->id]]])->save();
             $sent++;
         }
 
         return $sent;
+    }
+
+    /** The other approvers who were asked learn who decided (RO03). */
+    public function informOthers(AutomationRun $run, User $by): void
+    {
+        // Compared in PHP: databases store JSON with different spaces.
+        $asked = OutgoingMail::query()->where('kind', 'notification')->where('attachments', 'like', '%approval_run_id%')->when($run->created_at, fn ($q, $since) => $q->where('created_at', '>=', $since))->get(['id', 'person_id', 'attachments'])
+            ->filter(fn (OutgoingMail $mail) => collect($mail->attachments ?? [])->contains(fn (array $a) => (int) ($a['approval_run_id'] ?? 0) === $run->id))->pluck('person_id')->all();
+        foreach ($this->approvers($run) as $user) {
+            if ($user->id === $by->id || ! in_array($user->person_id, $asked, true)) {
+                continue;
+            }
+            $locale = $user->person->locale ?? app()->getLocale();
+            $text = __('automations.mail.decided_'.($run->status === 'denied' ? 'denied' : 'approved'), ['name' => $run->automation?->label($locale), 'by' => $by->name], $locale);
+            app(Composer::class)->queueRaw($user->email, $user->name, (string) __('automations.mail.decided_subject', ['name' => $run->automation?->label($locale)], $locale), '<p>'.e($text).'</p>', $locale, 'notification', $user->person_id);
+        }
+    }
+
+    /** Personal link of an approver; made when the mail is sent, so it is never stored (AT04). */
+    public function link(AutomationRun $run, User $user): string
+    {
+        $token = Str::random(48);
+        $run->tokens()->create(['user_id' => $user->id, 'token_hash' => hash('sha256', $token), 'expires_at' => $run->expires_at ?? now()->addDays(7)]);
+
+        return route('approvals.show', $token);
     }
 
     public function findByToken(string $token): ?AutomationApprovalToken

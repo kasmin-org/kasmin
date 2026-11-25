@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int|null $min_age
  * @property int|null $max_age
  * @property string $registered_by
+ * @property list<string>|null $waitlist_order
  * @property int $price_cents
  * @property int $role_discount_cents
  * @property bool $counts_as_sibling
@@ -37,7 +38,7 @@ class EventRole extends Model
 
     protected function casts(): array
     {
-        return ['counts_as_sibling' => 'boolean'];
+        return ['counts_as_sibling' => 'boolean', 'waitlist_order' => 'array'];
     }
 
     /** @return BelongsTo<Event, $this> */

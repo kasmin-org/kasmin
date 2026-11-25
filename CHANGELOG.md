@@ -6,6 +6,32 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ## [Unreleased]
 
+## [0.20.0] - 2026-11-25
+
+Pre-release for testing. Not ready for production use.
+
+### Added
+
+- Waitlist: order by rules per role (priority, took part last time, number of events, registration date), page with reasons, offers and manual actions, skipping with a reason.
+- Release of reserve places, reminder to all administrators at a date, automatic release (off by default).
+- Waitlists of groups with offers in the portal.
+- Own automations: trigger (also weekly, monthly, on a date, changes of status, group or field), people, conditions and steps.
+- Approvals by several people; the others are told who decided.
+- Schedule of an event, all automation runs of the next 14 days on the dashboard.
+- New season: copy an event and start the season with a preview of everything that will happen.
+
+### Security
+
+- Stored approval mails no longer contain the link that decides without a login; it is made when the mail is sent. Until now, people with access to the mail log could decide about automations in the name of an approver, e.g. about their own large mailing.
+
+### Changed
+
+- Standard texts, automations and event types of an update are installed after all changes of the database. Every change is now tested with an upgrade from 0.10.0 and from the last release (SQLite and MariaDB).
+
+### Fixed
+
+- Free places were no longer offered to the waitlist by the daily automation once the registration was closed.
+
 ## [0.19.0] - 2026-11-25
 
 Pre-release for testing. Not ready for production use.
@@ -430,7 +456,8 @@ First public pre-release for testing. Not ready for production use.
 - Docker image: system packages updated and build packages removed after compiling the PHP extensions – the
   container scan reports no high or critical findings any more (previously 75 in Debian packages).
 
-[Unreleased]: https://github.com/kasmin-org/kasmin/compare/v0.19.0...develop
+[Unreleased]: https://github.com/kasmin-org/kasmin/compare/v0.20.0...develop
+[0.20.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.20.0
 [0.19.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.19.0
 [0.18.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.18.0
 [0.17.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.17.0

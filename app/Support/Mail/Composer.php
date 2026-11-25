@@ -3,6 +3,7 @@
 namespace App\Support\Mail;
 
 use App\Models\Event;
+use App\Models\Group;
 use App\Models\Household;
 use App\Models\Invoice;
 use App\Models\MailTemplate;
@@ -10,6 +11,7 @@ use App\Models\OutgoingMail;
 use App\Models\Participation;
 use App\Models\Person;
 use App\Support\Settings;
+use Illuminate\Support\Carbon;
 
 /**
  * Turns a template into queued mails for a recipient (MS01, MT03, MT06): placeholders, layout with the footer links
@@ -20,7 +22,7 @@ class Composer
     public function __construct(private readonly TemplateRenderer $renderer, private readonly Placeholders $placeholders) {}
 
     /**
-     * @param  array{event?: Event|null, participation?: Participation|null, household?: Household|null, invoice?: Invoice|null, children?: list<Person>, login?: bool}  $about
+     * @param  array{event?: Event|null, participation?: Participation|null, household?: Household|null, invoice?: Invoice|null, children?: list<Person>, login?: bool, group?: Group|null, offer_until?: Carbon|null}  $about
      * @param  list<array<string, mixed>>|null  $attachments  generated attachments, e.g. [['invoice_id' => 1, 'paid' => false]] (MT08)
      */
     public function queue(string|MailTemplate $template, Person $recipient, array $about = [], string $kind = 'transactional', string $status = 'queued', ?int $mailingId = null, ?array $attachments = null): ?OutgoingMail

@@ -12,6 +12,7 @@ use App\Models\Person;
 use App\Models\Refund;
 use App\Models\Role;
 use App\Models\User;
+use App\Support\Automations\Triggers;
 use App\Support\Events\Registrations;
 use App\Support\Finance\Invoices;
 use App\Support\Settings;
@@ -30,6 +31,12 @@ class DemoData
      * @return array{households: int, people: int}
      */
     public function generate(string $locale = 'de', int $families = 30, int $staff = 15, int $seed = 2026, string $emailDomain = 'example.org'): array
+    {
+        return Triggers::muted(fn () => $this->build($locale, $families, $staff, $seed, $emailDomain));
+    }
+
+    /** @return array{households: int, people: int} */
+    private function build(string $locale, int $families, int $staff, int $seed, string $emailDomain): array
     {
         $this->faker = Faker::create($locale === 'en' ? 'en_GB' : 'de_AT');
         $this->faker->seed($seed);

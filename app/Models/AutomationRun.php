@@ -17,6 +17,7 @@ use Illuminate\Support\Carbon;
  * @property string $trigger
  * @property int|null $event_id
  * @property list<array{key: string, label: string, details?: string|null}> $plan
+ * @property array<string, int>|null $context
  * @property list<string>|null $excluded
  * @property array<string, mixed>|null $result
  * @property string|null $error
@@ -36,7 +37,7 @@ class AutomationRun extends Model
     protected function casts(): array
     {
         return [
-            'plan' => 'array', 'excluded' => 'array', 'result' => 'array', 'expires_at' => 'datetime', 'reminded_at' => 'datetime',
+            'plan' => 'array', 'context' => 'array', 'excluded' => 'array', 'result' => 'array', 'expires_at' => 'datetime', 'reminded_at' => 'datetime',
             'decided_at' => 'datetime', 'executed_at' => 'datetime',
         ];
     }
@@ -57,6 +58,12 @@ class AutomationRun extends Model
     public function decidedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'decided_by_id');
+    }
+
+    /** @return HasMany<AutomationApproval, $this> */
+    public function approvals(): HasMany
+    {
+        return $this->hasMany(AutomationApproval::class);
     }
 
     /** @return HasMany<AutomationApprovalToken, $this> */

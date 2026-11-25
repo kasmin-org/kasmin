@@ -22,14 +22,14 @@ use Illuminate\Validation\ValidationException;
  */
 class EventsController extends ApiController
 {
-    /** Events, newest first; filter by status. */
+    /** Events, newest first; filter by status. In pages (page, per_page up to 200, default 50). */
     public function index(Request $request): JsonResponse
     {
         $this->scope('events:read');
-        $events = Event::query()->with('series')->when($request->query('status'), fn ($q, $s) => $q->where('status', $s))
-            ->orderByDesc('starts_at')->limit(200)->get();
+        $page = Event::query()->with('series')->when($request->query('status'), fn ($q, $s) => $q->where('status', $s))
+            ->orderByDesc('starts_at')->orderByDesc('id')->paginate($this->perPage());
 
-        return response()->json(['data' => $events->map(fn (Event $e) => Presenter::event($e))->values()]);
+        return response()->json(['data' => $page->getCollection()->map(fn (Event $e) => Presenter::event($e))->values(), 'meta' => ['total' => $page->total(), 'page' => $page->currentPage(), 'last_page' => $page->lastPage()]]);
     }
 
     /** One event with roles, capacities, free places, waitlist lengths, prices and instalments. */

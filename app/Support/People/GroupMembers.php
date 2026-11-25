@@ -120,12 +120,16 @@ class GroupMembers
         return Person::query()->whereHas('groups', fn ($q) => $q->whereIn('groups.id', $ids))->pluck('id')->map(fn ($id) => (int) $id);
     }
 
-    public static function join(Group $group, int $personId, string $source): void
+    /** Returns false if the person already was a member. */
+    public static function join(Group $group, int $personId, string $source): bool
     {
-        if (! $group->people()->whereKey($personId)->exists()) {
-            DB::table('group_memberships')->insert(['group_id' => $group->id, 'person_id' => $personId, 'starts_on' => now()->toDateString(), 'source' => $source, 'created_at' => now(), 'updated_at' => now()]);
-            Triggers::group('on_group_joined', $group, $personId);
+        if ($group->people()->whereKey($personId)->exists()) {
+            return false;
         }
+        DB::table('group_memberships')->insert(['group_id' => $group->id, 'person_id' => $personId, 'starts_on' => now()->toDateString(), 'source' => $source, 'created_at' => now(), 'updated_at' => now()]);
+        Triggers::group('on_group_joined', $group, $personId);
+
+        return true;
     }
 
     public static function leave(Group $group, int $personId): void

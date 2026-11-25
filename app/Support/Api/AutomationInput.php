@@ -8,6 +8,7 @@ use App\Models\Participation;
 use App\Models\Role;
 use App\Support\Automations\Actions\Custom;
 use App\Support\People\GroupMembers;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -20,6 +21,9 @@ use Illuminate\Validation\ValidationException;
 class AutomationInput
 {
     public const FIELDS = ['name', 'active', 'mode', 'max_items', 'approvals_needed', 'approver_roles', 'trigger', 'trigger_config', 'config'];
+
+    /** Who approves and when; see protect(). */
+    public const APPROVAL_FIELDS = ['mode', 'max_items', 'approvals_needed', 'approver_roles'];
 
     /** Setting of the trigger => triggers that have it. */
     private const TRIGGER_KEYS = [
@@ -83,6 +87,29 @@ class AutomationInput
         }
 
         return $data;
+    }
+
+    /**
+     * An AI assistant must not switch an approval off (X05, MI12): via MCP, a token without the scope
+     * approvals:decide cannot change who approves and when (mode, max_items, approvals_needed, approver_roles), and
+     * cannot change what an automation does or switch it on while it runs without approval (mode automatic).
+     * Call it with the changes filled in and not yet saved.
+     *
+     * @throws AuthorizationException
+     */
+    public static function protect(Automation $automation): void
+    {
+        if (! ApiContext::viaMcp() || ApiContext::allows('approvals:decide')) {
+            return;
+        }
+        if ($automation->isDirty(self::APPROVAL_FIELDS)) {
+            throw new AuthorizationException('Via MCP, changing '.implode(', ', self::APPROVAL_FIELDS).' needs the scope approvals:decide.');
+        }
+        $unapproved = $automation->getOriginal('mode') === 'automatic'
+            && ($automation->isDirty(['trigger', 'trigger_config', 'config']) || ($automation->isDirty('active') && $automation->active));
+        if ($unapproved) {
+            throw new AuthorizationException('This automation runs without approval. Via MCP, changing its trigger or settings or switching it on needs the scope approvals:decide.');
+        }
     }
 
     /**

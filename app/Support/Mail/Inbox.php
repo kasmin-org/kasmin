@@ -74,8 +74,9 @@ class Inbox
             'person_id' => $personId, 'household_id' => $original?->household_id, 'outgoing_mail_id' => $original?->id,
             'kind' => $isBounce ? 'bounce' : 'reply', 'received_at' => $message->date() ?? now(),
         ]);
-        if ($isBounce && $original !== null) {
+        if ($isBounce && $original !== null && ! BadAddresses::onlyDelayed($subject, $text)) {
             $original->forceFill(['status' => 'bounced'])->save();
+            app(BadAddresses::class)->mark($original, trim($subject.': '.Str::limit(trim((string) preg_replace('/\s+/', ' ', $text)), 300)));
             app(Notifier::class)->event('bounces', __('mail.notify_bounce', ['to' => $original->to_address]));
         }
 

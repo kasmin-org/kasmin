@@ -86,6 +86,11 @@ class Mailings
 
                     continue;
                 }
+                if ($target->contactPoints()->where('type', 'email')->where('value', $target->primaryEmail())->whereNotNull('bounced_at')->exists()) {
+                    $excluded[] = ['person' => $target, 'reason' => 'bad_address'];
+
+                    continue;
+                }
                 $key = $mailing->one_per_family ? 'p'.$target->id : 'p'.$target->id.'-'.$subject->id;
                 $mails[$key] ??= ['to' => $target, 'children' => [], 'household' => $subject->households->first()];
                 if ($target->id !== $subject->id) {
@@ -181,9 +186,26 @@ class Mailings
         return $count;
     }
 
+    /** Stops the mails that are not sent yet (MM08). */
+    public function pause(Mailing $mailing): int
+    {
+        $count = $mailing->mails()->where('status', 'queued')->update(['status' => 'paused']);
+        $mailing->forceFill(['status' => 'paused'])->save();
+
+        return $count;
+    }
+
+    public function resume(Mailing $mailing): int
+    {
+        $count = $mailing->mails()->where('status', 'paused')->update(['status' => 'queued']);
+        $mailing->forceFill(['status' => 'sending'])->save();
+
+        return $count;
+    }
+
     public function cancel(Mailing $mailing): void
     {
-        $mailing->mails()->whereIn('status', ['held', 'queued'])->update(['status' => 'cancelled']);
+        $mailing->mails()->whereIn('status', ['held', 'queued', 'paused'])->update(['status' => 'cancelled']);
         $mailing->forceFill(['status' => 'cancelled'])->save();
     }
 }

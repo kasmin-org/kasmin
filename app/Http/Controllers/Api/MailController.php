@@ -57,6 +57,7 @@ class MailController extends ApiController
                 throw ValidationException::withMessages(["contents.{$i}" => $errors]);
             }
         }
+        $model->keepFirstVersion();
         foreach ($data['contents'] as $content) {
             $model->contents()->updateOrCreate(['locale' => $content['locale']], ['subject' => $content['subject'], 'html' => $content['html'], 'text' => $content['text'] ?? null]);
         }

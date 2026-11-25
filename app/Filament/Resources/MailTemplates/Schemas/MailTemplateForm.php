@@ -3,6 +3,8 @@
 namespace App\Filament\Resources\MailTemplates\Schemas;
 
 use App\Models\MailTemplate;
+use App\Support\Mail\MailImages;
+use App\Support\Mail\TemplateHtml;
 use App\Support\Mail\TemplateRenderer;
 use Closure;
 use Filament\Forms\Components\FileUpload;
@@ -25,7 +27,7 @@ class MailTemplateForm
     public static function configure(Schema $schema): Schema
     {
         return $schema->components([
-            Section::make(__('admin.mail.template'))->columns(2)->schema([
+            Section::make(__('admin.mail.template'))->columnSpanFull()->columns(['md' => 2])->schema([
                 TextInput::make('key')->label(__('admin.form.key'))->required()->alphaDash()->unique(ignoreRecord: true),
                 Select::make('category')->label(__('admin.mail.category'))->options(array_combine(MailTemplate::CATEGORIES, array_map(fn ($c) => __('admin.mail.categories.'.$c), MailTemplate::CATEGORIES)))->required(),
                 TextInput::make('name.de')->label(__('admin.form.name').' (Deutsch)')->required(),
@@ -38,25 +40,52 @@ class MailTemplateForm
                 FileUpload::make('attachments')->label(__('admin.mail.attachments'))->multiple()->disk('local')->directory('mail-attachments')->visibility('private')->getUploadedFileNameForStorageUsing(fn (TemporaryUploadedFile $file) => Str::lower(Str::random(6)).'-'.Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)).'.'.$file->guessExtension())->maxSize(5120)->maxFiles(5)
                     ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])->helperText(__('admin.mail.attachments_hint'))->columnSpanFull(),
             ]),
-            Section::make(__('admin.mail.contents'))->description(__('admin.mail.placeholder_help'))->schema([
-                Repeater::make('contents')->relationship()->label('')->minItems(1)->maxItems(2)
+            Section::make(__('admin.mail.contents'))->columnSpanFull()->description(__('admin.mail.placeholder_help'))->schema([
+                Repeater::make('contents')->relationship()->label(__('admin.mail.contents'))->hiddenLabel()->minItems(1)->maxItems(2)
+                    ->mutateRelationshipDataBeforeFillUsing(fn (array $data) => ['html' => TemplateHtml::toEditor((string) ($data['html'] ?? ''))] + $data)
+                    ->mutateRelationshipDataBeforeSaveUsing(fn (array $data) => self::clean($data))->mutateRelationshipDataBeforeCreateUsing(fn (array $data) => self::clean($data))
                     ->itemLabel(fn (array $state) => strtoupper((string) ($state['locale'] ?? '')))
                     ->schema([
                         Select::make('locale')->label(__('admin.person.locale'))->options(['de' => 'Deutsch', 'en' => 'English'])->required()->distinct(),
                         TextInput::make('subject')->label(__('admin.mail.subject'))->required()->maxLength(250)
                             ->rule(fn () => self::templateRule('subject')),
-                        RichEditor::make('html')->label(__('admin.mail.body'))->required()
-                            ->toolbarButtons([['bold', 'italic', 'underline', 'link'], ['h2', 'h3'], ['bulletList', 'orderedList'], ['table'], ['undo', 'redo']])
+                        RichEditor::make('html')->label(__('admin.mail.body'))->required()->visible(fn ($get) => ! $get('source'))->helperText(__('admin.mail.button_hint'))
+                            ->toolbarButtons([['bold', 'italic', 'underline', 'link'], ['h2', 'h3'], ['bulletList', 'orderedList'], ['table', 'attachFiles'], ['undo', 'redo']])
+                            ->fileAttachmentsAcceptedFileTypes(MailImages::TYPES)->fileAttachmentsMaxSize(2048)
+                            ->saveUploadedFileAttachmentUsing(fn (TemporaryUploadedFile $file) => MailImages::store($file))
+                            ->getFileAttachmentUrlUsing(fn (mixed $file) => is_string($file) ? MailImages::url($file) : null)
                             ->rule(fn () => self::templateRule('html')),
+                        Textarea::make('html_source')->label(__('admin.mail.source'))->rows(16)->required()->visible(fn ($get) => (bool) $get('source'))->extraInputAttributes(['style' => 'font-family:monospace', 'spellcheck' => 'false'])
+                            ->rule(fn () => self::templateRule('html')),
+                        Toggle::make('source')->label(__('admin.mail.source_view'))->live()->afterStateUpdated(function ($state, $get, $set) {
+                            $state ? $set('html_source', TemplateHtml::fromEditor($get('html'))) : $set('html', TemplateHtml::toEditor((string) $get('html_source')));
+                        }),
                         Textarea::make('text')->label(__('admin.mail.text'))->rows(4)->helperText(__('admin.mail.text_hint')),
                     ]),
             ]),
         ]);
     }
 
+    /**
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    private static function clean(array $data): array
+    {
+        if ($data['source'] ?? false) {
+            $data['html'] = (string) ($data['html_source'] ?? '');
+        } elseif (isset($data['html'])) {
+            $data['html'] = TemplateHtml::fromEditor($data['html']);
+        }
+        unset($data['source'], $data['html_source']);
+
+        return $data;
+    }
+
     private static function templateRule(string $part): Closure
     {
         return function (string $attribute, mixed $value, Closure $fail) use ($part) {
+            $value = $part === 'html' ? TemplateHtml::fromEditor(is_array($value) ? $value : (string) $value) : $value;
             $errors = app(TemplateRenderer::class)->validate($part === 'subject' ? (string) $value : 'x', $part === 'html' ? (string) $value : 'x', null);
             if ($errors !== []) {
                 $fail(__('admin.mail.template_error', ['error' => $errors[0]]));

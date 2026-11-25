@@ -102,7 +102,7 @@ class ApiCompleteTest extends TestCase
         $token = $this->token(['mail:read', 'mail:write']);
         $this->withToken($token)->patchJson('/api/v1/mail-templates/newsletter', ['contents' => [['locale' => 'en', 'subject' => 'S', 'html' => '{{ recipient.password }}']]])->assertUnprocessable();
         $this->withToken($token)->patchJson('/api/v1/mail-templates/newsletter', ['contents' => [['locale' => 'en', 'subject' => 'News', 'html' => '<p>{{ salutation }}</p>']]])->assertOk()->assertJsonPath('data.version', 2);
-        $this->assertSame(1, MailTemplate::query()->where('key', 'newsletter')->firstOrFail()->versions()->count());
+        $this->assertSame(2, MailTemplate::query()->where('key', 'newsletter')->firstOrFail()->versions()->count());
         $this->withToken($token)->postJson('/api/v1/mail-templates/newsletter/preview', ['locale' => 'en', 'html' => '<p>{{ recipient.full_name }}</p>'])->assertOk()->assertJsonPath('data.html', '<p>Alex Example</p>');
         $this->withToken($token)->postJson('/api/v1/mail-templates/newsletter/preview', ['html' => '{% include "x" %}'])->assertUnprocessable();
     }

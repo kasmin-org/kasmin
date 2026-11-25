@@ -34,7 +34,7 @@ class OutgoingMail extends Model
 {
     use HasUuids;
 
-    public const STATUSES = ['held', 'queued', 'sending', 'sent', 'failed', 'bounced', 'cancelled'];
+    public const STATUSES = ['held', 'queued', 'paused', 'sending', 'sent', 'failed', 'bounced', 'cancelled'];
 
     protected $guarded = ['id'];
 

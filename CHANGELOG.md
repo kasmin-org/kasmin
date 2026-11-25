@@ -8,6 +8,19 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ### Added
 
+- Mails: logo, colour and footer; images (embedded); HTML source; buttons.
+- Mail templates: preview with a real person in all languages for computer and phone, test mail to oneself, restoring versions, comparison with the shipped text and notice of a new one.
+- Mailings: review mail by mail, progress, pause and continue.
+- List of bad addresses; mailings leave them out. A permanent error is not tried again.
+- Retention of the mail log (off by default).
+
+### Fixed
+
+- Mail templates could not be saved in the interface, and the editor would have damaged conditions and buttons.
+- Editing a single mail of a mailing removed the layout and the footer links.
+
+### Added
+
 - Forms: number and person fields, choices with "Other", ready-made lists (health insurance carriers), smallest and largest values, check digits of insurance numbers (Austria, Germany, Switzerland).
 - Export and import of forms as JSON, also by API and MCP.
 - Order of the legal guardians as emergency contacts.

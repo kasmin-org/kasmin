@@ -3,6 +3,11 @@
 namespace App\Filament\Resources\Mailings\RelationManagers;
 
 use App\Models\OutgoingMail;
+use App\Support\Mail\Composer;
+use App\Support\Mail\MailBody;
+use App\Support\Mail\MailLinks;
+use App\Support\Mail\PreviewFrame;
+use App\Support\Mail\TemplateHtml;
 use App\Support\Mail\TemplateRenderer;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
@@ -43,9 +48,15 @@ class MailsRelationManager extends RelationManager
             TextColumn::make('status')->label(__('admin.event.status'))->formatStateUsing(fn ($state) => __('admin.mail.statuses.'.$state))->badge(),
             IconColumn::make('edited')->label(__('admin.mail.edited'))->boolean(),
         ])->recordActions([
-            ViewAction::make(),
+            ViewAction::make()->schema([])->modalContent(fn (OutgoingMail $r) => PreviewFrame::make(MailLinks::replace($r->html, '#'), $r->subject, 520)),
             EditAction::make()->visible(fn (OutgoingMail $r) => $r->status === 'held')
-                ->mutateDataUsing(fn (array $data) => $data + ['edited' => true, 'text' => TemplateRenderer::toText((string) $data['html'])]),
+                ->mutateRecordDataUsing(fn (array $data) => ['html' => TemplateHtml::toEditor(MailBody::get((string) $data['html']))] + $data)
+                ->mutateDataUsing(function (array $data, OutgoingMail $record): array {
+                    $body = TemplateHtml::buttons(TemplateHtml::fromEditor($data['html']), Composer::colour());
+                    $footer = strstr($record->text, "\n\n-- \n") ?: '';
+
+                    return ['html' => MailBody::set($record->html, $body), 'text' => TemplateRenderer::toText($body).$footer, 'edited' => true] + $data;
+                }),
         ]);
     }
 }

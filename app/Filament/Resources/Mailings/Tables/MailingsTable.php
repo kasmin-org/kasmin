@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Mailings\Tables;
 
+use App\Filament\Resources\Mailings\MailingResource;
 use App\Models\Mailing;
 use App\Models\User;
 use App\Support\Auth\Permissions;
@@ -10,6 +11,7 @@ use Filament\Actions\Action;
 use Filament\Actions\EditAction;
 use Filament\Notifications\Notification;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Enums\RecordActionsPosition;
 use Filament\Tables\Table;
 
 class MailingsTable
@@ -27,6 +29,7 @@ class MailingsTable
             TextColumn::make('mails_count')->counts('mails')->label(__('admin.mail.mails')),
             TextColumn::make('sent_at')->label(__('admin.mail.sent_at'))->dateTime(),
         ])->recordActions([
+            Action::make('review')->label(__('admin.mail.review'))->icon('heroicon-o-eye')->color('gray')->url(fn (Mailing $r) => MailingResource::getUrl('review', ['record' => $r])),
             Action::make('prepare')->label(__('admin.mail.prepare'))->icon('heroicon-o-document-magnifying-glass')
                 ->visible(fn (Mailing $r) => self::mayEdit() && in_array($r->status, ['draft', 'prepared'], true))
                 ->requiresConfirmation()->modalDescription(fn (Mailing $r) => __('admin.mail.prepare_hint', [
@@ -42,9 +45,9 @@ class MailingsTable
                     Notification::make()->title($count === null ? __('admin.mail.waiting') : __('admin.mail.released', ['count' => $count]))->success()->send();
                 }),
             Action::make('cancel')->label(__('admin.mail.cancel'))->icon('heroicon-o-x-mark')->color('danger')
-                ->visible(fn (Mailing $r) => self::mayEdit() && in_array($r->status, ['prepared', 'waiting', 'sending'], true))->requiresConfirmation()
+                ->visible(fn (Mailing $r) => self::mayEdit() && in_array($r->status, ['prepared', 'waiting', 'sending', 'paused'], true))->requiresConfirmation()
                 ->action(fn (Mailing $r) => app(Mailings::class)->cancel($r)),
             EditAction::make()->visible(fn (Mailing $r) => in_array($r->status, ['draft', 'prepared'], true)),
-        ]);
+        ], RecordActionsPosition::BeforeColumns);
     }
 }

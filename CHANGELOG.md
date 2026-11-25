@@ -16,6 +16,7 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ### Security
 
+- Stored mails no longer contain personal login links; a link is made when the mail is sent. Until now, people with access to the mail log or to the review of a mailing (and to backups) could use the links of others for a limited portal session; links that allow a full login or the admin interface were never stored. Links in mails already stored are removed, and in the test mode mails contain no personal link.
 - The preview of mail templates is shown in a sandboxed frame. Until now, someone with the right to edit mail templates could place a script that ran in the session of whoever opened the preview.
 - Once there are answers, only people with access to the safety sheets can remove or rename confidential fields, make them less confidential, or change or delete the safety sheet. Until now, form rights were enough to make health data readable.
 

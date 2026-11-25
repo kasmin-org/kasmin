@@ -96,12 +96,13 @@ class Sender
         $fromAddress = $profile->from_address ?? (string) config('mail.from.address');
         $fromName = $profile->from_name ?? (string) config('mail.from.name');
         $domain = Str::after($fromAddress, '@') ?: 'localhost';
+        $content = MailLinks::resolve($mail);
         $email = (new Email)
             ->from(new Address($fromAddress, $fromName))
             ->to(new Address(self::testAddress() ?? $mail->to_address, (string) $mail->to_name))
             ->subject(self::testAddress() !== null ? '[TEST → '.$mail->to_address.'] '.$mail->subject : $mail->subject)
-            ->html($mail->html)
-            ->text($mail->text);
+            ->html($content['html'])
+            ->text($content['text']);
         if ($profile?->reply_to) {
             $email->replyTo($profile->reply_to);
         }

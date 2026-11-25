@@ -3,12 +3,18 @@
 namespace Tests\Feature\Auth;
 
 use App\Filament\Pages\OrganisationSettingsPage;
+use App\Filament\Resources\Automations\Pages\ListAutomations;
 use App\Filament\Resources\Events\Pages\EditEvent;
 use App\Filament\Resources\Events\RelationManagers\ParticipationsRelationManager;
+use App\Filament\Resources\ImportBatches\Pages\ListImportBatches;
+use App\Filament\Resources\OutgoingMails\Pages\ListOutgoingMails;
 use App\Filament\Resources\People\Pages\EditPerson;
 use App\Filament\Resources\People\RelationManagers\RolesRelationManager;
 use App\Filament\Resources\Roles\Pages\ManageRoles;
+use App\Models\Automation;
 use App\Models\Event;
+use App\Models\ImportBatch;
+use App\Models\OutgoingMail;
 use App\Models\Participation;
 use App\Models\Person;
 use App\Models\Role;
@@ -178,5 +184,21 @@ class PermissionsTest extends TestCase
             ->assertTableActionHidden('cancel', $p)->assertTableActionHidden('edit', $p)->assertTableActionVisible('price', $p);
         Livewire::test(OrganisationSettingsPage::class)->set('data.public_url', 'https://attacker.example.org')->set('data.ai_processing', 'all')->fillForm(['organisation_name' => 'Our camp'])->call('save')->assertHasNoFormErrors();
         $this->assertSame(['https://real.example.org', 'Our camp', 'none'], [Settings::get('public_url'), Settings::get('organisation_name'), Settings::get('ai_processing')]);
+    }
+
+    public function test_view_permission_allows_no_actions(): void
+    {
+        Role::query()->where('key', 'auditor')->firstOrFail()->update(['permissions' => ['mailings' => 'view', 'automations' => 'view', 'people' => 'view']]);
+        $mail = OutgoingMail::query()->create(['to_address' => 'a@example.org', 'subject' => 'S', 'html' => 'x', 'text' => 'x', 'status' => 'sent']);
+        $batch = ImportBatch::query()->create(['source' => 's', 'kind' => 'people', 'status' => 'imported']);
+        $automation = Automation::query()->where('key', 'payment_reminders')->firstOrFail();
+        $this->actingAs($this->user('auditor'));
+        Livewire::test(ListOutgoingMails::class)->assertTableActionHidden('resend', $mail);
+        Livewire::test(ListAutomations::class)->assertTableActionHidden('run_now', $automation);
+        Livewire::test(ListImportBatches::class)->assertTableActionHidden('rollback', $batch);
+        $this->actingAs($this->user('administrator'));
+        Livewire::test(ListOutgoingMails::class)->assertTableActionVisible('resend', $mail);
+        Livewire::test(ListAutomations::class)->assertTableActionVisible('run_now', $automation);
+        Livewire::test(ListImportBatches::class)->assertTableActionVisible('rollback', $batch);
     }
 }

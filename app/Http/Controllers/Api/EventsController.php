@@ -53,7 +53,7 @@ class EventsController extends ApiController
         $data = $request->validate(['person' => ['required', 'string'], 'role' => ['required', 'string', 'max:32']]);
         $person = $this->person($data['person']);
         try {
-            $participation = app(Registrations::class)->register($this->event($event), $person, $data['role'], $person->guardians()->first());
+            $participation = app(Registrations::class)->register($this->event($event), $person, $data['role']);
         } catch (RegistrationException $e) {
             return response()->json(['message' => $e->getMessage()], 422);
         }

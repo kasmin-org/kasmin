@@ -2,14 +2,17 @@
 
 namespace App\Support\Mail;
 
+use App\Models\EventDocument;
 use App\Models\Invoice;
 use App\Models\MailAccount;
 use App\Models\OutgoingMail;
 use App\Models\SenderProfile;
 use App\Support\Audit\Audit;
 use App\Support\Finance\InvoicePdf;
+use App\Support\Settings;
 use DirectoryTree\ImapEngine\Mailbox;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Symfony\Component\Mailer\Envelope;
 use Symfony\Component\Mailer\Mailer;
@@ -64,7 +67,7 @@ class Sender
             if ($account !== null && $account->dkim_private_key && MailDns::canSignDkim()) {
                 $email = (new DkimSigner($account->dkim_private_key, (string) ($account->dkim_domain ?: Str::after($mail->senderProfile->from_address ?? '', '@')), (string) $account->dkim_selector))->sign($email);
             }
-            $account?->isDirect() ? $this->sendDirect($email, $mail->to_address) : $this->transport($account)->send($email);
+            $account?->isDirect() ? $this->sendDirect($email, self::testAddress() ?? $mail->to_address) : $this->transport($account)->send($email);
             $mail->forceFill(['status' => 'sent', 'sent_at' => now(), 'last_error' => null])->save();
             if ($account?->canReceive() && $account->imap_sent_folder) {
                 $this->copyToImap($account, $email, $mail);
@@ -94,14 +97,20 @@ class Sender
         $domain = Str::after($fromAddress, '@') ?: 'localhost';
         $email = (new Email)
             ->from(new Address($fromAddress, $fromName))
-            ->to(new Address($mail->to_address, (string) $mail->to_name))
-            ->subject($mail->subject)
+            ->to(new Address(self::testAddress() ?? $mail->to_address, (string) $mail->to_name))
+            ->subject(self::testAddress() !== null ? '[TEST → '.$mail->to_address.'] '.$mail->subject : $mail->subject)
             ->html($mail->html)
             ->text($mail->text);
         if ($profile?->reply_to) {
             $email->replyTo($profile->reply_to);
         }
         foreach ($mail->attachments ?? [] as $attachment) {
+            $file = isset($attachment['document_id']) ? $this->document((int) $attachment['document_id']) : $attachment;
+            if (isset($file['file'])) {
+                // A mail never goes out without a file that was promised.
+                $content = Storage::disk('local')->get((string) $file['file']) ?? throw new MailException('Attachment missing: '.($file['name'] ?? ''));
+                $email->attach($content, (string) ($file['name'] ?? basename((string) $file['file'])));
+            }
             if (isset($attachment['invoice_id'])) {
                 $invoice = Invoice::query()->whereKey((int) $attachment['invoice_id'])->first();
                 if ($invoice !== null) {
@@ -126,6 +135,22 @@ class Sender
         }
 
         return $email;
+    }
+
+    /** Test mode (MS08): everything goes to this address. */
+    public static function testAddress(): ?string
+    {
+        $address = trim((string) Settings::get('mail_test_address'));
+
+        return $address === '' ? null : $address;
+    }
+
+    /** @return array{file: string, name: string} */
+    private function document(int $id): array
+    {
+        $document = EventDocument::query()->find($id) ?? throw new MailException('Document missing');
+
+        return ['file' => $document->path, 'name' => Str::slug($document->title).'.'.pathinfo($document->path, PATHINFO_EXTENSION)];
     }
 
     private function preferencesUrl(OutgoingMail $mail): ?string

@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property bool $is_standard
  * @property int|null $standard_version
  * @property int $version
+ * @property array<array-key, string>|null $attachments
  */
 class MailTemplate extends Model
 {
@@ -30,7 +31,7 @@ class MailTemplate extends Model
 
     protected function casts(): array
     {
-        return ['name' => 'array', 'is_standard' => 'boolean', 'active' => 'boolean'];
+        return ['attachments' => 'array', 'name' => 'array', 'is_standard' => 'boolean', 'active' => 'boolean'];
     }
 
     /** @return HasMany<MailTemplateContent, $this> */
@@ -49,6 +50,17 @@ class MailTemplate extends Model
     public function senderProfile(): BelongsTo
     {
         return $this->belongsTo(SenderProfile::class);
+    }
+
+    /** Every change is a new version with a snapshot for restoring (MT07). */
+    public function newVersion(): void
+    {
+        $this->increment('version');
+        $this->versions()->create([
+            'version' => $this->version,
+            'snapshot' => ['name' => $this->name, 'contents' => $this->contents()->get(['locale', 'subject', 'html', 'text'])->toArray()],
+            'changed_by_id' => auth()->id(),
+        ]);
     }
 
     public function label(): string

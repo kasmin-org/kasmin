@@ -13,7 +13,7 @@ return [
     'form' => 'Form (key)', 'interval_days' => 'Days between reminders', 'max' => 'At most … reminders', 'window_days' => 'Events starting within … days',
     'age' => 'Age', 'role' => 'Role', 'next_role' => 'Next role (proposal)',
     'actions' => [
-        'registration_rounds' => 'Registration rounds', 'payment_reminders' => 'Payment reminders', 'invoice_corrections' => 'Correct invoices', 'payment_followup' => 'Release unpaid places', 'membership_invoices' => 'Membership fee invoices',
+        'mailing_release' => 'Approve large mailings', 'registration_rounds' => 'Registration rounds', 'payment_reminders' => 'Payment reminders', 'invoice_corrections' => 'Correct invoices', 'payment_followup' => 'Release unpaid places', 'membership_invoices' => 'Membership fee invoices',
         'waitlist_offer' => 'Offer free places to the waitlist',
         'offer_expiry' => 'Expire unanswered offers',
         'invoice_run' => 'Create and send invoices',
@@ -48,6 +48,7 @@ return [
     'planned' => 'Planned actions', 'results' => 'Results', 'decided_by' => 'Decided by', 'excluded' => 'Not carried out',
     'item' => 'Action', 'result' => 'Result', 'trigger_label' => 'Triggered by', 'created' => 'Created', 'expires' => 'Expires',
     'items' => [
+        'mailing' => 'Send ":name" (:count mails)',
         'round' => 'Offer to :names (:event)',
         'reminder_fee' => 'fee :amount',
         'reminder' => 'Reminder for invoice :number (:name)', 'reminder_before_due' => ':days days before the due date', 'reminder_overdue' => ':days days overdue',

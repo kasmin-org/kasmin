@@ -107,7 +107,8 @@ class Person extends Model
     /** @return BelongsToMany<Group, $this> */
     public function groups(): BelongsToMany
     {
-        return $this->belongsToMany(Group::class, 'group_memberships')->withPivot(['starts_on', 'ends_on', 'source'])->withTimestamps();
+        return $this->belongsToMany(Group::class, 'group_memberships')->withPivot(['starts_on', 'ends_on', 'source'])->withTimestamps()
+            ->where(fn ($q) => $q->whereNull('group_memberships.ends_on')->orWhereDate('group_memberships.ends_on', '>=', now()->toDateString()));
     }
 
     /** @return HasMany<Membership, $this> */

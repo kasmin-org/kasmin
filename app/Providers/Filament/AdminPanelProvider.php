@@ -6,6 +6,7 @@ use App\Http\Middleware\RequireFullLogin;
 use App\Http\Middleware\RequireSecondFactor;
 use App\Http\Middleware\SetLocale;
 use App\Livewire\SystemNotificationsPopup;
+use App\Support\Mail\Sender;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -44,6 +45,7 @@ class AdminPanelProvider extends PanelProvider
                 fn (string $key) => NavigationGroup::make()->label(fn (): string => (string) __('admin.nav.'.$key)),
                 ['people', 'events', 'forms', 'finance', 'communication', 'automations', 'reports', 'privacy', 'settings', 'system'],
             ))
+            ->renderHook(PanelsRenderHook::CONTENT_START, fn () => Sender::testAddress() !== null ? view('filament.test-mode', ['address' => Sender::testAddress()]) : '')
             ->renderHook(PanelsRenderHook::CONTENT_START, fn () => Livewire::mount(SystemNotificationsPopup::class))
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')

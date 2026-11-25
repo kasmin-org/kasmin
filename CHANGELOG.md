@@ -6,6 +6,38 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ## [Unreleased]
 
+## [0.16.0] - 2026-11-25
+
+Pre-release for testing. Not ready for production use.
+
+### Added
+
+- REST API and MCP: groups, forms (confidential values only with `health:read` / `health:write`), mail templates, mailings (sending always
+  needs an approval unless the token has `approvals:decide`), settings, and public events and forms without a token.
+- Idempotency keys for API requests.
+- Timeline of a person; login link from the person page; single invoices.
+- Daily database backups with status on the system page.
+- Mails go to the recipients set in the template (legal guardians, the person, or both).
+- Groups show who joined and left in the last 30 days.
+- Groups: members can be added and removed; groups by rules (age, membership, role, other groups, number of past events) and of the
+  participants of an event; subgroups; ended memberships stay as history.
+- Mail test mode: all mails, also login links, go to one address; shown in the admin interface.
+- Attachments for mail templates and mailings, also documents of events. A mail never goes out without a promised file.
+- Large mailings (default: more than 50 mails) are sent after an approval.
+
+### Changed
+
+- Registrations by the API count as made by the team (registration rounds).
+
+### Fixed
+
+- Backups could not be restored with the usual commands, because they did not switch off the foreign key checks (the data in them was
+  complete). Older backups: run `SET FOREIGN_KEY_CHECKS=0;` first, see *Upgrading*. Backups are now read at one point in time.
+- Mailings about an event no longer go to the legal guardians of people who registered themselves.
+- People whose group membership has ended no longer get its mailings.
+- Newsletter: the latest choice counts; people who subscribed again stayed excluded.
+- Resending a mail, running an automation and rolling back an import need the permission to edit.
+
 ## [0.15.0] - 2026-11-24
 
 Pre-release for testing. Not ready for production use.
@@ -332,7 +364,8 @@ First public pre-release for testing. Not ready for production use.
 - Docker image: system packages updated and build packages removed after compiling the PHP extensions – the
   container scan reports no high or critical findings any more (previously 75 in Debian packages).
 
-[Unreleased]: https://github.com/kasmin-org/kasmin/compare/v0.15.0...develop
+[Unreleased]: https://github.com/kasmin-org/kasmin/compare/v0.16.0...develop
+[0.16.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.16.0
 [0.15.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.15.0
 [0.14.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.14.0
 [0.13.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.13.0

@@ -39,6 +39,7 @@ class EnvConfig
         'KASMIN_RETENTION_INVOICE_YEARS' => 'retention_invoice_years',
         'KASMIN_AI_PROCESSING' => 'ai_processing',
         'KASMIN_TIMEZONE' => 'timezone',
+        'KASMIN_MAIL_TEST_ADDRESS' => 'mail_test_address',
         'KASMIN_DIGEST_TIME' => 'digest_time',
         'KASMIN_APPROVAL_DAYS' => 'approval_days',
     ];

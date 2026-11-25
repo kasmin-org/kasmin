@@ -17,6 +17,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property bool $one_per_family
  * @property bool $edit_before_sending
  * @property string $status
+ * @property array<array-key, string>|null $attachments
+ * @property array<array-key, int|string>|null $document_ids
  */
 class Mailing extends Model
 {
@@ -28,7 +30,7 @@ class Mailing extends Model
 
     protected function casts(): array
     {
-        return ['recipients' => 'array', 'one_per_family' => 'boolean', 'edit_before_sending' => 'boolean', 'scheduled_at' => 'datetime', 'prepared_at' => 'datetime', 'sent_at' => 'datetime'];
+        return ['attachments' => 'array', 'document_ids' => 'array', 'recipients' => 'array', 'one_per_family' => 'boolean', 'edit_before_sending' => 'boolean', 'scheduled_at' => 'datetime', 'prepared_at' => 'datetime', 'sent_at' => 'datetime'];
     }
 
     /** @return BelongsTo<MailTemplate, $this> */

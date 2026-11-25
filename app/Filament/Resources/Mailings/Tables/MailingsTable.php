@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Mailings\Tables;
 
 use App\Models\Mailing;
+use App\Models\User;
 use App\Support\Auth\Permissions;
 use App\Support\Mail\Mailings;
 use Filament\Actions\Action;
@@ -34,9 +35,14 @@ class MailingsTable
                 ->action(fn (Mailing $r) => Notification::make()->title(__('admin.mail.prepared', ['count' => app(Mailings::class)->prepare($r)]))->success()->send()),
             Action::make('send')->label(__('admin.mail.send'))->icon('heroicon-o-paper-airplane')->color('success')
                 ->visible(fn (Mailing $r) => self::mayEdit() && $r->status === 'prepared')->requiresConfirmation()
-                ->action(fn (Mailing $r) => Notification::make()->title(__('admin.mail.released', ['count' => app(Mailings::class)->release($r)]))->success()->send()),
+                ->modalDescription(fn (Mailing $r) => app(Mailings::class)->needsApproval($r) ? __('admin.mail.needs_approval') : null)
+                ->action(function (Mailing $r) {
+                    $user = auth()->user();
+                    $count = app(Mailings::class)->release($r, $user instanceof User ? $user : null);
+                    Notification::make()->title($count === null ? __('admin.mail.waiting') : __('admin.mail.released', ['count' => $count]))->success()->send();
+                }),
             Action::make('cancel')->label(__('admin.mail.cancel'))->icon('heroicon-o-x-mark')->color('danger')
-                ->visible(fn (Mailing $r) => self::mayEdit() && in_array($r->status, ['prepared', 'sending'], true))->requiresConfirmation()
+                ->visible(fn (Mailing $r) => self::mayEdit() && in_array($r->status, ['prepared', 'waiting', 'sending'], true))->requiresConfirmation()
                 ->action(fn (Mailing $r) => app(Mailings::class)->cancel($r)),
             EditAction::make()->visible(fn (Mailing $r) => in_array($r->status, ['draft', 'prepared'], true)),
         ]);

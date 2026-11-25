@@ -10,6 +10,7 @@ use App\Support\Audit\Audit;
 use App\Support\Automations\Engine;
 use App\Support\Mail\Composer;
 use App\Support\Mail\Notifier;
+use App\Support\Mail\Routing;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -69,7 +70,7 @@ class Registrations
         if ($person === null || $event === null) {
             return;
         }
-        $recipients = $participation->isOwn() ? [$person] : ($person->guardians()->get()->all() ?: [$person]); // PE05a
+        $recipients = Routing::recipients('registration_confirmation', $person, $participation);
         foreach ($recipients as $recipient) {
             app(Composer::class)->queue('registration_confirmation', $recipient, [
                 'event' => $event, 'participation' => $participation, 'household' => $person->households()->first(), 'children' => [$person],

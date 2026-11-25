@@ -2,12 +2,17 @@
 
 namespace App\Support\Mail;
 
+use App\Models\Automation;
 use App\Models\Consent;
 use App\Models\Group;
 use App\Models\Household;
 use App\Models\Mailing;
 use App\Models\Participation;
 use App\Models\Person;
+use App\Models\User;
+use App\Support\Automations\Engine;
+use App\Support\People\GroupMembers;
+use App\Support\Settings;
 use Illuminate\Support\Collection;
 
 /**
@@ -16,7 +21,7 @@ use Illuminate\Support\Collection;
  */
 class Mailings
 {
-    public function __construct(private readonly Composer $composer) {}
+    public function __construct(private readonly Composer $composer, private readonly GroupMembers $groups) {}
 
     /**
      * People the mailing is about (before routing).
@@ -28,7 +33,10 @@ class Mailings
         $r = $mailing->recipients;
         $ids = collect($r['person_ids'] ?? []);
         if (! empty($r['group_ids'])) {
-            $ids = $ids->merge(Group::query()->whereIn('id', $r['group_ids'])->with('people')->get()->flatMap(fn (Group $g) => $g->people->pluck('id')));
+            foreach (Group::query()->whereIn('id', $r['group_ids'])->get() as $group) {
+                $this->groups->update($group);
+                $ids = $ids->merge($this->groups->withSubgroups($group));
+            }
         }
         if (! empty($r['event_id'])) {
             $ids = $ids->merge(Participation::query()->where('event_id', $r['event_id'])
@@ -48,10 +56,13 @@ class Mailings
         $mails = [];
         $excluded = [];
         $template = $mailing->template;
-        $optedOut = Consent::query()->where('granted', false)->whereIn('kind', $template?->category === 'newsletter' ? ['newsletter'] : ['optout_all'])->pluck('person_id')->all();
+        // The latest choice counts: somebody who subscribed again gets the newsletter again (MM04).
+        $optedOut = Consent::query()->where('kind', $template?->category === 'newsletter' ? 'newsletter' : 'optout_all')->orderBy('id')->get()
+            ->groupBy('person_id')->filter(fn ($consents) => $consents->last()?->granted === false)->keys()->map(fn ($id) => (int) $id)->all();
+        $private = $this->privateSubjects($mailing);
 
         foreach ($this->subjects($mailing) as $subject) {
-            $targets = match ($mailing->routing) {
+            $targets = match (in_array($subject->id, $private, true) ? 'person' : $mailing->routing) {
                 'person' => [$subject],
                 'both' => array_merge([$subject], $subject->guardians->all()),
                 default => $subject->guardians->isNotEmpty() ? $subject->guardians->all() : [$subject],
@@ -78,6 +89,28 @@ class Mailings
         return ['mails' => array_values($mails), 'excluded' => $excluded];
     }
 
+    /**
+     * People who are only recipients because of registrations they made themselves: their legal guardians must not learn of
+     * them (PE05a).
+     *
+     * @return list<int>
+     */
+    private function privateSubjects(Mailing $mailing): array
+    {
+        $r = $mailing->recipients;
+        if (empty($r['event_id']) || Settings::bool('own_registrations_visible')) {
+            return [];
+        }
+        $own = Participation::query()->where('event_id', $r['event_id'])->when(! empty($r['statuses'] ?? []), fn ($q) => $q->whereIn('status', $r['statuses'] ?? []))->get()
+            ->groupBy('person_id')->filter(fn ($rows) => $rows->every(fn (Participation $p) => $p->isOwn()))->keys()->map(fn ($id) => (int) $id);
+        $other = collect($r['person_ids'] ?? []);
+        foreach (empty($r['group_ids']) ? [] : Group::query()->whereIn('id', $r['group_ids'])->get() as $group) {
+            $other = $other->merge($this->groups->withSubgroups($group));
+        }
+
+        return array_values($own->diff($other)->all());
+    }
+
     /** Renders all mails and holds them for review (MM05, MM06). */
     public function prepare(Mailing $mailing): int
     {
@@ -89,7 +122,7 @@ class Mailings
         $count = 0;
         foreach ($this->plan($mailing)['mails'] as $mail) {
             $created = $this->composer->queue($template, $mail['to'], ['children' => $mail['children'], 'household' => $mail['household']],
-                $template->category === 'newsletter' ? 'newsletter' : 'mailing', 'held', $mailing->id);
+                $template->category === 'newsletter' ? 'newsletter' : 'mailing', 'held', $mailing->id, $this->attachments($mailing) ?: null);
             if ($created !== null && $mailing->sender_profile_id !== null) {
                 $created->forceFill(['sender_profile_id' => $mailing->sender_profile_id])->save();
             }
@@ -100,7 +133,39 @@ class Mailings
         return $count;
     }
 
-    public function release(Mailing $mailing): int
+    /** @return list<array{file?: string, name?: string, document_id?: int}> */
+    private function attachments(Mailing $mailing): array
+    {
+        $files = array_map(fn (string $path) => ['file' => $path, 'name' => basename($path)], array_values($mailing->attachments ?? []));
+
+        return [...$files, ...array_map(fn ($id) => ['document_id' => (int) $id], array_values($mailing->document_ids ?? []))];
+    }
+
+    /** Does this mailing need an approval (MM07)? */
+    public function needsApproval(Mailing $mailing): bool
+    {
+        $limit = Settings::int('mailing_approval_above');
+
+        return $limit > 0 && $mailing->mails()->where('status', 'held')->count() > $limit;
+    }
+
+    /** Sends now, or asks for the approval of large mailings. Returns the number of mails, or null while waiting. */
+    public function release(Mailing $mailing, ?User $by = null, bool $forceApproval = false): ?int
+    {
+        $automation = $forceApproval || $this->needsApproval($mailing) ? Automation::query()->where('key', 'mailing_release')->first() : null;
+        if ($automation === null && $forceApproval) {
+            throw new \RuntimeException('The automation mailing_release is missing.'); // never send without a decision
+        }
+        if ($automation === null) {
+            return $this->send($mailing);
+        }
+        $mailing->forceFill(['status' => 'waiting'])->save();
+        app(Engine::class)->trigger($automation, 'manual', null, null, $by ?? new User, forceApproval: true);
+
+        return null;
+    }
+
+    public function send(Mailing $mailing): int
     {
         $count = $mailing->mails()->where('status', 'held')->update(['status' => 'queued', 'send_after' => $mailing->getAttribute('scheduled_at')]);
         $mailing->forceFill(['status' => 'sending', 'sent_at' => now()])->save();

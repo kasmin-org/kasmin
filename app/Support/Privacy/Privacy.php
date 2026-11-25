@@ -87,7 +87,7 @@ class Privacy
             PublicSubmission::query()->where('person_id', $person->id)->delete();
             $person->households()->detach();
             DB::table('guardianships')->where('child_id', $person->id)->orWhere('guardian_id', $person->id)->delete(); // also ended ones
-            $person->groups()->detach();
+            DB::table('group_memberships')->where('person_id', $person->id)->delete(); // also ended ones
             $person->forceFill([
                 'first_name' => __('privacy.anonymous'), 'last_name' => '#'.$person->id, 'gender' => null,
                 'birth_date' => $person->birth_date?->copy()->startOfYear(), 'anonymised_at' => now(),

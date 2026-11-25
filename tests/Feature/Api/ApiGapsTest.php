@@ -169,7 +169,11 @@ class ApiGapsTest extends TestCase
         $token = $this->token(['automations:read', 'automations:write']);
         $automation = Automation::query()->where('action', 'invoice_run')->where('trigger', 'before_event')->firstOrFail();
         $url = '/api/v1/automations/'.$automation->key;
-        $this->withToken($token)->getJson($url)->assertOk()->assertJsonPath('data.action', 'invoice_run')->assertJsonPath('data.standard', true)->assertJsonPath('data.trigger_config.days', 90);
+        $this->withToken($token)->getJson($url)->assertOk()->assertJsonPath('data.action', 'invoice_run')->assertJsonPath('data.standard', true)->assertJsonPath('data.trigger_config.days', 90)
+            ->assertJsonPath('data.approver_roles', ['board', 'administrator'])->assertJsonPath('data.approver_roles_default', true);
+        // The default roles sent on purpose are stored, an empty list goes back to the default.
+        $this->withToken($token)->patchJson($url, ['approver_roles' => ['board', 'administrator']])->assertOk()->assertJsonPath('data.approver_roles', ['board', 'administrator'])->assertJsonPath('data.approver_roles_default', false);
+        $this->withToken($token)->patchJson($url, ['approver_roles' => []])->assertOk()->assertJsonPath('data.approver_roles_default', true);
 
         $this->withToken($token)->patchJson($url, ['active' => true, 'mode' => 'manual', 'trigger_config' => ['days' => 60], 'config' => ['installment' => 'balance', 'send' => false],
             'approver_roles' => ['treasurer'], 'approvals_needed' => 2, 'max_items' => 50])
@@ -244,6 +248,10 @@ class ApiGapsTest extends TestCase
         app(Registrations::class)->register($event->refresh(), $this->child(), 'child');
         $this->withToken($token)->patchJson("/api/v1/events/$id", ['roles' => [['role' => 'staff']]])->assertUnprocessable()->assertJsonValidationErrors('roles');
         $this->assertSame(1, $event->roles()->where('role_key', 'child')->count());
+
+        $this->withToken($token)->postJson('/api/v1/events', ['title' => 'Autumn camp', 'starts_at' => $start->copy()->addMonths(3)->toIso8601String(), 'ends_at' => $start->copy()->addMonths(3)->addDay()->toIso8601String()])->assertCreated();
+        $this->withToken($token)->getJson('/api/v1/events')->assertOk()->assertJsonCount(2, 'data')->assertJsonPath('meta', ['total' => 2, 'page' => 1, 'last_page' => 1]);
+        $this->withToken($token)->getJson('/api/v1/events?per_page=1&page=2')->assertOk()->assertJsonCount(1, 'data')->assertJsonPath('data.0.id', $id)->assertJsonPath('meta', ['total' => 2, 'page' => 2, 'last_page' => 2]);
 
         $this->withToken($token)->postJson('/api/v1/events', ['title' => 'No dates'])->assertUnprocessable()->assertJsonValidationErrors(['starts_at', 'ends_at']);
         $this->withToken($token)->patchJson("/api/v1/events/$id", ['ends_at' => $start->copy()->subDay()->toIso8601String()])->assertUnprocessable()->assertJsonValidationErrors('ends_at');

@@ -54,14 +54,14 @@ class GroupsController extends ApiController
         return response()->json(['data' => $this->present($model->loadCount('people')->load('event'))]);
     }
 
-    /** Adds a person to a manual group. */
+    /** Adds a person to a manual group: 201 when the person was added, 200 when it already was a member. */
     public function addMember(Request $request, int $group): JsonResponse
     {
         $this->scope('people:write');
         $model = $this->manual($group);
-        GroupMembers::join($model, $this->person((string) $request->validate(['person' => ['required', 'string']])['person'])->id, 'api');
+        $added = GroupMembers::join($model, $this->person((string) $request->validate(['person' => ['required', 'string']])['person'])->id, 'api');
 
-        return response()->json(['data' => $this->present($model->loadCount('people'))]);
+        return response()->json(['data' => $this->present($model->loadCount('people'))], $added ? 201 : 200);
     }
 
     /** Ends the membership of a person in a manual group. */

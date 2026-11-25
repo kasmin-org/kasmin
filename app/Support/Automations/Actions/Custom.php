@@ -75,7 +75,9 @@ class Custom implements Action
         $participation = $this->participation($automation, $person, $event);
 
         return match ($step['type']) {
-            'add_group' => $this->group($step, fn (Group $g) => GroupMembers::join($g, $person->id, 'automation')),
+            'add_group' => $this->group($step, function (Group $g) use ($person): void {
+                GroupMembers::join($g, $person->id, 'automation');
+            }),
             'remove_group' => $this->group($step, fn (Group $g) => GroupMembers::leave($g, $person->id)),
             'send_mail' => $this->mail($step, $person, $participation, $event),
             'set_status' => $this->status($step, $participation),

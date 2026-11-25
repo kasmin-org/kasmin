@@ -65,4 +65,14 @@ return [
         'fixed' => 'Fester Betrag (z. B. Anzahlung)',
         'rest' => 'Restbetrag (Preis minus feste Raten)',
     ],
+    'archive' => [
+        'title' => 'Rechnungsarchiv', 'singular' => 'Archivierte Rechnung', 'import' => 'Rechnungen importieren', 'empty' => 'Rechnungen aus dem bisherigen System können hier zum Nachschlagen aufbewahrt werden. Sie werden nie geändert, und nichts wird versendet.',
+        'import_hint' => 'Eine Tabelle (CSV oder XLSX) mit einer Rechnung pro Zeile. Spalten: Nummer, Datum, Name, E-Mail, Betrag, Status (bezahlt, offen, storniert), Bezahlt (Datum), Notiz. Ein Import kann wiederholt werden: Zeilen mit einer vorhandenen Nummer werden aktualisiert.',
+        'table' => 'Tabelle mit den Rechnungen', 'zip' => 'PDFs (ZIP, optional)', 'zip_hint' => 'Die PDFs heißen wie die Rechnungsnummern, z. B. R142.pdf oder 2025-0142.pdf.',
+        'done' => 'Import abgeschlossen', 'result' => ':imported neu, :updated aktualisiert, :pdfs PDFs.', 'next' => 'Die nächste eigene Rechnung bekommt die Nummer :number.',
+        'no_number' => 'Zeile :row hat keine Nummer.', 'no_match' => ':file passt zu keiner Rechnung.', 'bad_zip' => 'Die ZIP-Datei konnte nicht gelesen werden.',
+        'status' => ['paid' => 'Bezahlt', 'open' => 'Offen', 'cancelled' => 'Storniert'],
+    ],
+    'number' => 'Nummer',
+    'date' => 'Datum',
 ];

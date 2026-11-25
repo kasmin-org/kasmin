@@ -12,7 +12,7 @@ use Laravel\Mcp\Server\Attributes\Name;
 use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 
 #[Name('list_events')]
-#[Description('Lists events (camps and other events), newest first.')]
+#[Description('Lists events (camps and other events), newest first, in pages; meta has total, page and last_page.')]
 #[IsReadOnly]
 class ListEvents extends ApiTool
 {
@@ -30,7 +30,9 @@ class ListEvents extends ApiTool
     public function schema(JsonSchema $schema): array
     {
         return [
-            'status' => $schema->string()->description('draft, announced, open, closed, running, finished'),
+            'status' => $schema->string()->description('draft, announced, open, closed, running, finished, archived'),
+            'page' => $schema->integer()->description('page number'),
+            'per_page' => $schema->integer()->description('entries per page, up to 200 (default 50)'),
         ];
     }
 }

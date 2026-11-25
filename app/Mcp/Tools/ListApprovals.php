@@ -12,7 +12,7 @@ use Laravel\Mcp\Server\Attributes\Name;
 use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 
 #[Name('list_approvals')]
-#[Description('Approval requests and run history of automations (default: pending).')]
+#[Description('Approval requests and run history of automations (default: pending), newest first, in pages; meta has total, page and last_page.')]
 #[IsReadOnly]
 class ListApprovals extends ApiTool
 {
@@ -31,6 +31,8 @@ class ListApprovals extends ApiTool
     {
         return [
             'status' => $schema->string()->description('pending_approval (default), done, denied, expired, failed or all'),
+            'page' => $schema->integer()->description('page number'),
+            'per_page' => $schema->integer()->description('entries per page, up to 200 (default 50)'),
         ];
     }
 }

@@ -56,10 +56,20 @@ class BusTest extends TestCase
         $this->assertStringContainsString('Bus overbooked: 4 people for 3 seats – 1 too many', (string) Bus::summary($this->event));
         $this->assertStringContainsString('overbooked', (string) app(DashboardData::class)->eventBlock($this->event, null, false)['bus_summary']);
 
-        $this->assertFalse(Bus::set($child, 'car'), 'children always go by bus');
         $this->assertTrue(Bus::set($adult, 'car'));
         $status = Bus::status($this->event);
         $this->assertSame([3, 0, 0, 1], [$status['riders'], $status['over'], $status['free'], $status['cars']]);
+
+        // The legal guardians bring a child themselves: the seat is free, and the list says who brings it.
+        $guardian = Person::factory()->create(['first_name' => 'Kim', 'last_name' => 'Ash']);
+        $guardian->contactPoints()->create(['type' => 'phone', 'value' => '+43 1 234', 'is_primary' => true]);
+        $child->person?->guardians()->attach($guardian->id);
+        $this->assertTrue(Bus::set($child, 'car'));
+        $status = Bus::status($this->event);
+        $this->assertSame([2, 1, 2, 1], [$status['riders'], $status['free'], $status['cars'], $status['children_by_car']]);
+        $brought = collect(app(EventLists::class)->build($this->event, 'cars')->rows)->first(fn (array $row) => $row[1] === 'Child Ash') ?? [];
+        $this->assertSame(['Kim Ash', '+43 1 234'], array_slice($brought, 3, 2));
+        Bus::set($child, 'bus');
         $this->assertStringContainsString('3 of 3 seats taken', (string) Bus::summary($this->event));
 
         $lists = app(EventLists::class);
@@ -80,12 +90,12 @@ class BusTest extends TestCase
         $adult = $this->join('Adult', '1990-01-01', 'staff');
 
         $table = Livewire::test(ParticipationsRelationManager::class, ['ownerRecord' => $this->event, 'pageClass' => EditEvent::class]);
-        $table->assertTableActionVisible('travel', $adult)->assertTableActionHidden('travel', $child)->callTableAction('travel', $adult);
+        $table->assertTableActionVisible('travel', $adult)->assertTableActionVisible('travel', $child)->callTableAction('travel', $adult);
         $this->assertSame('car', Bus::travel($adult->refresh()));
         $table->callTableBulkAction('travel_bus', [$adult, $child]);
         $this->assertSame('bus', Bus::travel($adult->refresh()));
         $table->callTableBulkAction('travel_car', [$adult, $child]);
-        $this->assertSame(['car', 'bus'], [Bus::travel($adult->refresh()), Bus::travel($child->refresh())]);
+        $this->assertSame(['car', 'car'], [Bus::travel($adult->refresh()), Bus::travel($child->refresh())]);
 
         Livewire::test(EditEvent::class, ['record' => $this->event->getRouteKey()])->fillForm(['bus_booked' => true, 'bus_seats' => null])->call('save')->assertHasFormErrors(['bus_seats']);
     }

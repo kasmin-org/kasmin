@@ -61,3 +61,21 @@ Without `--import` the command only shows the dry run. `fields.json` assigns Kas
 `{"first_name": "Vorname", "last_name": "Name", "guardian1_name": "Erziehungsberechtigte/r 1"}`.
 
 See also [Migrate with an AI assistant](migrate-with-ai.md).
+
+## Invoices from the system used before
+
+*Finance → Invoice archive* keeps old invoices to look them up. They are **read-only**: nothing is sent, reminded or booked for them.
+
+**Import invoices** (treasurers and administrators) takes
+
+- a **table** (CSV or XLSX) with one invoice per row. Columns (English or German names): `number`, `date`, `name`, `e-mail`, `amount`,
+  `status` (`paid`, `open`, `cancelled`), `paid` (date), `note`. Amounts such as `1.250,50 €` or `1250.50` are understood, dates as
+  `03.03.2025` or `2025-03-03`. If the e-mail address belongs to a person in Kasmin, the invoice is linked to that person.
+- optionally a **ZIP with the PDFs**, named like the invoice numbers (`R142.pdf`, `2025-0142.pdf`; case, spaces and signs do not matter).
+
+The result names what was imported and what did not fit (rows without a number, PDFs without an invoice). An import can be repeated:
+rows whose number exists are updated, nothing is doubled.
+
+After the import **the own numbering continues after the highest imported number** – with `R142` as the last old invoice, the next
+invoice of Kasmin gets 143. The number never goes back, and with a number range per year nothing is changed.
+

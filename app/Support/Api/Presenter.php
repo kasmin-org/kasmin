@@ -111,7 +111,7 @@ class Presenter
         return [
             'key' => $a->key, 'name' => $a->label(), 'action' => $a->action, 'trigger' => $a->trigger, 'trigger_config' => $a->trigger_config,
             'config' => $a->config, 'mode' => $a->mode, 'active' => $a->active, 'standard' => $a->is_standard, 'max_items' => $a->max_items,
-            'approvals_needed' => max(1, (int) $a->approvals_needed), 'approver_roles' => $a->approverRoles(), 'last_run_at' => $a->last_run_at?->toIso8601String(),
+            'approvals_needed' => max(1, (int) $a->approvals_needed), 'approver_roles' => $a->approverRoles(), 'approver_roles_default' => ! $a->approver_roles, 'last_run_at' => $a->last_run_at?->toIso8601String(),
         ];
     }
 

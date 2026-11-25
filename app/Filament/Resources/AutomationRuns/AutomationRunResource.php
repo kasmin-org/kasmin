@@ -5,6 +5,7 @@ namespace App\Filament\Resources\AutomationRuns;
 use App\Filament\Resources\AutomationRuns\Pages\ListAutomationRuns;
 use App\Filament\Resources\AutomationRuns\Pages\ViewAutomationRun;
 use App\Filament\Support\AreaAccess;
+use App\Models\AutomationApproval;
 use App\Models\AutomationRun;
 use BackedEnum;
 use Filament\Actions\ViewAction;
@@ -105,6 +106,8 @@ class AutomationRunResource extends Resource
                 TextEntry::make('event.title')->label(__('automations.event'))->placeholder('–'),
                 TextEntry::make('created_at')->label(__('automations.created'))->dateTime(),
                 TextEntry::make('expires_at')->label(__('automations.expires'))->dateTime()->placeholder('–'),
+                TextEntry::make('approvals_so_far')->label(__('automations.approvals_so_far'))->visible(fn (AutomationRun $record) => ($record->automation->approvals_needed ?? 1) > 1)
+                    ->state(fn (AutomationRun $record) => $record->approvals()->count().' / '.$record->automation?->approvals_needed.($record->approvals()->exists() ? ': '.$record->approvals()->with('user')->get()->map(fn (AutomationApproval $a) => $a->user?->name)->implode(', ') : '')),
                 TextEntry::make('decidedBy.name')->label(__('automations.decided_by'))->placeholder('–'),
                 TextEntry::make('comment')->label(__('automations.comment'))->placeholder('–'),
             ]),

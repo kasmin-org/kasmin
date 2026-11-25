@@ -13,6 +13,7 @@ return [
     'form' => 'Form (key)', 'interval_days' => 'Days between reminders', 'max' => 'At most … reminders', 'window_days' => 'Events starting within … days',
     'age' => 'Age', 'role' => 'Role', 'next_role' => 'Next role (proposal)',
     'actions' => [
+        'custom' => 'Own steps',
         'group_waitlist_offer' => 'Offer free places in groups',
         'waitlist_positions' => 'New position on the waitlist', 'mailing_release' => 'Approve large mailings', 'registration_rounds' => 'Registration rounds', 'payment_reminders' => 'Payment reminders', 'invoice_corrections' => 'Correct invoices', 'payment_followup' => 'Release unpaid places', 'membership_invoices' => 'Membership fee invoices',
         'waitlist_offer' => 'Offer free places to the waitlist',
@@ -25,6 +26,7 @@ return [
         'age_notice' => 'Notice when a child reaches an age',
     ],
     'triggers' => [
+        'weekly' => 'Weekly', 'monthly' => 'Monthly', 'once' => 'Once on a date', 'on_status' => 'Status of a registration changes', 'on_group_joined' => 'Person joins a group', 'on_group_left' => 'Person leaves a group', 'on_person_created' => 'New person', 'on_person_changed' => 'Field of a person changes',
         'manual' => 'Only by button',
         'daily' => 'Daily',
         'before_event' => 'Days before an event starts',
@@ -74,11 +76,13 @@ return [
         'safety_missing' => ':event: safety sheets still missing for :count famil(y/ies): :names',
     ],
     'errors' => [
+        'already_approved' => 'You have already approved this.',
         'decided' => 'This run has already been decided.',
         'expired' => 'The approval request has expired.',
         'not_allowed' => 'You are not allowed to approve this automation.',
     ],
     'mail' => [
+        'decided_subject' => 'Decided: :name', 'decided_approved' => ':by approved ":name". You do not have to do anything.', 'decided_denied' => ':by cancelled ":name". You do not have to do anything.',
         'subject' => 'Approval needed: :name',
         'reminder_subject' => 'Reminder – approval needed: :name',
         'greeting' => 'Hello :name,',
@@ -107,4 +111,13 @@ return [
         'invalid_title' => 'Link no longer valid',
         'invalid' => 'This approval link has already been used, has expired or the request was decided by someone else. Open the approvals inbox in the admin interface.',
     ],
+    'create' => 'Own automation', 'approvals_needed' => 'Approvals needed', 'approvals_needed_hint' => 'How many people have to approve before anything happens. One denial is enough to cancel.', 'approvals_so_far' => 'Approvals',
+    'weekday' => 'Weekday', 'weekdays' => [1 => 'Monday', 2 => 'Tuesday', 3 => 'Wednesday', 4 => 'Thursday', 5 => 'Friday', 6 => 'Saturday', 7 => 'Sunday'], 'month_day' => 'Day of the month',
+    'fields_label' => 'Changed fields', 'fields' => ['birth_date' => 'Date of birth', 'locale' => 'Language', 'first_name' => 'First name', 'last_name' => 'Last name', 'gender' => 'Gender'],
+    'target' => 'For whom', 'source' => 'People', 'sources' => ['subject' => 'The person of the trigger', 'event' => 'Participants of the event', 'group' => 'Members of a group', 'people' => 'All people that fit the conditions'],
+    'source_mismatch' => 'Choose "The person of the trigger" for changes as trigger, and something else for all others.', 'event_needed' => 'This trigger has no event. Choose other people, or a trigger before or after an event.',
+    'conditions' => 'Conditions', 'once' => 'Only once per person', 'steps_title' => 'What happens', 'step' => 'Step', 'add_step' => 'Add step',
+    'steps' => ['send_mail' => 'Send a mail', 'add_group' => 'Add to group', 'remove_group' => 'Remove from group', 'set_status' => 'Change status of the registration', 'notify_team' => 'Task for the team', 'webhook' => 'Call webhook', 'invoice' => 'Create invoice draft'],
+    'step_to' => ['template' => 'as in the template', 'guardians' => 'Legal guardians', 'person' => 'The person'], 'task' => 'Task', 'webhook_name' => 'Name', 'invoice_rights' => 'Only people with the right to make invoices can add this step.', 'by_automation' => 'by an automation',
+    'schedule' => ['title' => 'Schedule', 'announce' => 'Announced', 'opens' => 'Registration opens', 'closes' => 'Registration closes', 'answers' => 'Answers can be changed until', 'reserve' => 'Reminder: reserve places', 'reserve_release' => 'Reserve places are released', 'start' => 'Start', 'end' => 'End', 'round' => 'Registration round', 'due' => 'Due', 'planned' => 'planned', 'manual' => 'only by button', 'off' => 'switched off', 'day' => 'first day', 'before' => ':days days before', 'after' => ':days days after the start'],
 ];

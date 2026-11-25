@@ -2,7 +2,6 @@
 
 namespace App\Support\Reports;
 
-use App\Models\Automation;
 use App\Models\AutomationRun;
 use App\Models\BankImport;
 use App\Models\Consent;
@@ -14,6 +13,7 @@ use App\Models\OutgoingMail;
 use App\Models\Participation;
 use App\Models\Payment;
 use App\Support\Automations\Engine;
+use App\Support\Automations\Schedule;
 use App\Support\Forms\Forms;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -156,27 +156,8 @@ class DashboardData
      */
     public function automations(): array
     {
-        $upcoming = [];
-        foreach (Automation::query()->where('active', true)->get() as $a) {
-            $days = (int) $a->triggerSetting('days', 0);
-            if ($a->trigger === 'daily') {
-                [$h, $m] = array_map('intval', explode(':', (string) $a->triggerSetting('time', '08:00')) + [1 => 0]);
-                $next = now()->setTime($h, $m);
-                $upcoming[] = ['name' => $a->label(), 'at' => $next->isPast() ? $next->addDay() : $next, 'event' => null];
-            } elseif (in_array($a->trigger, ['before_event', 'after_event'], true)) {
-                $events = Event::query()->whereNotIn('status', ['draft', 'cancelled'])->where($a->trigger === 'before_event' ? 'starts_at' : 'ends_at', '>', now()->subDays(1))->get();
-                foreach ($events as $e) {
-                    $at = $a->trigger === 'before_event' ? $e->starts_at->copy()->subDays($days) : $e->ends_at->copy()->addDays($days);
-                    if ($at->between(now(), now()->addDays(14)) && ! $a->runs()->where('dedupe_key', 'event:'.$e->id)->exists()) {
-                        $upcoming[] = ['name' => $a->label(), 'at' => $at, 'event' => $e->title];
-                    }
-                }
-            }
-        }
-        usort($upcoming, fn ($x, $y) => $x['at'] <=> $y['at']);
-
         return [
-            'upcoming' => array_slice($upcoming, 0, 8),
+            'upcoming' => app(Schedule::class)->upcoming(),
             'failed' => AutomationRun::query()->where('status', 'failed')->where('created_at', '>=', now()->subDays(14))->count(),
         ];
     }

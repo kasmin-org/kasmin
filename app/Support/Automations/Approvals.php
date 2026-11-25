@@ -4,6 +4,7 @@ namespace App\Support\Automations;
 
 use App\Models\AutomationApprovalToken;
 use App\Models\AutomationRun;
+use App\Models\OutgoingMail;
 use App\Models\Role;
 use App\Models\User;
 use App\Support\Mail\Composer;
@@ -34,7 +35,11 @@ class Approvals
     {
         $run->loadMissing('automation', 'event');
         $sent = 0;
+        $done = $run->approvals()->pluck('user_id')->all();
         foreach ($this->approvers($run) as $user) {
+            if (in_array($user->id, $done, true)) {
+                continue;
+            }
             $locale = $user->person->locale ?? app()->getLocale();
             $subject = __($reminder ? 'automations.mail.reminder_subject' : 'automations.mail.subject', ['name' => $run->automation?->label($locale)], $locale);
             $html = view('mail.approval-request', ['run' => $run, 'url' => route('approvals.show', MailLinks::PLACEHOLDER), 'locale' => $locale, 'user' => $user])->render();
@@ -44,6 +49,20 @@ class Approvals
         }
 
         return $sent;
+    }
+
+    /** The other approvers who were asked learn who decided (RO03). */
+    public function informOthers(AutomationRun $run, User $by): void
+    {
+        $asked = OutgoingMail::query()->where('attachments', 'like', '%"approval_run_id":'.$run->id.'}%')->pluck('person_id')->all();
+        foreach ($this->approvers($run) as $user) {
+            if ($user->id === $by->id || ! in_array($user->person_id, $asked, true)) {
+                continue;
+            }
+            $locale = $user->person->locale ?? app()->getLocale();
+            $text = __('automations.mail.decided_'.($run->status === 'denied' ? 'denied' : 'approved'), ['name' => $run->automation?->label($locale), 'by' => $by->name], $locale);
+            app(Composer::class)->queueRaw($user->email, $user->name, (string) __('automations.mail.decided_subject', ['name' => $run->automation?->label($locale)], $locale), '<p>'.e($text).'</p>', $locale, 'notification', $user->person_id);
+        }
     }
 
     /** Personal link of an approver; made when the mail is sent, so it is never stored (AT04). */

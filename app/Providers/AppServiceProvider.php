@@ -6,6 +6,7 @@ use App\Models\Participation;
 use App\Models\Person;
 use App\Models\User;
 use App\Support\Api\Presenter;
+use App\Support\Automations\Triggers;
 use App\Support\Install\AfterMigrations;
 use App\Support\RuntimeSettings;
 use App\Support\Schema\SchemaGuard;
@@ -63,11 +64,15 @@ class AppServiceProvider extends ServiceProvider
 
         // Webhook events of participations and people (AD81).
         Participation::created(fn (Participation $p) => app(Webhooks::class)->emit('participation.created', Presenter::participation($p->loadMissing('event', 'person'))));
+        Participation::created(fn (Participation $p) => Triggers::status($p));
+        Person::updated(fn (Person $p) => Triggers::personChanged($p));
         Participation::updated(function (Participation $p): void {
             if ($p->wasChanged('status')) {
+                Triggers::status($p);
                 app(Webhooks::class)->emit('participation.status_changed', Presenter::participation($p->loadMissing('event', 'person')) + ['previous_status' => $p->getOriginal('status')]);
             }
         });
+        Person::created(fn (Person $p) => Triggers::personCreated($p));
         Person::created(fn (Person $p) => app(Webhooks::class)->emit('person.created', Presenter::person($p)));
 
         Event::listen(MigrationsEnded::class, fn (MigrationsEnded $event) => $event->method === 'up' ? AfterMigrations::run() : null);

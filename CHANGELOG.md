@@ -11,6 +11,10 @@ All notable changes to Kasmin are documented in this file. The format is based o
 - Waitlist: order by rules per role (priority, took part last time, number of events, registration date), page with reasons, offers and manual actions, skipping with a reason.
 - Release of reserve places, reminder to all administrators at a date, automatic release (off by default).
 - Waitlists of groups with offers in the portal.
+- Own automations: trigger (also weekly, monthly, on a date, changes of status, group or field), people, conditions and steps.
+- Approvals by several people; the others are told who decided.
+- Schedule of an event, all automation runs of the next 14 days on the dashboard.
+- New season: copy an event and start the season with a preview of everything that will happen.
 
 ### Security
 

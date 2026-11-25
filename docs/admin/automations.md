@@ -14,7 +14,9 @@ before an event, closing an event. Each automation has a **trigger**, an **actio
 | **Automatic** | Runs on its own. Safety limit: if a run has more actions than *Maximum actions without approval* (default 200), it waits for an approval anyway. |
 | **Manual only** | Runs only with the button *Run now*. |
 
-**Approvers** are everyone with one of the selected roles (default: board and administrator); one decision is enough.
+**Approvers** are everyone with one of the selected roles (default: board and administrator). One approval is enough by default; with
+*Approvals needed*, more people have to approve (what one of them leaves out stays out), and one denial cancels. The other
+approvers are told who decided.
 
 ## Approval by e-mail
 
@@ -44,9 +46,38 @@ Every run shows its plan and, after execution, the result per action.
 | Daily | once a day after the configured time |
 | Days before an event starts | once per event, from *n* days before the start until the start (optionally only one event series) |
 | Days after an event ended | once per event, from *n* days after the end, for one week |
+| Weekly, monthly, once on a date | after the configured time; day 31 means the last day in shorter months |
+| Status of a registration changes | to one of the chosen statuses, optionally only a series and roles |
+| Person joins or leaves a group | the chosen group |
+| New person, field of a person changes | not for imports and demo data |
 | When a place becomes free | after a cancellation, a declined or expired offer |
 
 The scheduler (cron job, see [Hosting](hosting.md)) checks the automations every hour (`kasmin:automations:run`).
+
+## Own automations
+
+*Automations → Own automation*. They are always created switched off; check them with the dry run first.
+
+1. **Trigger** (see above).
+2. **For whom**: the person of the trigger (for changes), participants of the event, members of a group, or all people that fit
+   the conditions. Without conditions, *all people* means nobody.
+3. **Conditions**: the same rules as for groups (age, membership, role, group, number of events), and *only once per person*.
+4. **What happens**, step by step: send a mail, add to or remove from a group, change the status of the registration (confirmed,
+   attended, not shown up, cancelled – never past the waitlist), a task for the team (notification topic *Tasks from automations*),
+   call webhooks (`automation.custom`), create an invoice draft (only people with the right to make invoices can add this step).
+
+Automations can start other automations; chains are cut after three steps, so nothing runs in circles. A problem in an automation
+never stops the change that started it. Shipped automations can be switched off, but not deleted.
+
+## Schedule
+
+*Events → Schedule* shows everything around an event: its dates, rounds, due dates, automations before and after it (also those that
+are switched off) and the runs so far. The dashboard shows the runs of the next 14 days.
+
+## New season
+
+*Events → New season* copies an event and shows before anything is created what will happen: dates, places, prices, schedule, and who
+*Start season* would register. The season can be started in the same step; people who may not approve this only send the request.
 
 ## Standard automations
 

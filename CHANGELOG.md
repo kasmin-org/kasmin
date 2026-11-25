@@ -6,6 +6,8 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ## [Unreleased]
 
+## [0.22.0] - 2026-11-25
+
 ### Added
 
 - Families get a confirmation when a registration is cancelled (by themselves, the team, or because an invoice was not paid) and when an offer of a place ran out.
@@ -512,7 +514,8 @@ First public pre-release for testing. Not ready for production use.
 - Docker image: system packages updated and build packages removed after compiling the PHP extensions – the
   container scan reports no high or critical findings any more (previously 75 in Debian packages).
 
-[Unreleased]: https://github.com/kasmin-org/kasmin/compare/v0.21.0...develop
+[Unreleased]: https://github.com/kasmin-org/kasmin/compare/v0.22.0...develop
+[0.22.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.22.0
 [0.21.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.21.0
 [0.20.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.20.0
 [0.19.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.19.0

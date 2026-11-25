@@ -119,7 +119,7 @@ class RestApiTest extends TestCase
         $this->withToken($runner)->postJson("/api/v1/automation-runs/{$run}/decision", ['decision' => 'approve'])->assertForbidden();
 
         $decider = $this->token(['automations:read', 'approvals:decide']);
-        $this->withToken($decider)->getJson('/api/v1/automation-runs')->assertOk()->assertJsonPath('data.0.id', $run);
+        $this->withToken($decider)->getJson('/api/v1/automation-runs')->assertOk()->assertJsonPath('data.0.id', $run)->assertJsonPath('meta', ['total' => 1, 'page' => 1, 'last_page' => 1]);
         $this->withToken($decider)->postJson("/api/v1/automation-runs/{$run}/decision", ['decision' => 'approve'])->assertOk()->assertJsonPath('data.status', 'done');
         $this->assertSame(1, Invoice::query()->where('status', 'issued')->count());
         $this->assertSame('done', AutomationRun::query()->whereKey((int) $run)->value('status'));

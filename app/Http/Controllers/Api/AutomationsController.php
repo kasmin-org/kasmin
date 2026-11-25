@@ -37,13 +37,16 @@ class AutomationsController extends ApiController
     /**
      * Changes what the automation form allows: name, active, mode, max_items, approvals_needed, approver_roles,
      * trigger, trigger_config and config (each of the two objects replaces the stored one). Key and action cannot
-     * be changed, so standard automations stay standard.
+     * be changed, so standard automations stay standard. Via MCP, changes that touch an approval also need the
+     * scope approvals:decide (see AutomationInput::protect).
      */
     public function update(Request $request, string $automation): JsonResponse
     {
         $this->scope('automations:write');
         $model = Automation::query()->where('key', $automation)->firstOrFail();
-        $model->fill(AutomationInput::check($model, $request->all()))->save();
+        $model->fill(AutomationInput::check($model, $request->all()));
+        AutomationInput::protect($model);
+        $model->save();
 
         return response()->json(['data' => Presenter::automation($model)]);
     }
@@ -73,15 +76,15 @@ class AutomationsController extends ApiController
             : response()->json(['data' => Presenter::run($run->load('automation', 'event'))], 201);
     }
 
-    /** Runs; default: pending approval requests. */
+    /** Runs, newest first; default: pending approval requests. In pages (page, per_page up to 200, default 50). */
     public function runs(Request $request): JsonResponse
     {
         $this->scope('automations:read');
         $status = (string) $request->query('status', 'pending_approval');
-        $runs = AutomationRun::query()->with('automation', 'event', 'decidedBy')->when($status !== 'all', fn ($q) => $q->where('status', $status))
-            ->orderByDesc('id')->limit(100)->get();
+        $page = AutomationRun::query()->with('automation', 'event', 'decidedBy')->when($status !== 'all', fn ($q) => $q->where('status', $status))
+            ->orderByDesc('id')->paginate($this->perPage());
 
-        return response()->json(['data' => $runs->map(fn (AutomationRun $r) => Presenter::run($r))->values()]);
+        return response()->json(['data' => $page->getCollection()->map(fn (AutomationRun $r) => Presenter::run($r))->values(), 'meta' => ['total' => $page->total(), 'page' => $page->currentPage(), 'last_page' => $page->lastPage()]]);
     }
 
     public function showRun(int $run): JsonResponse

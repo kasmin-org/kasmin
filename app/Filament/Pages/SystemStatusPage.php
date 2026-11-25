@@ -4,6 +4,8 @@ namespace App\Filament\Pages;
 
 use App\Models\SystemNotification;
 use App\Models\User;
+use App\Support\Backup\Backups;
+use App\Support\Backup\RemoteBackup;
 use App\Support\Mail\MailDns;
 use App\Support\System\SystemNotifications;
 use App\Support\System\SystemStatus;
@@ -55,6 +57,9 @@ class SystemStatusPage extends Page
             'dns' => app(MailDns::class)->report(),
             'notifications' => SystemNotification::query()->whereNull('resolved_at')->orderByDesc('id')->get(),
             'docker' => SystemStatus::runsInDocker(),
+            'backups' => array_slice(app(Backups::class)->all(), 0, 12),
+            'remote' => RemoteBackup::configured() ? RemoteBackup::state() : null,
+            'passphrase' => RemoteBackup::secret('backup_passphrase') !== '',
             'cronDocs' => SystemStatus::docsUrl('admin/hosting'),
         ];
     }

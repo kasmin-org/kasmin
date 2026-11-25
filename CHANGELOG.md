@@ -16,6 +16,7 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ### Security
 
+- The preview of mail templates is shown in a sandboxed frame. Until now, someone with the right to edit mail templates could place a script that ran in the session of whoever opened the preview.
 - Once there are answers, only people with access to the safety sheets can remove or rename confidential fields, make them less confidential, or change or delete the safety sheet. Until now, form rights were enough to make health data readable.
 
 ### Fixed

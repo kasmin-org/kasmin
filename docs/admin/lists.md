@@ -35,6 +35,16 @@ The button *Export* on people, families, groups, events, invoices, payments, ref
 log exports what the table shows – with the current search, filters and columns. XLSX and CSV up to 5000 entries, PDF up to
 1000. Exports are logged. Entered text is never executed as a spreadsheet formula.
 
+## Actions on selected rows
+
+Tick rows in *People* or in the participants of an event and choose under *Bulk actions*:
+
+- **Add to a group / Remove from a group** – for groups that are filled by hand.
+- **Write to the selected** – creates a mailing as a draft for exactly these people; preview, approval and sending follow there
+  ([Mail](mail.md)).
+- **Change the status** (participants only) – e.g. mark several as *attended*. Cancellations are done one by one, because they need a
+  reason and inform the family.
+
 ## Saved views and filters
 
 - *Views → Save this view* keeps search, filters, sorting and columns under a name; *Visible to everyone* shares it with all

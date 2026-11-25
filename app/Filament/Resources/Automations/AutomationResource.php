@@ -16,6 +16,7 @@ use App\Support\Auth\Permissions;
 use App\Support\Automations\Engine;
 use BackedEnum;
 use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\Select;
@@ -29,6 +30,7 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Enums\RecordActionsPosition;
 use Filament\Tables\Table;
 use Illuminate\Support\HtmlString;
 
@@ -133,10 +135,8 @@ class AutomationResource extends Resource
                 TextColumn::make('last_run_at')->label(__('automations.last_run'))->since()->placeholder('–')->toggleable(),
             ])
             ->recordActions([
-                self::dryRunAction(),
-                self::runNowAction(),
-                EditAction::make(),
-            ]);
+                ActionGroup::make([self::dryRunAction(), self::runNowAction(), EditAction::make()]),
+            ], RecordActionsPosition::BeforeColumns);
     }
 
     public static function eventSelect(): Select

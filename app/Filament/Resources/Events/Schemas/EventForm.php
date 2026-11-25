@@ -20,13 +20,14 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Illuminate\Support\HtmlString;
 
 class EventForm
 {
     public static function configure(Schema $schema): Schema
     {
         return $schema->components([
-            Section::make(__('admin.event.singular'))->disabled(fn () => ! Permissions::current('events', 'edit'))->columns(['md' => 2])->schema([
+            Section::make(__('admin.event.singular'))->disabled(fn () => ! Permissions::current('events', 'edit'))->columnSpanFull()->columns(['md' => 2])->schema([
                 TextInput::make('title')->label(__('admin.event.title'))->required()->maxLength(200)->columnSpanFull(),
                 Select::make('event_series_id')->label(__('admin.event.series'))->relationship('series', 'name')->createOptionForm([
                     TextInput::make('name')->label(__('admin.event.title'))->required(),
@@ -52,7 +53,7 @@ class EventForm
                 DateTimePicker::make('registration_opens_at')->label(__('admin.event.opens_at'))->seconds(false),
                 DateTimePicker::make('registration_closes_at')->label(__('admin.event.closes_at'))->seconds(false)->after('registration_opens_at'),
                 Toggle::make('public_page')->label(__('admin.event.public_page'))->inline(false)
-                    ->helperText(fn (?Event $record) => $record !== null && ! $record->is_template && $record->public_page ? route('public.event', $record->public_id) : null),
+                    ->helperText(fn (?Event $record) => $record !== null && ! $record->is_template && $record->public_page ? new HtmlString('<span style="overflow-wrap:anywhere">'.e(route('public.event', $record->public_id)).'</span>') : null),
                 FileUpload::make('image_path')->label(__('admin.event.image'))->image()->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])->maxSize(5120)->disk('local')->directory('event-images')->visibility('private'),
                 Repeater::make('documents')->relationship()->label(__('admin.event.documents'))->columnSpanFull()->columns(['md' => 3])->orderColumn('sort')->defaultItems(0)->addActionLabel(__('admin.event.add_document'))
                     ->schema([
@@ -63,8 +64,8 @@ class EventForm
                 DatePicker::make('answers_until')->label(__('admin.event.answers_until'))->hintIcon('heroicon-m-question-mark-circle', tooltip: __('admin.event.answers_until_hint')),
                 Textarea::make('description')->label(__('admin.event.description'))->columnSpanFull(),
             ]),
-            Section::make(__('admin.event.roles'))->disabled(fn () => ! Permissions::current('events', 'edit'))->schema([
-                Repeater::make('roles')->relationship()->label('')->columns(3)->defaultItems(1)->addActionLabel(__('admin.event.add_role'))
+            Section::make(__('admin.event.roles'))->disabled(fn () => ! Permissions::current('events', 'edit'))->columnSpanFull()->schema([
+                Repeater::make('roles')->relationship()->label(__('admin.event.roles'))->hiddenLabel()->columns(['md' => 3])->defaultItems(1)->addActionLabel(__('admin.event.add_role'))
                     ->schema([
                         Select::make('role_key')->label(__('admin.event.role'))->options(__('events.roles'))->required()->distinct(),
                         TextInput::make('capacity')->label(__('admin.event.capacity'))->numeric()->minValue(0),
@@ -132,7 +133,7 @@ class EventForm
                     ]),
             ]),
             Section::make(__('admin.event.rounds'))->disabled(fn () => ! Permissions::current('events', 'edit'))->collapsible()->collapsed(fn (?Event $record) => $record === null || ! $record->rounds()->exists())->columnSpanFull()->description(__('admin.event.rounds_hint'))->schema([
-                Repeater::make('rounds')->relationship()->label('')->columns(['md' => 3])->orderColumn('sort')->defaultItems(0)->addActionLabel(__('admin.event.add_round'))
+                Repeater::make('rounds')->relationship()->label(__('admin.event.rounds'))->hiddenLabel()->columns(['md' => 3])->orderColumn('sort')->defaultItems(0)->addActionLabel(__('admin.event.add_round'))
                     ->schema([
                         Select::make('role_key')->label(__('admin.event.role'))->options(__('events.roles'))->default('child')->required(),
                         Select::make('kind')->label(__('admin.event.round_kind'))->options(__('admin.event.round_kinds'))->required()->live(),
@@ -143,8 +144,8 @@ class EventForm
                         Select::make('group_id')->label(__('admin.event.round_group'))->options(fn () => Group::query()->orderBy('name')->pluck('name', 'id')->all())->visible($offers),
                     ]),
             ]),
-            Section::make(__('admin.finance.costs'))->collapsible()->collapsed()->schema([
-                Repeater::make('costs')->relationship()->label('')->columns(3)->orderColumn('sort')->defaultItems(0)->addActionLabel(__('admin.finance.add_cost'))
+            Section::make(__('admin.finance.costs'))->collapsible()->collapsed()->columnSpanFull()->schema([
+                Repeater::make('costs')->relationship()->label(__('admin.finance.costs'))->hiddenLabel()->columns(['md' => 3])->orderColumn('sort')->defaultItems(0)->addActionLabel(__('admin.finance.add_cost'))
                     ->schema([
                         TextInput::make('label')->label(__('admin.finance.cost_label'))->required()->maxLength(200),
                         Select::make('category')->label(__('admin.finance.cost_category'))->options(__('admin.finance.cost_categories')),

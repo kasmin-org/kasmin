@@ -28,7 +28,7 @@
     <h2 class="mb-2 text-lg font-semibold">{{ __('lists.phone') }}</h2>
     <form method="post" action="{{ route('portal.profile.phones') }}" class="mb-6 space-y-2">@csrf
         @foreach ([...$points->where('type', 'phone')->pluck('value')->all(), ''] as $phone)
-            <input type="tel" name="phones[]" value="{{ $phone }}" maxlength="40" aria-label="{{ __('lists.phone') }}" class="{{ $input }}">
+            <input type="tel" name="phones[]" value="{{ $phone }}" maxlength="40" @if ($phone === '') placeholder="{{ __('portal.add_phone') }}" @endif aria-label="{{ __('lists.phone') }}" class="{{ $input }}">
         @endforeach
         <button class="w-full rounded-lg bg-kasmin-600 px-4 py-3 font-semibold text-white">{{ __('portal.save') }}</button>
     </form>
@@ -36,13 +36,13 @@
     @foreach ($households as $household)
         <h2 class="mb-2 text-lg font-semibold">{{ $household->name }}</h2>
         <form method="post" action="{{ route('portal.profile.family', $household->public_id) }}" class="mb-6 space-y-2">@csrf
-            <input name="street" value="{{ old('street', $household->street) }}" maxlength="200" placeholder="{{ __('admin.household.street') }}" aria-label="{{ __('admin.household.street') }}" autocomplete="street-address" class="{{ $input }}">
+            <label class="block"><span class="mb-1 block text-sm font-medium">{{ __('admin.household.street') }}</span><input name="street" value="{{ old('street', $household->street) }}" maxlength="200" autocomplete="street-address" class="{{ $input }}"></label>
             <div class="grid gap-2 sm:grid-cols-3">
-                <input name="postal_code" value="{{ old('postal_code', $household->postal_code) }}" maxlength="16" placeholder="{{ __('admin.household.postal_code') }}" aria-label="{{ __('admin.household.postal_code') }}" autocomplete="postal-code" class="{{ $input }}">
-                <input name="city" value="{{ old('city', $household->city) }}" maxlength="120" placeholder="{{ __('admin.household.city') }}" aria-label="{{ __('admin.household.city') }}" autocomplete="address-level2" class="{{ $input }}">
-                <input name="country" value="{{ old('country', $household->country ?? 'AT') }}" maxlength="2" placeholder="{{ __('admin.household.country') }}" aria-label="{{ __('admin.household.country') }}" autocomplete="country" class="{{ $input }}">
+                <label class="block"><span class="mb-1 block text-sm font-medium">{{ __('admin.household.postal_code') }}</span><input name="postal_code" value="{{ old('postal_code', $household->postal_code) }}" maxlength="16" autocomplete="postal-code" class="{{ $input }}"></label>
+                <label class="block"><span class="mb-1 block text-sm font-medium">{{ __('admin.household.city') }}</span><input name="city" value="{{ old('city', $household->city) }}" maxlength="120" autocomplete="address-level2" class="{{ $input }}"></label>
+                <label class="block"><span class="mb-1 block text-sm font-medium">{{ __('admin.household.country') }}</span><input name="country" value="{{ old('country', $household->country ?? 'AT') }}" maxlength="2" autocomplete="country" class="{{ $input }}"></label>
             </div>
-            <label class="block text-sm">{{ __('portal.invoice_recipient') }}
+            <label class="block"><span class="mb-1 block text-sm font-medium">{{ __('portal.invoice_recipient') }}</span>
                 <select name="invoice_recipient_id" class="{{ $input }}">
                     @foreach ($household->members->where('pivot.role', 'guardian') as $g)<option value="{{ $g->id }}" @selected((int) $household->invoice_recipient_id === $g->id)>{{ $g->fullName() }}</option>@endforeach
                 </select></label>

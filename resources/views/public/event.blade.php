@@ -10,7 +10,7 @@
     <ul class="mt-4 space-y-1">
         @foreach ($event->roles->where('registered_by', '!=', 'admin') as $role)
             @php($left = $role->directLeft())
-            <li><strong>{{ __('events.roles.'.$role->role_key) }}</strong>@if ($role->min_age !== null || $role->max_age !== null) ({{ $role->min_age ?? 0 }}–{{ $role->max_age ?? '99' }})@endif@if ($role->price_cents > 0): {{ \App\Models\Invoice::money($role->price_cents, $event->currency) }}@endif
+            <li><strong>{{ __('events.roles.'.$role->role_key) }}</strong>@if ($role->min_age !== null || $role->max_age !== null) ({{ $role->min_age ?? 0 }}–{{ $role->max_age ?? '99' }})@endif@if ($role->price_cents > 0): <span class="whitespace-nowrap">{{ \App\Models\Invoice::money($role->price_cents, $event->currency) }}</span>@endif
                 @if ($event->status === 'open') · {{ $left === null || $left > 0 ? __('events.places_left', ['count' => $left ?? '∞']) : __('events.waitlist_only') }}@endif</li>
         @endforeach
     </ul>

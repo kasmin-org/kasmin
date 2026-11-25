@@ -27,6 +27,7 @@ Pre-release for testing. Not ready for production use.
 
 ### Fixed
 
+- Event form: wider sections, the public link no longer runs under the image, headings translated. Automations: the buttons are in a menu in front of each row and no longer cut off. Profile: visible labels for the address fields. Prices no longer break before the currency sign.
 - People who had never made a choice could not unsubscribe from the newsletter with the link in the mail.
 - One-click unsubscribe of mail programs did not work.
 

@@ -3,6 +3,7 @@
 namespace App\Mcp\Tools;
 
 use App\Mcp\ApiTool;
+use App\Mcp\EventSchema;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\JsonSchema\Types\Type;
 use Laravel\Mcp\Request;
@@ -11,9 +12,11 @@ use Laravel\Mcp\Server\Attributes\Description;
 use Laravel\Mcp\Server\Attributes\Name;
 
 #[Name('create_event')]
-#[Description('Creates an event with its basic data and roles (capacity, ages, price). It starts as a draft unless a status is given. Prices by age or date, instalments, discounts, registration rounds, costs, documents and the image are set in the admin interface.')]
+#[Description('Creates an event with the fields of the event form: basic data, bus, roles (capacity, ages, price), sibling discount, cancellation fee, prices by age or date and the payment plan. It starts as a draft unless a status is given. With template (id of an event template) or copy_of (id of an event), title and starts_at, the event is a copy with everything that is configured, all dates moved; change it with update_event. Registration rounds and costs have their own tools; documents and the image are set in the admin interface.')]
 class CreateEvent extends ApiTool
 {
+    public const ENDPOINT = ['POST', '/events'];
+
     protected string $scope = 'events:write';
 
     public function handle(Request $request): Response
@@ -30,7 +33,9 @@ class CreateEvent extends ApiTool
         return [
             'title' => $schema->string()->description('title')->required(),
             'starts_at' => $schema->string()->description('start, date and time (ISO 8601)')->required(),
-            'ends_at' => $schema->string()->description('end, date and time (ISO 8601)')->required(),
+            'ends_at' => $schema->string()->description('end, date and time (ISO 8601); required unless template or copy_of is given'),
+            'template' => $schema->string()->description('id of an event template to copy (list_event_templates); only title and starts_at are used with it'),
+            'copy_of' => $schema->string()->description('id of an event to copy; only title and starts_at are used with it'),
             'status' => $schema->string()->description('draft, announced, open, closed, running, finished or archived'),
             'series_id' => $schema->integer()->description('id of the event series'),
             'location' => $schema->string()->description('place'),
@@ -53,7 +58,8 @@ class CreateEvent extends ApiTool
             'safety_confirm_days' => $schema->integer()->description('days before the start in which the safety sheet has to be confirmed'),
             'reserve_auto_release' => $schema->boolean()->description('reserved places are released automatically'),
             'reserve_reminder_on' => $schema->string()->description('date of the reminder about reserved places'),
-            'roles' => $schema->array()->items($schema->object())->description('roles: objects with role (child, junior_counsellor, staff or guest), capacity, reserve_places, min_age, max_age, registered_by (guardian, self or admin), price, role_discount, counts_as_sibling, waitlist_order'),
+            'roles' => $schema->array()->items($schema->object())->description('roles: objects with role (child, junior_counsellor, staff or guest), capacity, reserve_places, min_age, max_age, registered_by (guardian, self or admin), price, role_discount, counts_as_sibling, waitlist_order, registration_form (key of a registration form)'),
+            ...EventSchema::money($schema),
         ];
     }
 }

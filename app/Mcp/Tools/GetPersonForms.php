@@ -16,6 +16,8 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 #[IsReadOnly]
 class GetPersonForms extends ApiTool
 {
+    public const ENDPOINT = ['GET', '/people/{person}/forms'];
+
     protected string $scope = 'people:read';
 
     public function handle(Request $request): Response

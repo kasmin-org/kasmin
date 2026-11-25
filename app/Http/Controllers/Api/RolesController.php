@@ -5,13 +5,17 @@ namespace App\Http\Controllers\Api;
 use App\Models\Person;
 use App\Models\Role;
 use App\Models\RoleAssignment;
+use App\Support\Api\ApiContext;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
 /**
  * Roles and who has them. Scopes: people:read to read, roles:write to give and take roles. A token can never give
- * or take the role administrator: that stays with a person in the admin interface.
+ * or take the role administrator: that stays with a person in the admin interface. Via MCP, giving and taking roles
+ * also needs approvals:decide: a role can make somebody an approver, and an AI assistant must not do that on its
+ * own (X05, MI12).
  */
 class RolesController extends ApiController
 {
@@ -41,6 +45,7 @@ class RolesController extends ApiController
     public function store(Request $request, string $person): JsonResponse
     {
         $this->scope('roles:write');
+        $this->protect();
         $model = $this->person($person);
         $data = $request->validate([
             'role' => ['required', 'string', 'exists:roles,key'], 'event' => ['sometimes', 'nullable', 'string'],
@@ -64,6 +69,7 @@ class RolesController extends ApiController
     public function destroy(string $person, int $assignment): JsonResponse
     {
         $this->scope('roles:write');
+        $this->protect();
         $model = $this->person($person);
         /** @var RoleAssignment $item */
         $item = $model->roleAssignments()->with('role')->findOrFail($assignment);
@@ -73,6 +79,19 @@ class RolesController extends ApiController
         $item->delete();
 
         return $this->list($model);
+    }
+
+    /**
+     * Roles decide who may approve (approver roles of automations) and who may use the admin interface, so via
+     * MCP they are protected like the approval settings of an automation (AutomationInput::protect).
+     *
+     * @throws AuthorizationException
+     */
+    private function protect(): void
+    {
+        if (ApiContext::viaMcp() && ! ApiContext::allows('approvals:decide')) {
+            throw new AuthorizationException('Via MCP, giving and taking roles needs the scope approvals:decide.');
+        }
     }
 
     private function notAdministrator(Role $role): void

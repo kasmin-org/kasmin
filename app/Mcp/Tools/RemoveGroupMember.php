@@ -9,11 +9,15 @@ use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Attributes\Description;
 use Laravel\Mcp\Server\Attributes\Name;
+use Laravel\Mcp\Server\Tools\Annotations\IsDestructive;
 
 #[Name('remove_group_member')]
 #[Description('Ends the membership of a person in a manual group.')]
+#[IsDestructive]
 class RemoveGroupMember extends ApiTool
 {
+    public const ENDPOINT = ['DELETE', '/groups/{group}/members/{person}'];
+
     protected string $scope = 'people:write';
 
     public function handle(Request $request): Response

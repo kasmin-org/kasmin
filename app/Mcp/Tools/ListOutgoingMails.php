@@ -1,0 +1,38 @@
+<?php
+
+namespace App\Mcp\Tools;
+
+use App\Mcp\ApiTool;
+use Illuminate\Contracts\JsonSchema\JsonSchema;
+use Illuminate\JsonSchema\Types\Type;
+use Laravel\Mcp\Request;
+use Laravel\Mcp\Response;
+use Laravel\Mcp\Server\Attributes\Description;
+use Laravel\Mcp\Server\Attributes\Name;
+use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
+
+#[Name('list_outgoing_mails')]
+#[Description('The mail log, newest first: recipient, subject, text, kind, status and error. Personal login and approval links are never part of the answer. In pages; meta has total, page and last_page.')]
+#[IsReadOnly]
+class ListOutgoingMails extends ApiTool
+{
+    public const ENDPOINT = ['GET', '/outgoing-mails'];
+
+    protected string $scope = 'mail:read';
+
+    public function handle(Request $request): Response
+    {
+        return $this->callEndpoint($this->args($request));
+    }
+
+    /** @return array<string, Type> */
+    public function schema(JsonSchema $schema): array
+    {
+        return [
+            'status' => $schema->string()->description('held, queued, paused, sending, sent, failed, bounced or cancelled'),
+            'person' => $schema->string()->description('person id'),
+            'page' => $schema->integer()->description('page number'),
+            'per_page' => $schema->integer()->description('entries per page, up to 200 (default 50)'),
+        ];
+    }
+}

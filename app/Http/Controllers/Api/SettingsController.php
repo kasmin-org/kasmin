@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Support\Api\ApiContext;
 use App\Support\Audit\Audit;
 use App\Support\Settings;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -22,6 +24,9 @@ class SettingsController extends ApiController
         'digest_time' => ['nullable', 'regex:/^([01]\d|2[0-3]):[0-5]\d$/'], 'approval_days' => ['nullable', 'integer', 'min:1', 'max:60'],
     ];
 
+    /** Settings that decide whether an approval is needed; via MCP they also need approvals:decide. */
+    private const APPROVALS = ['mailing_approval_above'];
+
     /** The settings that can be changed with the API. */
     public function index(): JsonResponse
     {
@@ -30,13 +35,24 @@ class SettingsController extends ApiController
         return response()->json(['data' => array_map(fn (string $key) => Settings::get($key), array_combine(array_keys(self::RULES), array_keys(self::RULES)))]);
     }
 
-    /** Changes settings. */
+    /**
+     * Changes settings. Via MCP, mailing_approval_above (from how many recipients a mailing needs an approval)
+     * also needs the scope approvals:decide.
+     *
+     * @throws AuthorizationException
+     */
     public function update(Request $request): JsonResponse
     {
         $this->scope('settings:write');
         $unknown = array_diff(array_keys($request->all()), array_keys(self::RULES));
         abort_if($unknown !== [], 422, 'Not available: '.implode(', ', $unknown));
         $data = $request->validate(array_map(fn (array $rules) => ['sometimes', ...$rules], self::RULES));
+        // An AI assistant must not switch an approval off (X05, MI12; see AutomationInput::protect).
+        foreach (self::APPROVALS as $key) {
+            if (array_key_exists($key, $data) && (string) $data[$key] !== (string) Settings::get($key) && ApiContext::viaMcp() && ! ApiContext::allows('approvals:decide')) {
+                throw new AuthorizationException("Via MCP, changing {$key} needs the scope approvals:decide.");
+            }
+        }
         foreach ($data as $key => $value) {
             Settings::set($key, is_bool($value) ? ($value ? '1' : '0') : ($value === null ? null : (string) $value));
         }

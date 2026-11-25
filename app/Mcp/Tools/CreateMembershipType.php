@@ -14,6 +14,8 @@ use Laravel\Mcp\Server\Attributes\Name;
 #[Description('Creates a membership type. The key cannot be changed later.')]
 class CreateMembershipType extends ApiTool
 {
+    public const ENDPOINT = ['POST', '/membership-types'];
+
     protected string $scope = 'people:write';
 
     public function handle(Request $request): Response

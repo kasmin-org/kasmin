@@ -14,6 +14,8 @@ use Laravel\Mcp\Server\Attributes\Name;
 #[Description('Makes a person a legal guardian of another person. The highest number of legal guardians and the age at which guardianships end apply; families are not changed.')]
 class AddGuardian extends ApiTool
 {
+    public const ENDPOINT = ['POST', '/people/{person}/guardians'];
+
     protected string $scope = 'people:write';
 
     public function handle(Request $request): Response

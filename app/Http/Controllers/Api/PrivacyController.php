@@ -49,7 +49,8 @@ class PrivacyController extends ApiController
     /**
      * The copy of the data of a person and the children it is a legal guardian of – the same export as in the admin
      * interface and the portal. Needs audit:read and people:read, and health:read when the export holds answers to
-     * confidential questions (e.g. a safety sheet). Every export is recorded in the audit log.
+     * confidential questions (e.g. a safety sheet) or emergency contacts of the family. Every export is
+     * recorded in the audit log.
      */
     public function export(string $person): JsonResponse
     {
@@ -57,6 +58,11 @@ class PrivacyController extends ApiController
         $this->scope('people:read');
         $model = $this->person($person);
         if ($this->hasConfidentialAnswers($model)) {
+            $this->scope('health:read');
+        }
+        // Emergency contacts are safety data like the emergency list of an event: they need health:read, and an AI
+        // assistant only gets them when all data may be processed (MI12).
+        if ($this->hasEmergencyContacts($model)) {
             $this->scope('health:read');
         }
         Audit::record('privacy.data_exported', $model, null, ['source' => ApiContext::viaMcp() ? 'mcp' : 'api']);
@@ -96,6 +102,12 @@ class PrivacyController extends ApiController
     private function refusals(Person $person): array
     {
         return $person->activeRoleKeys() !== [] ? [(string) __('privacy.has_roles')] : [];
+    }
+
+    /** Whether the export holds emergency contacts: those of the families the person is a legal guardian of. */
+    private function hasEmergencyContacts(Person $person): bool
+    {
+        return $person->households()->wherePivot('role', 'guardian')->whereHas('emergencyContacts')->exists();
     }
 
     /** Whether the export of the person (with the children it is a legal guardian of) holds answers to confidential questions. */

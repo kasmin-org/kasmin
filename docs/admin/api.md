@@ -313,30 +313,92 @@ confirmation mail, and the answer is the same for known and unknown addresses.
 ## MCP for AI assistants
 
 Kasmin has a built-in MCP server (Model Context Protocol, streamable HTTP) at `https://your-kasmin.example/mcp`.
-It offers the REST API as tools (search people, events, participants, invoices, automations with dry run, approval
-requests, import with dry run and rollback, audit log) with the same token and scopes. A tool calls the REST
-endpoint, so the same checks apply and the audit log shows the change with "mcp".
+It offers the REST API as tools with the same token and scopes. A tool calls the REST endpoint, so the same checks
+apply and the audit log shows the change with "mcp". Every endpoint for administrative use has exactly one tool
+(the participation has two, for status and travel); a test walks the routes of the API and fails when one is
+forgotten (`tests/Feature/Api/McpParityTest.php`).
 
-| Tools | Scope |
-|---|---|
-| `list_contact_points` / `add_contact_point`, `remove_contact_point` | `people:read` / `people:write` |
-| `list_guardians` / `add_guardian`, `end_guardianship` (legal guardians) | `people:read` / `people:write` |
-| `list_membership_types` / `create_membership_type`, `update_membership_type` | `people:read` / `people:write` |
-| `create_event`, `update_event`, `set_participation_travel` (bus or car) | `events:write` |
-| `get_automation` / `update_automation` | `automations:read` / `automations:write` |
+| Area | Tools | Scopes |
+|---|---|---|
+| Token | `who_am_i` | – |
+| People | `search_people`, `get_person` / `create_person`, `update_person` | `people:read` / `people:write` |
+| Contact data | `list_contact_points` / `add_contact_point`, `remove_contact_point` | `people:read` / `people:write` |
+| Legal guardians | `list_guardians` / `add_guardian`, `end_guardianship` | `people:read` / `people:write` |
+| Families | `list_households`, `get_household` / `create_household`, `update_household`, `add_household_member`, `remove_household_member` | `people:read` / `people:write` |
+| Memberships | `list_membership_types`, `list_memberships` / `create_membership_type`, `update_membership_type`, `add_membership`, `update_membership` | `people:read` / `people:write` |
+| Roles | `list_roles`, `list_person_roles` / `assign_role`, `remove_role` | `people:read` / `roles:write` **and** `approvals:decide` |
+| Duplicates | `list_duplicates` / `merge_duplicates`, `dismiss_duplicate` | `people:read` / `people:write` |
+| Groups | `list_groups`, `get_group` / `create_group`, `update_group`, `add_group_member`, `remove_group_member` | `people:read` / `people:write` |
+| Events | `list_events`, `get_event`, `get_event_schedule` / `create_event`, `update_event` (whole event form: bus, prices, payment plan) | `events:read` / `events:write` |
+| Event series and templates | `list_event_series`, `list_event_templates` / `create_event_series`, `update_event_series`, `create_event_template`, `update_event_template`, `delete_event_template` | `events:read` / `events:write` |
+| Registration rounds, documents | `list_registration_rounds`, `list_event_documents` / `save_registration_rounds`, `delete_event_document` | `events:read` / `events:write` |
+| Costs of an event | `list_event_costs` / `add_event_cost`, `update_event_cost`, `delete_event_cost` | `finance:read` / `finance:write` |
+| Participants and places | `list_participants` / `register_participant`, `update_participation_status`, `set_participation_travel`, `offer_place`, `assign_reserve_place`, `release_reserve_places` | `events:read` / `events:write` |
+| Groups, rooms, duties of an event | `list_divisions` / `create_division`, `delete_division`, `propose_division`, `move_division_member`, `add_division_unit`, `update_division_unit`, `delete_division_unit` | `events:read` / `events:write` |
+| Lists and reports | `list_event_lists`, `get_event_list`, `get_statistics`, `get_dashboard` | `events:read` (confidential lists: `health:read`; money: `finance:read`) |
+| Invoices | `list_invoices`, `get_invoice` / `record_payment`, `issue_invoice`, `send_invoice`, `cancel_invoice` | `finance:read` / `finance:write` |
+| Payments, refunds, archive | `list_payments`, `list_refunds`, `list_archived_invoices` / `assign_payment`, `mark_refund_done`, `keep_refund_as_credit` | `finance:read` / `finance:write` |
+| Automations | `list_automations`, `get_automation`, `preview_automation`, `list_approvals`, `get_automation_run` / `create_automation`, `update_automation`, `delete_automation` / `request_automation_run` / `decide_approval` | `automations:read` / `automations:write` / `automations:run` / `approvals:decide` |
+| Imports | `import_preview`, `suggest_import_families`, `import_people`, `list_imports`, `rollback_import` | `import:write` |
+| Forms | `list_forms`, `get_form_definition`, `get_person_forms`, `get_person_form` / `update_person_form` / `save_form_definition` | `people:read` / `people:write` / `settings:write` (confidential answers: `health:read`, `health:write`) |
+| Public forms | `list_public_forms`, `list_public_submissions` / `accept_public_submission`, `reject_public_submission` | `people:read` / `people:write` |
+| Mail templates | `list_mail_templates`, `get_mail_template`, `preview_mail_template`, `list_mail_template_versions` / `update_mail_template`, `restore_mail_template_version` | `mail:read` / `mail:write` |
+| Mailings | `list_mailings`, `get_mailing` / `create_mailing`, `prepare_mailing`, `request_mailing_release` | `mail:read` / `mail:write` |
+| Mail log, sender profiles | `list_outgoing_mails`, `list_bad_addresses`, `list_sender_profiles` / `clear_bad_address` / `create_sender_profile`, `update_sender_profile` | `mail:read` / `mail:write` / `settings:write` |
+| Privacy | `list_consents`, `list_deletion_requests` / `export_person_data` / `anonymise_person` | `audit:read` / `audit:read` and `people:read` / `privacy:write` |
+| Settings, webhooks | `get_settings`, `update_settings`, `list_webhooks`, `update_webhook`, `delete_webhook` | `settings:write` |
+| Audit log | `read_audit_log` | `audit:read` |
 
-The other tools (people, groups, forms, events, invoices, mailings, imports, automation runs, audit log) follow
-the same pattern; the assistant lists the ones its token allows.
+Tools that only read are marked read-only, tools that delete, cannot be undone or send mails to families are marked
+destructive, so that an MCP client can ask before it calls them. Optional fields are emptied by name with `clear`.
+
+Not available via MCP, on purpose:
+
+- **Files**: uploading a document of an event, downloading a document and the PDF of an invoice. A tool call
+  carries JSON only; use the admin interface or the REST API.
+- **Creating a webhook, a new signing secret, a new address of a webhook**: the secret is shown once and belongs
+  to the person who sets up the receiving system, and an assistant must not send data of the organisation to an
+  address of its choice. `update_webhook` renames, changes the events and switches a webhook on or off.
+- Settings that the REST API does not offer either (bank data, public address, mail test mode, embedding, the AI
+  setting itself), API tokens, and the own notification settings of a person (interface only).
+
+### What an assistant cannot do
 
 **An assistant cannot switch an approval off.** Via MCP, `automations:write` alone allows `update_automation` to
 change the name, trigger and settings of an automation and to switch it on or off. A token without
 `approvals:decide` is refused (403) when it tries to
 
-- change who approves and when: `mode`, `max_items`, `approvals_needed` or `approver_roles`;
+- change who approves and when: `mode`, `max_items`, `approvals_needed` or `approver_roles` – also for a new
+  automation: `create_automation` without these fields creates an automation that is switched off and asks the
+  approvers before every run (mode *confirm*). Deleting an own automation and creating it again is therefore no
+  way around an approval;
 - change the trigger or the settings of an automation in the mode *automatic* (it runs without approval), or
-  switch such an automation on. Switching off and renaming stay possible.
+  switch such an automation on. Switching off and renaming stay possible;
+- change the setting `mailing_approval_above` (from how many recipients a mailing needs an approval) with
+  `update_settings`;
+- give or take a role (`assign_role`, `remove_role`): a role can make somebody an approver or open the admin
+  interface. The two tools are only offered with `roles:write` **and** `approvals:decide`. The role
+  *administrator* can never be given or taken with a token, as in the REST API.
 
-This limit applies to MCP only; in the REST API `automations:write` is enough for all of these.
+These limits apply to MCP only; in the REST API `automations:write`, `settings:write` and `roles:write` are enough.
+
+**Health and safety data follow the setting "AI processing allowed".** With "Non-confidential data" the scopes
+`health:read` and `health:write` do not count via MCP, whatever the token has:
+
+- `get_event_list` refuses the confidential lists (emergency, kitchen, medical, medication, insurance, swimmers,
+  consents, changes), and `list_event_lists` does not name them;
+- `get_person_form` leaves out the answers to confidential questions (their fields are named in `hidden`), and
+  `update_person_form` refuses to write them;
+- `export_person_data` is refused when the export holds answers to confidential questions or emergency contacts
+  of the family;
+- `list_public_submissions` never shows answers to confidential questions, with any setting.
+
+With "All data" the scopes count as in the REST API, and every read of confidential data is recorded in the audit log.
+
+**Things that cannot be undone need their own scope and a human.** `anonymise_person` needs `privacy:write`
+(nothing else includes it), and the assistant is told to call it with `preview` first and to act only after the
+approval of a human; the same holds for `merge_duplicates`, `cancel_invoice`, `issue_invoice` and the tools that
+delete.
 
 Requirements:
 
@@ -362,7 +424,9 @@ Example configuration of an MCP client (the exact format depends on the client):
 
 Recommendation: give an AI assistant `automations:run` but not `approvals:decide` – it can prepare runs, the
 approvers decide by e-mail. Give it `automations:write` only if it should set up automations; without
-`approvals:decide` the approvals stay as they are.
+`approvals:decide` the approvals stay as they are. Give `finance:write`, `privacy:write`, `settings:write` and
+`roles:write` only for the task at hand and with an expiry date: with them an assistant can issue and cancel
+invoices, anonymise people and change settings without a second person.
 
 ## Webhooks
 
@@ -397,50 +461,50 @@ new version). Templates are checked with the template sandbox first; imported au
 ## Parity: interface, REST and MCP
 
 Legend: yes / part / no / n/a (deliberately interface only). MCP tools call the REST API, so MCP can never do more
-than REST.
+than REST; what REST offers and MCP deliberately does not (files, webhook secrets) is listed in the MCP section.
 
 | Area | Browser | REST | MCP | Gap |
 |---|---|---|---|---|
-| People: search, read, create, change | yes | yes | part | MCP: no update_person |
+| People: search, read, create, change | yes | yes | yes | – |
 | Contact data, legal guardians | yes | yes | yes | – |
-| Families (households) | yes | yes | no | MCP: nothing |
-| Duplicates: list, merge, dismiss | yes | yes | no | MCP |
-| Memberships of a person (assign type) | yes | yes | no | MCP |
+| Families (households) | yes | yes | yes | – |
+| Duplicates: list, merge, dismiss | yes | yes | yes | – |
+| Memberships of a person (assign type) | yes | yes | yes | – |
 | Membership types | yes | yes | yes | – |
-| Roles: list, assign to a person | yes | yes (not the role administrator) | no | MCP |
-| Groups, members | yes | yes | part | MCP: no update_group |
+| Roles: list, assign to a person | yes | yes (not the role administrator) | yes (also needs approvals:decide) | – |
+| Groups, members | yes | yes | yes | – |
 | Group waitlist | yes | no | no | both |
-| Event series, event templates | yes | yes | no | MCP |
+| Event series, event templates | yes | yes | yes | – |
 | Events: basic data, roles | yes | yes | yes | – |
-| Events: bus booked, seats | yes | yes | no | MCP |
-| Events: prices, instalments, rounds, costs, documents | yes | yes (image in the interface) | no | MCP |
-| Registration, participants, travel | yes | yes | part | MCP: status cannot be changed |
-| Offers, reserve places, waitlist flags | yes | part (offers, reserve places) | no | REST: waitlist flags and skipping; MCP |
-| Groups, rooms, duties of an event | yes | yes | no | MCP |
-| Lists of an event (participants, bus, kitchen …) | yes | yes (JSON; health lists need health:read) | no | MCP; files (PDF, XLSX) only in the interface |
+| Events: bus booked, seats | yes | yes | yes | – |
+| Events: prices, instalments, rounds, costs, documents | yes | yes (image in the interface) | part (documents: list and delete) | MCP: no files (upload, download) |
+| Registration, participants, travel | yes | yes | yes | – |
+| Offers, reserve places, waitlist flags | yes | part (offers, reserve places) | part (as REST) | REST and MCP: waitlist flags and skipping |
+| Groups, rooms, duties of an event | yes | yes | yes | – |
+| Lists of an event (participants, bus, kitchen …) | yes | yes (JSON; health lists need health:read) | yes (health lists only with "All data") | files (PDF, XLSX) only in the interface |
 | Confirmation of participation (PDF) | yes | no | no | REST |
 | Forms: definition | yes | yes | yes | – |
-| Forms: answers of a person | yes | yes | part | MCP: read only |
-| Public forms and their submissions | yes | part (read, accept, reject) | no | REST: creating and changing a public form; MCP |
-| Invoices: list, read, PDF, record payment | yes | yes | yes (no PDF) | – |
-| Invoices: issue, send, cancel/credit note, reduced place | yes | part (issue, send, cancel) | no | REST: reduced place, single invoice; MCP |
-| Payments: list, bank import, assign | yes | part (list, assign) | no | REST: bank import, split, use a credit; MCP |
-| Refunds, credits | yes | yes | no | MCP |
-| Invoice archive | yes | yes (read; import in the interface) | no | MCP |
-| Mail templates: read, preview, change | yes | yes | part | MCP: no update |
-| Mail template versions, restore | yes | yes | no | MCP |
+| Forms: answers of a person | yes | yes | yes (confidential answers only with "All data") | – |
+| Public forms and their submissions | yes | part (read, accept, reject) | part (as REST) | REST and MCP: creating and changing a public form |
+| Invoices: list, read, PDF, record payment | yes | yes | yes (no PDF) | n/a for MCP: files |
+| Invoices: issue, send, cancel/credit note, reduced place | yes | part (issue, send, cancel) | part (as REST) | REST and MCP: reduced place, single invoice |
+| Payments: list, bank import, assign | yes | part (list, assign) | part (as REST) | REST and MCP: bank import, split, use a credit |
+| Refunds, credits | yes | yes | yes | – |
+| Invoice archive | yes | yes (read; import in the interface) | yes (read) | – |
+| Mail templates: read, preview, change | yes | yes | yes | – |
+| Mail template versions, restore | yes | yes | yes | – |
 | Mailings: create, prepare, release | yes | yes | yes | – |
-| Sent mails, bad addresses | yes | yes | no | MCP |
-| Mail accounts, sender profiles | yes | part (sender profiles) | no | n/a for accounts and passwords; MCP |
+| Sent mails, bad addresses | yes | yes | yes | – |
+| Mail accounts, sender profiles | yes | part (sender profiles) | part (sender profiles) | n/a for accounts and passwords |
 | Automations: read, change, preview, run, approvals | yes | yes | yes | – |
-| Own automations: create, delete | yes | yes | no | MCP |
-| Season wizard / schedule of an event | yes | part (schedule) | no | REST: season wizard; MCP |
+| Own automations: create, delete | yes | yes | yes (approval settings need approvals:decide) | – |
+| Season wizard / schedule of an event | yes | part (schedule) | part (schedule) | REST and MCP: season wizard |
 | Import of people | yes | yes | yes | – |
-| Statistics, dashboard figures | yes | yes | no | MCP |
-| Settings | yes | yes | no | MCP |
+| Statistics, dashboard figures | yes | yes | yes | – |
+| Settings | yes | yes | yes (mailing_approval_above needs approvals:decide) | – |
 | Audit log | yes | yes | yes | – |
-| Consents, deletion requests, data export, anonymise | yes | yes (retention run in the interface) | no | MCP |
+| Consents, deletion requests, data export, anonymise | yes | yes (retention run in the interface) | yes (export with health or safety data only with "All data") | – |
 | Notifications (own subscriptions) | yes | n/a (interface only) | no | personal to the person who is logged in |
-| Webhooks | yes | yes | no | MCP |
+| Webhooks | yes | yes | part (list, rename, events, switch, delete) | n/a for MCP: creating, address and signing secret (deliberately not for an assistant) |
 | API tokens, system status, backups, update, upgrade | yes | no | no | n/a (deliberately interface only) |
 | Portal of the family (own data, children, safety sheet) | yes | n/a | n/a | decided: the API is for administrative use only |

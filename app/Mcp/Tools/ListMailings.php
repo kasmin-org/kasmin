@@ -16,6 +16,8 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 #[IsReadOnly]
 class ListMailings extends ApiTool
 {
+    public const ENDPOINT = ['GET', '/mailings'];
+
     protected string $scope = 'mail:read';
 
     public function handle(Request $request): Response

@@ -16,6 +16,8 @@ use Laravel\Mcp\Server\Tools\Annotations\IsDestructive;
 #[IsDestructive]
 class UpdateAutomation extends ApiTool
 {
+    public const ENDPOINT = ['PATCH', '/automations/{automation}'];
+
     protected string $scope = 'automations:write';
 
     public function handle(Request $request): Response

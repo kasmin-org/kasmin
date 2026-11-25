@@ -14,6 +14,8 @@ use Laravel\Mcp\Server\Attributes\Name;
 #[Description('Imports rows as one batch (same fields as import_preview). Rows with the same source and source_id update instead of duplicating. Only after a human approved the dry run.')]
 class ImportPeople extends ApiTool
 {
+    public const ENDPOINT = ['POST', '/imports/people'];
+
     protected string $scope = 'import:write';
 
     public function handle(Request $request): Response

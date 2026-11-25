@@ -34,7 +34,7 @@ return [
         'import_done' => ':imported importiert, :matched automatisch zugeordnet, :suggested Vorschläge, :duplicates bereits vorhanden',
     ],
     'settings' => [
-        'mail_layout' => 'Aussehen der E-Mails', 'mail_logo' => 'Logo (PNG, JPG, GIF)', 'mail_color' => 'Farbe', 'mail_footer' => 'Fußzeile der E-Mails', 'mail_footer_hint' => 'Steht in jeder E-Mail, z. B. Name, Adresse, Registernummer.', 'audit_ip_days' => 'Protokoll: IP-Adresse und Browser kürzen nach (Tagen)', 'audit_ip_days_hint' => '0 = nie. Danach bleiben nur der Netzteil der Adresse und die Art des Browsers.', 'retention_audit_years' => 'Protokoll: Jahre', 'retention_audit_years_hint' => '0 = Einträge bleiben dauerhaft.', 'retention_mail_years' => 'Mailprotokoll: Jahre', 'retention_mail_years_hint' => '0 = solange es die Person gibt. Mails mit Rechnungen bleiben mindestens so lange wie die Rechnungen.',
+        'mail_layout' => 'Aussehen der E-Mails', 'mail_logo' => 'Logo (PNG, JPG, GIF)', 'mail_color' => 'Farbe', 'mail_footer' => 'Fußzeile der E-Mails', 'mail_footer_hint' => 'Steht in jeder E-Mail, z. B. Name, Adresse, Registernummer.', 'audit_ip_days' => 'Protokoll: IP-Adresse und Browser kürzen nach (Tagen)', 'audit_ip_days_hint' => '0 = nie. Danach bleiben nur der Netzteil der Adresse und die Art des Browsers.', 'retention_audit_years' => 'Protokoll: Jahre', 'retention_audit_years_hint' => '0 = Einträge bleiben dauerhaft.', 'search' => 'In den Einstellungen suchen …', 'retention_mail_years' => 'Mailprotokoll: Jahre', 'retention_mail_years_hint' => '0 = solange es die Person gibt. Mails mit Rechnungen bleiben mindestens so lange wie die Rechnungen.',
         'organisation' => 'Organisation und Rechnungen', 'name' => 'Name der Organisation', 'email' => 'E-Mail-Adresse', 'address' => 'Anschrift', 'website' => 'Website',
         'legal_footer' => 'Fußzeile (Impressum)', 'legal_footer_hint' => 'Erscheint auf jeder Rechnung, z. B. Vereinsregisternummer, Sitz, Kontakt.',
         'bank' => 'Bankverbindung', 'bank_name' => 'Bank', 'bic_hint' => 'Optional; wird im QR-Code mitgegeben.', 'iban_invalid' => 'Die IBAN ist ungültig.',
@@ -59,7 +59,7 @@ return [
     ],
     'person' => [
         'singular' => 'Person', 'plural' => 'Personen',
-        'section_person' => 'Person', 'section_contacts' => 'Kontaktdaten',
+        'login_address_needed' => 'Die Adresse :address wird für die Anmeldung dieser Person gebraucht und kann hier nicht entfernt werden.', 'section_person' => 'Person', 'section_contacts' => 'Kontaktdaten',
         'first_name' => 'Vorname', 'last_name' => 'Nachname', 'birth_date' => 'Geburtsdatum', 'age' => 'Alter',
         'birth_date_hint' => 'Wird für Altersgrenzen von Veranstaltungen und Rollen verwendet.',
         'gender' => 'Geschlecht', 'locale' => 'Sprache',

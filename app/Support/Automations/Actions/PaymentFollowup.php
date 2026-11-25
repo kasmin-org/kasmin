@@ -8,6 +8,7 @@ use App\Models\Invoice;
 use App\Models\InvoiceLine;
 use App\Support\Automations\Action;
 use App\Support\Events\Registrations;
+use App\Support\Finance\Invoices;
 use App\Support\Settings;
 
 /**
@@ -40,7 +41,16 @@ class PaymentFollowup implements Action
         if ($participation === null || ! in_array($line->invoice?->status, ['issued', 'partially_paid'], true) || ! in_array($participation->status, ['registered', 'offered', 'requested'], true)) {
             return 'skipped';
         }
-        app(Registrations::class)->cancel($participation, (string) __('automations.items.release_reason'));
+        $reason = (string) __('automations.items.release_reason');
+        app(Registrations::class)->cancel($participation, $reason);
+        // Nothing was paid and nobody on the invoice takes part any more: the claim ends with the place (IN12).
+        $invoice = $line->invoice->refresh()->load('lines.participation');
+        $active = $invoice->lines->contains(fn (InvoiceLine $l) => $l->participation !== null && ! in_array($l->participation->status, ['cancelled', 'declined'], true));
+        if ($invoice->paid_cents === 0 && ! $active) {
+            app(Invoices::class)->cancel($invoice, $reason, proposeRefund: false);
+
+            return 'place released, invoice cancelled';
+        }
 
         return 'place released';
     }

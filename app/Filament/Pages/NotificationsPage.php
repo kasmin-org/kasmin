@@ -5,6 +5,7 @@ namespace App\Filament\Pages;
 use App\Models\NotificationEvent;
 use App\Models\NotificationSubscription;
 use App\Models\User;
+use App\Support\Auth\Permissions;
 use BackedEnum;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
@@ -76,7 +77,14 @@ class NotificationsPage extends Page
     {
         $topics = NotificationSubscription::topicsFor($this->user());
 
-        return ['topics' => $topics, 'latest' => NotificationEvent::query()->whereIn('topic', $topics)->latest('id')->limit(50)->get()];
+        return ['topics' => $topics, 'latest' => NotificationEvent::query()->whereIn('topic', $topics)->latest('id')->limit(50)->get(),
+            'mayOpen' => fn (?string $url) => $url !== null && $url !== '' && self::mayOpen($url)];
+    }
+
+    /** A link to the page of an event is only shown to people who may open that page (it needs the right to change). */
+    public static function mayOpen(string $url): bool
+    {
+        return preg_match('~/admin/events/(\d+)/edit~', $url, $m) !== 1 || Permissions::currentEvent((int) $m[1], 'edit');
     }
 
     private function user(): User

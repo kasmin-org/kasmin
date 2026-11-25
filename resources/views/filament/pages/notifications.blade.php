@@ -18,7 +18,7 @@
         <ul class="text-sm">
             @forelse ($latest as $event)
                 <li style="padding:.4rem 0;border-bottom:1px solid #e5e7eb;overflow-wrap:anywhere"><span style="opacity:.7">{{ $event->created_at->isoFormat('L LT') }} · {{ __('mail.topics.'.$event->topic) }}</span><br>
-                    @if ($event->url)<a class="underline" href="{{ $event->url }}">{{ $event->summary }}</a>@else{{ $event->summary }}@endif</li>
+                    @if ($mayOpen($event->url))<a class="underline" href="{{ $event->url }}">{{ $event->summary }}</a>@else{{ $event->summary }}@endif</li>
             @empty
                 <li>{{ __('lists.empty') }}</li>
             @endforelse

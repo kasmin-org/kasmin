@@ -6,6 +6,24 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ## [Unreleased]
 
+### Added
+
+- Families get a confirmation when a registration is cancelled (by themselves, the team, or because an invoice was not paid) and when an offer of a place ran out.
+- *Start season* keeps the children on the waitlist of the last event on the waitlist of the new one, with their date.
+- Confirmation of participation as a PDF after the event, for the team and in the portal, with the amount paid.
+- List *Figures for the team meeting* (roles by gender, new and returning, waitlist); the participants list shows the gender.
+- Legal guardians can state the gender when they add a child in the portal.
+- A whole camp year is tested in one run, from the registration to the next season.
+
+### Fixed
+
+- The timeline of a person linked sent mails to a page that does not exist; the link opens the mail now.
+- The dashboard and the import list showed links to pages that the role may not open.
+- A mail with a long link was wider than the screen in the portal on phones.
+- After a mail was written, dates in the same run were shown in the American order (month first) in English.
+- When a place was released because an invoice was not paid, the unpaid invoice stayed open for good; it is cancelled with a credit note now if nobody on it takes part any more.
+- *Start season* proposed children that are too old again with every run, and did not tell families whose waitlist entry was carried over.
+
 ## [0.21.0] - 2026-11-25
 
 ### Added
@@ -14,17 +32,8 @@ All notable changes to Kasmin are documented in this file. The format is based o
 - *My notifications*: choose topics immediately or as a digest, and the latest notifications. Until now there was no page for it, so nobody could get notifications. Administrators get deletion requests immediately and errors of automations daily by default.
 - Automatic updates (off by default): a version is installed in the night once it has been out for the configured days (default 10, 04:00), with a notice two days before, a notice if a newer version resets the waiting time, and a mail with the changes afterwards.
 
-### Added
-
-- Families get a confirmation when a registration is cancelled (by themselves, the team, or because an invoice was not paid) and when an offer of a place ran out.
-- *Start season* keeps the children on the waitlist of the last event on the waitlist of the new one, with their date.
-- Confirmation of participation as a PDF after the event, for the team and in the portal, with the amount paid.
-- List *Figures for the team meeting* (roles by gender, new and returning, waitlist); the participants list shows the gender.
-
 ### Fixed
 
-- The timeline of a person linked sent mails to a page that does not exist; the link opens the mail now.
-- A mail with a long link was wider than the screen in the portal on phones.
 - Installations that started with a very old version never got the standard mail templates, automations and event types of later versions, so mails such as the registration confirmation were not sent. What is missing is installed with this update.
 
 ### Changed

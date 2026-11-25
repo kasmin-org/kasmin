@@ -7,6 +7,7 @@ use App\Models\Event;
 use App\Models\Participation;
 use App\Models\Person;
 use App\Support\Automations\Action;
+use App\Support\Automations\Subjects;
 use App\Support\Events\RegistrationException;
 use App\Support\Events\Registrations;
 use App\Support\Mail\Notifier;
@@ -46,8 +47,9 @@ class StartSeason implements Action
             if ($old === null || Participation::query()->where('event_id', $event->id)->where('person_id', $person->id)->exists()) {
                 return 'skipped';
             }
-            Participation::query()->create(['event_id' => $event->id, 'person_id' => $person->id, 'role_key' => $old->role_key, 'status' => 'waitlist', 'registered_at' => $old->registered_at,
+            $new = Participation::query()->create(['event_id' => $event->id, 'person_id' => $person->id, 'role_key' => $old->role_key, 'status' => 'waitlist', 'registered_at' => $old->registered_at,
                 'registered_by_id' => $old->registered_by_id, 'waitlist_flags' => $old->waitlist_flags, 'waitlist_note' => $old->waitlist_note]);
+            app(Registrations::class)->tell('registration_confirmation', $new);
 
             return 'waitlist';
         }
@@ -61,6 +63,7 @@ class StartSeason implements Action
             }
         }
         app(Notifier::class)->event('registrations', $item['label'].' – '.$event->title, url('/admin/people/'.$person->id));
+        app(Subjects::class)->touch($automation, 'season:'.$event->id.':'.$person->id); // told once per event
 
         return 'team notified';
     }
@@ -99,6 +102,9 @@ class StartSeason implements Action
                 $next !== null && $next->allowsAge($age) => 'propose',
                 default => 'leaving',
             };
+            if ($kind !== 'register' && app(Subjects::class)->get($automation, 'season:'.$event->id.':'.$p->person->id)['count'] > 0) {
+                continue;
+            }
             $result[] = ['kind' => $kind, 'person' => $p->person, 'age' => $age];
         }
 

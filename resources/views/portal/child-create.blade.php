@@ -12,6 +12,11 @@
             <input name="last_name" required maxlength="120" value="{{ old('last_name') }}" class="w-full rounded-lg border border-kasmin-200 px-3 py-3"></label>
         <label class="block"><span class="mb-1 block text-sm font-medium">{{ __('admin.person.birth_date') }}</span>
             <input type="date" name="birth_date" required value="{{ old('birth_date') }}" max="{{ now()->toDateString() }}" class="w-full rounded-lg border border-kasmin-200 px-3 py-3"></label>
+        <label class="block"><span class="mb-1 block text-sm font-medium">{{ __('admin.person.gender') }}</span>
+            <select name="gender" class="w-full rounded-lg border border-kasmin-200 bg-white px-3 py-3">
+                <option value="">–</option>
+                @foreach (__('admin.genders') as $key => $label)<option value="{{ $key }}" @selected(old('gender') === $key)>{{ $label }}</option>@endforeach
+            </select></label>
         <button class="w-full rounded-lg bg-kasmin-600 px-4 py-3 font-semibold text-white">{{ __('portal.save') }}</button>
     </form>
 @endsection

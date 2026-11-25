@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Event;
 use App\Models\Form;
 use App\Models\Household;
 use App\Models\Invoice;
@@ -41,6 +42,8 @@ class PortalController extends Controller
             'tasks' => $person !== null ? app(Tasks::class)->for($person, $households->toBase(), $invoices->toBase()) : [],
             'sheets' => $person !== null ? $this->sheets($person) : [],
             'pay' => InvoicePdf::organisation(),
+            // Not in the preview of somebody else's portal.
+            'teamEvents' => $person !== null && $user->person_id === $person->id ? Event::query()->whereIn('id', PortalTeamController::events($user))->orderBy('starts_at')->get() : collect(),
             'wardIds' => $person !== null ? $person->wards()->pluck('people.id')->all() : [],
             'guardiansLeft' => $households->mapWithKeys(fn (Household $h) => [$h->id => app(Guardians::class)->left($h)])->all(),
             'limited' => $request->session()->get('login_scope') === 'limited',

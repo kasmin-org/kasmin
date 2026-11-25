@@ -48,9 +48,12 @@ class WaitlistRelationManager extends RelationManager
         return __('events.waitlist_title');
     }
 
-    private static function mayEdit(): bool
+    private function mayEdit(): bool
     {
-        return Permissions::current('events', 'edit');
+        /** @var Event $event */
+        $event = $this->getOwnerRecord();
+
+        return Permissions::currentEvent($event->id, 'edit');
     }
 
     private function event(): Event
@@ -107,7 +110,7 @@ class WaitlistRelationManager extends RelationManager
             ->filters([SelectFilter::make('role_key')->label(__('admin.event.role'))->options(__('events.roles'))])
             ->headerActions([
                 Action::make('release')->label(__('events.reserve_release'))->icon('heroicon-o-lock-open')->color('gray')
-                    ->visible(fn () => self::mayEdit() && $this->event()->roles()->get()->contains(fn (EventRole $r) => $r->reserveLeft() > 0))
+                    ->visible(fn () => $this->mayEdit() && $this->event()->roles()->get()->contains(fn (EventRole $r) => $r->reserveLeft() > 0))
                     ->modalDescription(__('events.reserve_release_hint'))
                     ->schema([
                         Select::make('role')->label(__('admin.event.role'))->required()->options(fn () => $this->event()->roles()->get()->filter(fn (EventRole $r) => $r->reserveLeft() > 0)->mapWithKeys(fn (EventRole $r) => [$r->id => __('events.roles.'.$r->role_key).' ('.$r->reserveLeft().')'])->all()),
@@ -123,7 +126,7 @@ class WaitlistRelationManager extends RelationManager
             ->recordActions([
                 ActionGroup::make([
                     Action::make('offer_now')->label(__('admin.event.offer_place'))->icon('heroicon-o-gift')
-                        ->visible(fn (Participation $record) => self::mayEdit() && $record->status === 'waitlist')
+                        ->visible(fn (Participation $record) => $this->mayEdit() && $record->status === 'waitlist')
                         ->schema([
                             DatePicker::make('until')->label(__('admin.event.offer_until'))->required()->minDate(now())->default(now()->addDays(7)),
                             Textarea::make('reason')->label(__('admin.finance.reason'))->required(fn (Participation $record) => ($this->places()[$record->id]['position'] ?? 1) > 1)->maxLength(250),
@@ -142,7 +145,7 @@ class WaitlistRelationManager extends RelationManager
                             Notification::make()->title(__('events.offered_to', ['name' => $person->fullName()]))->success()->send();
                         }),
                     Action::make('reserve')->label(__('admin.event.assign_reserve'))->icon('heroicon-o-star')
-                        ->visible(fn (Participation $record) => self::mayEdit() && $record->status === 'waitlist')
+                        ->visible(fn (Participation $record) => $this->mayEdit() && $record->status === 'waitlist')
                         ->schema([Textarea::make('reason')->label(__('admin.event.reserve_reason'))->required()->maxLength(255)])
                         ->action(function (Participation $record, array $data) {
                             try {
@@ -151,7 +154,7 @@ class WaitlistRelationManager extends RelationManager
                                 Notification::make()->title($e->getMessage())->danger()->send();
                             }
                         }),
-                    ...WaitlistActions::make(fn () => self::mayEdit()),
+                    ...WaitlistActions::make(fn () => $this->mayEdit()),
                 ]),
             ], RecordActionsPosition::BeforeColumns);
     }

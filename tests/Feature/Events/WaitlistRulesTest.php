@@ -185,7 +185,7 @@ class WaitlistRulesTest extends TestCase
         $event = $this->event(capacity: 1, order: ['flags']);
         $first = $this->join($event, $this->child('First'), minute: 1);
         $second = $this->join($event, $this->child('Second'), minute: 2);
-        $this->login('camp_leader');
+        $this->login('camp_leader')->person?->roleAssignments()->toBase()->update(['event_id' => $event->id]);
         $page = fn () => Livewire::test(WaitlistRelationManager::class, ['ownerRecord' => $event, 'pageClass' => EditEvent::class]);
         $page()->assertOk()->assertCanSeeTableRecords([$first, $second], inOrder: true);
         $page()->assertSee('priority, registration date');

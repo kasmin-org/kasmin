@@ -41,8 +41,10 @@ class DashboardTest extends TestCase
         };
         $this->actingAs($make('treasurer'))->withSession(['two_factor_passed' => true])->get('/admin')
             ->assertOk()->assertSee('Summer camp')->assertSee('Latest registrations')->assertSee('Invoices')->assertSee('To do');
-        $this->actingAs($make('camp_leader'))->withSession(['two_factor_passed' => true])->get('/admin')
-            ->assertOk()->assertSee('Summer camp')->assertDontSee('Last bank import');
+        $leader = $make('camp_leader');
+        $leader->person?->roleAssignments()->toBase()->update(['event_id' => $camp['id']]);
+        $this->actingAs($leader)->withSession(['two_factor_passed' => true])->get('/admin')
+            ->assertOk()->assertSee('Summer camp')->assertDontSee('Last bank import')->assertDontSee('To do');
     }
 
     public function test_global_search_finds_people_families_events_and_invoices(): void

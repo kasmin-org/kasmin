@@ -3,10 +3,13 @@
 namespace App\Support\Auth;
 
 use App\Models\ContactPoint;
+use App\Models\Event;
+use App\Models\Participation;
 use App\Models\Person;
 use App\Models\Role;
 use App\Models\RoleAssignment;
 use App\Models\User;
+use App\Support\Lists\EventLists;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\Auth;
 
@@ -24,6 +27,7 @@ class Permissions
         'treasurer' => ['people' => 'view', 'finance' => 'edit'],
         'safety_officer' => ['people' => 'view', 'events' => 'view', 'safety' => 'edit'],
         'camp_leader' => ['people' => 'view', 'events' => 'edit'],
+        'counsellor' => ['events' => 'view'],
         'auditor' => ['finance' => 'view', 'audit' => 'view', 'privacy' => 'view'],
     ];
 
@@ -44,6 +48,9 @@ class Permissions
             return false;
         }
         foreach (Role::query()->whereIn('key', $user->person->activeRoleKeys())->get() as $role) {
+            if ($role->ownEventsOnly()) {
+                continue; // counts only where own events are asked for
+            }
             $has = self::ofRole($role)[$area] ?? null;
             if ($has === 'edit' || ($has === 'view' && $level === 'view')) {
                 return true;
@@ -51,6 +58,72 @@ class Permissions
         }
 
         return false;
+    }
+
+    /** Days after the end in which an event still counts as an own event (RO01). */
+    public const OWN_EVENT_DAYS = 180;
+
+    /**
+     * Events a person may see or change through roles that only count for the own events: events the role was assigned
+     * for, and events the person takes part in as team member. Somebody who only registered itself does not count until
+     * the team confirms it.
+     *
+     * @return list<int>
+     */
+    public static function ownEvents(User $user, string $area = 'events', string $level = 'view', bool $admin = true): array
+    {
+        $person = $user->person;
+        if ($person === null) {
+            return [];
+        }
+        $today = now()->toDateString();
+        $ids = collect();
+        $byRole = false;
+        foreach ($person->roleAssignments()->with('role')->where(fn ($q) => $q->whereNull('starts_on')->orWhereDate('starts_on', '<=', $today))->where(fn ($q) => $q->whereNull('ends_on')->orWhereDate('ends_on', '>=', $today))->get() as $assignment) {
+            $role = $assignment->role;
+            if ($role === null || ! $role->ownEventsOnly() || ($admin && ! $role->is_admin)) {
+                continue;
+            }
+            $has = ($admin ? self::ofRole($role) : ($role->permissions ?? self::DEFAULTS[$role->key] ?? []))[$area] ?? null;
+            if ($has !== 'edit' && ! ($has === 'view' && $level === 'view')) {
+                continue;
+            }
+            $assignment->event_id !== null ? $ids->push($assignment->event_id) : $byRole = true;
+        }
+        if ($byRole) {
+            $ids = $ids->merge(Participation::query()->where('person_id', $person->id)->whereIn('role_key', ['staff', 'junior_counsellor'])->whereIn('status', EventLists::STATUSES)->get()
+                ->reject(fn (Participation $p) => $p->isOwn() && $p->status === 'registered')->pluck('event_id'));
+        }
+
+        return $ids->isEmpty() ? [] : array_values(Event::query()->whereIn('id', $ids->unique())->where('ends_at', '>', now()->subDays(self::OWN_EVENT_DAYS))->pluck('id')->map(fn ($id) => (int) $id)->all());
+    }
+
+    /** All events, or the own ones. */
+    public static function allowsEvent(User $user, int $eventId, string $level = 'view', string $area = 'events'): bool
+    {
+        return self::allows($user, $area, $level) || in_array($eventId, self::ownEvents($user, $area, $level), true);
+    }
+
+    public static function currentEvent(int $eventId, string $level = 'view', string $area = 'events'): bool
+    {
+        $user = Auth::user();
+
+        return $user instanceof User && self::allowsEvent($user, $eventId, $level, $area);
+    }
+
+    /**
+     * Own events of the logged-in user if it may not see all of them; null without restriction.
+     *
+     * @return list<int>|null
+     */
+    public static function restriction(string $area = 'events', string $level = 'view'): ?array
+    {
+        $user = Auth::user();
+        if (! $user instanceof User) {
+            return [];
+        }
+
+        return self::allows($user, $area, $level) ? null : self::ownEvents($user, $area, $level);
     }
 
     /** The logged-in user in the admin interface. */

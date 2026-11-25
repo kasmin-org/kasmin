@@ -149,6 +149,7 @@ class EventListsTest extends TestCase
     public function test_confidential_lists_are_for_the_safety_role_only(): void
     {
         $leader = $this->actAs('camp_leader');
+        $leader->person?->roleAssignments()->toBase()->update(['event_id' => $this->event->id]);
         foreach (EventLists::LISTS as $key => $confidential) {
             $response = $this->withSession(['two_factor_passed' => true])->get(route('admin.lists.export', [$this->event, $key, 'csv']));
             $confidential ? $response->assertForbidden() : $response->assertOk();

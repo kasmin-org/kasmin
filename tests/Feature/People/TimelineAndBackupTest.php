@@ -79,9 +79,11 @@ class TimelineAndBackupTest extends TestCase
         $page('administrator')->assertSee('Timeline camp')->assertSee('Choir')->assertSee('12,34')->assertSee('Known allergies')->assertSee((string) OutgoingMail::query()->where('person_id', $this->child->id)->value('subject'))->assertDontSee('Secretnuts')
             ->set('type', 'group')->assertSee('Choir')->assertDontSee('Timeline camp');
         $page('treasurer')->assertSee('12,34')->assertDontSee('Timeline camp')->assertDontSee('Known allergies')->assertSee('My child can swim');
-        $page('camp_leader')->assertSee('Timeline camp')->assertDontSee('12,34')->assertDontSee('Known allergies');
+        $leader = $this->user('camp_leader');
+        $leader->person?->roleAssignments()->toBase()->update(['event_id' => Event::query()->where('title', 'Timeline camp')->value('id')]);
+        Livewire::actingAs($leader)->test(PersonTimeline::class, ['record' => $this->child->id])->assertSee('Timeline camp')->assertDontSee('12,34')->assertDontSee('Known allergies')->assertDontSee('Choir');
         $page('safety_officer')->assertSee('Known allergies')->assertDontSee('12,34');
-        $page('auditor')->assertForbidden();
+        $page('auditor')->assertNotFound();
     }
 
     public function test_login_link_goes_only_to_the_known_address(): void

@@ -23,7 +23,7 @@ class EventSchedule extends Page
     public function mount(int|string $record): void
     {
         $this->record = $this->resolveRecord($record);
-        abort_unless(EventResource::canViewAny(), 403);
+        abort_unless(EventResource::canView($this->event()), 403);
     }
 
     public function getTitle(): string

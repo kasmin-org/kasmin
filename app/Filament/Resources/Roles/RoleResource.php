@@ -75,6 +75,7 @@ class RoleResource extends Resource
             TextInput::make('name.de')->label(__('admin.form.name').' (Deutsch)')->required()->maxLength(80),
             TextInput::make('name.en')->label(__('admin.form.name').' (English)')->required()->maxLength(80),
             Toggle::make('is_admin')->label(__('roles.is_admin'))->live()->default(true)->disabled($admin),
+            Select::make('scope')->label(__('roles.scope'))->options(__('roles.scopes'))->default('all')->required()->visible(fn (?Role $record) => $record?->key !== 'administrator')->hintIcon('heroicon-m-question-mark-circle', tooltip: __('roles.scope_hint')),
             Section::make(__('roles.permissions'))->columns(['md' => 3])->columnSpanFull()->visible(fn ($get, ?Role $record) => (bool) $get('is_admin') && $record?->key !== 'administrator')
                 ->schema(array_map(fn (string $area) => Select::make('permissions.'.$area)->label(__('roles.areas.'.$area))->options(__('roles.levels'))->placeholder(__('roles.none'))
                     ->formatStateUsing(fn (?Role $record) => $record !== null ? (Permissions::ofRole($record)[$area] ?? null) : null), Permissions::AREAS)),
@@ -85,6 +86,7 @@ class RoleResource extends Resource
     {
         return $table->description(count(Permissions::administrators()) < 2 ? (string) __('roles.one_administrator') : null)->columns([
             TextColumn::make('name')->label(__('roles.role'))->state(fn (Role $record) => $record->label()),
+            TextColumn::make('scope')->label(__('roles.scope'))->state(fn (Role $record) => __('roles.scopes.'.($record->ownEventsOnly() ? 'own' : 'all'))),
             IconColumn::make('is_admin')->label(__('roles.admin_short'))->boolean(),
             TextColumn::make('permissions')->label(__('roles.permissions'))->wrap()->visibleFrom('md')
                 ->state(fn (Role $record) => $record->key === 'administrator' ? __('roles.everything') : implode(', ', array_map(fn (string $area, string $level) => __('roles.areas.'.$area).' ('.__('roles.levels.'.$level).')', array_keys(Permissions::ofRole($record)), Permissions::ofRole($record)))),

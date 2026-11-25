@@ -15,6 +15,7 @@ use App\Http\Controllers\PortalChildController;
 use App\Http\Controllers\PortalController;
 use App\Http\Controllers\PortalFormController;
 use App\Http\Controllers\PortalProfileController;
+use App\Http\Controllers\PortalTeamController;
 use App\Http\Controllers\PublicEventController;
 use App\Http\Controllers\PublicFormController;
 use App\Http\Controllers\PublicRegistrationController;
@@ -93,6 +94,7 @@ Route::middleware('auth')->group(function () {
             Route::post('/families/{household}', [PortalProfileController::class, 'saveFamily'])->name('portal.profile.family');
             Route::get('/export', [PortalProfileController::class, 'export'])->middleware('throttle:login-send')->name('portal.profile.export');
         });
+        Route::get('/team/{event}/{list?}', [PortalTeamController::class, 'show'])->middleware(RequireFullLogin::class)->name('portal.team');
         Route::get('/mails/{uuid}', [PortalController::class, 'mail'])->name('portal.mail');
         Route::get('/invoices/{invoice}.pdf', [InvoicePdfController::class, 'portal'])->name('portal.invoice.pdf');
         Route::get('/children/new', [PortalChildController::class, 'create'])->middleware(RequireFullLogin::class)->name('portal.child.create');

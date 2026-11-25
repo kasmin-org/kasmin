@@ -25,7 +25,7 @@ class PersonTimeline extends Page
     public function mount(int|string $record): void
     {
         $this->record = $this->resolveRecord($record);
-        abort_unless(PersonResource::canViewAny(), 403);
+        abort_unless(PersonResource::canView($this->getRecord()), 403);
     }
 
     public function getTitle(): string

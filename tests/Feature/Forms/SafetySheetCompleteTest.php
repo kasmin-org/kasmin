@@ -255,7 +255,7 @@ class SafetySheetCompleteTest extends TestCase
     {
         [, $guardian, $child] = $this->family();
         $event = $this->event($child, null);
-        $this->login('camp_leader');
+        $this->login('camp_leader')->person?->roleAssignments()->toBase()->update(['event_id' => $event->id]);
         $key = 'household:'.$child->households()->firstOrFail()->id;
         $page = Livewire::test(EventListsPage::class)->set('event', $event->id)->set('list', 'missing')->assertSee('Kim Example')->set('selected', [$key])->call('remind');
         $this->assertSame(1, OutgoingMail::query()->where('person_id', $guardian->id)->where('subject', 'like', 'Reminder: safety sheet%')->count());

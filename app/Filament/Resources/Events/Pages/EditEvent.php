@@ -15,6 +15,7 @@ class EditEvent extends EditRecord
     {
         return [
             Action::make('schedule')->label(__('automations.schedule.title'))->icon('heroicon-o-calendar-days')->color('gray')->url(fn () => EventResource::getUrl('schedule', ['record' => $this->getRecord()])),
+            Action::make('groups')->label(__('events.divisions.title'))->icon('heroicon-o-user-group')->color('gray')->url(fn () => EventResource::getUrl('groups', ['record' => $this->getRecord()])),
             DeleteAction::make(),
         ];
     }

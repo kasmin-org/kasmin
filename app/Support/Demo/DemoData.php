@@ -55,7 +55,7 @@ class DemoData
             ]);
             $guardians = [];
             foreach (range(1, $this->faker->numberBetween(1, 2)) as $g) {
-                $guardian = $this->person($this->faker->firstName(), $g === 1 ? $lastName : $this->faker->randomElement([$lastName, $this->faker->lastName()]), $this->faker->dateTimeBetween('-55 years', '-30 years'), $locale);
+                $guardian = $this->person($g === 1 ? $lastName : $this->faker->randomElement([$lastName, $this->faker->lastName()]), $this->faker->dateTimeBetween('-55 years', '-30 years'), $locale);
                 $email = Str::lower(Str::ascii($guardian->first_name.'.'.$guardian->last_name)).$i.'@'.$emailDomain;
                 $guardian->contactPoints()->create(['type' => 'email', 'value' => $email, 'purposes' => ['login', 'information', 'invoices'], 'is_primary' => true]);
                 $guardian->contactPoints()->create(['type' => 'phone', 'value' => $this->faker->phoneNumber(), 'purposes' => ['emergency']]);
@@ -66,7 +66,7 @@ class DemoData
             }
             $household->update(['invoice_recipient_id' => $guardians[0]->id]);
             foreach (range(1, $this->faker->numberBetween(1, 3)) as $c) {
-                $child = $this->person($this->faker->firstName(), $lastName, $this->faker->dateTimeBetween('-15 years', '-7 years'), $locale);
+                $child = $this->person($lastName, $this->faker->dateTimeBetween('-15 years', '-7 years'), $locale);
                 $household->members()->attach($child->id, ['role' => 'child']);
                 foreach ($guardians as $guardian) {
                     $child->guardians()->attach($guardian->id);
@@ -80,7 +80,7 @@ class DemoData
 
         $counsellor = Role::query()->where('key', 'counsellor')->value('id');
         for ($i = 0; $i < $staff; $i++) {
-            $person = $this->person($this->faker->firstName(), $this->faker->lastName(), $this->faker->dateTimeBetween('-35 years', '-16 years'), $locale);
+            $person = $this->person($this->faker->lastName(), $this->faker->dateTimeBetween('-35 years', '-16 years'), $locale);
             $email = Str::lower(Str::ascii($person->first_name.'.'.$person->last_name)).'.team'.$i.'@'.$emailDomain;
             $person->contactPoints()->create(['type' => 'email', 'value' => $email, 'purposes' => ['login', 'information'], 'is_primary' => true]);
             User::query()->create(['name' => $person->fullName(), 'email' => $email, 'password' => Str::password(64), 'person_id' => $person->id]);
@@ -175,8 +175,11 @@ class DemoData
         }
     }
 
-    private function person(string $first, string $last, \DateTimeInterface $birth, string $locale): Person
+    /** A person with a first name that fits the gender, so that lists by gender and group proposals show something. */
+    private function person(string $last, \DateTimeInterface $birth, string $locale): Person
     {
-        return Person::query()->create(['first_name' => $first, 'last_name' => $last, 'birth_date' => $birth->format('Y-m-d'), 'locale' => $locale]);
+        $gender = $this->faker->randomElement(['female', 'male']);
+
+        return Person::query()->create(['first_name' => $this->faker->firstName($gender), 'gender' => $gender, 'last_name' => $last, 'birth_date' => $birth->format('Y-m-d'), 'locale' => $locale]);
     }
 }

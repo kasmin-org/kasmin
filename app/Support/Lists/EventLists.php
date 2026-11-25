@@ -3,6 +3,7 @@
 namespace App\Support\Lists;
 
 use App\Models\Event;
+use App\Models\EventDivision;
 use App\Models\Form;
 use App\Models\FormField;
 use App\Models\FormResponse;
@@ -11,6 +12,7 @@ use App\Models\Person;
 use App\Models\User;
 use App\Support\Auth\Permissions;
 use App\Support\Events\Bus;
+use App\Support\Events\Divisions;
 use App\Support\Forms\Forms;
 use App\Support\Forms\FormValue;
 use App\Support\Forms\RegistrationAnswers;
@@ -26,7 +28,7 @@ class EventLists
 {
     /** Key => confidential. */
     public const LISTS = [
-        'participants' => false, 'figures' => false, 'contacts' => false, 'bus' => false, 'cars' => false, 'birthdays' => false, 'answers' => false, 'missing' => false,
+        'participants' => false, 'figures' => false, 'contacts' => false, 'bus' => false, 'cars' => false, 'groups' => false, 'birthdays' => false, 'answers' => false, 'missing' => false,
         'emergency' => true, 'kitchen' => true, 'medical' => true, 'medication' => true, 'insurance' => true, 'swimmers' => true, 'consents' => true, 'changes' => true,
     ];
 
@@ -72,6 +74,7 @@ class EventLists
             'contacts' => $this->contacts($participants),
             'bus' => $this->bus($participants->filter(fn (Participation $p) => Bus::travel($p) === 'bus')->values()),
             'cars' => $this->cars($participants->filter(fn (Participation $p) => Bus::travel($p) === 'car')->values()),
+            'groups' => $this->groups($event),
             'birthdays' => $this->birthdays($event, $participants),
             'answers' => $this->answers($participants),
             'missing' => $this->missing($participants),
@@ -187,7 +190,7 @@ class EventLists
     }
 
     /**
-     * Adults who travel by car instead of the bus (ST06).
+     * People who do not take the bus (ST06): adults in cars, children brought by their legal guardians.
      *
      * @param  Collection<int, Participation>  $participants
      */
@@ -196,10 +199,31 @@ class EventLists
         $rows = [];
         foreach ($participants as $i => $p) {
             $person = $this->person($p);
-            $rows[] = [(string) ($i + 1), $person->fullName(), (string) __('events.roles.'.$p->role_key), $this->points($person, 'phone')];
+            $guardian = Bus::adult($p) ? null : $person->guardians->first();
+            $rows[] = [(string) ($i + 1), $person->fullName(), (string) __('events.roles.'.$p->role_key), $guardian !== null ? (string) __('events.bus.brought_by', ['name' => $guardian->fullName()]) : '–',
+                $guardian !== null ? $this->points($guardian, 'phone') : $this->points($person, 'phone')];
         }
 
-        return $this->table('cars', [__('lists.no'), __('lists.name'), __('admin.event.role'), __('lists.phone')], $rows);
+        return $this->table('cars', [__('lists.no'), __('lists.name'), __('admin.event.role'), __('events.bus.brought'), __('lists.phone')], $rows);
+    }
+
+    /** Groups, rooms and duties of the event with their people (EC04). */
+    private function groups(Event $event): ListTable
+    {
+        $service = app(Divisions::class);
+        $rows = [];
+        foreach (EventDivision::query()->where('event_id', $event->id)->orderBy('sort')->with('units')->get() as $division) {
+            $people = $service->people($division);
+            $placed = $service->placed($division);
+            foreach ($division->units as $unit) {
+                foreach ($people->filter(fn (Participation $p) => ($placed[$p->id] ?? null) === $unit->id) as $p) {
+                    $person = $this->person($p);
+                    $rows[] = [$division->name, $unit->name.($unit->note ? ' – '.$unit->note : ''), $person->fullName(), (string) ($person->ageAt($event->starts_at) ?? '–'), $this->gender($person), (string) __('events.roles.'.$p->role_key)];
+                }
+            }
+        }
+
+        return $this->table('groups', [__('events.divisions.division'), __('events.divisions.unit'), __('lists.name'), __('admin.person.age'), __('admin.person.gender'), __('admin.event.role')], $rows);
     }
 
     /** @param  Collection<int, Participation>  $participants */

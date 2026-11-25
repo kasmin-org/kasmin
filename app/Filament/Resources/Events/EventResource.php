@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Events;
 
 use App\Filament\Resources\Events\Pages\CreateEvent;
 use App\Filament\Resources\Events\Pages\EditEvent;
+use App\Filament\Resources\Events\Pages\EventDivisions;
 use App\Filament\Resources\Events\Pages\EventSchedule;
 use App\Filament\Resources\Events\Pages\ListEvents;
 use App\Filament\Resources\Events\Schemas\EventForm;
@@ -109,6 +110,7 @@ class EventResource extends Resource
             'create' => CreateEvent::route('/create'),
             'edit' => EditEvent::route('/{record}/edit'),
             'schedule' => EventSchedule::route('/{record}/schedule'),
+            'groups' => EventDivisions::route('/{record}/groups'),
         ];
     }
 }

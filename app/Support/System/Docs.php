@@ -26,6 +26,7 @@ class Docs
         'resources.audit-events' => 'admin/privacy',
         'pages.season' => 'admin/event-planning',
         'resources.events.schedule' => 'admin/event-planning',
+        'resources.events.groups' => 'admin/events',
         'resources.event-templates' => 'admin/event-planning',
         'pages.settings' => 'admin/system',
         'pages.system' => 'admin/system',

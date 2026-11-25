@@ -120,8 +120,9 @@ class PublicForms
             }
             $submission->setAttribute('participation_id', $participation->id);
         }
-        if ($form->kind === 'interest') {
-            Consent::query()->create(['person_id' => $person->id, 'kind' => 'newsletter', 'granted' => true, 'source' => 'public_form']);
+        $newsletter = $form->kind === 'interest' ? trim($form->titleText().' – '.$form->introText(), ' –') : ($data['newsletter'] ?? null);
+        if (is_string($newsletter)) {
+            Consent::query()->create(['person_id' => $person->id, 'kind' => 'newsletter', 'granted' => true, 'source' => 'public_form', 'text' => $newsletter]);
         }
         if ($form->group_id !== null && Group::query()->whereKey($form->group_id)->where('kind', 'manual')->exists() && ! $person->groups()->whereKey($form->group_id)->exists()) {
             $person->groups()->attach($form->group_id, ['starts_on' => now()->toDateString(), 'source' => 'public_form']);

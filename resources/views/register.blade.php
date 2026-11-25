@@ -21,6 +21,8 @@
                 <option value="en" @selected(app()->getLocale() === 'en')>English</option>
             </select></label>
         <label class="flex items-start gap-2 text-sm"><input type="checkbox" name="privacy" value="1" required class="mt-1"> <span>{{ __('portal.privacy_consent') }}</span></label>
+        @if (\App\Support\Settings::bool('newsletter_ask'))<label class="flex items-start gap-2 text-sm"><input type="checkbox" name="newsletter" value="1" class="mt-1"> <span>{{ __('public.newsletter_consent') }}</span></label>@endif
+        <x-proof-of-work />
         <button class="w-full rounded-lg bg-kasmin-600 px-4 py-3 font-semibold text-white">{{ __('portal.register_submit') }}</button>
     </form>
     <p class="mt-4 text-sm"><a class="underline" href="{{ route('login') }}">{{ __('portal.have_account') }}</a></p>

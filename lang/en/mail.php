@@ -8,7 +8,8 @@ return [
     'preferences_saved' => 'Your choice has been saved.',
     'preferences_note' => 'You will still receive messages about your registrations and invoices.',
     'confirm_deletion' => 'Do you really want to request the deletion of your data?',
-    'choices' => [
+    'topics_title' => 'Single topics', 'topic_off' => 'No more mails about: :name', 'topic_on' => 'Mails about :name again',
+    'choices' => ['optin_all' => 'Information mails again',
         'newsletter_off' => 'Unsubscribe from the newsletter',
         'newsletter_on' => 'Receive the newsletter again',
         'optout_all' => 'Receive no more information about events',

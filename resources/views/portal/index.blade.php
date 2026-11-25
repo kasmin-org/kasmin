@@ -7,6 +7,12 @@
     </div>
     @if (session('status'))<div class="mb-4 rounded-lg bg-kasmin-100 p-3 text-sm" role="status">{{ session('status') }}</div>@endif
     @if ($errors->any())<div class="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-800" role="alert">{{ $errors->first() }}</div>@endif
+    @if ($tasks !== [])
+        <section class="mb-6 rounded-xl bg-summer-500/15 p-4" aria-labelledby="tasks">
+            <h2 id="tasks" class="mb-2 text-lg font-semibold">{{ __('portal.tasks') }}</h2>
+            <ul class="space-y-2 text-sm">@foreach ($tasks as $task)<li><a class="underline @if ($task['urgent']) font-semibold @endif" href="{{ $task['url'] }}">{{ $task['text'] }}</a></li>@endforeach</ul>
+        </section>
+    @endif
     @forelse ($households as $household)
         <section class="mb-6" aria-labelledby="h{{ $household->id }}">
             <h2 id="h{{ $household->id }}" class="mb-3 text-lg font-semibold">{{ $household->name }}</h2>
@@ -17,6 +23,7 @@
                         @if ($child->birth_date)
                             <p class="text-sm text-kasmin-700">{{ __('portal.age', ['age' => $child->ageAt()]) }}</p>
                         @endif
+                        @if (in_array($sheets[$child->id] ?? null, ['missing', 'expired', 'confirmed'], true))<p class="mt-1 text-sm">{{ __('portal.sheet') }}: <strong>{{ __('forms.status.'.$sheets[$child->id]) }}</strong></p>@endif
                         @foreach ($child->participations()->with('event')->whereNotIn('status', ['cancelled', 'declined'])->get()->filter(fn ($p) => $p->visibleInPortal($person)) as $p)
                             <p class="mt-1 text-sm">{{ $p->event->title }}: <strong>{{ __('events.status.'.$p->status) }}</strong>@if ($p->status === 'waitlist') ({{ __('events.waitlist_position', ['position' => $p->waitlistPosition(), 'total' => $p->event->roles()->where('role_key', $p->role_key)->first()?->waitlistLength()]) }})@endif</p>
                         @endforeach
@@ -48,7 +55,7 @@
     @empty
         <p>{{ __('portal.no_family') }}</p>
     @endforelse
-    @if ($person)<p class="mb-4"><a class="underline" href="{{ route('portal.child', $person->public_id) }}">{{ __('public.own') }}</a></p>@endif
+    @if ($person)<p class="mb-4 flex flex-wrap gap-x-6 gap-y-2"><a class="underline" href="{{ route('portal.profile') }}">{{ __('portal.profile') }}</a><a class="underline" href="{{ route('portal.child', $person->public_id) }}">{{ __('public.own') }}</a></p>@endif
     <a href="{{ route('portal.child.create') }}" class="mt-2 block w-full rounded-lg bg-kasmin-600 px-4 py-3 text-center font-semibold text-white">{{ __('portal.add_child') }}</a>
     @if ($invoices->isNotEmpty())
         <section class="mt-8" id="invoices">
@@ -66,6 +73,9 @@
                             <span @class(['ml-1 rounded-full px-2 py-0.5 text-xs font-semibold', 'bg-green-100 text-green-900' => $state === 'paid', 'bg-red-100 text-red-900' => $state === 'overdue', 'bg-amber-100 text-amber-900' => in_array($state, ['issued', 'partially_paid'], true), 'bg-gray-100 text-gray-700' => in_array($state, ['cancelled', 'corrected'], true)])>{{ __('finance.status.'.$state) }}</span>
                             @if (in_array($invoice->status, ['issued', 'partially_paid'], true) && $invoice->due_on)
                                 <span class="block text-xs text-kasmin-700">{{ __('finance.due_on') }} {{ $invoice->due_on->isoFormat('LL') }} · {{ __('finance.reference') }} {{ $invoice->reference }}</span>
+                                @if ($pay['iban'] !== '')<details class="mt-1 text-left text-xs"><summary class="cursor-pointer underline">{{ __('portal.pay') }}</summary>
+                                    <p>{{ $pay['name'] }}<br>IBAN {{ trim(chunk_split($pay['iban'], 4, ' ')) }}@if ($pay['bic'])<br>BIC {{ $pay['bic'] }}@endif<br>{{ __('finance.amount') }} {{ \App\Models\Invoice::money($invoice->openCents(), $invoice->currency) }}<br>{{ __('finance.reference') }} {{ $invoice->reference }}</p>
+                                    @if ($qr = app(\App\Support\Finance\InvoicePdf::class)->qrCode($invoice))<img src="{{ $qr }}" alt="{{ __('finance.qr_hint') }}" class="mt-2 h-40 w-40">@endif</details>@endif
                             @endif
                         </span>
                     </li>

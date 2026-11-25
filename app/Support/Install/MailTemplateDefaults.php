@@ -10,7 +10,7 @@ use App\Models\MailTemplate;
  */
 class MailTemplateDefaults
 {
-    public const VERSION = 5;
+    public const VERSION = 6;
 
     public function install(): void
     {
@@ -60,6 +60,20 @@ class MailTemplateDefaults
             ], [
                 '{{ event.title }}: place for {% for child in children %}{{ child.first_name }}{% if not loop.last %}, {% endif %}{% endfor %}',
                 '<p>{{ salutation }}</p><p>a place at <strong>{{ event.title }}</strong> ({{ event.starts_at }} – {{ event.ends_at }}) is reserved for {% for child in children %}<strong>{{ child.first_name }}</strong>{% if not loop.last %}, {% endif %}{% endfor %} until <strong>{{ registration.offer_until }}</strong>.</p>{% if registration.by_payment %}<p>By paying the attached invoice until then you accept the place. Without payment it is passed on.</p>{% else %}<p>Please accept or decline the place in the portal. Without an answer it is passed on.</p>{% endif %}'.$button('Open the portal').'<p>Kind regards<br>{{ organisation.name }}</p>',
+            ]],
+            'own_registration_notice' => ['registration', 'guardians', ['de' => 'Hinweis: eigene Anmeldung', 'en' => 'Notice: own registration'], [
+                '{{ children[0].first_name }} hat sich angemeldet',
+                '<p>{{ salutation }}</p><p>{{ children[0].full_name }} hat sich mit dem eigenen Zugang zu einer Veranstaltung angemeldet. Einzelheiten sind privat; bitte sprechen Sie direkt miteinander.</p><p>Mit freundlichen Grüßen<br>{{ organisation.name }}</p>',
+            ], [
+                '{{ children[0].first_name }} has registered',
+                '<p>{{ salutation }}</p><p>{{ children[0].full_name }} has registered for an event with the own login. The details are private; please talk to each other.</p><p>Kind regards<br>{{ organisation.name }}</p>',
+            ]],
+            'waitlist_position' => ['waitlist', 'guardians', ['de' => 'Neuer Platz auf der Warteliste', 'en' => 'New position on the waitlist'], [
+                '{{ event.title }}: {{ registration.child }} ist auf Platz {{ registration.waitlist_position }}',
+                '<p>{{ salutation }}</p><p>{{ registration.child }} ist auf der Warteliste für <strong>{{ event.title }}</strong> vorgerückt: <strong>Platz {{ registration.waitlist_position }} von {{ registration.waitlist_total }}</strong>.</p><p>Mit freundlichen Grüßen<br>{{ organisation.name }}</p>',
+            ], [
+                '{{ event.title }}: {{ registration.child }} is at position {{ registration.waitlist_position }}',
+                '<p>{{ salutation }}</p><p>{{ registration.child }} has moved up on the waitlist for <strong>{{ event.title }}</strong>: <strong>position {{ registration.waitlist_position }} of {{ registration.waitlist_total }}</strong>.</p><p>Kind regards<br>{{ organisation.name }}</p>',
             ]],
             'safety_sheet_request' => ['safety_sheet', 'guardians', ['de' => 'Sicherheitsblatt ausfüllen', 'en' => 'Fill in the safety sheet'], [
                 'Bitte Sicherheitsblatt ausfüllen oder bestätigen',

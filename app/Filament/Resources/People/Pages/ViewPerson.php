@@ -10,6 +10,7 @@ use App\Support\Audit\Audit;
 use App\Support\Auth\LoginLinks;
 use App\Support\Auth\Permissions;
 use App\Support\Auth\PortalPerson;
+use App\Support\Privacy\DataExport;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
 use Filament\Notifications\Notification;
@@ -55,6 +56,17 @@ class ViewPerson extends ViewRecord
                         Audit::record('login.link_sent_by_admin', $person);
                         Notification::make()->title(__('people.login_link_sent'))->success()->send();
                     }
+                }),
+            Action::make('export')->label(__('portal.export'))->icon('heroicon-o-arrow-down-tray')->color('gray')->requiresConfirmation()
+                ->visible(fn () => Permissions::administrator() && $this->person()->getAttribute('anonymised_at') === null)
+                ->action(function () {
+                    $person = $this->person();
+                    Audit::record('privacy.data_exported', $person, null, ['source' => 'admin']);
+                    $json = (string) json_encode(app(DataExport::class)->for($person), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+                    return response()->streamDownload(function () use ($json) {
+                        echo $json;
+                    }, 'kasmin-data-'.$person->id.'.json', ['Content-Type' => 'application/json', 'Cache-Control' => 'private, no-store']);
                 }),
             EditAction::make(),
         ];

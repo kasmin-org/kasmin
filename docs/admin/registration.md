@@ -41,10 +41,26 @@ participant can invite that many guests: each gets a personal link, registers pe
 | Legal guardians per family | 5 – guardians invite each other in the portal; administrators are notified |
 | Own login from age | 14 – guardians create the login for their child; the child sees its safety sheet but cannot change it |
 | Guardianship ends at age | 18 – both sides get a mail; future invoices go to the person |
-| Legal guardians see what their child registers itself | off |
+| What a child registers itself | hidden; or the legal guardians are told that there is a registration; or visible |
+| Ask for the newsletter on public forms | on |
 
 ## Duplicates
 
 *People → Duplicates* (administrator, board) lists probable duplicates: same name, similar name and same date of birth, or same
 address and similar first name. **Merge** lets you choose each field; everything else moves to the kept record. This cannot
 be undone. A merge never gives more rights, and it is refused if both have an invoiced registration for the same event.
+
+## Portal: my data
+
+Legal guardians change phone numbers, e-mail addresses, the family address and the invoice recipient themselves; subscribers of the topic
+*profile updates* are notified. A new e-mail address counts after it was confirmed with a link (24 hours); all other addresses of the person
+are told. Links sent to the old login address end.
+
+*Download data* gives a file with everything stored about the person and the children (Art. 15 and 20 GDPR), without data that is hidden from
+the person. Administrators can create it on the person page.
+
+## Spam protection
+
+Public forms have a hidden field for bots, a limit per address and a proof of work: the browser solves a small task (about a second) before it
+sends. It needs JavaScript and HTTPS, and no third party is involved. `KASMIN_PROOF_OF_WORK=false` switches it off. For the API, the form
+definition contains a `challenge`; send `pow` as `<challenge>:<number>` so that the SHA-256 of this text starts with 14 zero bits.

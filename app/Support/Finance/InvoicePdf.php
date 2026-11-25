@@ -81,6 +81,12 @@ class InvoicePdf
         ];
     }
 
+    /** Data URI of the payment code, e.g. for the portal (GP12). */
+    public function qrCode(Invoice $invoice): ?string
+    {
+        return $this->qr($invoice);
+    }
+
     private function qr(Invoice $invoice): ?string
     {
         $payload = self::epcPayload($invoice);

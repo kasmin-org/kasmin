@@ -33,7 +33,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->append(SecurityHeaders::class);
         // Public forms work in frames of other websites, where browsers send no cookies. They change nothing before the
         // address is confirmed by mail, and they never use a login.
-        $middleware->validateCsrfTokens(except: ['f/*']);
+        // Unsubscribing uses signed links, and mail programs send no form token (one-click, RFC 8058).
+        $middleware->validateCsrfTokens(except: ['f/*', 'mail/preferences/*']);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

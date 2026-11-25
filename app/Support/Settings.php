@@ -29,7 +29,8 @@ class Settings
         'max_guardians' => '5',            // RG07
         'min_login_age' => '14',           // PE04
         'guardian_until_age' => '18',      // PE05
-        'own_registrations_visible' => '0', // PE05a
+        'own_registrations' => 'hidden',   // PE05a: hidden, informed, visible
+        'newsletter_ask' => '1',           // CO02
         'retention_safety_years' => '7', // CO01
         'retention_invoice_years' => '7',
         'public_url' => '',

@@ -103,7 +103,7 @@ class MailingsAndGroupsTest extends TestCase
         $plan = app(Mailings::class)->plan($mailing)['mails'];
         $toGuardian = collect($plan)->first(fn (array $m) => $m['to']->is($guardian));
         $this->assertSame(['Normal'], array_map(fn (Person $p) => $p->first_name, $toGuardian['children'] ?? []));
-        Settings::set('own_registrations_visible', '1');
+        Settings::set('own_registrations', 'visible');
         $this->assertSame(['guardian@example.org'], $this->addresses($mailing));
     }
 

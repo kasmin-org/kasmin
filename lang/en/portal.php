@@ -1,6 +1,13 @@
 <?php
 
 return [
+    'mail_address_subject' => 'Please confirm your new address – :organisation', 'mail_address_text' => 'Hello :name, please confirm that this is your new e-mail address.', 'mail_address_note' => 'The link is valid for 24 hours. If this was not you, ignore this mail; nothing changes.',
+    'mail_address_changed_subject' => 'Your e-mail address was changed – :organisation', 'mail_address_changed_text' => 'Hello :name, an e-mail address of your account was changed or added.', 'mail_address_changed_note' => 'If this was not you, please contact the organisation at once.',
+    'mail_sign_up_subject' => 'Please confirm your registration – :organisation', 'mail_sign_up_text' => 'Hello :name, please confirm your registration.', 'mail_sign_up_note' => 'The link is valid for :days days. If this was not you, ignore this mail; nothing is stored then.',
+    'profile' => 'My data', 'saved' => 'Saved.', 'email_sent' => 'We have sent a link to the new address. It counts after you have confirmed it.', 'email_needed' => 'This address is needed for the login or is the only one.', 'notify_profile' => 'Contact data changed: :name',
+    'confirm_address' => 'Confirm your address', 'address_confirmed' => 'Your address is confirmed.', 'new_email' => 'New e-mail address', 'change' => 'Change', 'remove' => 'Remove', 'add_email' => 'Add an e-mail address', 'email_hint' => 'A new address has to be confirmed with a link. Your other addresses are told about the change.',
+    'invoice_recipient' => 'Invoices go to', 'my_data' => 'Copy of my data', 'export_hint' => 'All data stored about you and your children as a file. It contains confidential data, keep it safe.', 'export' => 'Download data', 'consents' => 'Consents', 'pay' => 'Payment data', 'sheet' => 'Safety sheet',
+    'tasks' => 'Open tasks', 'task_offer' => 'Accept or decline the place for :name (:event) until :date', 'task_answers' => 'Answer the questions for :name (:event)', 'task_form' => ':form of :name is missing or has to be confirmed', 'task_invoice' => 'Pay invoice :number (:amount) until :date', 'task_address' => 'Please add your address',
     'offer_payment' => 'A place is reserved until :date. You accept it by paying the invoice.',
     'notify_duplicate' => 'Probable duplicate: :name',
     'guardians_full' => 'No more legal guardians can be invited.', 'notify_guardian_invited' => ':name invited a further legal guardian (:family)', 'notify_guardian_added' => ':name is now a legal guardian (:family)',

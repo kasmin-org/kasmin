@@ -7,6 +7,7 @@ use App\Support\Audit\Audit;
 use App\Support\Auth\Permissions;
 use App\Support\Mail\MailImages;
 use App\Support\Settings;
+use App\Support\System\Updater;
 use BackedEnum;
 use Filament\Forms\Components\ColorPicker;
 use Filament\Forms\Components\FileUpload;
@@ -45,7 +46,7 @@ class OrganisationSettingsPage extends Page
         'organisation_name', 'organisation_address', 'organisation_email', 'organisation_website', 'organisation_iban',
         'organisation_bic', 'organisation_bank', 'organisation_legal_footer', 'invoice_number_format', 'invoice_next_number',
         'invoice_number_per_year', 'invoice_due_days', 'invoice_attach_paid', 'invoice_reminder_days_before', 'invoice_overdue_days', 'invoice_overdue_fees', 'public_url', 'mail_test_address', 'mailing_approval_above', 'backup_keep', 'embed_origins', 'timezone', 'digest_time', 'approval_days', 'ai_processing', 'retention_safety_years', 'retention_invoice_years',
-        'max_guardians', 'min_login_age', 'guardian_until_age', 'own_registrations', 'newsletter_ask', 'mail_logo', 'mail_color', 'mail_footer', 'retention_mail_years',
+        'max_guardians', 'min_login_age', 'guardian_until_age', 'own_registrations', 'newsletter_ask', 'mail_logo', 'mail_color', 'mail_footer', 'retention_mail_years', 'auto_update', 'auto_update_days', 'auto_update_time',
     ];
 
     public static function getNavigationGroup(): ?string
@@ -78,7 +79,7 @@ class OrganisationSettingsPage extends Page
         }
         $data['mail_logo'] = Settings::get('mail_logo') ?: null;
         $data['organisation_name'] ??= config('app.name');
-        foreach (['invoice_attach_paid', 'invoice_number_per_year', 'newsletter_ask'] as $key) {
+        foreach (['invoice_attach_paid', 'invoice_number_per_year', 'newsletter_ask', 'auto_update'] as $key) {
             $data[$key] = Settings::bool($key);
         }
         $this->form->fill($data);
@@ -150,6 +151,11 @@ class OrganisationSettingsPage extends Page
                 TextInput::make('retention_mail_years')->label(__('admin.settings.retention_mail_years'))->numeric()->minValue(0)->maxValue(30)->required()->hintIcon(...$hint('retention_mail_years')),
                 TextInput::make('retention_invoice_years')->label(__('admin.settings.retention_invoice_years'))->numeric()->minValue(1)->maxValue(30)->required(),
             ]),
+            Section::make(__('system.auto_update.title'))->visible(fn () => Permissions::administrator())->description(fn () => app(Updater::class)->available() ? __('system.auto_update.hint') : __('system.update.docker'))->columns(['md' => 3])->schema([
+                Toggle::make('auto_update')->label(__('system.auto_update.enabled'))->inline(false)->disabled(fn () => ! app(Updater::class)->available()),
+                TextInput::make('auto_update_days')->label(__('system.auto_update.days'))->numeric()->minValue(0)->maxValue(90)->required(),
+                TextInput::make('auto_update_time')->label(__('system.auto_update.time'))->regex('/^([01]\d|2[0-3]):[0-5]\d$/')->required(),
+            ]),
             Section::make(__('admin.settings.ai'))->visible(fn () => Permissions::administrator())->schema([
                 Radio::make('ai_processing')->label(__('admin.settings.ai_processing'))->options(__('admin.settings.ai_options'))->required()
                     ->helperText(__('admin.settings.ai_hint')),
@@ -165,7 +171,7 @@ class OrganisationSettingsPage extends Page
                 continue; // sections this person may not change
             }
             $value = $data[$key];
-            if (in_array($key, ['invoice_attach_paid', 'invoice_number_per_year', 'newsletter_ask'], true)) {
+            if (in_array($key, ['invoice_attach_paid', 'invoice_number_per_year', 'newsletter_ask', 'auto_update'], true)) {
                 $value = $value ? '1' : '0';
             }
             if (in_array($key, ['organisation_iban', 'organisation_bic'], true)) {

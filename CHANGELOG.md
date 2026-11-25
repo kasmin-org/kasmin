@@ -20,10 +20,17 @@ All notable changes to Kasmin are documented in this file. The format is based o
 - Audit log: IP address and browser are shortened after 30 days and entries are deleted after 10 years; both can be set.
 - *Help for this page* next to the title of every admin page opens the documentation of the installed version.
 - A whole camp year is tested in one run, from the registration to the next season.
+- REST API: contact data of a person (`/people/{id}/contact-points`) can be read, added and removed.
+- REST API: legal guardians of a person (`/people/{id}/guardians`) can be read, added and ended.
+- REST API: membership types (`/membership-types`) can be read, created and changed.
+- REST API: automations can be read one by one and changed (`PATCH /automations/{key}`) with the new scope `automations:write`.
+- REST API: events can be created and changed (`POST /events`, `PATCH /events/{id}`) with their basic fields and roles.
 
 ### Fixed
 
 - The timeline of a person linked sent mails to a page that does not exist; the link opens the mail now.
+- The proposed SPF entry named `mx` twice when no mail server is set.
+- The token form showed a raw key for the scope `health:write`; the API accepted names only up to 100 characters (120 as in the interface).
 - Resetting a demo instance failed on the first call when the cache is stored in the database.
 - The dashboard and the import list showed links to pages that the role may not open.
 - A mail with a long link was wider than the screen in the portal on phones.

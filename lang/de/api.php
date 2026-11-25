@@ -8,11 +8,11 @@ return [
     'created' => 'Token erstellt', 'created_hint' => 'Jetzt kopieren – es wird nur dieses eine Mal angezeigt:',
     'scope_help' => [
         'people:read' => 'Personen und Familien lesen', 'people:write' => 'Personen anlegen und ändern',
-        'events:read' => 'Veranstaltungen und Teilnehmende lesen', 'events:write' => 'anmelden, Teilnahmen ändern',
+        'events:read' => 'Veranstaltungen und Teilnehmende lesen', 'events:write' => 'Veranstaltungen anlegen und ändern, anmelden, Teilnahmen ändern',
         'finance:read' => 'Rechnungen lesen', 'finance:write' => 'Zahlungen erfassen',
         'mail:read' => 'E-Mail-Vorlagen und Protokoll lesen', 'mail:write' => 'E-Mails senden',
-        'automations:read' => 'Automatisierungen und Läufe lesen, Probeläufe', 'automations:run' => 'Läufe starten (als Freigabe-Anfrage)',
+        'automations:read' => 'Automatisierungen und Läufe lesen, Probeläufe', 'automations:run' => 'Läufe starten (als Freigabe-Anfrage)', 'automations:write' => 'Automatisierungen ändern: Modus, Auslöser, Freigebende (Vorsicht)',
         'approvals:decide' => 'Freigaben entscheiden (Vorsicht)', 'import:write' => 'importieren und zurückrollen',
-        'audit:read' => 'Audit-Protokoll lesen', 'health:read' => 'Gesundheits- und Sicherheitsdaten lesen (Vorsicht)', 'settings:write' => 'Einstellungen ändern (Vorsicht)',
+        'audit:read' => 'Audit-Protokoll lesen', 'health:read' => 'Gesundheits- und Sicherheitsdaten lesen (Vorsicht)', 'health:write' => 'Gesundheits- und Sicherheitsdaten ändern; die Erziehungsberechtigten bestätigen sie (Vorsicht)', 'settings:write' => 'Einstellungen ändern (Vorsicht)',
     ],
 ];

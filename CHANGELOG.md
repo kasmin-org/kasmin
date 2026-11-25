@@ -8,6 +8,7 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ### Added
 
+- Setting for how long camp leaders and counsellors keep access to their own events after the end (default 180 days).
 - Travel by bus: an event can have a booked bus with a number of seats. Participants and dashboard show how full it is and warn when it is overbooked; adults can be set to travel by car (children always go by bus); lists *Bus list* and *Travel by car*.
 - Backups in the browser: back up now, download (also encrypted), and open an encrypted backup again – no shell needed.
 - Backup outside the server: every night an encrypted copy goes to a storage folder by WebDAV (https); the system status shows the result.

@@ -47,7 +47,7 @@ class OrganisationSettingsPage extends Page
         'organisation_name', 'organisation_address', 'organisation_email', 'organisation_website', 'organisation_iban',
         'organisation_bic', 'organisation_bank', 'organisation_legal_footer', 'invoice_number_format', 'invoice_next_number',
         'invoice_number_per_year', 'invoice_due_days', 'invoice_attach_paid', 'invoice_reminder_days_before', 'invoice_overdue_days', 'invoice_overdue_fees', 'public_url', 'mail_test_address', 'mailing_approval_above', 'backup_keep', 'embed_origins', 'timezone', 'digest_time', 'approval_days', 'ai_processing', 'retention_safety_years', 'retention_invoice_years',
-        'max_guardians', 'min_login_age', 'guardian_until_age', 'own_registrations', 'newsletter_ask', 'mail_logo', 'mail_color', 'mail_footer', 'retention_mail_years', 'backup_remote_url', 'backup_remote_user', 'audit_ip_days', 'retention_audit_years', 'auto_update', 'auto_update_days', 'auto_update_time',
+        'max_guardians', 'own_event_days', 'min_login_age', 'guardian_until_age', 'own_registrations', 'newsletter_ask', 'mail_logo', 'mail_color', 'mail_footer', 'retention_mail_years', 'backup_remote_url', 'backup_remote_user', 'audit_ip_days', 'retention_audit_years', 'auto_update', 'auto_update_days', 'auto_update_time',
     ];
 
     public static function getNavigationGroup(): ?string
@@ -144,6 +144,7 @@ class OrganisationSettingsPage extends Page
                 TextInput::make('max_guardians')->label(__('admin.settings.max_guardians'))->numeric()->minValue(1)->maxValue(20)->required(),
                 TextInput::make('min_login_age')->label(__('admin.settings.min_login_age'))->numeric()->minValue(6)->maxValue(18)->required(),
                 TextInput::make('guardian_until_age')->label(__('admin.settings.guardian_until_age'))->numeric()->minValue(14)->maxValue(25)->required(),
+                TextInput::make('own_event_days')->label(__('admin.settings.own_event_days'))->numeric()->minValue(0)->maxValue(3650)->required()->hintIcon(...$hint('own_event_days')),
                 Select::make('own_registrations')->label(__('admin.settings.own_registrations'))->options(__('admin.settings.own_registrations_options'))->required()->hintIcon(...$hint('own_registrations')),
                 Toggle::make('newsletter_ask')->label(__('admin.settings.newsletter_ask'))->inline(false)->hintIcon(...$hint('newsletter_ask')),
             ]),

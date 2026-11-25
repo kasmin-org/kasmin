@@ -26,6 +26,7 @@ class Settings
         'invoice_attach_paid' => '1',
         'invoice_reminder_days_before' => '3',
         'invoice_overdue_days' => '7,21',
+        'own_event_days' => '180',        // RO01: roles for the own events count this long after the end
         'max_guardians' => '5',            // RG07
         'min_login_age' => '14',           // PE04
         'guardian_until_age' => '18',      // PE05

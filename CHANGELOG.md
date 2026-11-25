@@ -24,6 +24,8 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ### Fixed
 
+- The timeline of a person linked sent mails to a page that does not exist; the link opens the mail now.
+- A mail with a long link was wider than the screen in the portal on phones.
 - Installations that started with a very old version never got the standard mail templates, automations and event types of later versions, so mails such as the registration confirmation were not sent. What is missing is installed with this update.
 
 ### Changed

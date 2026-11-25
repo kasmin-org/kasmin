@@ -16,8 +16,9 @@ class Notifier
     public function event(string $topic, string $summary, ?string $url = null): void
     {
         $event = NotificationEvent::query()->create(['topic' => $topic, 'summary' => Str::limit($summary, 1000), 'url' => $url, 'created_at' => now()]);
-        foreach (NotificationSubscription::query()->where('topic', $topic)->where('frequency', 'immediate')->with('user')->get() as $sub) {
-            if ($sub->user instanceof User) {
+        NotificationSubscription::ensureDefaults();
+        foreach (NotificationSubscription::query()->where('topic', $topic)->where('frequency', 'immediate')->with('user.person')->get() as $sub) {
+            if ($sub->user instanceof User && $sub->mayReceive()) {
                 $this->mail($sub->user, [$event]);
             }
         }
@@ -29,7 +30,8 @@ class Notifier
     public function digests(): int
     {
         $sent = 0;
-        $subs = NotificationSubscription::query()->whereIn('frequency', ['daily', 'weekly'])->with('user')->get()->groupBy('user_id');
+        NotificationSubscription::ensureDefaults();
+        $subs = NotificationSubscription::query()->whereIn('frequency', ['daily', 'weekly'])->with('user.person')->get()->groupBy('user_id');
         foreach ($subs as $userSubs) {
             $user = $userSubs->first()?->user;
             if (! $user instanceof User) {
@@ -37,7 +39,7 @@ class Notifier
             }
             $events = [];
             foreach ($userSubs as $sub) {
-                if ($sub->frequency === 'weekly' && ! now()->isMonday()) {
+                if (! $sub->mayReceive() || ($sub->frequency === 'weekly' && ! now()->isMonday())) {
                     continue;
                 }
                 $since = $sub->last_sent_at ?? now()->subDays($sub->frequency === 'weekly' ? 7 : 1);

@@ -13,6 +13,7 @@ use App\Models\NotificationEvent;
 use App\Models\NotificationSubscription;
 use App\Models\OutgoingMail;
 use App\Models\Person;
+use App\Models\Role;
 use App\Models\SenderProfile;
 use App\Models\User;
 use App\Support\Events\Registrations;
@@ -157,8 +158,14 @@ class MailTest extends TestCase
 
     public function test_notifications_immediately_and_as_digest(): void
     {
-        $admin = User::query()->create(['name' => 'Admin', 'email' => 'admin@example.org', 'password' => 'x']);
-        $board = User::query()->create(['name' => 'Board', 'email' => 'board@example.org', 'password' => 'x']);
+        $user = function (string $role, string $name): User {
+            $person = Person::factory()->create(['locale' => 'en']);
+            $person->roleAssignments()->create(['role_id' => Role::query()->where('key', $role)->value('id')]);
+
+            return User::query()->create(['name' => $name, 'email' => strtolower($name).'@example.org', 'password' => 'x', 'person_id' => $person->id]);
+        };
+        $admin = $user('administrator', 'Admin');
+        $board = $user('board', 'Board');
         NotificationSubscription::query()->create(['user_id' => $admin->id, 'topic' => 'registrations', 'frequency' => 'immediate']);
         NotificationSubscription::query()->create(['user_id' => $board->id, 'topic' => 'registrations', 'frequency' => 'daily']);
 

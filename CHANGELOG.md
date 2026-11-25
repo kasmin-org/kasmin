@@ -6,6 +6,15 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ## [Unreleased]
 
+### Added
+
+- Roles that count only for the own events: camp leaders see their events and their people, counsellors have lists of their events in the portal. Default for new installations; existing roles keep their rights.
+- *My notifications*: choose topics immediately or as a digest, and the latest notifications. Until now there was no page for it, so nobody could get notifications. Administrators get deletion requests immediately and errors of automations daily by default.
+
+### Security
+
+- Notifications are only sent to people who have the rights for the topic at that moment.
+
 ## [0.20.0] - 2026-11-25
 
 Pre-release for testing. Not ready for production use.

@@ -31,4 +31,6 @@ return [
         'deletion_requests' => 'Deletion requests',
         'automation_errors' => 'Automation errors',
     ],
+    'notifications' => 'My notifications', 'notifications_by_mail' => 'By e-mail', 'notifications_hint' => 'Only topics you have the rights for. Digests are sent at 07:00 (or the time in the settings), weekly ones on Mondays. They never contain confidential values.', 'notifications_latest' => 'Latest notifications',
+    'frequencies' => ['immediate' => 'immediately', 'daily' => 'daily digest', 'weekly' => 'weekly digest', 'off' => 'off'],
 ];

@@ -13,6 +13,7 @@ All notable changes to Kasmin are documented in this file. The format is based o
 - Confirmation of participation as a PDF after the event, for the team and in the portal, with the amount paid.
 - List *Figures for the team meeting* (roles by gender, new and returning, waitlist); the participants list shows the gender.
 - Legal guardians can state the gender when they add a child in the portal.
+- *Help for this page* next to the title of every admin page opens the documentation of the installed version.
 - A whole camp year is tested in one run, from the registration to the next season.
 
 ### Fixed

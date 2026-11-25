@@ -7,6 +7,7 @@ use App\Http\Middleware\RequireSecondFactor;
 use App\Http\Middleware\SetLocale;
 use App\Livewire\SystemNotificationsPopup;
 use App\Support\Mail\Sender;
+use App\Support\System\Docs;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -47,6 +48,7 @@ class AdminPanelProvider extends PanelProvider
             ))
             ->renderHook(PanelsRenderHook::CONTENT_START, fn () => Sender::testAddress() !== null ? view('filament.test-mode', ['address' => Sender::testAddress()]) : '')
             ->renderHook(PanelsRenderHook::CONTENT_START, fn () => Livewire::mount(SystemNotificationsPopup::class))
+            ->renderHook(PanelsRenderHook::PAGE_HEADER_HEADING_AFTER, fn () => view('filament.help-link', ['url' => Docs::forRoute(request()->route()?->getName())]))
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->pages([

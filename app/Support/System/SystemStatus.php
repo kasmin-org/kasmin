@@ -143,6 +143,6 @@ class SystemStatus
 
     public static function docsUrl(string $page): string
     {
-        return 'https://www.kasmin.org/docs/latest/'.$page.'/';
+        return Docs::url($page);
     }
 }

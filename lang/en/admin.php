@@ -166,4 +166,5 @@ return [
     ],
     'genders' => ['female' => 'female', 'male' => 'male', 'diverse' => 'diverse', 'unspecified' => 'not specified'],
     'purposes' => ['login' => 'Login', 'information' => 'Information', 'invoices' => 'Invoices', 'emergency' => 'Emergency'],
+    'help' => ['title' => 'Opens the documentation of this version in a new tab', 'link' => 'Help for this page'],
 ];

@@ -166,4 +166,5 @@ return [
     ],
     'genders' => ['female' => 'weiblich', 'male' => 'männlich', 'diverse' => 'divers', 'unspecified' => 'keine Angabe'],
     'purposes' => ['login' => 'Anmeldung', 'information' => 'Informationen', 'invoices' => 'Rechnungen', 'emergency' => 'Notfall'],
+    'help' => ['title' => 'Öffnet die Dokumentation dieser Version in einem neuen Tab', 'link' => 'Hilfe zu dieser Seite'],
 ];

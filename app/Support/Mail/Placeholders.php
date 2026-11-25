@@ -50,6 +50,12 @@ class Placeholders
         return $context;
     }
 
+    /** @return array<string, mixed> */
+    public function eventValues(Event $event, string $locale): array
+    {
+        return $this->event($event, $locale);
+    }
+
     /** @return array<string, mixed> complete example context for previews and validation */
     public static function sample(): array
     {

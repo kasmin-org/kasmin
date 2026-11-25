@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Mailings;
 use App\Filament\Resources\Mailings\Pages\CreateMailing;
 use App\Filament\Resources\Mailings\Pages\EditMailing;
 use App\Filament\Resources\Mailings\Pages\ListMailings;
+use App\Filament\Resources\Mailings\Pages\ReviewMailing;
 use App\Filament\Resources\Mailings\Schemas\MailingForm;
 use App\Filament\Resources\Mailings\Tables\MailingsTable;
 use App\Filament\Support\AreaAccess;
@@ -66,6 +67,7 @@ class MailingResource extends Resource
             'index' => ListMailings::route('/'),
             'create' => CreateMailing::route('/create'),
             'edit' => EditMailing::route('/{record}/edit'),
+            'review' => ReviewMailing::route('/{record}/review'),
         ];
     }
 }

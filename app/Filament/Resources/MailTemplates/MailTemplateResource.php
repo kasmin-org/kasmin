@@ -5,6 +5,7 @@ namespace App\Filament\Resources\MailTemplates;
 use App\Filament\Resources\MailTemplates\Pages\CreateMailTemplate;
 use App\Filament\Resources\MailTemplates\Pages\EditMailTemplate;
 use App\Filament\Resources\MailTemplates\Pages\ListMailTemplates;
+use App\Filament\Resources\MailTemplates\Pages\PreviewMailTemplate;
 use App\Filament\Resources\MailTemplates\Schemas\MailTemplateForm;
 use App\Filament\Resources\MailTemplates\Tables\MailTemplatesTable;
 use App\Filament\Support\AreaAccess;
@@ -66,6 +67,7 @@ class MailTemplateResource extends Resource
             'index' => ListMailTemplates::route('/'),
             'create' => CreateMailTemplate::route('/create'),
             'edit' => EditMailTemplate::route('/{record}/edit'),
+            'preview' => PreviewMailTemplate::route('/{record}/preview'),
         ];
     }
 }

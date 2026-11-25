@@ -2,17 +2,19 @@
 
 namespace App\Filament\Resources\MailTemplates\Tables;
 
+use App\Filament\Resources\MailTemplates\MailTemplateResource;
 use App\Models\MailTemplate;
-use App\Support\Mail\Placeholders;
-use App\Support\Mail\PreviewFrame;
-use App\Support\Mail\TemplateRenderer;
+use App\Support\Auth\Permissions;
+use App\Support\Mail\TemplateStandards;
 use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\EditAction;
+use Filament\Notifications\Notification;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Enums\RecordActionsPosition;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
-use Illuminate\Support\HtmlString;
 
 class MailTemplatesTable
 {
@@ -22,21 +24,27 @@ class MailTemplatesTable
             TextColumn::make('name')->label(__('admin.form.name'))->state(fn (MailTemplate $r) => $r->label())->searchable(['key']),
             TextColumn::make('category')->label(__('admin.mail.category'))->formatStateUsing(fn ($state) => __('admin.mail.categories.'.$state))->badge(),
             TextColumn::make('version')->label(__('admin.form.version')),
+            TextColumn::make('hint')->label('')->state(fn (MailTemplate $r) => app(TemplateStandards::class)->isNew($r) ? __('admin.mail.new_standard') : null)->badge()->color('warning'),
             IconColumn::make('is_standard')->label(__('admin.mail.standard'))->boolean(),
         ])->filters([
             SelectFilter::make('category')->label(__('admin.mail.category'))->options(array_combine(MailTemplate::CATEGORIES, array_map(fn ($c) => __('admin.mail.categories.'.$c), MailTemplate::CATEGORIES))),
-        ])->recordActions([
-            Action::make('preview')->label(__('admin.mail.preview'))->icon('heroicon-o-eye')->modalSubmitAction(false)
-                ->modalContent(function (MailTemplate $record) {
-                    $html = '';
-                    foreach ($record->contents as $content) {
-                        $r = app(TemplateRenderer::class)->renderStrings($content->subject, $content->html, $content->text, Placeholders::sample());
-                        $html .= '<h3 style="font-weight:600">'.e(strtoupper($content->locale)).': '.e($r['subject']).'</h3><div style="margin:8px 0 16px">'.PreviewFrame::make($r['html'], strtoupper($content->locale).': '.$r['subject']).'</div>';
-                    }
-
-                    return new HtmlString($html);
-                }),
+        ])->recordActions([ActionGroup::make([
+            Action::make('preview')->label(__('admin.mail.preview'))->icon('heroicon-o-eye')->color('gray')->url(fn (MailTemplate $record) => MailTemplateResource::getUrl('preview', ['record' => $record])),
             EditAction::make(),
-        ]);
+            Action::make('standard')->label(__('admin.mail.compare'))->icon('heroicon-o-arrows-right-left')
+                ->color(fn (MailTemplate $record) => app(TemplateStandards::class)->isNew($record) ? 'warning' : 'gray')
+                ->visible(fn (MailTemplate $record) => app(TemplateStandards::class)->differs($record))
+                ->modalContent(fn (MailTemplate $record) => view('filament.mail-diff', ['diff' => app(TemplateStandards::class)->diff($record)]))
+                ->modalSubmitActionLabel(__('admin.mail.adopt'))->modalSubmitAction(fn () => Permissions::current('mailings', 'edit') ? null : false)
+                ->extraModalFooterActions([
+                    Action::make('keep')->label(__('admin.mail.keep'))->color('gray')->visible(fn () => Permissions::current('mailings', 'edit'))->cancelParentActions()
+                        ->action(fn (MailTemplate $record) => app(TemplateStandards::class)->keep($record)),
+                ])
+                ->action(function (MailTemplate $record) {
+                    abort_unless(Permissions::current('mailings', 'edit'), 403);
+                    app(TemplateStandards::class)->adopt($record);
+                    Notification::make()->title(__('admin.mail.adopted'))->success()->send();
+                }),
+        ])], RecordActionsPosition::BeforeColumns);
     }
 }

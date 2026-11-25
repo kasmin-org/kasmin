@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string $audience
  * @property bool $is_standard
  * @property int|null $standard_version
+ * @property string|null $standard_hash
  * @property int $version
  * @property array<array-key, string>|null $attachments
  */
@@ -52,13 +53,39 @@ class MailTemplate extends Model
         return $this->belongsTo(SenderProfile::class);
     }
 
+    /** Before the first change, so the original text can be restored, too. */
+    public function keepFirstVersion(): void
+    {
+        if ($this->versions()->doesntExist()) {
+            $this->versions()->create(['version' => $this->version, 'snapshot' => $this->snapshot(), 'changed_by_id' => null]);
+        }
+    }
+
+    public function restoreVersion(MailTemplateVersion $version): void
+    {
+        $this->keepFirstVersion();
+        $locales = [];
+        foreach ((array) ($version->snapshot['contents'] ?? []) as $content) {
+            $locales[] = $content['locale'];
+            $this->contents()->updateOrCreate(['locale' => $content['locale']], ['subject' => $content['subject'], 'html' => $content['html'], 'text' => $content['text'] ?? null]);
+        }
+        $this->contents()->whereNotIn('locale', $locales)->delete();
+        $this->newVersion();
+    }
+
+    /** @return array<string, mixed> */
+    private function snapshot(): array
+    {
+        return ['name' => $this->name, 'contents' => $this->contents()->get(['locale', 'subject', 'html', 'text'])->toArray()];
+    }
+
     /** Every change is a new version with a snapshot for restoring (MT07). */
     public function newVersion(): void
     {
         $this->increment('version');
         $this->versions()->create([
             'version' => $this->version,
-            'snapshot' => ['name' => $this->name, 'contents' => $this->contents()->get(['locale', 'subject', 'html', 'text'])->toArray()],
+            'snapshot' => $this->snapshot(),
             'changed_by_id' => auth()->id(),
         ]);
     }

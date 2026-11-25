@@ -33,11 +33,39 @@ available):
 Allowed: `{% if %}`, `{% for %}`, `{% set %}` and the filters `upper`, `lower`, `capitalize`, `title`, `default`,
 `join`, `length`, `first`, `last`, `trim`, `nl2br`. Unknown placeholders block saving.
 
+- **Buttons**: a link alone in a paragraph becomes a button in the colour of the organisation. `{{ links.login }}` can be
+  entered as the target of a link.
+- **Images** (PNG, JPG, GIF, 2 MB) are added in the editor and embedded in the mail when it is sent.
+- **HTML source**: switch per language, for everything the editor cannot do.
+- **Preview**: all languages with the data of a real person and event, for computer and phone, and a *test mail to me*. Personal
+  links of others are never shown or sent. Mail HTML is always shown in a sandboxed frame.
+- **Versions** (in the template): view and restore earlier texts, including the first.
+- **Compare with standard**: shows the difference to the shipped text. *New standard* appears if an update brought a new text;
+  take it over or keep your own. Updates never change your texts.
+
+## Look
+
+*Settings → Organisation and invoices → Look of the e-mails*: logo, colour and footer of all mails.
+
 ## Mailings
 
 *Communication → Mailings*: template, recipients (groups, event participants with status), send to legal
 guardians / the person / both, one mail per family. *Prepare* renders all mails and holds them: page through them,
-edit single mails if wanted, then *Send*. People who opted out are excluded and listed.
+edit single mails if wanted, then *Send*. People who opted out, have no address or a bad address are excluded and listed.
+
+*Review* shows the finished mails one by one, who is left out, and the progress while sending. A mailing can be paused,
+continued and cancelled there.
+
+## Bad addresses
+
+*Communication → Bad addresses* lists addresses that do not exist (permanent error or bounce; notices about a delay do not count).
+Mailings leave them out; invoices and other single mails are still tried. The mark goes away when the address is changed or with
+*Address works again*. Bounces need an account with IMAP.
+
+## Retention
+
+*Settings → Retention → Mail log*: years after which finished mails are deleted (0 = as long as the person exists). Mails with
+invoices stay at least as long as the invoices.
 
 ## Sending
 

@@ -6,6 +6,23 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ## [Unreleased]
 
+## [0.19.0] - 2026-11-25
+
+Pre-release for testing. Not ready for production use.
+
+### Added
+
+- Mails: logo, colour and footer; images (embedded); HTML source; buttons.
+- Mail templates: preview with a real person in all languages for computer and phone, test mail to oneself, restoring versions, comparison with the shipped text and notice of a new one.
+- Mailings: review mail by mail, progress, pause and continue.
+- List of bad addresses; mailings leave them out. A permanent error is not tried again.
+- Retention of the mail log (off by default).
+
+### Fixed
+
+- Mail templates could not be saved in the interface, and the editor would have damaged conditions and buttons.
+- Editing a single mail of a mailing removed the layout and the footer links.
+
 ## [0.18.0] - 2026-11-25
 
 Pre-release for testing. Not ready for production use.
@@ -413,7 +430,8 @@ First public pre-release for testing. Not ready for production use.
 - Docker image: system packages updated and build packages removed after compiling the PHP extensions – the
   container scan reports no high or critical findings any more (previously 75 in Debian packages).
 
-[Unreleased]: https://github.com/kasmin-org/kasmin/compare/v0.18.0...develop
+[Unreleased]: https://github.com/kasmin-org/kasmin/compare/v0.19.0...develop
+[0.19.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.19.0
 [0.18.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.18.0
 [0.17.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.17.0
 [0.16.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.16.0

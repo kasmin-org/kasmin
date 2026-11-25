@@ -5,8 +5,11 @@ namespace App\Filament\Pages;
 use App\Models\User;
 use App\Support\Audit\Audit;
 use App\Support\Auth\Permissions;
+use App\Support\Mail\MailImages;
 use App\Support\Settings;
 use BackedEnum;
+use Filament\Forms\Components\ColorPicker;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -18,6 +21,8 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Support\Str;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
 /**
  * Organisation and invoice settings (part of S01): name, address, bank account for invoices and the EPC QR code,
@@ -40,7 +45,7 @@ class OrganisationSettingsPage extends Page
         'organisation_name', 'organisation_address', 'organisation_email', 'organisation_website', 'organisation_iban',
         'organisation_bic', 'organisation_bank', 'organisation_legal_footer', 'invoice_number_format', 'invoice_next_number',
         'invoice_number_per_year', 'invoice_due_days', 'invoice_attach_paid', 'invoice_reminder_days_before', 'invoice_overdue_days', 'invoice_overdue_fees', 'public_url', 'mail_test_address', 'mailing_approval_above', 'backup_keep', 'embed_origins', 'timezone', 'digest_time', 'approval_days', 'ai_processing', 'retention_safety_years', 'retention_invoice_years',
-        'max_guardians', 'min_login_age', 'guardian_until_age', 'own_registrations', 'newsletter_ask',
+        'max_guardians', 'min_login_age', 'guardian_until_age', 'own_registrations', 'newsletter_ask', 'mail_logo', 'mail_color', 'mail_footer', 'retention_mail_years',
     ];
 
     public static function getNavigationGroup(): ?string
@@ -71,6 +76,7 @@ class OrganisationSettingsPage extends Page
         foreach (self::KEYS as $key) {
             $data[$key] = Settings::get($key);
         }
+        $data['mail_logo'] = Settings::get('mail_logo') ?: null;
         $data['organisation_name'] ??= config('app.name');
         foreach (['invoice_attach_paid', 'invoice_number_per_year', 'newsletter_ask'] as $key) {
             $data[$key] = Settings::bool($key);
@@ -126,6 +132,12 @@ class OrganisationSettingsPage extends Page
                 TextInput::make('digest_time')->label(__('admin.settings.digest_time'))->regex('/^([01]\d|2[0-3]):[0-5]\d$/')->placeholder('07:00'),
                 TextInput::make('approval_days')->label(__('admin.settings.approval_days'))->numeric()->minValue(1)->maxValue(60)->placeholder('7'),
             ]),
+            Section::make(__('admin.settings.mail_layout'))->visible(fn () => Permissions::current('settings', 'edit'))->columns(['md' => 2])->schema([
+                FileUpload::make('mail_logo')->label(__('admin.settings.mail_logo'))->disk('local')->directory(MailImages::DIRECTORY)->visibility('private')->acceptedFileTypes(MailImages::TYPES)->maxSize(1024)
+                    ->getUploadedFileNameForStorageUsing(fn (TemporaryUploadedFile $file) => Str::random(32).'.'.($file->getMimeType() === 'image/png' ? 'png' : ($file->getMimeType() === 'image/gif' ? 'gif' : 'jpg'))),
+                ColorPicker::make('mail_color')->label(__('admin.settings.mail_color'))->regex('/^#[0-9a-fA-F]{6}$/')->required(),
+                Textarea::make('mail_footer')->label(__('admin.settings.mail_footer'))->rows(3)->maxLength(1000)->columnSpanFull()->hintIcon(...$hint('mail_footer')),
+            ]),
             Section::make(__('admin.settings.families'))->visible(fn () => Permissions::current('settings', 'edit'))->columns(2)->schema([
                 TextInput::make('max_guardians')->label(__('admin.settings.max_guardians'))->numeric()->minValue(1)->maxValue(20)->required(),
                 TextInput::make('min_login_age')->label(__('admin.settings.min_login_age'))->numeric()->minValue(6)->maxValue(18)->required(),
@@ -135,6 +147,7 @@ class OrganisationSettingsPage extends Page
             ]),
             Section::make(__('admin.settings.retention'))->visible(fn () => Permissions::current('settings', 'edit'))->columns(2)->schema([
                 TextInput::make('retention_safety_years')->label(__('admin.settings.retention_safety_years'))->numeric()->minValue(1)->maxValue(30)->required(),
+                TextInput::make('retention_mail_years')->label(__('admin.settings.retention_mail_years'))->numeric()->minValue(0)->maxValue(30)->required()->hintIcon(...$hint('retention_mail_years')),
                 TextInput::make('retention_invoice_years')->label(__('admin.settings.retention_invoice_years'))->numeric()->minValue(1)->maxValue(30)->required(),
             ]),
             Section::make(__('admin.settings.ai'))->visible(fn () => Permissions::administrator())->schema([

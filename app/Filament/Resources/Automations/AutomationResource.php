@@ -87,32 +87,32 @@ class AutomationResource extends Resource
         $is = fn (string ...$actions) => fn (Get $get) => in_array($action($get), $actions, true);
 
         return $schema->components([
-            Section::make()->columns(2)->schema([
+            Section::make()->columnSpanFull()->columns(['md' => 2, 'xl' => 3])->schema([
                 TextInput::make('name.de')->label(__('automations.name').' (DE)')->required(),
                 TextInput::make('name.en')->label(__('automations.name').' (EN)')->required(),
                 Select::make('action')->label(__('automations.action'))->options(__('automations.actions'))->default('custom')->disabled()->dehydrated(false),
-                Toggle::make('active')->label(__('automations.active'))->inline(false),
+                Toggle::make('active')->label(__('automations.active'))->inline(false)->hiddenOn('create'),
                 Select::make('mode')->label(__('automations.mode'))->options(__('automations.modes'))->default('confirm')->required()
                     ->hintIcon('heroicon-m-question-mark-circle', tooltip: __('automations.mode_hint')),
                 TextInput::make('max_items')->label(__('automations.max_items'))->numeric()->minValue(1)->default(200)->required()
                     ->hintIcon('heroicon-m-question-mark-circle', tooltip: __('automations.max_items_hint')),
                 TextInput::make('approvals_needed')->label(__('automations.approvals_needed'))->numeric()->minValue(1)->maxValue(10)->default(1)->required()
                     ->hintIcon('heroicon-m-question-mark-circle', tooltip: __('automations.approvals_needed_hint')),
-                CheckboxList::make('approver_roles')->label(__('automations.approver_roles'))->columns(3)->columnSpanFull()
+                CheckboxList::make('approver_roles')->label(__('automations.approver_roles'))->columns(['sm' => 2, 'xl' => 4])->columnSpanFull()
                     ->options(fn () => Role::query()->where('is_admin', true)->get()->mapWithKeys(fn (Role $r) => [$r->key => $r->name[app()->getLocale()] ?? $r->key])->all())
                     ->hintIcon('heroicon-m-question-mark-circle', tooltip: __('automations.approver_roles_hint')),
             ]),
-            Section::make(__('automations.trigger'))->columns(3)->schema([
+            Section::make(__('automations.trigger'))->columnSpanFull()->columns(['md' => 2, 'xl' => 3])->schema([
                 Select::make('trigger')->label(__('automations.trigger'))->options(__('automations.triggers'))->required()->live(),
                 TextInput::make('trigger_config.time')->label(__('automations.time'))->regex('/^\d{2}:\d{2}$/')->placeholder('08:00')
                     ->visible(fn (Get $get) => in_array($get('trigger'), ['daily', 'weekly', 'monthly', 'once'], true)),
                 Select::make('trigger_config.weekday')->label(__('automations.weekday'))->options(__('automations.weekdays'))->default(1)->visible(fn (Get $get) => $get('trigger') === 'weekly')->required(fn (Get $get) => $get('trigger') === 'weekly'),
                 TextInput::make('trigger_config.day')->label(__('automations.month_day'))->numeric()->minValue(1)->maxValue(31)->default(1)->visible(fn (Get $get) => $get('trigger') === 'monthly'),
                 DatePicker::make('trigger_config.date')->label(__('lists.date'))->visible(fn (Get $get) => $get('trigger') === 'once')->required(fn (Get $get) => $get('trigger') === 'once'),
-                CheckboxList::make('trigger_config.statuses')->label(__('admin.event.status'))->options(__('events.status'))->columns(2)->visible(fn (Get $get) => $get('trigger') === 'on_status')->required(fn (Get $get) => $get('trigger') === 'on_status'),
+                Select::make('trigger_config.statuses')->label(__('admin.event.status'))->multiple()->options(__('events.status'))->visible(fn (Get $get) => $get('trigger') === 'on_status')->required(fn (Get $get) => $get('trigger') === 'on_status'),
                 Select::make('trigger_config.roles')->label(__('admin.event.role'))->multiple()->options(__('events.roles'))->visible(fn (Get $get) => $get('trigger') === 'on_status'),
                 Select::make('trigger_config.group')->label(__('admin.group.singular'))->options(fn () => Group::query()->orderBy('name')->pluck('name', 'id')->all())->visible(fn (Get $get) => in_array($get('trigger'), ['on_group_joined', 'on_group_left'], true))->required(fn (Get $get) => in_array($get('trigger'), ['on_group_joined', 'on_group_left'], true)),
-                CheckboxList::make('trigger_config.fields')->label(__('automations.fields_label'))->options(__('automations.fields'))->columns(2)->visible(fn (Get $get) => $get('trigger') === 'on_person_changed')->required(fn (Get $get) => $get('trigger') === 'on_person_changed'),
+                Select::make('trigger_config.fields')->label(__('automations.fields_label'))->multiple()->options(__('automations.fields'))->visible(fn (Get $get) => $get('trigger') === 'on_person_changed')->required(fn (Get $get) => $get('trigger') === 'on_person_changed'),
                 TextInput::make('trigger_config.days')->label(__('automations.days'))->numeric()->minValue(0)
                     ->visible(fn (Get $get) => in_array($get('trigger'), ['before_event', 'after_event'], true)),
                 Select::make('trigger_config.series')->label(__('automations.series'))->options(fn () => EventSeries::query()->pluck('name', 'id')->all())
@@ -129,7 +129,7 @@ class AutomationResource extends Resource
                             $fail(__('automations.event_needed'));
                         }
                     }),
-                CheckboxList::make('config.target.statuses')->label(__('admin.event.status'))->options(__('events.status'))->columns(2)->visible(fn (Get $get) => $get('config.target.source') === 'event'),
+                Select::make('config.target.statuses')->label(__('admin.event.status'))->multiple()->options(__('events.status'))->visible(fn (Get $get) => $get('config.target.source') === 'event'),
                 Select::make('config.target.roles')->label(__('admin.event.role'))->multiple()->options(__('events.roles'))->visible(fn (Get $get) => $get('config.target.source') === 'event'),
                 Select::make('config.target.group_id')->label(__('admin.group.singular'))->options(fn () => Group::query()->orderBy('name')->pluck('name', 'id')->all())->visible(fn (Get $get) => $get('config.target.source') === 'group')->required(fn (Get $get) => $get('config.target.source') === 'group'),
                 Select::make('config.conditions.match')->label(__('admin.group.match'))->options(__('admin.group.matches'))->default('all'),
@@ -137,7 +137,7 @@ class AutomationResource extends Resource
                 GroupForm::rules('config.conditions.rules')->label(__('automations.conditions'))->hiddenLabel(false)->defaultItems(0)->columnSpanFull()->minItems(fn (Get $get) => $get('config.target.source') === 'people' ? 1 : 0),
             ]),
             Section::make(__('automations.steps_title'))->columnSpanFull()->visible($is('custom'))->schema([self::steps()]),
-            Section::make(__('automations.settings'))->columns(3)->visible(fn (Get $get) => $get('action') !== 'custom')->schema([
+            Section::make(__('automations.settings'))->columnSpanFull()->columns(['md' => 2, 'xl' => 3])->visible(fn (Get $get) => $get('action') !== 'custom')->schema([
                 Select::make('config.template')->label(__('automations.template'))->visible($is('send_template'))
                     ->options(fn () => MailTemplate::query()->orderBy('key')->get()->mapWithKeys(fn (MailTemplate $t) => [$t->key => $t->name[app()->getLocale()] ?? $t->key])->all()),
                 CheckboxList::make('config.statuses')->label(__('automations.participant_statuses'))->visible($is('send_template'))

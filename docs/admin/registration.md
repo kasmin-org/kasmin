@@ -44,6 +44,14 @@ participant can invite that many guests: each gets a personal link, registers pe
 | What a child registers itself | hidden; or the legal guardians are told that there is a registration; or visible |
 | Ask for the newsletter on public forms | on |
 
+## Person page and family page
+
+- *People → (person)* shows the master data and an **overview**: legal guardians, children, families, roles, groups, memberships, events
+  with role and status, invoices, consents and the login (address, last login, second factor). Events, invoices and consents appear
+  only for roles with the right for them; answers of forms such as the safety sheet stay with the safety role.
+- *Families → (family)* holds the address, the members and who receives the invoices, and shows the emergency contacts of the family
+  (safety role), its invoices (finance roles) and the last mails to it.
+
 ## Duplicates
 
 *People → Duplicates* (administrator, board) lists probable duplicates: same name, similar name and same date of birth, or same

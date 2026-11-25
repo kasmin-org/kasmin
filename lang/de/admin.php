@@ -167,4 +167,5 @@ return [
     'genders' => ['female' => 'weiblich', 'male' => 'männlich', 'diverse' => 'divers', 'unspecified' => 'keine Angabe'],
     'purposes' => ['login' => 'Anmeldung', 'information' => 'Informationen', 'invoices' => 'Rechnungen', 'emergency' => 'Notfall'],
     'help' => ['title' => 'Öffnet die Dokumentation dieser Version in einem neuen Tab', 'link' => 'Hilfe zu dieser Seite'],
+    'overview' => ['title' => 'Überblick', 'roles' => 'Rollen', 'memberships' => 'Mitgliedschaften', 'login' => 'Anmeldung', 'last_login' => 'letzte Anmeldung', 'never' => 'nie', 'second_factor' => 'zweiter Faktor', 'yes' => 'ja', 'no' => 'nein', 'no_login' => 'Noch keine Anmeldung', 'mails' => 'Mails an die Familie', 'invoice_recipient' => 'Rechnungen gehen an', 'invoice_recipient_auto' => 'erste erziehungsberechtigte Person'],
 ];

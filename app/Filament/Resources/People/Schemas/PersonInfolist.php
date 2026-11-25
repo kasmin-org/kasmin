@@ -9,6 +9,7 @@ use App\Support\Auth\Permissions;
 use App\Support\Forms\Forms;
 use App\Support\Forms\FormValue;
 use Filament\Infolists\Components\TextEntry;
+use Filament\Infolists\Components\ViewEntry;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
@@ -26,6 +27,7 @@ class PersonInfolist
                 TextEntry::make('households.name')->label(__('admin.household.plural'))->badge()->placeholder('–'),
                 TextEntry::make('contactPoints.value')->label(__('admin.person.section_contacts'))->listWithLineBreaks()->placeholder('–'),
             ]),
+            Section::make(__('admin.overview.title'))->collapsible()->schema([ViewEntry::make('overview')->hiddenLabel()->view('filament.person-overview')]),
         ];
 
         // Safety sheet and other forms: only for the safety role and administrators (SF20); every view is logged.

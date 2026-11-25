@@ -16,7 +16,7 @@ class ReplayData
     /** @return array<string, mixed> */
     public static function load(): array
     {
-        $path = (string) env('KASMIN_REPLAY_DATA', '');
+        $path = self::option('KASMIN_REPLAY_DATA');
         if ($path !== '' && is_readable($path)) {
             /** @var array<string, mixed> $data */
             $data = json_decode((string) file_get_contents($path), true, 64, JSON_THROW_ON_ERROR);
@@ -25,6 +25,14 @@ class ReplayData
         }
 
         return self::synthetic();
+    }
+
+    /** A setting of the run from the environment (data file, mail server, last day). */
+    public static function option(string $name, string $default = ''): string
+    {
+        $value = getenv($name);
+
+        return is_string($value) && $value !== '' ? $value : $default;
     }
 
     /**

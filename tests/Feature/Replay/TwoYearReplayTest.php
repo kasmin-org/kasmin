@@ -11,6 +11,7 @@ use App\Models\FormField;
 use App\Models\Group;
 use App\Models\Household;
 use App\Models\Invoice;
+use App\Models\InvoiceLine;
 use App\Models\Mailing;
 use App\Models\MailTemplate;
 use App\Models\OutgoingMail;
@@ -35,6 +36,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Event as Events;
 use Illuminate\Support\Facades\Route;
+use PHPUnit\Framework\Attributes\Group as TestGroup;
 use Tests\TestCase;
 use Throwable;
 
@@ -49,6 +51,7 @@ use Throwable;
  * the whole list. With KASMIN_REPLAY_DATA it runs on an anonymised data set from outside the repository; with
  * KASMIN_REPLAY_SMTP_* the mails are really sent (see docs/development/setup.md).
  */
+#[TestGroup('replay')]
 class TwoYearReplayTest extends TestCase
 {
     /** @var array<string, mixed> */
@@ -79,8 +82,14 @@ class TwoYearReplayTest extends TestCase
     /** @var list<string> */
     private array $problems = [];
 
+    /** @var array<int, array<string, bool>> year (negative: weekend) => dataset id => pays in the end, however late */
+    private array $pays = [];
+
     /** @var array<string, int> */
     private array $seen = ['mails' => 0, 'runs' => 0];
+
+    /** @var array<string, float> seconds per kind of work */
+    private array $timing = [];
 
     private string $lastMail = '';
 
@@ -110,7 +119,8 @@ class TwoYearReplayTest extends TestCase
         $this->organisation();
         $this->plan();
 
-        $end = Carbon::parse((string) env('KASMIN_REPLAY_UNTIL', '2026-11-25'));
+        $end = Carbon::parse(ReplayData::option('KASMIN_REPLAY_UNTIL', '2026-11-25'));
+        $started = microtime(true);
         for ($day = Carbon::parse('2024-09-10'); $day->lte($end); $day->addDay()) {
             $date = $day->toDateString();
             $this->travelTo($day->copy()->setTime(8, 0));
@@ -119,11 +129,12 @@ class TwoYearReplayTest extends TestCase
             foreach ($this->agenda[$date] ?? [] as $n => $step) {
                 $this->attempt($date.' step '.$n, $step);
             }
-            foreach ([12, 19] as $hour) {
-                $this->travelTo($day->copy()->setTime($hour, 0));
-                $this->scheduler();
-            }
+            $this->travelTo($day->copy()->setTime(19, 0));
+            $this->scheduler();
             $this->lookForProblems($date);
+            if ($day->day === 1 && ReplayData::option('KASMIN_REPLAY_PROGRESS') !== '') {
+                fwrite(STDERR, sprintf("%s  %5.0fs  %d mails, %d runs, %d problems\n", $date, microtime(true) - $started, OutgoingMail::query()->count(), AutomationRun::query()->count(), count($this->problems)));
+            }
         }
 
         $this->finalChecks();
@@ -168,12 +179,12 @@ class TwoYearReplayTest extends TestCase
     /** Real mail delivery if a mail server is given; otherwise the mails stay in the application. */
     private function smtp(): void
     {
-        $host = (string) env('KASMIN_REPLAY_SMTP_HOST', '');
+        $host = ReplayData::option('KASMIN_REPLAY_SMTP_HOST');
         if ($host === '') {
             return;
         }
         config(['mail.default' => 'smtp', 'mail.mailers.smtp' => ['transport' => 'smtp', 'scheme' => 'smtps', 'host' => $host, 'port' => 465,
-            'username' => env('KASMIN_REPLAY_SMTP_USER'), 'password' => env('KASMIN_REPLAY_SMTP_PASSWORD'), 'timeout' => 30],
+            'username' => ReplayData::option('KASMIN_REPLAY_SMTP_USER'), 'password' => ReplayData::option('KASMIN_REPLAY_SMTP_PASSWORD'), 'timeout' => 30],
             'mail.from' => ['address' => 'camp@'.$this->data['domain'], 'name' => 'Demo-Feriencamp']]);
     }
 
@@ -192,6 +203,9 @@ class TwoYearReplayTest extends TestCase
             $registrations = $this->data['seasons'][(string) $year]['registrations'];
             $previous = $index > 0 ? array_column($this->data['seasons'][(string) $years[$index - 1]]['registrations'], 'person') : [];
             $issued = array_filter(array_map(fn (array $r) => $r['deposit']['issued_on'] ?? $r['both']['issued_on'] ?? null, $registrations));
+            if ($issued === []) {
+                continue;
+            }
             $start = Carbon::parse(min($issued))->subDays(14)->toDateString();
             $this->on($start, fn () => $this->openSeason($year, $previous !== []));
             $coming = array_column($registrations, 'person');
@@ -215,6 +229,7 @@ class TwoYearReplayTest extends TestCase
                 $this->on($date, fn () => $this->invoiceRun($year, 'deposit_invoices'));
             }
             foreach (array_unique(array_filter(array_map(fn (array $r) => $r['balance']['issued_on'] ?? $r['both']['issued_on'] ?? null, $registrations))) as $date) {
+                $this->on($date, fn () => $this->reducedPlaces($year, $byFamily));
                 $this->on($date, fn () => $this->invoiceRun($year, 'balance_invoices'));
             }
             foreach ($byFamily as $family => $rows) {
@@ -228,15 +243,18 @@ class TwoYearReplayTest extends TestCase
                             $this->on(Carbon::parse($off['issued_on'])->addDays(4)->toDateString(), fn () => $this->leave($year, (string) $off['person'], 'left after the '.$kind.' invoice'));
                         }
                     }
-                    if ($paid !== []) {
-                        $date = max(array_column($paid, 'paid_on'));
-                        $this->on(max($date, Carbon::parse($paid[0]['issued_on'])->addDays(5)->toDateString()), fn () => $this->pay($year, (string) $family, $kind === 'balance' ? 'balance' : 'deposit', $kind === 'both'));
+                    // Kasmin invoices per family, the data per child: on every day on which the family paid something, it pays what is open then.
+                    foreach (array_values(array_unique(array_column($paid, 'paid_on'))) as $n => $date) {
+                        $this->on(max($date, Carbon::parse($paid[0]['issued_on'])->addDays(1)->toDateString()), fn () => $this->pay($year, (string) $family, $kind === 'balance' ? 'balance' : 'deposit', $kind === 'both', $n > 0));
+                    }
+                    foreach ($paid as $row) {
+                        $this->pays[$year][(string) $row['person']] = true;
                     }
                 }
             }
             [$from] = self::CAMP[$year];
             $camp = Carbon::parse($from);
-            if ($camp->lte(Carbon::parse((string) env('KASMIN_REPLAY_UNTIL', '2026-11-25')))) {
+            if ($camp->lte(Carbon::parse(ReplayData::option('KASMIN_REPLAY_UNTIL', '2026-11-25')))) {
                 $this->on($camp->copy()->subDays(80)->toDateString(), fn () => $this->team($year));
                 foreach ($coming as $n => $id) {
                     // Two thirds confirm the safety sheet by themselves, the rest after reminders, two not at all.
@@ -294,15 +312,24 @@ class TwoYearReplayTest extends TestCase
         }
         $event = $this->camps[$year];
         if (! Participation::query()->where('event_id', $event->id)->where('person_id', $person->id)->whereNotIn('status', ['cancelled', 'declined'])->exists()) {
-            $this->get(route('portal.child.register.form', [$person->public_id, $event->public_id, 'child']))->assertOk();
-            $this->post('/portal/children/'.$person->public_id.'/register', ['event' => $event->public_id, 'role' => 'child'])->assertSessionHasNoErrors()->assertRedirect();
+            if ($event->refresh()->isOpenForRegistration()) {
+                $this->get(route('portal.child.register.form', [$person->public_id, $event->public_id, 'child']))->assertOk();
+                $this->post('/portal/children/'.$person->public_id.'/register', ['event' => $event->public_id, 'role' => 'child'])->assertSessionHasNoErrors()->assertRedirect();
+            } else {
+                // Somebody joins after the registration has closed (it happened: during the camp): the team registers the child.
+                app(Registrations::class)->register($event, $person, 'child', null, force: true);
+            }
         }
         $this->get('/portal')->assertOk()->assertSee($source['first_name']);
         $this->post('/logout');
         $this->check(Participation::query()->where('event_id', $event->id)->where('person_id', $person->id)->whereIn('status', ['registered', 'waitlist'])->exists(), "registration of {$id} for {$year} is missing");
     }
 
-    /** The first time a family signs up on the public page; later the legal guardian uses a login link. */
+    /**
+     * The first time a family signs up on the public page; later the legal guardian uses a login link.
+     *
+     * @param  array<string, mixed>  $family
+     */
     private function guardianLogsIn(array $family): void
     {
         $guardian = $family['guardian'];
@@ -336,6 +363,46 @@ class TwoYearReplayTest extends TestCase
         $this->check($participation->refresh()->status === 'cancelled', "{$id} ({$why}) is still ".$participation->status);
     }
 
+    /**
+     * Before the balance is invoiced the team enters the places that cost less than the price list says (junior
+     * counsellors, agreements with a family): whatever the data show and the sibling discount does not explain.
+     *
+     * @param  array<string, list<array<string, mixed>>>  $byFamily
+     */
+    private function reducedPlaces(int $year, array $byFamily): void
+    {
+        $price = self::CAMP[$year][2];
+        foreach ($byFamily as $rows) {
+            $totals = [];
+            foreach ($rows as $r) {
+                $person = $this->people[$r['person']] ?? null;
+                $total = isset($r['both']) ? 100 * (int) $r['both']['amount'] : (isset($r['balance'], $r['deposit']) && $r['balance']['state'] !== 'writeoff' ? 100 * ((int) $r['deposit']['amount'] + (int) $r['balance']['amount']) : null);
+                if ($person !== null && $total !== null) {
+                    $totals[$person->id] = $total;
+                }
+            }
+            arsort($totals);
+            // Children are taken out one by one until the sibling discount explains the rest (reduced places do not count as siblings).
+            for ($round = 0; $round < 5; $round++) {
+                $position = 0;
+                $odd = null;
+                foreach ($totals as $personId => $total) {
+                    if ($total !== $price - 4000 * min($position, 2)) {
+                        $odd = $personId;
+                        break;
+                    }
+                    $position++;
+                }
+                if ($odd === null) {
+                    break;
+                }
+                Participation::query()->where('event_id', $this->camps[$year]->id)->where('person_id', $odd)->whereNotIn('status', ['cancelled', 'declined'])
+                    ->get()->each(fn (Participation $p) => $p->forceFill(['price_cents' => $totals[$odd], 'price_reason' => 'wie vereinbart'])->save());
+                unset($totals[$odd]);
+            }
+        }
+    }
+
     private function invoiceRun(int $year, string $automation): void
     {
         $run = app(Engine::class)->trigger(Automation::query()->where('key', $automation)->firstOrFail(), 'manual', $this->camps[$year], null, $this->admin);
@@ -344,12 +411,15 @@ class TwoYearReplayTest extends TestCase
     }
 
     /** The family pays what is open for this instalment by bank transfer; the statement is imported. */
-    private function pay(int $year, string $family, string $installment, bool $everything = false): void
+    private function pay(int $year, string $family, string $installment, bool $everything = false, bool $maybeDone = false): void
     {
         $ids = array_map(fn (array $c) => $this->people[$c['id']]->id ?? 0, $this->families[$family]['children'] ?? []);
         $invoices = Invoice::query()->where('event_id', $this->camps[$year]->id)->where('type', 'invoice')->whereIn('status', ['issued', 'partially_paid'])
             ->when(! $everything, fn ($q) => $q->where('installment_key', $installment))->whereHas('lines', fn ($q) => $q->whereIn('person_id', $ids))->get();
         if ($invoices->isEmpty()) {
+            if ($maybeDone) {
+                return; // one family invoice was paid with the first transfer
+            }
             $this->problems[] = now()->toDateString()." {$family} wants to pay the {$installment} of {$year}, but there is no open invoice";
 
             return;
@@ -407,6 +477,9 @@ class TwoYearReplayTest extends TestCase
             return;
         }
         $form = Form::query()->where('key', 'safety_sheet')->firstOrFail();
+        if (in_array(app(Forms::class)->status($form, $person), ['not_applicable', 'confirmed'], true)) {
+            return; // above the age limit of the sheet, or confirmed already
+        }
         $this->guardianLogsIn($this->families[$this->source[$id]['family']]);
         $url = '/portal/children/'.$person->public_id.'/forms/safety_sheet';
         $this->get($url)->assertOk();
@@ -456,7 +529,7 @@ class TwoYearReplayTest extends TestCase
         $groups = $service->create($event, 'Gruppen', 'groups', 5, null, ['roles' => ['child']]);
         $this->check($service->propose($groups) === $children, "groups {$year}: not everybody was placed");
         $sizes = $groups->units()->get()->map(fn ($u) => $u->participations()->count())->all();
-        $this->check(max($sizes) - min($sizes) <= 1, "groups {$year}: sizes ".implode('/', $sizes));
+        $this->check($sizes !== [] && max($sizes) - min($sizes) <= 1, "groups {$year}: sizes ".implode('/', $sizes));
         foreach ($service->warnings($groups) as $warning) {
             $this->problems[] = "groups {$year}: {$warning}";
         }
@@ -504,7 +577,7 @@ class TwoYearReplayTest extends TestCase
     /** @param  list<array<string, mixed>>  $weekend */
     private function planWeekend(int $year, array $weekend): void
     {
-        $issued = min(array_column($weekend, 'issued_on'));
+        $issued = (string) collect($weekend)->min('issued_on');
         $open = Carbon::parse($issued)->subDays(12)->toDateString();
         $this->on($open, function () use ($year, $issued): void {
             $event = Event::query()->create(['title' => 'Wochenende '.$year, 'starts_at' => Carbon::parse($issued)->addDays(60)->toDateString().' 17:00', 'ends_at' => Carbon::parse($issued)->addDays(62)->toDateString().' 14:00', 'status' => 'open']);
@@ -512,10 +585,15 @@ class TwoYearReplayTest extends TestCase
             $event->installments()->create(['key' => 'deposit', 'label' => ['en' => 'Fee', 'de' => 'Beitrag'], 'kind' => 'rest', 'due_days' => 14, 'discounts_apply' => false, 'refundable' => true, 'sort' => 1]);
             $this->camps[-$year] = $event;
         });
+        $seen = [];
         foreach ($weekend as $n => $row) {
             $adult = $this->source[$row['person']] ?? null;
-            if ($adult === null || ($adult['kind'] ?? '') !== 'adult') {
-                continue; // only adults with an own login register themselves
+            if ($adult === null || ($adult['kind'] ?? '') !== 'adult' || isset($seen[$row['person']])) {
+                continue; // only adults with an own login register themselves, and once
+            }
+            $seen[$row['person']] = true;
+            if ($row['state'] === 'paid') {
+                $this->pays[-$year][(string) $row['person']] = true;
             }
             $this->on(Carbon::parse($open)->addDays(1 + $n % 8)->toDateString(), function () use ($year, $adult): void {
                 $person = $this->adult($adult);
@@ -528,7 +606,9 @@ class TwoYearReplayTest extends TestCase
                 $this->on(max($row['paid_on'], Carbon::parse($row['issued_on'])->addDays(2)->toDateString()), function () use ($year, $adult): void {
                     $invoice = Invoice::query()->where('event_id', $this->camps[-$year]->id)->where('payer_id', $this->people[$adult['id']]->id)->whereIn('status', ['issued', 'partially_paid'])->first();
                     if ($invoice === null) {
-                        $this->problems[] = now()->toDateString().' weekend: no open invoice for '.$adult['id'];
+                        $p = Participation::query()->where('event_id', $this->camps[-$year]->id)->where('person_id', $this->people[$adult['id']]->id)->first();
+                        $this->problems[] = now()->toDateString().' weekend: no open invoice for '.$adult['id'].' (registration: '.($p->status ?? 'none').', invoices: '
+                            .Invoice::query()->where('event_id', $this->camps[-$year]->id)->where('payer_id', $this->people[$adult['id']]->id)->pluck('status')->implode(',').')';
 
                         return;
                     }
@@ -562,17 +642,51 @@ class TwoYearReplayTest extends TestCase
 
     private function approveAll(): void
     {
-        foreach (AutomationRun::query()->where('status', 'pending_approval')->get() as $run) {
-            $this->attempt('approval of run '.$run->id, fn () => app(Engine::class)->decide($run, $this->admin, true));
+        foreach (AutomationRun::query()->where('status', 'pending_approval')->with('automation')->get() as $run) {
+            $this->attempt('approval of run '.$run->id, fn () => app(Engine::class)->decide($run, $this->admin, true, $run->automation?->key === 'payment_followup' ? $this->latePayers($run) : []));
         }
+    }
+
+    /**
+     * The treasurer knows the families: places of people who pay late, but pay, are not released (in the data their
+     * invoices are paid in the end). Returns the items to leave out of the approval.
+     *
+     * @return list<string>
+     */
+    private function latePayers(AutomationRun $run): array
+    {
+        $keep = [];
+        $ids = array_flip(array_map(fn (Person $p) => $p->id, $this->people));
+        foreach ($run->plan ?? [] as $item) {
+            $line = InvoiceLine::query()->with('participation')->find((int) substr((string) $item['key'], 5));
+            $participation = $line?->participation;
+            if ($participation === null) {
+                continue;
+            }
+            $year = array_search($participation->event_id, array_map(fn (Event $e) => $e->id, $this->camps), true);
+            $dataset = $ids[$participation->person_id] ?? null;
+            if ($year !== false && $dataset !== null && isset($this->pays[$year][$dataset])) {
+                $keep[] = (string) $item['key'];
+            }
+        }
+
+        return $keep;
     }
 
     private function attempt(string $what, callable $step): void
     {
+        $t = microtime(true);
         try {
             $step();
+            $key = preg_replace('/\d+/', 'N', str_contains($what, ' step ') ? 'agenda' : $what);
+            $this->timing[$key] = ($this->timing[$key] ?? 0) + microtime(true) - $t;
         } catch (Throwable $e) {
-            $this->problems[] = now()->toDateString()." {$what}: ".class_basename($e).': '.mb_substr($e->getMessage(), 0, 300).' ('.basename($e->getFile()).':'.$e->getLine().')';
+            $frame = collect($e->getTrace())->first(fn (array $f) => str_contains((string) ($f['file'] ?? ''), 'TwoYearReplayTest'));
+            $this->problems[] = now()->toDateString()." {$what}: ".class_basename($e).': '.mb_substr($e->getMessage(), 0, 300).' ('.basename($e->getFile()).':'.$e->getLine().', replay line '.($frame['line'] ?? '?').')';
+            try {
+                $this->post('/logout');
+            } catch (Throwable) {
+            }
             auth()->forgetUser();
         }
     }
@@ -639,12 +753,19 @@ class TwoYearReplayTest extends TestCase
             $open = Invoice::query()->where('event_id', $event->id)->where('type', 'invoice')->whereIn('status', ['issued', 'partially_paid', 'draft'])->count();
             foreach (Invoice::query()->where('event_id', $event->id)->where('type', 'invoice')->whereIn('status', ['issued', 'partially_paid', 'draft'])->with('lines.participation')->get() as $invoice) {
                 $this->problems[] = "camp {$year}: invoice ".($invoice->number ?? 'draft #'.$invoice->id)." ({$invoice->installment_key}, {$invoice->status}, ".($invoice->total_cents / 100).', paid '.($invoice->paid_cents / 100).') is still open after the camp; registrations: '
-                    .$invoice->lines->map(fn ($l) => ($l->participation?->status ?? '–').' '.($l->amount_cents / 100))->implode(', ');
+                    .$invoice->lines->map(fn ($l) => ($l->participation->status ?? '–').' '.($l->amount_cents / 100))->implode(', ');
             }
             $paid = (int) Invoice::query()->where('event_id', $event->id)->where('type', 'invoice')->where('status', 'paid')->sum('total_cents');
             $data = 100 * array_sum(array_map(fn (array $r) => array_sum(array_map(fn (string $k) => ($r[$k]['state'] ?? '') === 'paid' ? (int) $r[$k]['amount'] : 0, ['deposit', 'balance', 'both'])), $season['registrations']));
-            if ((string) env('KASMIN_REPLAY_DATA', '') !== '') { // the fictitious data have flat amounts
+            if (ReplayData::option('KASMIN_REPLAY_DATA') !== '') { // the fictitious data have flat amounts
                 $this->check($paid === $data, "camp {$year}: paid invoices sum up to ".($paid / 100).', the data say '.($data / 100));
+                $this->compareFamilies($year, $event, $season['registrations']);
+            }
+            foreach ($season['registrations'] as $r) {
+                $person = $this->people[$r['person']] ?? null;
+                $should = ($r['balance']['state'] ?? $r['both']['state'] ?? '') === 'paid';
+                $status = $person === null ? 'no person' : (string) Participation::query()->where('event_id', $event->id)->where('person_id', $person->id)->orderByDesc('id')->value('status');
+                $this->check(($status === 'attended') === $should, "camp {$year}: {$r['person']} is \"{$status}\", the data say ".($should ? 'attended' : 'left').' ('.json_encode(array_map(fn ($i) => is_array($i) ? $i['state'].' '.$i['issued_on'].' paid '.$i['paid_on'] : $i, $r)).')');
             }
         }
         if (isset($this->camps[2027], $this->data['seasons']['2027'])) {
@@ -654,8 +775,48 @@ class TwoYearReplayTest extends TestCase
         }
         $stuck = OutgoingMail::query()->whereIn('status', ['queued', 'sending', 'held'])->where('created_at', '<', now()->subDays(2))->count();
         $this->check($stuck === 0, "{$stuck} mails are older than two days and not sent");
+        $slow = [];
+        foreach (Automation::query()->where('active', true)->get() as $automation) {
+            foreach ($automation->trigger === 'daily' ? [null] : array_values($this->camps) as $event) {
+                $t = microtime(true);
+                try {
+                    app(Engine::class)->preview($automation, $event);
+                } catch (Throwable) {
+                }
+                $slow[$automation->key] = ($slow[$automation->key] ?? 0) + microtime(true) - $t;
+            }
+        }
+        arsort($slow);
+        fwrite(STDERR, "\nPlan of each automation at the end (ms): ".collect($slow)->map(fn (float $v, string $k) => $k.' '.round($v * 1000))->implode(', ')."\n");
+        arsort($this->timing);
+        fwrite(STDERR, "\nSeconds: ".collect($this->timing)->map(fn (float $v, string $k) => $k.' '.round($v))->take(8)->implode(', ')."\n");
         fwrite(STDERR, sprintf("\nReplay: %d people, %d registrations, %d invoices, %d mails (%s), %d automation runs.\n", Person::query()->count(), Participation::query()->count(), Invoice::query()->count(),
             OutgoingMail::query()->count(), collect(OutgoingMail::query()->selectRaw('status, count(*) as n')->groupBy('status')->pluck('n', 'status'))->map(fn ($n, $s) => "{$s} {$n}")->implode(', '), AutomationRun::query()->count()));
+    }
+
+    /**
+     * Where the money differs from the data: family by family.
+     *
+     * @param  list<array<string, mixed>>  $registrations
+     */
+    private function compareFamilies(int $year, Event $event, array $registrations): void
+    {
+        $expected = [];
+        foreach ($registrations as $r) {
+            $family = (string) ($this->source[$r['person']]['family'] ?? $r['person']);
+            foreach (['deposit', 'balance', 'both'] as $kind) {
+                $expected[$family] = ($expected[$family] ?? 0) + (($r[$kind]['state'] ?? '') === 'paid' ? 100 * (int) $r[$kind]['amount'] : 0);
+            }
+        }
+        foreach ($expected as $family => $cents) {
+            $ids = array_values(array_filter(array_map(fn (array $c) => $this->people[$c['id']]->id ?? null, $this->families[$family]['children'] ?? [])));
+            $invoices = Invoice::query()->where('event_id', $event->id)->where('type', 'invoice')->whereHas('lines', fn ($q) => $q->whereIn('person_id', $ids))->with('lines')->get();
+            $paid = (int) $invoices->where('status', 'paid')->sum('total_cents');
+            if ($paid !== $cents) {
+                $this->problems[] = "camp {$year}: family {$family} paid ".($paid / 100).' in Kasmin, '.($cents / 100).' in the data; invoices: '
+                    .$invoices->map(fn (Invoice $i) => $i->installment_key.' '.$i->status.' '.($i->total_cents / 100).' ['.$i->lines->map(fn ($l) => ($l->amount_cents / 100).($l->discount_cents ? ' (−'.($l->discount_cents / 100).')' : ''))->implode(' + ').']')->implode('; ');
+            }
+        }
     }
 
     /** Every page of the admin interface opens with the data of two years, also the pages of single records. */

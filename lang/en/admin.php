@@ -167,4 +167,5 @@ return [
     'genders' => ['female' => 'female', 'male' => 'male', 'diverse' => 'diverse', 'unspecified' => 'not specified'],
     'purposes' => ['login' => 'Login', 'information' => 'Information', 'invoices' => 'Invoices', 'emergency' => 'Emergency'],
     'help' => ['title' => 'Opens the documentation of this version in a new tab', 'link' => 'Help for this page'],
+    'overview' => ['title' => 'Overview', 'roles' => 'Roles', 'memberships' => 'Memberships', 'login' => 'Login', 'last_login' => 'last login', 'never' => 'never', 'second_factor' => 'second factor', 'yes' => 'yes', 'no' => 'no', 'no_login' => 'No login yet', 'mails' => 'Mails to the family', 'invoice_recipient' => 'Invoices go to', 'invoice_recipient_auto' => 'first legal guardian'],
 ];

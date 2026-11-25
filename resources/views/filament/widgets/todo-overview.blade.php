@@ -5,7 +5,10 @@
         'approvals' => \App\Filament\Resources\AutomationRuns\AutomationRunResource::getUrl('index'),
         'requests' => \App\Filament\Resources\Events\EventResource::getUrl('index'),
         'new_registrations' => \App\Filament\Resources\Events\EventResource::getUrl('index'),
-        'deletion_requests' => \App\Filament\Resources\People\PersonResource::getUrl('index'),
+        'submissions' => \App\Filament\Resources\PublicSubmissions\PublicSubmissionResource::getUrl('index'),
+        'duplicates' => \App\Filament\Pages\DuplicatesPage::getUrl(),
+        'bad_addresses' => \App\Filament\Resources\BadAddresses\BadAddressResource::getUrl('index'),
+        'deletion_requests' => \App\Filament\Pages\PrivacyPage::getUrl(),
         'bounced' => \App\Filament\Resources\OutgoingMails\OutgoingMailResource::getUrl('index'),
         'unmatched_payments' => \App\Filament\Resources\Payments\PaymentResource::getUrl('index'),
     ];
@@ -14,7 +17,10 @@
         'approvals' => \App\Filament\Resources\AutomationRuns\AutomationRunResource::canAccess(),
         'requests' => \App\Filament\Resources\Events\EventResource::canAccess(),
         'new_registrations' => \App\Filament\Resources\Events\EventResource::canAccess(),
-        'deletion_requests' => \App\Filament\Resources\People\PersonResource::canAccess(),
+        'submissions' => \App\Filament\Resources\PublicSubmissions\PublicSubmissionResource::canAccess(),
+        'duplicates' => \App\Filament\Pages\DuplicatesPage::canAccess(),
+        'bad_addresses' => \App\Filament\Resources\BadAddresses\BadAddressResource::canAccess(),
+        'deletion_requests' => \App\Filament\Pages\PrivacyPage::canAccess(),
         'bounced' => \App\Filament\Resources\OutgoingMails\OutgoingMailResource::canAccess(),
         'unmatched_payments' => \App\Filament\Resources\Payments\PaymentResource::canAccess(),
     ];
@@ -45,7 +51,7 @@
         <x-filament::section :heading="__('dashboard.safety')">
             <ul class="text-sm">
                 @forelse ($safety as $s)
-                    <li>{{ $s['event'] }}: <span style="color:#15803d">{{ $s['confirmed'] }} {{ __('dashboard.confirmed') }}</span>, <span @if ($s['missing'] > 0) style="color:#b45309" @endif>{{ $s['missing'] }} {{ __('dashboard.missing') }}</span></li>
+                    <li>{{ $s['event'] }}: <span style="color:#15803d">{{ $s['confirmed'] }} {{ __('dashboard.confirmed') }}</span>, <span @if ($s['missing'] > 0) style="color:#b45309" @endif>{{ $s['missing'] }} {{ __('dashboard.missing') }}</span>@if ($s['changed'] > 0), {{ $s['changed'] }} {{ __('dashboard.changed') }}@endif</li>
                 @empty
                     <li class="text-gray-500">–</li>
                 @endforelse

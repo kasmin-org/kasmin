@@ -41,6 +41,7 @@ class Docs
         'resources.households' => 'admin/registration',
         'resources.people' => 'admin/registration',
         'resources.invoices' => 'admin/invoices',
+        'resources.archived-invoices' => 'admin/import',
         'resources.payments' => 'admin/invoices',
         'resources.refunds' => 'admin/invoices',
         'resources.roles' => 'admin/roles',

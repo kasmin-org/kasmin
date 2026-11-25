@@ -13,6 +13,7 @@ All notable changes to Kasmin are documented in this file. The format is based o
 - Confirmation of participation as a PDF after the event, for the team and in the portal, with the amount paid.
 - List *Figures for the team meeting* (roles by gender, new and returning, waitlist); the participants list shows the gender.
 - Legal guardians can state the gender when they add a child in the portal.
+- Actions on selected rows: add people to a group or remove them, write to the selection (mailing as a draft), change the status of several registrations.
 - Person page with an overview (legal guardians, children, families, roles, groups, memberships, events, invoices, consents, login); family page with invoice recipient, emergency contacts, invoices and mails – each part only with the right for it.
 - Dashboard: forms to review, possible duplicates and addresses that do not work in the to-dos; safety sheets changed since the last event.
 - *My data* in the portal lists the devices that are logged in, with *Log out everywhere else*.

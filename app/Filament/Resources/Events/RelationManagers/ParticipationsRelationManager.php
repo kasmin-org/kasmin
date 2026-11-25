@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Events\RelationManagers;
 
 use App\Filament\Support\Money;
+use App\Filament\Support\PeopleBulkActions;
 use App\Models\Event;
 use App\Models\FormField;
 use App\Models\Participation;
@@ -21,6 +22,8 @@ use App\Support\Mail\Composer;
 use App\Support\Mail\Routing;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
+use Filament\Actions\BulkAction;
+use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\DatePicker;
@@ -37,6 +40,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Enums\RecordActionsPosition;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 
@@ -181,6 +185,23 @@ class ParticipationsRelationManager extends RelationManager
                         }),
                     EditAction::make()->visible(fn () => $this->mayEdit())->label(__('admin.event.change_status')),
                 ]),
-            ], RecordActionsPosition::BeforeColumns);
+            ], RecordActionsPosition::BeforeColumns)
+            ->toolbarActions([BulkActionGroup::make([
+                BulkAction::make('status')->label(__('admin.bulk.status'))->icon('heroicon-o-arrows-right-left')->visible(fn () => $this->mayEdit())
+                    ->modalDescription(__('admin.bulk.status_hint'))
+                    ->schema([Select::make('status')->label(__('admin.event.status'))->options(collect(__('events.status'))->only(['registered', 'confirmed', 'attended', 'no_show'])->all())->required()])
+                    ->action(function (Collection $records, array $data) {
+                        $changed = 0;
+                        foreach ($records as $record) {
+                            /** @var Participation $record */
+                            if (! in_array($record->status, ['cancelled', 'declined', 'waitlist', 'offered', $data['status']], true)) {
+                                $record->update(['status' => $data['status']]);
+                                $changed++;
+                            }
+                        }
+                        Notification::make()->title(trans_choice('admin.bulk.status_done', $changed, ['count' => $changed]))->success()->send();
+                    })->deselectRecordsAfterCompletion(),
+                ...PeopleBulkActions::make(PeopleBulkActions::ofParticipations()),
+            ])]);
     }
 }

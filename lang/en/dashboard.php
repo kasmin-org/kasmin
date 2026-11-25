@@ -9,6 +9,7 @@ return [
     'last_import' => 'Last bank import',
     'todo' => [
         'approvals' => 'Approvals waiting', 'requests' => 'Registration requests to confirm', 'new_registrations' => 'Registrations in the last 7 days',
-        'deletion_requests' => 'Deletion requests', 'bounced' => 'Undeliverable mails (30 days)', 'unmatched_payments' => 'Payments to assign',
+        'submissions' => 'Applications and forms to review', 'duplicates' => 'Possible duplicates', 'bad_addresses' => 'Addresses that do not work', 'deletion_requests' => 'Deletion requests', 'bounced' => 'Undeliverable mails (30 days)', 'unmatched_payments' => 'Payments to assign',
     ],
+    'changed' => 'changed since the last event',
 ];

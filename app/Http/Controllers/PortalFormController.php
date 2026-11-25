@@ -3,12 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Models\Form;
+use App\Models\FormField;
 use App\Models\FormResponse;
 use App\Models\Household;
 use App\Models\Person;
 use App\Models\User;
+use App\Support\Audit\Audit;
 use App\Support\Auth\PortalPerson;
 use App\Support\Forms\Forms;
+use App\Support\Mail\Composer;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -34,6 +37,7 @@ class PortalFormController extends Controller
             'child' => $person,
             'form' => $model,
             'values' => old('values', $this->forms->prefill($model, $person)),
+            'persons' => $model->fields->where('type', 'person')->mapWithKeys(fn (FormField $f) => [$f->key => $this->forms->personOptions($model, $f, $person, $this->guardian($request))])->all(),
             'status' => $this->forms->status($model, $person),
             'current' => $this->forms->current($model, $person),
             'emergency' => $model->family_emergency_contacts ? $this->forms->emergencyContacts($person) : [],
@@ -50,8 +54,10 @@ class PortalFormController extends Controller
     {
         [$person, $model] = [$this->child($request, $child), $this->form($form)];
         abort_if($this->forms->status($model, $person) === 'not_applicable', 404);
-        $data = $request->validate($this->forms->rules($model));
-        $this->forms->save($model, $person, (array) ($data['values'] ?? []), $this->guardian($request));
+        $request->merge(['values' => $this->forms->normalise($model, (array) $request->input('values', []), (array) $request->input('other', []))]);
+        $data = $request->validate($this->forms->rules($model, $person));
+        $response = $this->forms->save($model, $person, (array) ($data['values'] ?? []), $this->guardian($request));
+        $this->thank($request, $model, $person, $response);
 
         return redirect()->route('portal.child', $person->public_id)->with('status', __('forms.saved', ['form' => $model->label()]));
     }
@@ -62,21 +68,40 @@ class PortalFormController extends Controller
         $current = $this->forms->current($model, $person);
         abort_if($current === null, 404);
         // Confirming unchanged data only works if all required fields are still filled.
-        validator(['values' => $this->forms->prefill($model, $person)], $this->forms->rules($model))->validate();
-        $this->forms->save($model, $person, $this->forms->prefill($model, $person), $this->guardian($request), action: 'form.confirmed_unchanged');
+        validator(['values' => $this->forms->prefill($model, $person)], $this->forms->rules($model, $person))->validate();
+        $response = $this->forms->save($model, $person, $this->forms->prefill($model, $person), $this->guardian($request), action: 'form.confirmed_unchanged');
+        $this->thank($request, $model, $person, $response);
 
         return redirect()->route('portal.child', $person->public_id)->with('status', __('forms.confirmed', ['form' => $model->label()]));
     }
 
+    /** Thank-you mail for the safety sheet; the summary only if the legal guardian asks for it (SF18, SF19). */
+    private function thank(Request $request, Form $form, Person $child, FormResponse $response): void
+    {
+        $guardian = $this->guardian($request);
+        if (! $form->family_emergency_contacts || $guardian->is($child)) {
+            return;
+        }
+        $summary = $request->input('summary') === 'without_numbers';
+        $mail = app(Composer::class)->queue('safety_sheet_thanks', $guardian, ['children' => [$child]], attachments: $summary ? [['form_response_id' => $response->id]] : null);
+        if ($summary && $mail !== null) {
+            Audit::record('form.summary_sent', $child, null, ['form' => $form->key]);
+        }
+    }
+
     public function emergencyContacts(Request $request, string $household): View
     {
-        return view('portal.forms.emergency', ['household' => $this->household($request, $household)]);
+        $model = $this->household($request, $household);
+
+        return view('portal.forms.emergency', ['household' => $model, 'guardians' => $this->forms->orderedGuardians($model)]);
     }
 
     public function saveEmergencyContacts(Request $request, string $household): RedirectResponse
     {
         $model = $this->household($request, $household);
         $data = $request->validate([
+            'order' => ['nullable', 'array', 'max:10'],
+            'order.*' => ['integer', 'min:1', 'max:10'],
             'contacts' => ['nullable', 'array', 'max:5'],
             'contacts.*.name' => ['nullable', 'string', 'max:120'],
             'contacts.*.relation' => ['nullable', 'string', 'max:60'],
@@ -86,6 +111,8 @@ class PortalFormController extends Controller
         foreach (array_values(array_filter((array) ($data['contacts'] ?? []), fn ($c) => ! empty($c['name']) && ! empty($c['phone']))) as $i => $contact) {
             $model->emergencyContacts()->create($contact + ['sort' => $i]);
         }
+
+        $this->forms->orderGuardians($model, array_map('intval', (array) ($data['order'] ?? [])));
 
         return redirect()->route('portal')->with('status', __('forms.emergency_saved'));
     }

@@ -94,7 +94,7 @@ approvers decide by e-mail.
 
 *Settings → Webhooks* (administrators): Kasmin calls your HTTPS address when something happens. Events:
 `participation.created`, `participation.status_changed`, `person.created`, `invoice.issued`, `invoice.paid`,
-`payment.received`, `automation.approval_requested`, `automation.run_finished`, `import.finished`.
+`payment.received`, `form.confirmed`, `automation.approval_requested`, `automation.run_finished`, `import.finished`.
 
 Each call is a `POST` with JSON (`event`, `occurred_at`, `data`, `delivery`) and the headers `X-Kasmin-Event`,
 `X-Kasmin-Delivery`, `X-Kasmin-Timestamp` and `X-Kasmin-Signature: sha256=<HMAC-SHA256 of "timestamp.body" with

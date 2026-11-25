@@ -66,6 +66,8 @@ Route::prefix('v1')->middleware([AuthenticateApiToken::class, 'throttle:api', Id
     Route::delete('/groups/{group}/members/{person}', [GroupsController::class, 'removeMember'])->whereNumber('group');
 
     Route::get('/forms', [FormsController::class, 'index']);
+    Route::get('/forms/{form}/definition', [FormsController::class, 'definition']);
+    Route::put('/forms/{form}/definition', [FormsController::class, 'saveDefinition']);
     Route::get('/people/{person}/forms', [FormsController::class, 'status']);
     Route::get('/people/{person}/forms/{form}', [FormsController::class, 'show']);
     Route::patch('/people/{person}/forms/{form}', [FormsController::class, 'update']);

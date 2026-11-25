@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\Auditable;
+use App\Support\Forms\SensitivityGuard;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -30,6 +31,12 @@ class Form extends Model
     protected function casts(): array
     {
         return ['name' => 'array', 'description' => 'array', 'family_emergency_contacts' => 'boolean', 'active' => 'boolean'];
+    }
+
+    protected static function booted(): void
+    {
+        static::updating(fn (Form $form) => SensitivityGuard::form($form));
+        static::deleting(fn (Form $form) => SensitivityGuard::form($form, deleting: true));
     }
 
     /** @return HasMany<FormField, $this> */

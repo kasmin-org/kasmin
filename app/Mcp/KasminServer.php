@@ -29,7 +29,7 @@ class KasminServer extends Server
         Tools\ListInvoices::class, Tools\GetInvoice::class, Tools\RecordPayment::class,
         Tools\ListAutomations::class, Tools\PreviewAutomation::class, Tools\RequestAutomationRun::class, Tools\ListApprovals::class, Tools\DecideApproval::class,
         Tools\ImportPreview::class, Tools\ImportPeople::class, Tools\ListImports::class, Tools\RollbackImport::class,
-        Tools\ListGroups::class, Tools\GetGroup::class, Tools\CreateGroup::class, Tools\AddGroupMember::class, Tools\RemoveGroupMember::class, Tools\ListForms::class, Tools\GetPersonForms::class, Tools\ListMailTemplates::class, Tools\GetMailTemplate::class, Tools\PreviewMailTemplate::class, Tools\ListMailings::class, Tools\GetMailing::class, Tools\CreateMailing::class, Tools\PrepareMailing::class, Tools\RequestMailingRelease::class,
+        Tools\ListGroups::class, Tools\GetGroup::class, Tools\CreateGroup::class, Tools\AddGroupMember::class, Tools\RemoveGroupMember::class, Tools\ListForms::class, Tools\GetFormDefinition::class, Tools\SaveFormDefinition::class, Tools\GetPersonForms::class, Tools\ListMailTemplates::class, Tools\GetMailTemplate::class, Tools\PreviewMailTemplate::class, Tools\ListMailings::class, Tools\GetMailing::class, Tools\CreateMailing::class, Tools\PrepareMailing::class, Tools\RequestMailingRelease::class,
         Tools\ReadAuditLog::class,
     ];
 }

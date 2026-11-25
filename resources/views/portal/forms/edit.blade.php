@@ -10,6 +10,7 @@
         <form method="post" action="{{ route('portal.form.confirm', [$child->public_id, $form->key]) }}" class="mb-6 rounded-xl bg-summer-500/15 p-4">
             @csrf
             <p class="mb-3 font-medium">{{ __('forms.confirm_hint') }}</p>
+            @include('portal.forms.summary', ['id' => 'confirm'])
             <button class="w-full rounded-lg bg-kasmin-600 px-4 py-3 font-semibold text-white">{{ __('forms.confirm_unchanged') }}</button>
         </form>
     @endif
@@ -29,6 +30,7 @@
         @foreach ($form->fields as $field)
             @include('portal.forms.field', ['field' => $field, 'values' => $values])
         @endforeach
+        @include('portal.forms.summary', ['id' => 'save'])
         <button class="w-full rounded-lg bg-kasmin-600 px-4 py-3 font-semibold text-white">{{ __('forms.save_confirm') }}</button>
     </form>
 

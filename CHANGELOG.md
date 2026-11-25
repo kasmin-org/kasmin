@@ -6,6 +6,24 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ## [Unreleased]
 
+### Added
+
+- Forms: number and person fields, choices with "Other", ready-made lists (health insurance carriers), smallest and largest values, check digits of insurance numbers (Austria, Germany, Switzerland).
+- Export and import of forms as JSON, also by API and MCP.
+- Order of the legal guardians as emergency contacts.
+- Events: safety sheet not older than … days before the start.
+- Safety sheet: mails for the yearly confirmation and thank you, summary to oneself (off by default, without numbers), one-click reminder to selected families, webhook `form.confirmed`.
+
+### Security
+
+- Once there are answers, only people with access to the safety sheets can remove or rename confidential fields, make them less confidential, or change or delete the safety sheet. Until now, form rights were enough to make health data readable.
+
+### Fixed
+
+- Vaccination fields accept "nein" and "unbekannt" in German; until now only the English words were accepted.
+- The form builder replaced the English texts of choices with the German ones when saving.
+- The API token of a request was not forgotten after the request (no effect with ordinary PHP hosting).
+
 ## [0.17.0] - 2026-11-25
 
 Pre-release for testing. Not ready for production use.

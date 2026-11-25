@@ -21,6 +21,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $age_reference_date
  * @property Carbon|null $answers_until
  * @property int $max_guests
+ * @property int|null $safety_confirm_days
  * @property bool $is_template
  * @property bool $public_page
  * @property Carbon|null $announce_at

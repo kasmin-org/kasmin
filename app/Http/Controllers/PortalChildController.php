@@ -98,7 +98,8 @@ class PortalChildController extends Controller
         $form = $this->answers->form($event, $role);
         $values = [];
         if ($form !== null) {
-            $values = (array) ($request->validate($this->answers->rules($form, $this->questions($event, $form, $child)))['values'] ?? []);
+            $this->answers->normalise($request, $form);
+            $values = (array) ($request->validate($this->answers->rules($form, $this->questions($event, $form, $child), $child))['values'] ?? []);
         }
         try {
             $participation = DB::transaction(function () use ($event, $child, $role, $request, $form, $values) {
@@ -154,7 +155,8 @@ class PortalChildController extends Controller
         $child = $this->child($request, $publicId);
         [$model, $form] = $this->answered($request, $child, $participation);
         abort_unless($model->event !== null && $this->answers->editable($model->event), 403);
-        $values = (array) ($request->validate($this->answers->rules($form))['values'] ?? []);
+        $this->answers->normalise($request, $form);
+        $values = (array) ($request->validate($this->answers->rules($form, person: $model->person))['values'] ?? []);
         $this->answers->save($model, $form, $values, $this->guardian($request));
 
         return redirect()->route('portal.child', $child->public_id)->with('status', __('portal.answers_saved'));

@@ -3,6 +3,8 @@
 namespace App\Filament\Resources\Forms\Tables;
 
 use App\Models\Form;
+use App\Support\Forms\FormDefinitions;
+use Filament\Actions\Action;
 use Filament\Actions\EditAction;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -21,6 +23,12 @@ class FormsTable
                 TextColumn::make('applies_until_age')->label(__('admin.form.applies_until_age')),
                 IconColumn::make('active')->label(__('admin.form.active'))->boolean(),
             ])
-            ->recordActions([EditAction::make()]);
+            ->recordActions([
+                EditAction::make(),
+                Action::make('export')->label(__('admin.form.export'))->icon('heroicon-o-arrow-down-tray')->color('gray')
+                    ->action(fn (Form $record) => response()->streamDownload(function () use ($record) {
+                        echo json_encode(app(FormDefinitions::class)->export($record), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+                    }, 'kasmin-form-'.$record->key.'.json', ['Content-Type' => 'application/json'])),
+            ]);
     }
 }

@@ -22,7 +22,7 @@ class Webhook extends Model
     /** Events that can be subscribed (payloads never contain confidential data). */
     public const EVENTS = [
         'participation.created', 'participation.status_changed', 'person.created', 'invoice.issued', 'invoice.paid',
-        'payment.received', 'automation.approval_requested', 'automation.run_finished', 'import.finished',
+        'payment.received', 'form.confirmed', 'automation.approval_requested', 'automation.run_finished', 'import.finished',
     ];
 
     protected $guarded = ['id'];

@@ -96,6 +96,14 @@
             <p class="text-sm">{{ __('portal.no_open_events') }}</p>
         @endforelse
     </div>
+    @if ($childInvoices->isNotEmpty())
+        <h2 class="mb-2 mt-6 text-lg font-semibold">{{ __('finance.invoices') }}</h2>
+        <ul class="text-sm">@foreach ($childInvoices as $i)<li class="py-1"><a class="underline" href="{{ route('portal.invoice.pdf', $i) }}" target="_blank" rel="noopener">{{ $i->number }}</a> · {{ \App\Models\Invoice::money($i->total_cents, $i->currency) }} · {{ __('finance.status.'.($i->isOverdue() ? 'overdue' : $i->status)) }}</li>@endforeach</ul>
+    @endif
+    @if ($consents->isNotEmpty())
+        <h2 class="mb-2 mt-6 text-lg font-semibold">{{ __('portal.consents') }}</h2>
+        <ul class="text-sm">@foreach ($consents as $c)<li class="py-1">{{ $c->text ?? $c->kind }}: {{ __($c->granted ? 'forms.yes' : 'forms.no') }} ({{ $c->created_at?->isoFormat('LL') }})</li>@endforeach</ul>
+    @endif
     @if ($mayHaveLogin)
         <details class="mt-6 text-sm">
             <summary class="cursor-pointer underline">{{ __('portal.child_login') }}</summary>

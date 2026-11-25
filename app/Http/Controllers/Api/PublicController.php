@@ -7,6 +7,7 @@ use App\Models\Event;
 use App\Models\EventRole;
 use App\Models\FormField;
 use App\Models\PublicForm;
+use App\Support\Auth\ProofOfWork;
 use App\Support\Events\PublicForms;
 use App\Support\Forms\RegistrationAnswers;
 use Illuminate\Http\JsonResponse;
@@ -43,7 +44,7 @@ class PublicController extends Controller
     {
         $form = $this->find($slug);
 
-        return response()->json(['data' => ['slug' => $form->slug, 'kind' => $form->kind, 'title' => $form->title, 'intro' => $form->intro, 'state' => $form->state(),
+        return response()->json(['data' => ['slug' => $form->slug, 'kind' => $form->kind, 'title' => $form->title, 'intro' => $form->intro, 'state' => $form->state(), 'challenge' => ProofOfWork::enabled() ? ProofOfWork::challenge() : null,
             'fields' => ($this->forms->questions($form)->fields ?? collect())->map(fn (FormField $f) => ['key' => $f->key, 'type' => $f->type, 'label' => $f->label, 'help' => $f->help, 'required' => $f->required, 'choices' => $f->choices()])->values()->all()]]);
     }
 
@@ -61,6 +62,7 @@ class PublicController extends Controller
             'first_name' => ['required', 'string', 'max:120'], 'last_name' => ['required', 'string', 'max:120'], 'email' => ['required', 'email', 'max:254'], 'phone' => ['nullable', 'string', 'max:40'],
             'locale' => ['required', 'in:de,en'], 'privacy' => ['accepted'],
         ] + ($form->kind !== 'interest' ? ['birth_date' => ['required', 'date', 'before:today', 'after:1900-01-01']] : []) + ($questions !== null ? $this->answers->rules($questions) : []));
+        abort_unless(ProofOfWork::valid($request->input('pow')), 422, 'The proof of work is missing, wrong or already used.');
         $this->forms->submit($form, $data);
 
         return response()->json(['message' => 'Please confirm with the link in the mail.'], 202);

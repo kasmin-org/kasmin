@@ -78,3 +78,8 @@ mail, and nothing is sent before somebody decides.
 
 If somebody is a recipient only because of a registration made with the own login, the mail goes to that person and not to the legal
 guardians (unless *Legal guardians see what their child registers itself* is on).
+
+## Unsubscribing
+
+The link in the footer offers: newsletter, all information mails, single event series and groups, deletion of the data. Mail programs can
+unsubscribe with one click. The latest choice counts. Invoices and mails about own registrations are always sent.

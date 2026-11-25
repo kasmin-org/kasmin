@@ -8,7 +8,8 @@ return [
     'preferences_saved' => 'Ihre Auswahl wurde gespeichert.',
     'preferences_note' => 'Mitteilungen zu Ihren Anmeldungen und Rechnungen erhalten Sie weiterhin.',
     'confirm_deletion' => 'Wollen Sie wirklich die Löschung Ihrer Daten beantragen?',
-    'choices' => [
+    'topics_title' => 'Einzelne Themen', 'topic_off' => 'Keine Mails mehr zu: :name', 'topic_on' => 'Wieder Mails zu: :name',
+    'choices' => ['optin_all' => 'Wieder Informationsmails erhalten',
         'newsletter_off' => 'Newsletter abbestellen',
         'newsletter_on' => 'Newsletter wieder erhalten',
         'optout_all' => 'Keine weiteren Informationen zu Veranstaltungen erhalten',

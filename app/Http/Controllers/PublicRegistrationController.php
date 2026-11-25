@@ -2,28 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use App\Mail\LoginLinkMail;
-use App\Models\ContactPoint;
-use App\Models\Household;
-use App\Models\Person;
-use App\Models\User;
-use App\Support\Audit\Audit;
-use App\Support\Auth\LoginLinks;
-use App\Support\Mail\Notifier;
+use App\Support\Auth\ProofOfWork;
+use App\Support\People\SignUps;
+use App\Support\Settings;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 /**
- * Public registration for legal guardians (RG01–RG03): name and e-mail, then a magic link. The answer is the same
+ * Public registration for legal guardians (RG01–RG03): name and e-mail, then a link to confirm. The answer is the same
  * whether or not the address already exists; existing accounts simply receive a login link.
  */
 class PublicRegistrationController extends Controller
 {
-    public function __construct(private readonly LoginLinks $links) {}
+    public function __construct(private readonly SignUps $signUps) {}
 
     public function show(): View
     {
@@ -43,29 +35,31 @@ class PublicRegistrationController extends Controller
             'locale' => ['required', 'in:de,en'],
             'privacy' => ['accepted'],
         ]);
-        $email = Str::lower(trim($data['email']));
+        if (! ProofOfWork::valid($request->input('pow'))) {
+            return back()->withInput()->withErrors(['pow' => __('public.check_failed')]);
+        }
+        $this->signUps->request([
+            'first_name' => (string) $data['first_name'], 'last_name' => (string) $data['last_name'], 'email' => (string) $data['email'], 'locale' => (string) $data['locale'],
+            'newsletter' => Settings::bool('newsletter_ask') && $request->boolean('newsletter') ? (string) __('public.newsletter_consent') : null,
+        ]);
 
-        $user = User::query()->where('email', $email)->first();
-        if ($user === null && ! ContactPoint::query()->where('type', 'email')->where('value', $email)->exists()) {
-            $user = DB::transaction(function () use ($data, $email) {
-                $person = Person::query()->create(['first_name' => $data['first_name'], 'last_name' => $data['last_name'], 'locale' => $data['locale']]);
-                $person->contactPoints()->create(['type' => 'email', 'value' => $email, 'purposes' => ['login', 'information', 'invoices'], 'is_primary' => true]);
-                $household = Household::query()->create(['name' => $data['last_name'], 'locale' => $data['locale']]);
-                $household->members()->attach($person->id, ['role' => 'guardian']);
-                $household->update(['invoice_recipient_id' => $person->id]);
-                Audit::record('registration.guardian', $person, null, ['source' => 'public_form']);
-                app(Notifier::class)->event('registrations', __('portal.notify_signup', ['name' => $person->fullName()]), url('/admin/people/'.$person->id));
+        return redirect()->route('login.code')->with('email', $data['email'])->with('status', __('auth_link.sent'));
+    }
 
-                return User::query()->create(['name' => $person->fullName(), 'email' => $email, 'password' => Str::password(64), 'person_id' => $person->id]);
-            });
+    public function confirmation(string $token): View
+    {
+        return $this->signUps->find($token) === null
+            ? view('public.confirm-simple', ['title' => __('public.invalid_title'), 'action' => null, 'text' => __('public.invalid')])
+            : view('public.confirm-simple', ['title' => __('portal.register_title'), 'action' => route('register.confirm.store', $token), 'text' => null]);
+    }
+
+    public function confirm(string $token): View|RedirectResponse
+    {
+        $signUp = $this->signUps->find($token);
+        if ($signUp === null) {
+            return $this->confirmation($token);
         }
 
-        if ($user !== null) {
-            ['token' => $token, 'code' => $code] = $this->links->issue($user);
-            Mail::to($email)->locale($data['locale'])
-                ->send(new LoginLinkMail($data['first_name'], route('login.link', $token), $code, LoginLinks::LINK_MINUTES));
-        }
-
-        return redirect()->route('login.code')->with('email', $email)->with('status', __('auth_link.sent'));
+        return redirect()->route('login.link', $this->signUps->confirm($signUp));
     }
 }

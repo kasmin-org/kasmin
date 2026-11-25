@@ -36,13 +36,18 @@ class AutomationDefaults
             ],
             'deposit_invoices' => [
                 'name' => ['de' => 'Anzahlungsrechnungen', 'en' => 'Deposit invoices'],
-                'description' => ['de' => 'Erstellt und versendet die Rechnungen der Rate „deposit“ pro Familie.', 'en' => 'Creates and sends the invoices of the instalment "deposit" per family.'],
+                'description' => ['de' => 'Erstellt und versendet die Anzahlungsrechnungen pro Familie.', 'en' => 'Creates and sends the deposit invoices per family.'],
                 'action' => 'invoice_run', 'config' => ['installment' => 'deposit', 'send' => true], 'trigger' => 'manual', 'mode' => 'confirm',
             ],
             'balance_invoices' => [
                 'name' => ['de' => 'Restzahlungsrechnungen', 'en' => 'Balance invoices'],
-                'description' => ['de' => 'Erstellt und versendet die Rechnungen der Rate „balance“ 90 Tage vor Beginn.', 'en' => 'Creates and sends the invoices of the instalment "balance" 90 days before the start.'],
+                'description' => ['de' => 'Erstellt und versendet die Restzahlungsrechnungen 90 Tage vor Beginn.', 'en' => 'Creates and sends the balance invoices 90 days before the start.'],
                 'action' => 'invoice_run', 'config' => ['installment' => 'balance', 'send' => true], 'trigger' => 'before_event', 'trigger_config' => ['days' => 90], 'mode' => 'confirm',
+            ],
+            'waitlist_positions' => [
+                'name' => ['de' => 'Neuer Platz auf der Warteliste', 'en' => 'New position on the waitlist'],
+                'description' => ['de' => 'Informiert Familien, wenn ein Kind auf der Warteliste vorgerückt ist.', 'en' => 'Tells families that a child has moved up on the waitlist.'],
+                'action' => 'waitlist_positions', 'trigger' => 'daily', 'trigger_config' => ['time' => '10:00'], 'mode' => 'confirm',
             ],
             'mailing_release' => [
                 'name' => ['de' => 'Große Aussendungen freigeben', 'en' => 'Approve large mailings'],

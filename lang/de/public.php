@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'needs_javascript' => 'Bitte JavaScript einschalten: Es wird für den Schutz vor Spam gebraucht.', 'checking' => 'Prüfung, einen Moment bitte …', 'check_failed' => 'Die Prüfung gegen Spam ist abgelaufen oder fehlgeschlagen. Bitte das Formular noch einmal absenden.', 'newsletter_consent' => 'Ich möchte den Newsletter per E-Mail erhalten. Ich kann mich jederzeit abmelden.', 'ask_newsletter' => 'Nach dem Newsletter fragen',
     'register_child' => 'Kind anmelden', 'not_open' => 'Die Anmeldung ist noch nicht offen.', 'closed_event' => 'Die Anmeldung ist geschlossen.',
     'submit' => 'Absenden', 'confirm' => 'Bestätigen', 'sent' => 'Vielen Dank! Wir haben Ihnen eine E-Mail geschickt. Bitte öffnen Sie den Link darin zur Bestätigung.',
     'early' => 'Dieses Formular öffnet am :date.', 'closed' => 'Dieses Formular ist geschlossen.', 'invalid_title' => 'Link nicht mehr gültig', 'invalid' => 'Dieser Link wurde bereits verwendet oder ist abgelaufen.',

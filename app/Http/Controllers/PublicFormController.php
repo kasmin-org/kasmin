@@ -4,10 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Form;
 use App\Models\PublicForm;
+use App\Support\Auth\ProofOfWork;
 use App\Support\Events\Guests;
 use App\Support\Events\PublicForms;
 use App\Support\Events\RegistrationException;
 use App\Support\Forms\RegistrationAnswers;
+use App\Support\Settings;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
@@ -32,6 +34,7 @@ class PublicFormController extends Controller
             'sent' => $sent || session('sent') === true,
             'title' => $form->titleText(), 'intro' => $form->introText(), 'state' => $form->state(), 'form' => $form,
             'fields' => $this->forms->questions($form)->fields ?? collect(), 'action' => route('public.form.store', [$form->slug] + (request()->boolean('embed') ? ['embed' => 1] : [])),
+            'askNewsletter' => $form->ask_newsletter && $form->kind !== 'interest' && Settings::bool('newsletter_ask'),
             'askEmail' => true, 'askBirthDate' => $form->kind !== 'interest', 'places' => $this->places($form),
         ]);
     }
@@ -44,6 +47,12 @@ class PublicFormController extends Controller
             abort_unless($form->state() === 'open', 403);
             try {
                 $data = $this->data($request, $this->forms->questions($form), true, $form->kind !== 'interest');
+                if (! ProofOfWork::valid($request->input('pow'))) {
+                    throw ValidationException::withMessages(['pow' => __('public.check_failed')]);
+                }
+                if ($form->ask_newsletter && Settings::bool('newsletter_ask') && $request->boolean('newsletter')) {
+                    $data['newsletter'] = (string) __('public.newsletter_consent');
+                }
             } catch (ValidationException $e) {
                 if ($request->boolean('embed')) { // no cookies in frames, so errors cannot wait for the next page
                     $request->flash();
@@ -91,7 +100,7 @@ class PublicFormController extends Controller
         return view('public.form', [
             'title' => $event->title, 'intro' => __('public.guest_intro', ['host' => $invitation->participation->person?->fullName()]), 'state' => 'open', 'form' => null,
             'fields' => $this->answers->form($event, Guests::ROLE)->fields ?? collect(), 'action' => route('public.guest.store', $token),
-            'askEmail' => false, 'askBirthDate' => true, 'places' => null, 'sent' => false,
+            'askNewsletter' => false, 'askEmail' => false, 'askBirthDate' => true, 'places' => null, 'sent' => false,
         ]);
     }
 

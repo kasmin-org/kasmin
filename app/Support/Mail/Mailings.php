@@ -3,7 +3,7 @@
 namespace App\Support\Mail;
 
 use App\Models\Automation;
-use App\Models\Consent;
+use App\Models\Event;
 use App\Models\Group;
 use App\Models\Household;
 use App\Models\Mailing;
@@ -56,9 +56,17 @@ class Mailings
         $mails = [];
         $excluded = [];
         $template = $mailing->template;
-        // The latest choice counts: somebody who subscribed again gets the newsletter again (MM04).
-        $optedOut = Consent::query()->where('kind', $template?->category === 'newsletter' ? 'newsletter' : 'optout_all')->orderBy('id')->get()
-            ->groupBy('person_id')->filter(fn ($consents) => $consents->last()?->granted === false)->keys()->map(fn ($id) => (int) $id)->all();
+        // The latest choice counts: somebody who subscribed again gets the newsletter again (MM04). Opt-outs per event series and
+        // per group count for the mailings to exactly these (CO03).
+        $optedOut = Optouts::people($template?->category === 'newsletter' ? 'newsletter' : 'optout_all');
+        $seriesId = ! empty($mailing->recipients['event_id']) ? Event::query()->whereKey($mailing->recipients['event_id'])->value('event_series_id') : null;
+        if ($seriesId !== null) {
+            $optedOut = [...$optedOut, ...Optouts::people('optout_series', (int) $seriesId)];
+        }
+        $groupIds = array_map('intval', $mailing->recipients['group_ids'] ?? []);
+        if (count($groupIds) === 1 && empty($mailing->recipients['event_id'])) {
+            $optedOut = [...$optedOut, ...Optouts::people('optout_group', $groupIds[0])];
+        }
         $private = $this->privateSubjects($mailing);
 
         foreach ($this->subjects($mailing) as $subject) {
@@ -98,7 +106,7 @@ class Mailings
     private function privateSubjects(Mailing $mailing): array
     {
         $r = $mailing->recipients;
-        if (empty($r['event_id']) || Settings::bool('own_registrations_visible')) {
+        if (empty($r['event_id']) || Settings::get('own_registrations') === 'visible') {
             return [];
         }
         $own = Participation::query()->where('event_id', $r['event_id'])->when(! empty($r['statuses'] ?? []), fn ($q) => $q->whereIn('status', $r['statuses'] ?? []))->get()

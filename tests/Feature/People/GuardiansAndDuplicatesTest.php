@@ -153,7 +153,7 @@ class GuardiansAndDuplicatesTest extends TestCase
         app(Invoices::class)->issue($invoice);
         $this->get(route('portal'))->assertDontSee((string) $invoice->fresh()?->reference);
 
-        Settings::set('own_registrations_visible', '1');
+        Settings::set('own_registrations', 'visible');
         $this->get(route('portal.child', $this->child->public_id))->assertSee('Young weekend');
     }
 

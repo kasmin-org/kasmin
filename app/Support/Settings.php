@@ -35,6 +35,8 @@ class Settings
         'retention_invoice_years' => '7',
         'public_url' => '',
         'backup_keep' => '7',
+        'backup_remote_url' => '',      // N07: WebDAV folder (https)
+        'backup_remote_user' => '',
         'mail_logo' => '',
         'mail_color' => '#1da029',       // MT06
         'mail_footer' => '',

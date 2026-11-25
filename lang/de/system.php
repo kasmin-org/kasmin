@@ -58,4 +58,15 @@ return [
         'done_subject' => 'Auf :version aktualisiert', 'done' => 'Kasmin wurde automatisch von :from auf :version aktualisiert. Das sind die Änderungen:',
         'failed_subject' => 'Update auf :version hat nicht funktioniert', 'failed' => 'Das automatische Update auf Kasmin :version hat nicht funktioniert; die bisherige Version läuft weiter. Morgen wird es erneut versucht. Grund: :error',
     ],
+    'backup' => [
+        'title' => 'Datensicherungen', 'intro' => 'Die Datenbank wird jede Nacht gesichert. Hochgeladene Dateien und der Schlüssel der Installation (APP_KEY in der Datei .env) sind nicht enthalten – bewahren Sie eine Kopie dieser Datei sicher auf: Ohne den Schlüssel lassen sich verschlüsselte Daten wie Sicherheitsblätter nicht lesen.',
+        'now' => 'Jetzt sichern', 'created' => 'Sicherung geschrieben: :name', 'sent' => 'Eine verschlüsselte Kopie wurde an den Speicher gesendet.', 'send_failed' => 'Die Kopie konnte nicht an den Speicher gesendet werden: :error',
+        'download' => 'Herunterladen', 'download_encrypted' => 'Verschlüsselt herunterladen',
+        'remote' => 'Sicherung außerhalb des Servers', 'remote_hint' => 'Jede Nacht geht eine verschlüsselte Kopie der Sicherung in einen Ordner eines Speicherdienstes, der WebDAV spricht (z. B. Nextcloud, eine Storage Box). Nur https. Die Kopie lässt sich nur mit der Passphrase lesen.',
+        'url' => 'Adresse des Ordners (WebDAV, https)', 'user' => 'Benutzername', 'password' => 'Passwort oder App-Passwort', 'passphrase' => 'Passphrase für die Verschlüsselung', 'kept' => 'gespeichert – leer lassen, um sie zu behalten',
+        'passphrase_hint' => 'Mindestens 12 Zeichen. Notieren Sie sie außerhalb von Kasmin: Ohne sie lassen sich die Kopien nicht öffnen – auch nicht von uns.',
+        'remote_off' => 'Keine Kopie außerhalb des Servers: Die Sicherungen liegen nur auf diesem Server. Einrichten unter Einstellungen → Organisation und Rechnungen, oder Sicherungen regelmäßig herunterladen.',
+        'remote_never' => 'Eingerichtet; die erste Kopie geht mit der nächsten Sicherung hinaus.', 'remote_ok' => 'Letzte verschlüsselte Kopie gesendet :time.', 'remote_failed' => 'Die letzte Kopie konnte nicht gesendet werden (:time): :error',
+        'decrypt' => 'Verschlüsselte Sicherung öffnen', 'decrypt_hint' => 'Laden Sie eine Datei mit der Endung .enc hoch; Sie erhalten die Datenbanksicherung (.sql.gz), die sich z. B. mit phpMyAdmin importieren lässt.', 'passphrase_optional' => 'Passphrase (leer = die gespeicherte)', 'decrypt_button' => 'Entschlüsseln und herunterladen', 'wrong_passphrase' => 'Die Datei ließ sich nicht öffnen: falsche Passphrase oder keine verschlüsselte Sicherung.',
+    ],
 ];

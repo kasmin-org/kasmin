@@ -58,4 +58,15 @@ return [
         'done_subject' => 'Updated to :version', 'done' => 'Kasmin was updated automatically from :from to :version. These are the changes:',
         'failed_subject' => 'Update to :version did not work', 'failed' => 'The automatic update to Kasmin :version did not work; the previous version keeps running. It is tried again tomorrow. Reason: :error',
     ],
+    'backup' => [
+        'title' => 'Backups', 'intro' => 'The database is saved every night. Uploaded files and the key of the installation (APP_KEY in the file .env) are not part of it – keep a copy of that file in a safe place: without the key, encrypted data such as safety sheets cannot be read.',
+        'now' => 'Back up now', 'created' => 'Backup written: :name', 'sent' => 'An encrypted copy was sent to the storage.', 'send_failed' => 'The copy could not be sent to the storage: :error',
+        'download' => 'Download', 'download_encrypted' => 'Download encrypted',
+        'remote' => 'Backup outside the server', 'remote_hint' => 'Every night an encrypted copy of the backup is sent to a folder of a storage service that speaks WebDAV (e.g. Nextcloud, a storage box). Only https. The copy can only be read with the passphrase.',
+        'url' => 'Address of the folder (WebDAV, https)', 'user' => 'User name', 'password' => 'Password or app password', 'passphrase' => 'Passphrase for the encryption', 'kept' => 'saved – leave empty to keep it',
+        'passphrase_hint' => 'At least 12 characters. Write it down outside of Kasmin: without it, the copies cannot be opened – also not by us.',
+        'remote_off' => 'No copy outside the server: the backups are only on this server. Set it up under Settings → Organisation and invoices, or download backups regularly.',
+        'remote_never' => 'Set up; the first copy is sent with the next backup.', 'remote_ok' => 'Last encrypted copy sent :time.', 'remote_failed' => 'The last copy could not be sent (:time): :error',
+        'decrypt' => 'Open an encrypted backup', 'decrypt_hint' => 'Upload a file ending in .enc; you get the database backup (.sql.gz) that can be imported, e.g. with phpMyAdmin.', 'passphrase_optional' => 'Passphrase (empty = the saved one)', 'decrypt_button' => 'Decrypt and download', 'wrong_passphrase' => 'The file could not be opened: wrong passphrase, or not an encrypted backup.',
+    ],
 ];

@@ -8,6 +8,17 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ### Added
 
+- Backups in the browser: back up now, download (also encrypted), and open an encrypted backup again – no shell needed.
+- Backup outside the server: every night an encrypted copy goes to a storage folder by WebDAV (https); the system status shows the result.
+
+### Fixed
+
+- After a version without changes to the database, the system status kept showing the old database version.
+
+## [0.22.0] - 2026-11-25
+
+### Added
+
 - Families get a confirmation when a registration is cancelled (by themselves, the team, or because an invoice was not paid) and when an offer of a place ran out.
 - *Start season* keeps the children on the waitlist of the last event on the waitlist of the new one, with their date.
 - Confirmation of participation as a PDF after the event, for the team and in the portal, with the amount paid.
@@ -512,7 +523,8 @@ First public pre-release for testing. Not ready for production use.
 - Docker image: system packages updated and build packages removed after compiling the PHP extensions – the
   container scan reports no high or critical findings any more (previously 75 in Debian packages).
 
-[Unreleased]: https://github.com/kasmin-org/kasmin/compare/v0.21.0...develop
+[Unreleased]: https://github.com/kasmin-org/kasmin/compare/v0.22.0...develop
+[0.22.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.22.0
 [0.21.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.21.0
 [0.20.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.20.0
 [0.19.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.19.0

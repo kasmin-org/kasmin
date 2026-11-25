@@ -5,6 +5,7 @@ namespace App\Filament\Pages;
 use App\Models\User;
 use App\Support\Audit\Audit;
 use App\Support\Auth\Permissions;
+use App\Support\Backup\RemoteBackup;
 use App\Support\Mail\MailImages;
 use App\Support\Settings;
 use App\Support\System\Updater;
@@ -46,7 +47,7 @@ class OrganisationSettingsPage extends Page
         'organisation_name', 'organisation_address', 'organisation_email', 'organisation_website', 'organisation_iban',
         'organisation_bic', 'organisation_bank', 'organisation_legal_footer', 'invoice_number_format', 'invoice_next_number',
         'invoice_number_per_year', 'invoice_due_days', 'invoice_attach_paid', 'invoice_reminder_days_before', 'invoice_overdue_days', 'invoice_overdue_fees', 'public_url', 'mail_test_address', 'mailing_approval_above', 'backup_keep', 'embed_origins', 'timezone', 'digest_time', 'approval_days', 'ai_processing', 'retention_safety_years', 'retention_invoice_years',
-        'max_guardians', 'min_login_age', 'guardian_until_age', 'own_registrations', 'newsletter_ask', 'mail_logo', 'mail_color', 'mail_footer', 'retention_mail_years', 'audit_ip_days', 'retention_audit_years', 'auto_update', 'auto_update_days', 'auto_update_time',
+        'max_guardians', 'min_login_age', 'guardian_until_age', 'own_registrations', 'newsletter_ask', 'mail_logo', 'mail_color', 'mail_footer', 'retention_mail_years', 'backup_remote_url', 'backup_remote_user', 'audit_ip_days', 'retention_audit_years', 'auto_update', 'auto_update_days', 'auto_update_time',
     ];
 
     public static function getNavigationGroup(): ?string
@@ -158,6 +159,13 @@ class OrganisationSettingsPage extends Page
                 TextInput::make('auto_update_days')->label(__('system.auto_update.days'))->numeric()->minValue(0)->maxValue(90)->required(),
                 TextInput::make('auto_update_time')->label(__('system.auto_update.time'))->regex('/^([01]\d|2[0-3]):[0-5]\d$/')->required(),
             ]),
+            Section::make(__('system.backup.remote'))->visible(fn () => Permissions::administrator())->description(__('system.backup.remote_hint'))->columns(2)->schema([
+                TextInput::make('backup_remote_url')->label(__('system.backup.url'))->url()->startsWith('https://')->maxLength(500)->placeholder('https://cloud.example.org/remote.php/dav/files/name/backups'),
+                TextInput::make('backup_remote_user')->label(__('system.backup.user'))->maxLength(200),
+                TextInput::make('backup_remote_password')->label(__('system.backup.password'))->password()->maxLength(200)->placeholder(fn () => RemoteBackup::secret('backup_remote_password') !== '' ? __('system.backup.kept') : null),
+                TextInput::make('backup_passphrase')->label(__('system.backup.passphrase'))->password()->minLength(12)->maxLength(200)->placeholder(fn () => RemoteBackup::secret('backup_passphrase') !== '' ? __('system.backup.kept') : null)
+                    ->helperText(__('system.backup.passphrase_hint')),
+            ]),
             Section::make(__('admin.settings.ai'))->visible(fn () => Permissions::administrator())->schema([
                 Radio::make('ai_processing')->label(__('admin.settings.ai_processing'))->options(__('admin.settings.ai_options'))->required()
                     ->helperText(__('admin.settings.ai_hint')),
@@ -180,6 +188,11 @@ class OrganisationSettingsPage extends Page
                 $value = strtoupper(str_replace(' ', '', (string) $value));
             }
             Settings::set($key, $value === null ? null : (string) $value);
+        }
+        foreach (['backup_remote_password', 'backup_passphrase'] as $secret) { // empty = unchanged; never shown again
+            if (Permissions::administrator() && filled($data[$secret] ?? null)) {
+                RemoteBackup::storeSecret($secret, (string) $data[$secret]);
+            }
         }
         Audit::record('settings.updated', null, null, ['section' => 'organisation']);
         Notification::make()->title(__('admin.settings.saved'))->success()->send();

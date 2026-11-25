@@ -17,8 +17,8 @@ class Defaults
         'board' => ['de' => 'Vorstand', 'en' => 'Board', 'admin' => true],
         'treasurer' => ['de' => 'Finanzen', 'en' => 'Treasurer', 'admin' => true],
         'safety_officer' => ['de' => 'Sicherheitsdaten', 'en' => 'Safety officer', 'admin' => true],
-        'camp_leader' => ['de' => 'Lagerleitung', 'en' => 'Camp leader', 'admin' => true],
-        'counsellor' => ['de' => 'Betreuung', 'en' => 'Counsellor', 'admin' => false],
+        'camp_leader' => ['de' => 'Lagerleitung', 'en' => 'Camp leader', 'admin' => true, 'own' => true],
+        'counsellor' => ['de' => 'Betreuung', 'en' => 'Counsellor', 'admin' => false, 'own' => true],
         'auditor' => ['de' => 'Rechnungsprüfung', 'en' => 'Auditor', 'admin' => true],
     ];
 
@@ -37,6 +37,7 @@ class Defaults
                 'name' => ['de' => $role['de'], 'en' => $role['en']],
                 'is_admin' => $role['admin'],
                 'requires_second_factor' => $role['admin'],
+                'scope' => ($role['own'] ?? false) ? 'own' : 'all',
             ]);
         }
     }

@@ -31,4 +31,6 @@ return [
         'deletion_requests' => 'Löschanträge',
         'automation_errors' => 'Fehler in Automatisierungen',
     ],
+    'notifications' => 'Meine Benachrichtigungen', 'notifications_by_mail' => 'Per E-Mail', 'notifications_hint' => 'Nur Themen, für die Sie die Rechte haben. Zusammenfassungen kommen um 07:00 (oder zur Zeit in den Einstellungen), wöchentliche am Montag. Sie enthalten nie vertrauliche Werte.', 'notifications_latest' => 'Letzte Benachrichtigungen',
+    'frequencies' => ['immediate' => 'sofort', 'daily' => 'tägliche Zusammenfassung', 'weekly' => 'wöchentliche Zusammenfassung', 'off' => 'aus'],
 ];

@@ -3,6 +3,7 @@
 namespace App\Filament\Widgets;
 
 use App\Models\User;
+use App\Support\Auth\Permissions;
 use App\Support\Reports\DashboardData;
 use Filament\Widgets\Widget;
 
@@ -18,6 +19,18 @@ class TodoOverview extends Widget
     protected static ?int $sort = 2;
 
     protected static bool $isLazy = false;
+
+    /** The overview is about the whole organisation; roles for the own events do not see it (RO01). */
+    public static function canView(): bool
+    {
+        foreach (Permissions::AREAS as $area) {
+            if (Permissions::current($area)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     /** @return array<string, mixed> */
     protected function getViewData(): array

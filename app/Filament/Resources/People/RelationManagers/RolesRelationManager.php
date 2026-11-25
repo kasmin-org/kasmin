@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\People\RelationManagers;
 
+use App\Models\Event;
 use App\Models\Role;
 use App\Models\RoleAssignment;
 use App\Support\Auth\Permissions;
@@ -43,7 +44,9 @@ class RolesRelationManager extends RelationManager
     public function form(Schema $schema): Schema
     {
         return $schema->components([
-            Select::make('role_id')->label(__('roles.role'))->required()->options(fn () => Role::query()->get()->mapWithKeys(fn (Role $r) => [$r->id => $r->label()])->all()),
+            Select::make('role_id')->label(__('roles.role'))->required()->options(fn () => Role::query()->get()->mapWithKeys(fn (Role $r) => [$r->id => $r->label()])->all())->live(),
+            Select::make('event_id')->label(__('admin.event.singular'))->options(fn () => Event::query()->orderByDesc('starts_at')->limit(50)->pluck('title', 'id')->all())->helperText(__('roles.event_hint'))
+                ->visible(fn ($get) => Role::query()->find((int) $get('role_id'))?->ownEventsOnly() === true),
             DatePicker::make('starts_on')->label(__('roles.from'))->default(now()),
             DatePicker::make('ends_on')->label(__('roles.until'))->afterOrEqual('starts_on'),
         ]);
@@ -53,6 +56,7 @@ class RolesRelationManager extends RelationManager
     {
         return $table->columns([
             TextColumn::make('role.key')->label(__('roles.role'))->formatStateUsing(fn (RoleAssignment $record) => $record->role?->label()),
+            TextColumn::make('event.title')->label(__('admin.event.singular'))->placeholder('–'),
             TextColumn::make('starts_on')->label(__('roles.from'))->date()->placeholder('–'),
             TextColumn::make('ends_on')->label(__('roles.until'))->date()->placeholder('–'),
         ])->headerActions([

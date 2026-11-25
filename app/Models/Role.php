@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property array<string, string> $name
  * @property bool $is_admin
  * @property array<string, string>|null $permissions
+ * @property string|null $scope
  * @property bool $requires_second_factor
  */
 class Role extends Model
@@ -24,6 +25,12 @@ class Role extends Model
     protected function casts(): array
     {
         return ['name' => 'array', 'is_admin' => 'boolean', 'requires_second_factor' => 'boolean', 'permissions' => 'array'];
+    }
+
+    /** Counts only for the own events (RO01). Administrators are never restricted. */
+    public function ownEventsOnly(): bool
+    {
+        return $this->scope === 'own' && $this->key !== 'administrator';
     }
 
     public function label(): string

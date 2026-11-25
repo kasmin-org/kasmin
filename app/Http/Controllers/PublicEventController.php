@@ -56,7 +56,7 @@ class PublicEventController extends Controller
         if ($user->person === null) {
             return false;
         }
-        if (Permissions::allows($user, 'events')) {
+        if (Permissions::allowsEvent($user, $event->id)) {
             return true;
         }
         $active = Participation::query()->where('event_id', $event->id)->whereIn('status', [...EventLists::STATUSES, 'offered']);

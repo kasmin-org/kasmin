@@ -249,7 +249,9 @@ class OwnAutomationsTest extends TestCase
         $this->assertSame('planned', $own[0]['state'] ?? null);
         $this->assertTrue($this->event->starts_at->copy()->subDays(50)->isSameDay($own[0]['at']));
         $this->assertSame(['Own'], array_column(array_filter(app(DashboardData::class)->automations()['upcoming'], fn (array $u) => $u['event'] === 'Camp'), 'name'));
-        $this->actingAs($this->user('camp_leader', 'leader'))->withSession(['two_factor_passed' => true])->get('/admin/events/'.$this->event->id.'/schedule')->assertOk()->assertSee('Registration closes')->assertSee('Own');
+        $leader = $this->user('camp_leader', 'leader');
+        $leader->person?->roleAssignments()->toBase()->update(['event_id' => $this->event->id]);
+        $this->actingAs($leader)->withSession(['two_factor_passed' => true])->get('/admin/events/'.$this->event->id.'/schedule')->assertOk()->assertSee('Registration closes')->assertSee('Own');
     }
 
     public function test_season_wizard_shows_everything_and_changes_nothing(): void

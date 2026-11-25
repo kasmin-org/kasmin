@@ -2,6 +2,7 @@
 
 namespace App\Filament\Widgets;
 
+use App\Models\Event;
 use App\Models\User;
 use App\Support\Auth\Permissions;
 use App\Support\Reports\DashboardData;
@@ -22,7 +23,7 @@ class EventSeriesOverview extends Widget
 
     public static function canView(): bool
     {
-        return Permissions::current('events') || Permissions::current('finance');
+        return Permissions::current('events') || Permissions::current('finance') || Permissions::restriction() !== [];
     }
 
     /** @return array<string, mixed> */
@@ -30,6 +31,9 @@ class EventSeriesOverview extends Widget
     {
         $user = auth()->user();
 
-        return ['blocks' => app(DashboardData::class)->series($user instanceof User && $user->canViewFinance())];
+        $own = Permissions::current('finance') ? null : Permissions::restriction();
+        $data = app(DashboardData::class);
+
+        return ['blocks' => $own === null ? $data->series($user instanceof User && $user->canViewFinance()) : array_values(Event::query()->whereIn('id', $own)->with('series')->orderBy('starts_at')->get()->map(fn (Event $e) => $data->eventBlock($e, $e->series?->name, false))->all())];
     }
 }

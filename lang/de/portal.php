@@ -54,4 +54,5 @@ return [
     'have_account' => 'Schon registriert? Hier anmelden',
     'notify_signup' => 'Neue Registrierung: :name',
     'mails' => 'Ihre E-Mails',
+    'team' => 'Meine Veranstaltungen (Team)', 'team_hint' => 'Listen für das Team. Bitte vertraulich behandeln. Jede Ansicht wird protokolliert.',
 ];

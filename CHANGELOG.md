@@ -11,6 +11,14 @@ All notable changes to Kasmin are documented in this file. The format is based o
 - Roles that count only for the own events: camp leaders see their events and their people, counsellors have lists of their events in the portal. This also applies to existing installations.
 - *My notifications*: choose topics immediately or as a digest, and the latest notifications. Until now there was no page for it, so nobody could get notifications. Administrators get deletion requests immediately and errors of automations daily by default.
 
+### Added
+
+- Automatic updates (off by default): a version is installed in the night once it has been out for the configured days (default 10, 04:00), with a notice two days before, a notice if a newer version resets the waiting time, and a mail with the changes afterwards.
+
+### Fixed
+
+- Installations that started with a very old version never got the standard mail templates, automations and event types of later versions, so mails such as the registration confirmation were not sent. What is missing is installed with this update.
+
 ### Changed
 
 - Upgrades are done in the browser: after the files of a new version are installed, the login page stays reachable with a notice, administrators log in and start the upgrade with a button. No command line is needed. Until now, Kasmin only showed a page with a command.

@@ -11,6 +11,18 @@ Kasmin only upgrades; there are no downgrades.
 No command line is needed. Where there is one, `php artisan kasmin:upgrade` does the same, `php artisan kasmin:status` shows the
 versions, and deployment scripts can call `POST /system/hooks/upgrade` (see [Hosting](hosting.md)). Docker upgrades by itself at the start.
 
+## Automatic updates
+
+*Settings → Organisation and invoices → Automatic updates* (administrators, not in Docker; off by default): a new version is installed by
+the cron job once it has been out for the configured number of days (default 10), at the configured time of day (default 04:00, in the time
+zone of the settings). A backup of the database and the program files is made first.
+
+- Two days before, all administrators get a notice with the date.
+- If a newer version is released in between, the planned update is cancelled, the administrators are told, and the waiting time starts
+  again for the newer version. So a version that is corrected shortly after is never installed.
+- Afterwards the administrators get a mail with the changes. If the update did not work, the previous version keeps running, the
+  administrators are told, and it is tried again the next night.
+
 ## Why Kasmin refuses to start after a downgrade
 
 If the database was upgraded by a newer Kasmin version, older code must not work with it: it could misread or

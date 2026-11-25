@@ -5,7 +5,6 @@ use App\Support\Install\AutomationDefaults;
 use App\Support\Install\MailTemplateDefaults;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 /*
@@ -49,9 +48,7 @@ return new class extends Migration
             $table->timestamps();
             $table->index(['group_id', 'status']);
         });
-        if (DB::table('mail_templates')->where('is_standard', true)->exists()) {
-            AfterMigrations::request(MailTemplateDefaults::class);
-            AfterMigrations::request(AutomationDefaults::class);
-        }
+        AfterMigrations::request(MailTemplateDefaults::class);
+        AfterMigrations::request(AutomationDefaults::class);
     }
 };

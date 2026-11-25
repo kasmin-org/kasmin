@@ -39,6 +39,9 @@ class Settings
         'mail_color' => '#1da029',       // MT06
         'mail_footer' => '',
         'retention_mail_years' => '0',   // ML05; 0 = as long as the person exists
+        'auto_update' => '0',            // UP03
+        'auto_update_days' => '10',
+        'auto_update_time' => '04:00',
         'mail_test_address' => '',       // MS08: all mails go here
         'mailing_approval_above' => '50', // MM07; 0 = never
         'embed_origins' => '', // websites that may show public pages in a frame

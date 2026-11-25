@@ -16,6 +16,8 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 #[IsReadOnly]
 class ListContactPoints extends ApiTool
 {
+    public const ENDPOINT = ['GET', '/people/{person}/contact-points'];
+
     protected string $scope = 'people:read';
 
     public function handle(Request $request): Response

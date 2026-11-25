@@ -3,6 +3,7 @@
 namespace App\Mcp\Tools;
 
 use App\Mcp\ApiTool;
+use App\Mcp\EventSchema;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\JsonSchema\Types\Type;
 use Laravel\Mcp\Request;
@@ -11,9 +12,11 @@ use Laravel\Mcp\Server\Attributes\Description;
 use Laravel\Mcp\Server\Attributes\Name;
 
 #[Name('update_event')]
-#[Description('Changes the basic data of an event; only the fields that are sent change. With roles, the listed roles are created or changed and roles that are not listed are removed (a role with registrations cannot be removed) – send all roles of get_event that should stay. Changing status, dates or the registration window has effect on the registration of families: ask the human first.')]
+#[Description('Changes an event with the fields of the event form (basic data, bus, roles, discounts, prices, payment plan); only the fields that are sent change. With roles, the listed roles are created or changed and roles that are not listed are removed (a role with registrations cannot be removed) – send all roles of get_event that should stay. prices replaces all prices by age or date; installments works like roles, by key. Changed prices and instalments change draft invoices and future invoices. Changing status, dates or the registration window has effect on the registration of families: ask the human first.')]
 class UpdateEvent extends ApiTool
 {
+    public const ENDPOINT = ['PATCH', '/events/{event}'];
+
     protected string $scope = 'events:write';
 
     public function handle(Request $request): Response
@@ -62,6 +65,7 @@ class UpdateEvent extends ApiTool
             'reserve_auto_release' => $schema->boolean()->description('reserved places are released automatically'),
             'reserve_reminder_on' => $schema->string()->description('date of the reminder about reserved places'),
             'roles' => $schema->array()->items($schema->object())->description('all roles of the event: objects with role (child, junior_counsellor, staff or guest), capacity, reserve_places, min_age, max_age, registered_by, price, role_discount, counts_as_sibling, waitlist_order; inside a role, null empties a field'),
+            ...EventSchema::money($schema),
             'clear' => $schema->array()->items($schema->string())->description('names of optional fields to empty, e.g. ["location", "registration_closes_at"]'),
         ];
     }

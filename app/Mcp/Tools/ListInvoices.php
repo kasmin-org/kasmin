@@ -16,6 +16,8 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 #[IsReadOnly]
 class ListInvoices extends ApiTool
 {
+    public const ENDPOINT = ['GET', '/invoices'];
+
     protected string $scope = 'finance:read';
 
     public function handle(Request $request): Response

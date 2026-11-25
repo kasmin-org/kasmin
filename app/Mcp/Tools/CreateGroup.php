@@ -14,6 +14,8 @@ use Laravel\Mcp\Server\Attributes\Name;
 #[Description('Creates a group: manual, dynamic (filter with match and rules: age, membership, role, group, events) or event.')]
 class CreateGroup extends ApiTool
 {
+    public const ENDPOINT = ['POST', '/groups'];
+
     protected string $scope = 'people:write';
 
     public function handle(Request $request): Response

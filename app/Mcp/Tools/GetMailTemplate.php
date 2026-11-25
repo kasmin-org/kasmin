@@ -16,6 +16,8 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 #[IsReadOnly]
 class GetMailTemplate extends ApiTool
 {
+    public const ENDPOINT = ['GET', '/mail-templates/{template}'];
+
     protected string $scope = 'mail:read';
 
     public function handle(Request $request): Response

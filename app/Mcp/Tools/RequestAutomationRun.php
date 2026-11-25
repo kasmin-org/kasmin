@@ -14,6 +14,8 @@ use Laravel\Mcp\Server\Attributes\Name;
 #[Description('Starts an automation. Without the permission approvals:decide this only creates an approval request: the approvers get an e-mail and decide.')]
 class RequestAutomationRun extends ApiTool
 {
+    public const ENDPOINT = ['POST', '/automations/{automation}/run'];
+
     protected string $scope = 'automations:run';
 
     public function handle(Request $request): Response

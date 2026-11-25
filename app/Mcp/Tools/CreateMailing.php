@@ -14,6 +14,8 @@ use Laravel\Mcp\Server\Attributes\Name;
 #[Description('Creates the draft of a mailing. Nothing is sent.')]
 class CreateMailing extends ApiTool
 {
+    public const ENDPOINT = ['POST', '/mailings'];
+
     protected string $scope = 'mail:write';
 
     public function handle(Request $request): Response

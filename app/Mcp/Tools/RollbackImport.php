@@ -16,6 +16,8 @@ use Laravel\Mcp\Server\Tools\Annotations\IsDestructive;
 #[IsDestructive]
 class RollbackImport extends ApiTool
 {
+    public const ENDPOINT = ['POST', '/imports/{batch}/rollback'];
+
     protected string $scope = 'import:write';
 
     public function handle(Request $request): Response

@@ -16,6 +16,8 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 #[IsReadOnly]
 class WhoAmI extends ApiTool
 {
+    public const ENDPOINT = ['GET', '/me'];
+
     protected string $scope = '';
 
     public function handle(Request $request): Response

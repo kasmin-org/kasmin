@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Models\Webhook;
+use App\Support\Api\ApiContext;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -10,7 +11,8 @@ use Illuminate\Validation\Rule;
 
 /**
  * Webhooks: addresses Kasmin calls when something happens. Scope: settings:write. The signing secret is part of
- * the answer exactly once – when the webhook is created or gets a new secret – and never again.
+ * the answer exactly once – when the webhook is created or gets a new secret – and never again. Via MCP, webhooks
+ * can be read, renamed, switched and deleted only: an AI assistant gets no secret and cannot send data to a new address.
  */
 class WebhooksController extends ApiController
 {
@@ -25,6 +27,7 @@ class WebhooksController extends ApiController
     public function store(Request $request): JsonResponse
     {
         $this->scope('settings:write');
+        $this->notViaMcp();
         $secret = Str::random(48);
         $hook = Webhook::query()->create($this->data($request, true) + ['active' => true, 'secret' => $secret]);
 
@@ -36,6 +39,9 @@ class WebhooksController extends ApiController
     {
         $this->scope('settings:write');
         $hook = Webhook::query()->findOrFail($webhook);
+        if ($request->has('url')) {
+            $this->notViaMcp();
+        }
         $hook->update($this->data($request, false));
 
         return response()->json(['data' => $this->present($hook)]);
@@ -45,6 +51,7 @@ class WebhooksController extends ApiController
     public function newSecret(int $webhook): JsonResponse
     {
         $this->scope('settings:write');
+        $this->notViaMcp();
         $hook = Webhook::query()->findOrFail($webhook);
         $secret = Str::random(48);
         $hook->forceFill(['secret' => $secret])->save();
@@ -59,6 +66,11 @@ class WebhooksController extends ApiController
         Webhook::query()->findOrFail($webhook)->delete();
 
         return response()->json(['data' => null]);
+    }
+
+    private function notViaMcp(): void
+    {
+        abort_if(ApiContext::viaMcp(), 403, 'Via MCP, a webhook cannot be created and its address and secret cannot be changed.');
     }
 
     /** @return array<string, mixed> */

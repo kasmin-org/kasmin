@@ -12,15 +12,77 @@ use Laravel\Mcp\Server\Tool;
  * An MCP tool that calls the REST API v1 internally with the same token (X04): same scopes, validation and audit
  * log. The internal call is marked as MCP (request attribute, cannot be set by clients), so the audit log shows
  * "mcp" and the setting "AI processing allowed" applies (MI12). A tool is only listed if the token has its scope.
+ * Every tool names the endpoint it calls in ENDPOINT, so that a test can show that no endpoint is forgotten (AP01).
  */
 abstract class ApiTool extends Tool
 {
+    /**
+     * Method and route of the REST API v1 this tool calls: the URI exactly as in routes/api.php, without "v1".
+     *
+     * @var array{string, string}
+     */
+    public const ENDPOINT = ['', ''];
+
     /** Scope the token needs for this tool. */
     protected string $scope = '';
 
+    /**
+     * Scopes the endpoint needs in addition; the tool is only listed with all of them.
+     *
+     * @var list<string>
+     */
+    protected array $alsoNeeds = [];
+
     public function shouldRegister(): bool
     {
+        foreach ($this->alsoNeeds as $scope) {
+            if (! ApiContext::allows($scope)) {
+                return false;
+            }
+        }
+
         return $this->scope === '' || ApiContext::allows($this->scope);
+    }
+
+    /**
+     * Calls the endpoint of the tool. The placeholders of the route are filled from the arguments ($names:
+     * placeholder => name of the argument, when they differ); the other arguments are the query or the body.
+     *
+     * @param  array<string, mixed>  $args
+     * @param  array<string, string>  $names
+     */
+    protected function callEndpoint(array $args, array $names = []): Response
+    {
+        [$method, $uri] = static::ENDPOINT;
+        $path = (string) preg_replace_callback('/\{(\w+)\}/', function (array $match) use (&$args, $names): string {
+            $name = $names[$match[1]] ?? $match[1];
+            $value = $args[$name] ?? '';
+            unset($args[$name]);
+
+            return rawurlencode(is_scalar($value) ? (string) $value : '');
+        }, $uri);
+
+        return $this->call($method, $path, $args);
+    }
+
+    /**
+     * The arguments, with the optional fields named in "clear" set to null: empty values are left out of the
+     * arguments, so a field is emptied by name.
+     *
+     * @param  list<string>  $clearable
+     * @return array<string, mixed>
+     */
+    protected function argsWithClear(Request $request, array $clearable): array
+    {
+        $args = $this->args($request);
+        unset($args['clear']);
+        foreach ((array) ($request->get('clear') ?? []) as $field) {
+            if (is_string($field) && in_array($field, $clearable, true) && ! array_key_exists($field, $args)) {
+                $args[$field] = null;
+            }
+        }
+
+        return $args;
     }
 
     /**

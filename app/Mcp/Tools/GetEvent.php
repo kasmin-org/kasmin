@@ -16,6 +16,8 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 #[IsReadOnly]
 class GetEvent extends ApiTool
 {
+    public const ENDPOINT = ['GET', '/events/{event}'];
+
     protected string $scope = 'events:read';
 
     public function handle(Request $request): Response

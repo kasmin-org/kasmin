@@ -16,6 +16,8 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 #[IsReadOnly]
 class ListAutomations extends ApiTool
 {
+    public const ENDPOINT = ['GET', '/automations'];
+
     protected string $scope = 'automations:read';
 
     public function handle(Request $request): Response

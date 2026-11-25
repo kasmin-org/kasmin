@@ -18,6 +18,10 @@ All notable changes to Kasmin are documented in this file. The format is based o
 - REST API: `PATCH /participations/{id}` with the status `cancelled` takes a `reason`, recalculates draft invoices as the admin interface does, and refuses participations that are already cancelled, declined, attended or a no-show.
 - REST API: families (`GET /households`) also show `locale` and `invoice_recipient`.
 
+### Fixed
+
+- People who take part for free (e.g. the team) got an invoice for the fixed deposit, and a family with only free places got an invoice over 0. Found by replaying two real camp years.
+
 ## [0.24.0] - 2026-11-25
 
 ### Added

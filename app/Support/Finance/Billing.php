@@ -56,7 +56,9 @@ class Billing
                 continue;
             }
             $amount = $this->fixed($other, $participation);
-            $amount = $capped ? min($amount, max(0, $left)) : $amount;
+            // A fixed instalment is a part of the price, never more: who takes part for free (e.g. the team) owes nothing,
+            // and a reduced place never costs more than its price. A membership fee is owed by its own rules.
+            $amount = $capped || $other->kind !== 'member' ? min($amount, max(0, $left)) : $amount;
             if ($other->is($installment)) {
                 return $amount;
             }
@@ -85,6 +87,9 @@ class Billing
                 continue;
             }
             $base = $this->base($event, $installment, $p);
+            if ($base === 0 && $p->price_cents === null) {
+                continue; // nothing to pay in this instalment; a reduced place stays visible with 0
+            }
             $d = $discounts[$p->id] ?? ['discount' => 0, 'kind' => null, 'position' => 0];
             $discount = min($base, $d['discount']);
             $description = trans('finance.line', ['installment' => $installment->labelText($locale), 'name' => $p->person?->fullName()], $locale);

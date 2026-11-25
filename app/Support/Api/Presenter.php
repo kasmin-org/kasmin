@@ -11,6 +11,7 @@ use App\Models\Household;
 use App\Models\Invoice;
 use App\Models\Participation;
 use App\Models\Person;
+use App\Support\Events\Bus;
 
 /**
  * Plain arrays for the REST API and MCP. Confidential data (safety sheets, health) is never included here; it has
@@ -83,7 +84,7 @@ class Presenter
         return [
             'id' => $p->id, 'event' => $p->event?->public_id, 'event_title' => $p->event?->title, 'person' => $p->person?->public_id,
             'name' => $p->person?->fullName(), 'role' => $p->role_key, 'status' => $p->status, 'waitlist_position' => $p->waitlistPosition(),
-            'registered_at' => $p->registered_at->toIso8601String(), 'offer_expires_at' => $p->offer_expires_at?->toIso8601String(),
+            'travel' => Bus::travel($p), 'registered_at' => $p->registered_at->toIso8601String(), 'offer_expires_at' => $p->offer_expires_at?->toIso8601String(),
         ];
     }
 

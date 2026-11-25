@@ -43,7 +43,7 @@ Own events are events
 - the person takes part in as team member or junior counsellor. Somebody who only registered itself does not count until the team
   confirms it.
 
-They count until 180 days after the end. People with such a role see these events, their participants and the legal guardians of these,
+They count until 180 days after the end (*Settings → Organisation and invoices → Own events: days of access after the end*). People with such a role see these events, their participants and the legal guardians of these,
 the lists, and the schedule. Registrations a child made itself do not show its legal guardians. Everything else is closed: other events,
 families, groups, imports, statistics, mailings, the to-do list, and searching for other people. Health data needs the additional right
 *Safety* in the role and then also only counts for the own events.

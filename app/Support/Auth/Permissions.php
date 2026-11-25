@@ -10,6 +10,7 @@ use App\Models\Role;
 use App\Models\RoleAssignment;
 use App\Models\User;
 use App\Support\Lists\EventLists;
+use App\Support\Settings;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\Auth;
 
@@ -63,6 +64,14 @@ class Permissions
     /** Days after the end in which an event still counts as an own event (RO01). */
     public const OWN_EVENT_DAYS = 180;
 
+    /** How long after its end an event still counts as "own" (setting own_event_days, default 180). */
+    public static function ownEventDays(): int
+    {
+        $days = Settings::get('own_event_days');
+
+        return is_numeric($days) ? max(0, (int) $days) : self::OWN_EVENT_DAYS;
+    }
+
     /**
      * Events a person may see or change through roles that only count for the own events: events the role was assigned
      * for, and events the person takes part in as team member. Somebody who only registered itself does not count until
@@ -95,7 +104,7 @@ class Permissions
                 ->reject(fn (Participation $p) => $p->isOwn() && $p->status === 'registered')->pluck('event_id'));
         }
 
-        return $ids->isEmpty() ? [] : array_values(Event::query()->whereIn('id', $ids->unique())->where('ends_at', '>', now()->subDays(self::OWN_EVENT_DAYS))->pluck('id')->map(fn ($id) => (int) $id)->all());
+        return $ids->isEmpty() ? [] : array_values(Event::query()->whereIn('id', $ids->unique())->where('ends_at', '>', now()->subDays(self::ownEventDays()))->pluck('id')->map(fn ($id) => (int) $id)->all());
     }
 
     /** All events, or the own ones. */

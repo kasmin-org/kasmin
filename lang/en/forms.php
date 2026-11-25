@@ -22,4 +22,12 @@ return [
     'legal_guardian' => 'legal guardian',
     'no_phone' => 'no phone number on file',
     'notify_changed' => ':form of :name changed: :fields – see portal',
+    'sensitivity_locked' => 'There are already answers: only people with access to the safety sheets may remove or rename confidential fields, make them less confidential, or change the safety sheet into an ordinary form.',
+    'other' => 'Other', 'other_text' => 'Other, namely', 'other_required' => 'Please choose an entry or describe "Other".',
+    'other_person' => 'Another person', 'other_person_name' => 'Name of the other person', 'person_number' => 'Insurance number',
+    'format_invalid' => 'Please check the number: it is not a valid entry (:format).',
+    'formats' => ['at_social_insurance' => 'Austria: social insurance number', 'de_health_insurance' => 'Germany: health insurance number', 'ch_ahv' => 'Switzerland: AHV number'],
+    'choice_lists' => ['carriers_at' => 'Health insurance carriers: Austria', 'carriers_de' => 'Health insurance carriers: Germany', 'carriers_ch' => 'Health insurance carriers: Switzerland'],
+    'order' => 'Order of the legal guardians as emergency contacts',
+    'summary' => 'Summary by e-mail to myself', 'summary_none' => 'No summary', 'summary_without_numbers' => 'All information except insurance numbers', 'summary_hint' => 'The summary contains health information and goes only to your own e-mail address.',
 ];

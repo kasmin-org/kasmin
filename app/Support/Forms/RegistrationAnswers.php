@@ -9,6 +9,7 @@ use App\Models\Participation;
 use App\Models\Person;
 use App\Models\RegistrationAnswer;
 use App\Support\Audit\Audit;
+use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -38,9 +39,9 @@ class RegistrationAnswers
      * @param  Collection<int, FormField>|null  $fields
      * @return array<string, mixed>
      */
-    public function rules(Form $form, ?Collection $fields = null): array
+    public function rules(Form $form, ?Collection $fields = null, ?Person $person = null): array
     {
-        $rules = $this->forms->rules($form);
+        $rules = $this->forms->rules($form, $person);
         foreach ($form->fields as $field) {
             $base = 'values.'.$field->key;
             if ($fields !== null && ! $fields->contains('key', $field->key)) {
@@ -54,6 +55,12 @@ class RegistrationAnswers
         }
 
         return $rules;
+    }
+
+    /** Moves the free texts of choices with "other" into the values (SF02). */
+    public function normalise(Request $request, Form $form): void
+    {
+        $request->merge(['values' => $this->forms->normalise($form, (array) $request->input('values', []), (array) $request->input('other', []))]);
     }
 
     /**

@@ -33,13 +33,13 @@ class AuthenticateApiToken
         if ($channel === 'mcp' && (! $token->mcp || Settings::get('ai_processing', 'none') === 'none')) {
             return response()->json(['message' => 'This token may not be used via MCP, or AI processing is switched off in the settings.'], 403);
         }
+        $previous = [ApiContext::token(), ApiContext::viaMcp()];
         ApiContext::set($token, $channel === 'mcp');
         Auth::setUser($token->user ?? abort(401));
         if ($token->last_used_at === null || $token->last_used_at->lt(now()->subMinute())) {
             $token->forceFill(['last_used_at' => now(), 'last_used_ip' => $request->ip()])->saveQuietly();
         }
 
-        $previous = [ApiContext::token(), ApiContext::viaMcp()];
         try {
             return $next($request);
         } finally {

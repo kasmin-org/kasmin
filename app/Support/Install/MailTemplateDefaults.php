@@ -10,7 +10,7 @@ use App\Models\MailTemplate;
  */
 class MailTemplateDefaults
 {
-    public const VERSION = 6;
+    public const VERSION = 7;
 
     public function install(): void
     {
@@ -81,6 +81,20 @@ class MailTemplateDefaults
             ], [
                 'Please fill in or confirm the safety sheet',
                 '<p>{{ salutation }}</p><p>for {{ event.title }} we need the current safety sheet{% if children|length > 0 %} of {% for child in children %}{{ child.first_name }}{% if not loop.last %}, {% endif %}{% endfor %}{% endif %}. If nothing has changed, confirm the information in the portal with one click.</p>'.$button('Open the safety sheet').'<p>For data protection reasons the information itself is not included in this e-mail.</p><p>Kind regards<br>{{ organisation.name }}</p>',
+            ]],
+            'safety_sheet_confirm' => ['safety_sheet', 'guardians', ['de' => 'Sicherheitsblatt jährlich bestätigen', 'en' => 'Yearly confirmation of the safety sheet'], [
+                'Bitte Sicherheitsblatt bestätigen',
+                '<p>{{ salutation }}</p><p>vor {{ event.title }} brauchen wir die Bestätigung, dass das Sicherheitsblatt{% if children|length > 0 %} von {% for child in children %}{{ child.first_name }}{% if not loop.last %}, {% endif %}{% endfor %}{% endif %} noch stimmt. Wenn sich nichts geändert hat, genügt ein Klick im Portal.</p>'.$button('Sicherheitsblatt öffnen').'<p>Die Angaben selbst stehen aus Datenschutzgründen nicht in dieser E-Mail.</p><p>Mit freundlichen Grüßen<br>{{ organisation.name }}</p>',
+            ], [
+                'Please confirm the safety sheet',
+                '<p>{{ salutation }}</p><p>before {{ event.title }} we need your confirmation that the safety sheet{% if children|length > 0 %} of {% for child in children %}{{ child.first_name }}{% if not loop.last %}, {% endif %}{% endfor %}{% endif %} is still correct. If nothing has changed, one click in the portal is enough.</p>'.$button('Open the safety sheet').'<p>For data protection reasons the information itself is not included in this e-mail.</p><p>Kind regards<br>{{ organisation.name }}</p>',
+            ]],
+            'safety_sheet_thanks' => ['safety_sheet', 'guardians', ['de' => 'Danke, Sicherheitsblatt bestätigt', 'en' => 'Thank you, safety sheet confirmed'], [
+                'Danke: Sicherheitsblatt bestätigt',
+                '<p>{{ salutation }}</p><p>vielen Dank, das Sicherheitsblatt{% if children|length > 0 %} von {% for child in children %}{{ child.first_name }}{% if not loop.last %}, {% endif %}{% endfor %}{% endif %} ist gespeichert und bestätigt. Sie können es im Portal jederzeit ansehen und ändern.</p>'.$button('Sicherheitsblatt öffnen').'<p>Mit freundlichen Grüßen<br>{{ organisation.name }}</p>',
+            ], [
+                'Thank you: safety sheet confirmed',
+                '<p>{{ salutation }}</p><p>thank you, the safety sheet{% if children|length > 0 %} of {% for child in children %}{{ child.first_name }}{% if not loop.last %}, {% endif %}{% endfor %}{% endif %} has been saved and confirmed. You can view and change it in the portal at any time.</p>'.$button('Open the safety sheet').'<p>Kind regards<br>{{ organisation.name }}</p>',
             ]],
             'safety_sheet_reminder' => ['reminder', 'guardians', ['de' => 'Erinnerung Sicherheitsblatt', 'en' => 'Safety sheet reminder'], [
                 'Erinnerung: Sicherheitsblatt für {{ event.title }}',

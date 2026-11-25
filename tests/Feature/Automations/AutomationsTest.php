@@ -238,7 +238,7 @@ class AutomationsTest extends TestCase
         $automation->update(['mode' => 'automatic', 'config' => ['form' => 'safety_sheet', 'interval_days' => 7, 'max' => 2, 'window_days' => 120]]);
         $this->assertNotNull(Form::query()->where('key', 'safety_sheet')->first());
         $engine = app(Engine::class);
-        $count = fn () => OutgoingMail::query()->where('subject', 'like', 'Reminder: safety sheet%')->count();
+        $count = fn () => OutgoingMail::query()->where('subject', 'like', '%safety sheet%')->count();
 
         $this->travelTo(now()->setTime(19, 0));
         $engine->tick();

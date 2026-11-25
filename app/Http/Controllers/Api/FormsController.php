@@ -6,6 +6,7 @@ use App\Models\Form;
 use App\Models\FormField;
 use App\Models\FormResponse;
 use App\Support\Api\ApiContext;
+use App\Support\Forms\FormDefinitions;
 use App\Support\Forms\Forms;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -16,7 +17,7 @@ use Illuminate\Http\Request;
  */
 class FormsController extends ApiController
 {
-    public function __construct(private readonly Forms $forms) {}
+    public function __construct(private readonly Forms $forms, private readonly FormDefinitions $definitions) {}
 
     /** All active forms with their fields. */
     public function index(): JsonResponse
@@ -27,6 +28,26 @@ class FormsController extends ApiController
         return response()->json(['data' => $forms->map(fn (Form $f) => ['key' => $f->key, 'kind' => $f->kind, 'name' => $f->name, 'version' => $f->version, 'fields' => $f->fields->map(fn (FormField $x) => [
             'key' => $x->key, 'type' => $x->type, 'label' => $x->label, 'required' => $x->required, 'confidential' => $x->isConfidential(),
         ])->values()->all()])->values()]);
+    }
+
+    /** Definition of a form as JSON (no answers); the same format can be imported. */
+    public function definition(string $form): JsonResponse
+    {
+        $this->scope('people:read');
+
+        return response()->json(['data' => $this->definitions->export(Form::query()->where('key', $form)->firstOrFail())]);
+    }
+
+    /**
+     * Creates a form or replaces its definition (new version; answers stay). Making a confidential field less
+     * confidential, renaming or removing it needs health:write once there are answers.
+     */
+    public function saveDefinition(Request $request, string $form): JsonResponse
+    {
+        $this->scope('settings:write');
+        $saved = $this->definitions->import(['key' => $form] + $request->all());
+
+        return response()->json(['data' => $this->definitions->export($saved) + ['version' => $saved->version]]);
     }
 
     /** Status of all forms of a person (missing, expired, confirmed). */
@@ -78,7 +99,7 @@ class FormsController extends ApiController
             }
         }
         abort_if(array_diff(array_keys($given), $f->fields->pluck('key')->all()) !== [], 422, 'Unknown field.');
-        $rules = array_filter($this->forms->rules($f), fn (string $rule) => array_key_exists(explode('.', $rule)[1] ?? '', $given), ARRAY_FILTER_USE_KEY);
+        $rules = array_filter($this->forms->rules($f, $model), fn (string $rule) => array_key_exists(explode('.', $rule)[1] ?? '', $given), ARRAY_FILTER_USE_KEY);
         validator(['values' => $given], $rules)->validate();
         $this->forms->save($f, $model, $given + ($this->forms->current($f, $model)->values ?? []), null, confirm: false, action: 'form.saved_by_api');
 

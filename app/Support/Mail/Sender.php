@@ -9,6 +9,7 @@ use App\Models\OutgoingMail;
 use App\Models\SenderProfile;
 use App\Support\Audit\Audit;
 use App\Support\Finance\InvoicePdf;
+use App\Support\Forms\SummaryPdf;
 use App\Support\Settings;
 use DirectoryTree\ImapEngine\Mailbox;
 use Illuminate\Support\Facades\Mail;
@@ -110,6 +111,10 @@ class Sender
                 // A mail never goes out without a file that was promised.
                 $content = Storage::disk('local')->get((string) $file['file']) ?? throw new MailException('Attachment missing: '.($file['name'] ?? ''));
                 $email->attach($content, (string) ($file['name'] ?? basename((string) $file['file'])));
+            }
+            if (isset($attachment['form_response_id'])) {
+                $summary = app(SummaryPdf::class)->for($mail, (int) $attachment['form_response_id']) ?? throw new MailException('The summary is no longer available.');
+                $email->attach($summary['content'], $summary['name'], 'application/pdf');
             }
             if (isset($attachment['invoice_id'])) {
                 $invoice = Invoice::query()->whereKey((int) $attachment['invoice_id'])->first();

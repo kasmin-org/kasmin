@@ -6,6 +6,7 @@ use App\Models\Automation;
 use App\Models\Event;
 use App\Models\Form;
 use App\Models\Household;
+use App\Models\MailTemplate;
 use App\Models\Participation;
 use App\Models\Person;
 use App\Support\Automations\Action;
@@ -52,12 +53,36 @@ class SafetySheetReminder implements Action, Finishes
             return 'skipped: complete';
         }
         [$e, $family] = $entry;
+        $template = $this->template($automation, $item['key'], $family['children']);
         foreach ($family['recipients'] as $recipient) {
-            app(Composer::class)->queue('safety_sheet_reminder', $recipient, ['event' => $e, 'household' => $family['household'], 'children' => $family['children']]);
+            app(Composer::class)->queue($template, $recipient, ['event' => $e, 'household' => $family['household'], 'children' => $family['children']]);
         }
         $this->subjects->touch($automation, $item['key']);
 
         return count($family['recipients']).' mail(s)';
+    }
+
+    /**
+     * First mail: the request to fill in, or the yearly confirmation if every sheet only has to be confirmed; then
+     * reminders (SF18).
+     *
+     * @param  list<Person>  $children
+     */
+    private function template(Automation $automation, string $key, array $children): string
+    {
+        if ($this->subjects->get($automation, $key)['count'] > 0) {
+            return 'safety_sheet_reminder';
+        }
+        $form = $this->form($automation);
+        $expired = $form !== null && collect($children)->every(fn (Person $child) => $this->forms->status($form, $child) === 'expired');
+        $first = $expired ? 'safety_sheet_confirm' : 'safety_sheet_request';
+
+        return MailTemplate::query()->where('key', $first)->where('active', true)->exists() ? $first : 'safety_sheet_reminder';
+    }
+
+    private function form(Automation $automation): ?Form
+    {
+        return Form::query()->where('key', (string) $automation->setting('form', 'safety_sheet'))->where('active', true)->first();
     }
 
     public function finish(Automation $automation, ?Event $event): void
@@ -79,7 +104,7 @@ class SafetySheetReminder implements Action, Finishes
     /** @return Collection<string, array{0: Event, 1: array{household: Household|null, children: list<Person>, recipients: list<Person>, participations: list<Participation>}}> */
     private function missing(Automation $automation, ?Event $event): Collection
     {
-        $form = Form::query()->where('key', (string) $automation->setting('form', 'safety_sheet'))->where('active', true)->first();
+        $form = $this->form($automation);
         if ($form === null) {
             return collect();
         }

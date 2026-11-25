@@ -1,5 +1,6 @@
 <?php
 
+use App\Support\Install\AfterMigrations;
 use App\Support\Install\AutomationDefaults;
 use App\Support\Install\MailTemplateDefaults;
 use Illuminate\Database\Migrations\Migration;
@@ -32,8 +33,8 @@ return new class extends Migration
             $table->string('offer_reason')->nullable();   // offered by an administrator (RR03)
         });
         if (DB::table('mail_templates')->where('is_standard', true)->exists()) {
-            app(MailTemplateDefaults::class)->install();
-            app(AutomationDefaults::class)->install();
+            AfterMigrations::request(MailTemplateDefaults::class);
+            AfterMigrations::request(AutomationDefaults::class);
         }
     }
 

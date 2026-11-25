@@ -32,6 +32,12 @@ class MailTemplateDefaults
         }
     }
 
+    /** @return list<string> */
+    public function keys(): array
+    {
+        return array_keys($this->templates());
+    }
+
     /** @return array<string, array{0: string, 1: string}>|null shipped subject and HTML per language */
     public function contents(string $key): ?array
     {

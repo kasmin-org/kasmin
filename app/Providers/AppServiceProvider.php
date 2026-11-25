@@ -6,6 +6,7 @@ use App\Models\Participation;
 use App\Models\Person;
 use App\Models\User;
 use App\Support\Api\Presenter;
+use App\Support\Install\AfterMigrations;
 use App\Support\RuntimeSettings;
 use App\Support\Schema\SchemaGuard;
 use App\Support\Schema\SchemaStatus;
@@ -19,6 +20,7 @@ use Filament\Tables\Table;
 use Illuminate\Cache\RateLimiter;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Console\Events\CommandStarting;
+use Illuminate\Database\Events\MigrationsEnded;
 use Illuminate\Foundation\Events\LocaleUpdated;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Date;
@@ -67,6 +69,8 @@ class AppServiceProvider extends ServiceProvider
             }
         });
         Person::created(fn (Person $p) => app(Webhooks::class)->emit('person.created', Presenter::person($p)));
+
+        Event::listen(MigrationsEnded::class, fn (MigrationsEnded $event) => $event->method === 'up' ? AfterMigrations::run() : null);
 
         // English dates day first ("8 December 2026"), never the ambiguous American order.
         $dates = fn (string $locale) => Date::setLocale($locale === 'en' ? 'en_GB' : $locale);

@@ -135,6 +135,53 @@ jobs:
           echo x >> /tmp/pkg/kasmin.zip
           ! php installer/kasmin-setup.php --source=/tmp/pkg/kasmin.zip --target=/tmp/kasmin2 --db-host=127.0.0.1 --db-name=kasmin --db-user=kasmin --db-password=kasmin
 
+  upgrade:
+    name: Upgrade (${{ matrix.from }}, ${{ matrix.db }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        from: [v0.10.0, latest]
+        db: [sqlite, mariadb]
+    services:
+      mariadb:
+        image: mariadb:11
+        env: { MARIADB_ROOT_PASSWORD: root, MARIADB_DATABASE: kasmin }
+        ports: ["3306:3306"]
+        options: --health-cmd="healthcheck.sh --connect --innodb_initialized" --health-interval=5s --health-timeout=5s --health-retries=20
+    env:
+      APP_ENV: production
+      APP_KEY: base64:a2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2s=
+      CACHE_STORE: file
+      SESSION_DRIVER: file
+      MAIL_MAILER: log
+      DB_HOST: 127.0.0.1
+      DB_PORT: "3306"
+      DB_USERNAME: root
+      DB_PASSWORD: root
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0, fetch-tags: true }
+      - uses: shivammathur/setup-php@v2
+        with: { php-version: "8.4", extensions: "intl, zip, gd, bcmath, pdo_mysql, pdo_sqlite", coverage: none }
+      - name: Choose the database and the old version
+        run: |
+          if [ "${{ matrix.db }}" = sqlite ]; then touch /tmp/kasmin.sqlite; echo "DB_CONNECTION=sqlite" >> "$GITHUB_ENV"; echo "DB_DATABASE=/tmp/kasmin.sqlite" >> "$GITHUB_ENV"
+          else echo "DB_CONNECTION=mariadb" >> "$GITHUB_ENV"; echo "DB_DATABASE=kasmin" >> "$GITHUB_ENV"; fi
+          from="${{ matrix.from }}"; [ "$from" = latest ] && from=$(git tag -l 'v*' --sort=-v:refname | head -1); echo "FROM=$from" >> "$GITHUB_ENV"
+      - name: Install the old version with demo data
+        run: |
+          new=$(git rev-parse HEAD); git checkout -q "$FROM"
+          composer install --no-interaction --no-progress --prefer-dist --no-scripts -q && php artisan package:discover -q
+          php artisan kasmin:install --organisation="Old Camp" --locale=de --defaults=de --admin-name="Alex Admin" --admin-email=admin@example.org
+          php artisan kasmin:demo --locale=de --families=8 --staff=4 --force
+          git checkout -q -f "$new"
+      - name: Upgrade
+        run: |
+          composer install --no-interaction --no-progress --prefer-dist --no-scripts -q && php artisan package:discover -q
+          php artisan kasmin:upgrade
+          php tests/upgrade-check.php
+
   semgrep:
     name: Security scan (Semgrep)
     runs-on: ubuntu-latest
@@ -259,7 +306,7 @@ jobs:
   badges:
     name: Update badges
     if: ${{ github.event_name == 'push' && (github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main') }}
-    needs: [tests, semgrep, security, gui]
+    needs: [tests, semgrep, security, gui, upgrade]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -290,7 +337,7 @@ jobs:
 
   report:
     name: Report a failed weekly run
-    needs: [quality, tests, installer, semgrep, docker, container, gui, security]
+    needs: [quality, tests, installer, upgrade, semgrep, docker, container, gui, security]
     if: ${{ always() && github.event_name == 'schedule' && contains(needs.*.result, 'failure') }}
     runs-on: ubuntu-latest
     permissions: { issues: write }

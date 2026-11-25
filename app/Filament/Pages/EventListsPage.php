@@ -5,8 +5,11 @@ namespace App\Filament\Pages;
 use App\Models\Event;
 use App\Models\User;
 use App\Support\Audit\Audit;
+use App\Support\Auth\Permissions;
 use App\Support\Lists\EventLists;
+use App\Support\Lists\MissingSheets;
 use BackedEnum;
+use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
 use Livewire\Attributes\Url;
@@ -76,6 +79,22 @@ class EventListsPage extends Page
         }
     }
 
+    /** @var list<string> keys of the selected families */
+    public array $selected = [];
+
+    /** One-click reminder to the selected families in the list "still missing" (SF19a). */
+    public function remind(): void
+    {
+        abort_unless(Permissions::current('events', 'edit') || Permissions::current('safety', 'edit'), 403);
+        $event = Event::query()->find($this->event);
+        if ($event === null || $this->selected === []) {
+            return;
+        }
+        $result = app(MissingSheets::class)->remind($event, $this->selected, $this->role ?: null);
+        $this->selected = [];
+        Notification::make()->title(__('lists.reminded', $result))->success()->send();
+    }
+
     /** @return array<string, mixed> */
     protected function getViewData(): array
     {
@@ -90,6 +109,7 @@ class EventListsPage extends Page
             'model' => $event, 'keys' => $keys, 'key' => $key, 'roleOptions' => $event?->roles->pluck('role_key')->all() ?? [],
             'table' => $event !== null ? app(EventLists::class)->build($event, $key, $this->role ?: null) : null,
             'safety' => EventLists::mayViewSafety($user),
+            'families' => $event !== null && $key === 'missing' && (Permissions::current('events', 'edit') || Permissions::current('safety', 'edit')) ? app(MissingSheets::class)->labels($event, $this->role ?: null) : [],
         ];
     }
 }

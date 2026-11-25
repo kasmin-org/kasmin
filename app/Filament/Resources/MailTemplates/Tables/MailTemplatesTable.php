@@ -4,6 +4,7 @@ namespace App\Filament\Resources\MailTemplates\Tables;
 
 use App\Models\MailTemplate;
 use App\Support\Mail\Placeholders;
+use App\Support\Mail\PreviewFrame;
 use App\Support\Mail\TemplateRenderer;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
@@ -30,7 +31,7 @@ class MailTemplatesTable
                     $html = '';
                     foreach ($record->contents as $content) {
                         $r = app(TemplateRenderer::class)->renderStrings($content->subject, $content->html, $content->text, Placeholders::sample());
-                        $html .= '<h3 style="font-weight:600">'.e(strtoupper($content->locale)).': '.e($r['subject']).'</h3><div style="border:1px solid #ddd;padding:12px;margin:8px 0 16px;border-radius:8px">'.$r['html'].'</div>';
+                        $html .= '<h3 style="font-weight:600">'.e(strtoupper($content->locale)).': '.e($r['subject']).'</h3><div style="margin:8px 0 16px">'.PreviewFrame::make($r['html'], strtoupper($content->locale).': '.$r['subject']).'</div>';
                     }
 
                     return new HtmlString($html);

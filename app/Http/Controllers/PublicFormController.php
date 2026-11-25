@@ -123,6 +123,10 @@ class PublicFormController extends Controller
     /** @return array<string, mixed> */
     private function data(Request $request, ?Form $questions, bool $email, bool $birthDate): array
     {
+        if ($questions !== null) {
+            $this->answers->normalise($request, $questions);
+        }
+
         return $request->validate([
             'first_name' => ['required', 'string', 'max:120'],
             'last_name' => ['required', 'string', 'max:120'],

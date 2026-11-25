@@ -10,4 +10,5 @@ return [
         'missing' => 'Fehlende Sicherheitsblätter', 'emergency' => 'Notfallkontakte', 'kitchen' => 'Küche', 'medical' => 'Medizinisches', 'medication' => 'Medikamente',
         'insurance' => 'Versicherung', 'swimmers' => 'Schwimmen', 'consents' => 'Einwilligungen', 'changes' => 'Änderungen seit der letzten Veranstaltung',
     ],
+    'remind' => 'Erinnerung senden', 'remind_families' => 'Ausgewählte Familien erinnern', 'remind_confirm' => 'Den ausgewählten Familien eine Erinnerung senden?', 'reminded' => ':sent Erinnerungen gesendet, :skipped übersprungen (heute schon erinnert oder keine E-Mail-Adresse).',
 ];

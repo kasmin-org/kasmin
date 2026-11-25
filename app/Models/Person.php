@@ -77,7 +77,7 @@ class Person extends Model
      */
     public function guardians(): BelongsToMany
     {
-        return $this->belongsToMany(Person::class, 'guardianships', 'child_id', 'guardian_id')->withPivot(['starts_on', 'ends_on'])->withTimestamps()
+        return $this->belongsToMany(Person::class, 'guardianships', 'child_id', 'guardian_id')->withPivot(['starts_on', 'ends_on', 'emergency_sort'])->withTimestamps()
             ->where(fn ($q) => $q->whereNull('guardianships.ends_on')->orWhereDate('guardianships.ends_on', '>=', now()->toDateString()));
     }
 

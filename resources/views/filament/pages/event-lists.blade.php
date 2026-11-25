@@ -30,6 +30,15 @@
                         :href="route('admin.lists.folder', ['event' => $model->id])">{{ __('lists.folder') }}</x-filament::button>
                 @endif
             </div>
+            @if ($families !== [])
+                <fieldset style="margin-bottom:1rem">
+                    <legend class="text-sm font-medium">{{ __('lists.remind_families') }}</legend>
+                    @foreach ($families as $familyKey => $label)
+                        <label class="text-sm" style="display:flex;gap:.5rem;align-items:center;padding:.3rem 0"><input type="checkbox" wire:model="selected" value="{{ $familyKey }}"> {{ $label }}</label>
+                    @endforeach
+                    <x-filament::button size="sm" icon="heroicon-o-envelope" wire:click="remind" wire:confirm="{{ __('lists.remind_confirm') }}" style="margin-top:.5rem">{{ __('lists.remind') }}</x-filament::button>
+                </fieldset>
+            @endif
             <div style="overflow-x:auto">
                 <table class="w-full text-sm" style="border-collapse:collapse">
                     <thead><tr>@foreach ($table->headers as $h)<th style="text-align:left;padding:.4rem .6rem;border-bottom:1px solid #9ca3af;white-space:nowrap">{{ $h }}</th>@endforeach</tr></thead>

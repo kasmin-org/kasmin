@@ -6,6 +6,30 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ## [Unreleased]
 
+## [0.18.0] - 2026-11-25
+
+Pre-release for testing. Not ready for production use.
+
+### Added
+
+- Forms: number and person fields, choices with "Other", ready-made lists (health insurance carriers), smallest and largest values, check digits of insurance numbers (Austria, Germany, Switzerland).
+- Export and import of forms as JSON, also by API and MCP.
+- Order of the legal guardians as emergency contacts.
+- Events: safety sheet not older than … days before the start.
+- Safety sheet: mails for the yearly confirmation and thank you, summary to oneself (off by default, without numbers), one-click reminder to selected families, webhook `form.confirmed`.
+
+### Security
+
+- Stored mails no longer contain personal login links; a link is made when the mail is sent. Until now, people with access to the mail log or to the review of a mailing (and to backups) could use the links of others for a limited portal session; links that allow a full login or the admin interface were never stored. Links in mails already stored are removed, and in the test mode mails contain no personal link.
+- The preview of mail templates is shown in a sandboxed frame. Until now, someone with the right to edit mail templates could place a script that ran in the session of whoever opened the preview.
+- Once there are answers, only people with access to the safety sheets can remove or rename confidential fields, make them less confidential, or change or delete the safety sheet. Until now, form rights were enough to make health data readable.
+
+### Fixed
+
+- Vaccination fields accept "nein" and "unbekannt" in German; until now only the English words were accepted.
+- The form builder replaced the English texts of choices with the German ones when saving.
+- The API token of a request was not forgotten after the request (no effect with ordinary PHP hosting).
+
 ## [0.17.0] - 2026-11-25
 
 Pre-release for testing. Not ready for production use.
@@ -389,7 +413,8 @@ First public pre-release for testing. Not ready for production use.
 - Docker image: system packages updated and build packages removed after compiling the PHP extensions – the
   container scan reports no high or critical findings any more (previously 75 in Debian packages).
 
-[Unreleased]: https://github.com/kasmin-org/kasmin/compare/v0.17.0...develop
+[Unreleased]: https://github.com/kasmin-org/kasmin/compare/v0.18.0...develop
+[0.18.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.18.0
 [0.17.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.17.0
 [0.16.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.16.0
 [0.15.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.15.0

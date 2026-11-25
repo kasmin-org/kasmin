@@ -3,6 +3,7 @@
 namespace App\Support\Install;
 
 use App\Models\Form;
+use App\Support\Settings;
 
 /**
  * Default forms installed with "German/English defaults": safety sheet and general information. Every field has
@@ -10,15 +11,22 @@ use App\Models\Form;
  */
 class FormDefaults
 {
+    /** Country-specific parts of the default form (SF04, SF12), by the time zone of the installation. */
+    private const COUNTRIES = [
+        'Europe/Vienna' => ['carriers_at', 'at_social_insurance'], 'Europe/Berlin' => ['carriers_de', 'de_health_insurance'],
+        'Europe/Zurich' => ['carriers_ch', 'ch_ahv'],
+    ];
+
     public function install(): void
     {
+        [$carriers, $format] = self::COUNTRIES[Settings::get('timezone') ?? ''] ?? [null, null];
         $this->create('safety_sheet', ['de' => 'Sicherheitsblatt', 'en' => 'Safety sheet'], [
             'de' => 'Diese Angaben brauchen wir, damit wir gut auf Ihr Kind aufpassen können. Sie sind vertraulich und nur für wenige Personen sichtbar.',
             'en' => 'We need this information to take good care of your child. It is confidential and visible only to a few people.',
         ], appliesUntilAge: 16, confirmEveryDays: 365, emergency: true, sort: 10, fields: [
-            ['insurance_carrier', 'text', ['de' => 'Krankenversicherung', 'en' => 'Health insurance'], ['de' => 'Name der Krankenkasse oder Versicherung.', 'en' => 'Name of the health insurance.'], 'identity', ['insurance']],
-            ['insurance_number', 'text', ['de' => 'Versicherungsnummer des Kindes', 'en' => 'Insurance number of the child'], ['de' => 'Wird nur im Notfall für Ärztin oder Arzt bzw. Krankenhaus verwendet.', 'en' => 'Only used in an emergency for a doctor or hospital.'], 'identity', ['insurance']],
-            ['co_insured_with', 'text', ['de' => 'Mitversichert bei', 'en' => 'Co-insured with'], ['de' => 'Name und Beziehung, z. B. eine erziehungsberechtigte Person.', 'en' => 'Name and relation, e.g. a legal guardian.'], 'identity', ['insurance']],
+            ['insurance_carrier', $carriers === null ? 'text' : 'select', ['de' => 'Krankenversicherung', 'en' => 'Health insurance'], ['de' => 'Name der Krankenkasse oder Versicherung.', 'en' => 'Name of the health insurance.'], 'health', ['insurance'], $carriers === null ? null : ['list' => $carriers, 'other' => true]],
+            ['insurance_number', 'text', ['de' => 'Versicherungsnummer des Kindes', 'en' => 'Insurance number of the child'], ['de' => 'Wird nur im Notfall für Ärztin oder Arzt bzw. Krankenhaus verwendet.', 'en' => 'Only used in an emergency for a doctor or hospital.'], 'identity', ['insurance'], $format === null ? null : ['format' => $format]],
+            ['co_insured_with', 'person', ['de' => 'Mitversichert bei', 'en' => 'Co-insured with'], ['de' => 'Eine erziehungsberechtigte oder andere Person und ihre Versicherungsnummer.', 'en' => 'A legal guardian or another person, and their insurance number.'], 'identity', ['insurance'], ['number' => true] + ($format === null ? [] : ['format' => $format])],
             ['diet', 'select', ['de' => 'Ernährung', 'en' => 'Diet'], ['de' => 'Für die Küche.', 'en' => 'For the kitchen.'], 'health', ['kitchen'], ['choices' => [
                 'none' => ['de' => 'Keine Einschränkung', 'en' => 'No restrictions'],
                 'vegetarian' => ['de' => 'Vegetarisch', 'en' => 'Vegetarian'],

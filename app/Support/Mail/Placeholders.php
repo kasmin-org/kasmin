@@ -8,7 +8,6 @@ use App\Models\Household;
 use App\Models\Invoice;
 use App\Models\Participation;
 use App\Models\Person;
-use App\Support\Auth\LoginLinks;
 use App\Support\Forms\FormValue;
 use App\Support\Forms\RegistrationAnswers;
 use App\Support\Settings;
@@ -168,13 +167,11 @@ class Placeholders
 
     private function loginLink(Person $person): string
     {
-        $user = $person->user;
-        if ($user === null) {
+        if ($person->user === null) {
             return route('login');
         }
-        // Long-lived, limited link for mails (L02–L04).
-        ['token' => $token] = app(LoginLinks::class)->issue($user, 'mail_link', 'limited');
 
-        return route('login.link', $token);
+        // Long-lived, limited link, made when the mail is sent (L02–L04).
+        return MailLinks::placeholder();
     }
 }

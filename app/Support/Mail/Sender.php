@@ -9,6 +9,7 @@ use App\Models\OutgoingMail;
 use App\Models\SenderProfile;
 use App\Support\Audit\Audit;
 use App\Support\Finance\InvoicePdf;
+use App\Support\Forms\SummaryPdf;
 use App\Support\Settings;
 use DirectoryTree\ImapEngine\Mailbox;
 use Illuminate\Support\Facades\Mail;
@@ -95,12 +96,13 @@ class Sender
         $fromAddress = $profile->from_address ?? (string) config('mail.from.address');
         $fromName = $profile->from_name ?? (string) config('mail.from.name');
         $domain = Str::after($fromAddress, '@') ?: 'localhost';
+        $content = MailLinks::resolve($mail);
         $email = (new Email)
             ->from(new Address($fromAddress, $fromName))
             ->to(new Address(self::testAddress() ?? $mail->to_address, (string) $mail->to_name))
             ->subject(self::testAddress() !== null ? '[TEST → '.$mail->to_address.'] '.$mail->subject : $mail->subject)
-            ->html($mail->html)
-            ->text($mail->text);
+            ->html($content['html'])
+            ->text($content['text']);
         if ($profile?->reply_to) {
             $email->replyTo($profile->reply_to);
         }
@@ -110,6 +112,10 @@ class Sender
                 // A mail never goes out without a file that was promised.
                 $content = Storage::disk('local')->get((string) $file['file']) ?? throw new MailException('Attachment missing: '.($file['name'] ?? ''));
                 $email->attach($content, (string) ($file['name'] ?? basename((string) $file['file'])));
+            }
+            if (isset($attachment['form_response_id'])) {
+                $summary = app(SummaryPdf::class)->for($mail, (int) $attachment['form_response_id']) ?? throw new MailException('The summary is no longer available.');
+                $email->attach($summary['content'], $summary['name'], 'application/pdf');
             }
             if (isset($attachment['invoice_id'])) {
                 $invoice = Invoice::query()->whereKey((int) $attachment['invoice_id'])->first();

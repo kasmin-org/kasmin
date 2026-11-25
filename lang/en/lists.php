@@ -10,4 +10,5 @@ return [
         'missing' => 'Safety sheets still missing', 'emergency' => 'Emergency contacts', 'kitchen' => 'Kitchen', 'medical' => 'Medical needs', 'medication' => 'Medication',
         'insurance' => 'Insurance', 'swimmers' => 'Swimmers', 'consents' => 'Consents', 'changes' => 'Changes since the last event',
     ],
+    'remind' => 'Send reminder', 'remind_families' => 'Remind selected families', 'remind_confirm' => 'Send a reminder to the selected families?', 'reminded' => ':sent reminders sent, :skipped skipped (already reminded today or no e-mail address).',
 ];

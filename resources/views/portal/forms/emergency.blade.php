@@ -6,6 +6,14 @@
     <p class="mb-6 text-kasmin-700">{{ __('forms.emergency_family_intro') }}</p>
     <form method="post" action="{{ route('portal.emergency.save', $household->public_id) }}" class="space-y-4">
         @csrf
+        @if (count($guardians) > 1)
+            <fieldset class="space-y-2 rounded-xl border border-kasmin-100 p-4">
+                <legend class="text-sm font-medium">{{ __('forms.order') }}</legend>
+                @foreach ($guardians as $i => $guardian)
+                    <label class="flex items-center gap-3"><select name="order[{{ $guardian->public_id }}]" class="rounded-lg border border-kasmin-200 px-3 py-2">@for ($n = 1; $n <= count($guardians); $n++)<option value="{{ $n }}" @selected($n === $i + 1)>{{ $n }}.</option>@endfor</select> {{ $guardian->fullName() }}</label>
+                @endforeach
+            </fieldset>
+        @endif
         @php($contacts = $household->emergencyContacts->values())
         @for ($i = 0; $i < max($contacts->count() + 1, 2); $i++)
             <fieldset class="grid gap-2 rounded-xl border border-kasmin-100 p-4 sm:grid-cols-3">

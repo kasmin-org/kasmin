@@ -62,6 +62,7 @@ class EventForm
                         FileUpload::make('path')->label(__('admin.finance.file'))->required()->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])->maxSize(10240)->disk('local')->directory(EventDocument::DIRECTORY)->visibility('private'),
                     ]),
                 DatePicker::make('answers_until')->label(__('admin.event.answers_until'))->hintIcon('heroicon-m-question-mark-circle', tooltip: __('admin.event.answers_until_hint')),
+                TextInput::make('safety_confirm_days')->label(__('admin.event.safety_confirm_days'))->numeric()->minValue(1)->maxValue(365)->hintIcon('heroicon-m-question-mark-circle', tooltip: __('admin.event.safety_confirm_hint')),
                 Textarea::make('description')->label(__('admin.event.description'))->columnSpanFull(),
             ]),
             Section::make(__('admin.event.roles'))->disabled(fn () => ! Permissions::current('events', 'edit'))->columnSpanFull()->schema([

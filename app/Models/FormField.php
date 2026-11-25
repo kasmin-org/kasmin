@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use App\Models\Concerns\Auditable;
+use App\Support\Forms\ChoiceLists;
+use App\Support\Forms\SensitivityGuard;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -23,10 +25,13 @@ class FormField extends Model
 {
     use Auditable;
 
-    public const TYPES = ['text', 'textarea', 'select', 'multiselect', 'yes_no', 'date', 'year_or_no', 'phone', 'email', 'none_or_text', 'repeater', 'consent'];
+    public const TYPES = ['text', 'textarea', 'select', 'multiselect', 'yes_no', 'number', 'date', 'year_or_no', 'phone', 'email', 'none_or_text', 'repeater', 'person', 'consent'];
 
     /** Value of a "none" answer (distinct from "not answered", SF03). */
     public const NONE = ':none';
+
+    /** Start of a free answer to a choice with "other" (SF02). */
+    public const OTHER = ':other:';
 
     protected $guarded = ['id'];
 
@@ -35,6 +40,12 @@ class FormField extends Model
     protected function casts(): array
     {
         return ['label' => 'array', 'help' => 'array', 'options' => 'array', 'required' => 'boolean', 'carry_over' => 'boolean', 'list_use' => 'array'];
+    }
+
+    protected static function booted(): void
+    {
+        static::updating(fn (FormField $field) => SensitivityGuard::field($field));
+        static::deleting(fn (FormField $field) => SensitivityGuard::field($field, deleting: true));
     }
 
     /** @return BelongsTo<Form, $this> */
@@ -62,12 +73,17 @@ class FormField extends Model
     /** @return array<string, string> choice value => label in the current language */
     public function choices(): array
     {
-        $choices = [];
+        $choices = ChoiceLists::get((string) ($this->options['list'] ?? ''));
         foreach ((array) ($this->options['choices'] ?? []) as $value => $labels) {
             $choices[(string) $value] = is_array($labels) ? (string) ($labels[app()->getLocale()] ?? $labels['en'] ?? $value) : (string) $labels;
         }
 
         return $choices;
+    }
+
+    public function allowsOther(): bool
+    {
+        return (bool) ($this->options['other'] ?? false);
     }
 
     /** @return list<string> sub-field keys of a repeater */

@@ -34,7 +34,7 @@ return [
         'import_done' => ':imported imported, :matched matched automatically, :suggested suggestions, :duplicates already present',
     ],
     'settings' => [
-        'mail_layout' => 'Look of the e-mails', 'mail_logo' => 'Logo (PNG, JPG, GIF)', 'mail_color' => 'Colour', 'mail_footer' => 'Footer of the e-mails', 'mail_footer_hint' => 'Shown in every e-mail, e.g. name, address, registration number.', 'retention_mail_years' => 'Mail log: years', 'retention_mail_years_hint' => '0 = as long as the person exists. Mails with invoices stay at least as long as the invoices.',
+        'mail_layout' => 'Look of the e-mails', 'mail_logo' => 'Logo (PNG, JPG, GIF)', 'mail_color' => 'Colour', 'mail_footer' => 'Footer of the e-mails', 'mail_footer_hint' => 'Shown in every e-mail, e.g. name, address, registration number.', 'audit_ip_days' => 'Audit log: shorten IP address and browser after (days)', 'audit_ip_days_hint' => '0 = never. Afterwards only the network part of the address and the kind of browser are kept.', 'retention_audit_years' => 'Audit log: years', 'retention_audit_years_hint' => '0 = entries are kept for good.', 'search' => 'Search in the settings …', 'retention_mail_years' => 'Mail log: years', 'retention_mail_years_hint' => '0 = as long as the person exists. Mails with invoices stay at least as long as the invoices.',
         'organisation' => 'Organisation and invoices', 'name' => 'Name of the organisation', 'email' => 'E-mail address', 'address' => 'Postal address', 'website' => 'Website',
         'legal_footer' => 'Footer (legal notice)', 'legal_footer_hint' => 'Shown on every invoice, e.g. register number, seat, contact.',
         'bank' => 'Bank account', 'bank_name' => 'Bank', 'bic_hint' => 'Optional; included in the QR code.', 'iban_invalid' => 'The IBAN is not valid.',
@@ -59,7 +59,7 @@ return [
     ],
     'person' => [
         'singular' => 'Person', 'plural' => 'People',
-        'section_person' => 'Person', 'section_contacts' => 'Contact data',
+        'login_address_needed' => 'The address :address is needed for the login of this person and cannot be removed here.', 'section_person' => 'Person', 'section_contacts' => 'Contact data',
         'first_name' => 'First name', 'last_name' => 'Last name', 'birth_date' => 'Date of birth', 'age' => 'Age',
         'birth_date_hint' => 'Used for the age limits of events and roles.',
         'gender' => 'Gender', 'locale' => 'Language',
@@ -166,4 +166,7 @@ return [
     ],
     'genders' => ['female' => 'female', 'male' => 'male', 'diverse' => 'diverse', 'unspecified' => 'not specified'],
     'purposes' => ['login' => 'Login', 'information' => 'Information', 'invoices' => 'Invoices', 'emergency' => 'Emergency'],
+    'help' => ['title' => 'Opens the documentation of this version in a new tab', 'link' => 'Help for this page'],
+    'overview' => ['title' => 'Overview', 'roles' => 'Roles', 'memberships' => 'Memberships', 'login' => 'Login', 'last_login' => 'last login', 'never' => 'never', 'second_factor' => 'second factor', 'yes' => 'yes', 'no' => 'no', 'no_login' => 'No login yet', 'mails' => 'Mails to the family', 'invoice_recipient' => 'Invoices go to', 'invoice_recipient_auto' => 'first legal guardian'],
+    'bulk' => ['add_to_group' => 'Add to a group', 'remove_from_group' => 'Remove from a group', 'manual_only' => 'Only groups that are filled by hand. Groups by rules and of events fill themselves.', 'added' => '{0} Everybody was in the group already.|{1} One person added.|[2,*] :count people added.', 'removed' => '{0} Nobody was in the group.|{1} One person removed.|[2,*] :count people removed.', 'mailing' => 'Write to the selected', 'mailing_hint' => 'Creates a mailing as a draft for the selected people. You see the preview and send it there; rules for approvals apply.', 'selection' => 'Selection of :date', 'status' => 'Change the status', 'status_hint' => 'Cancellations are not done here: they need a reason and inform the family.', 'status_done' => '{0} Nothing changed.|{1} One registration changed.|[2,*] :count registrations changed.'],
 ];

@@ -12,10 +12,12 @@ each token was last used. Every write via the API is recorded in the audit log w
 
 | Scope | Allows |
 |---|---|
-| `people:read` / `people:write` | read / create and change people and families |
-| `events:read` / `events:write` | read events and participants / register, change participations |
+| `people:read` / `people:write` | read / create and change people, families, contact data, legal guardians, groups and membership types |
+| `events:read` / `events:write` | read events and participants / create and change events, register, change participations |
 | `finance:read` / `finance:write` | read invoices (incl. PDF) / record payments |
+| `mail:read` / `mail:write` | read mail templates and mailings / change templates, create, prepare and release mailings |
 | `automations:read` | read automations and runs, dry runs |
+| `automations:write` | change automations: active, mode, trigger, settings, approvers. It can switch an approval off – give it only to tokens a person controls |
 | `automations:run` | start runs – **as approval requests** (the approvers decide) |
 | `approvals:decide` | decide approvals (and start runs directly). Give it only to tokens a person controls |
 | `import:write` | import people, roll imports back |
@@ -38,6 +40,19 @@ Base URL `https://your-kasmin.example/api/v1`, header `Authorization: Bearer kas
   `POST /invoices/{id}/payments`, `GET /automations`, `POST /automations/{key}/preview`, `POST /automations/{key}/run`,
   `GET /automation-runs`, `POST /automation-runs/{id}/decision`, `POST /imports/people/preview`,
   `POST /imports/people`, `POST /imports/{id}/rollback`, `GET /audit`.
+- Contact data of a person: `GET|POST /people/{id}/contact-points` (`type` `email` or `phone`, `value`, `purposes`,
+  `is_primary`), `DELETE /people/{id}/contact-points/{number}`. The address a person logs in with cannot be removed.
+- Legal guardians of a person: `GET|POST /people/{id}/guardians` (`guardian` = id of the person),
+  `DELETE /people/{id}/guardians/{guardian id}` ends the guardianship. The setting *Legal guardians per family (at most)*
+  also applies here; families are not changed.
+- Membership types: `GET|POST /membership-types`, `PATCH /membership-types/{key}` (`name.de`, `name.en`, `pays_fee`, `fee`).
+- Events: `POST /events`, `PATCH /events/{id}` with the basic fields of the event form (title, dates, status,
+  `series_id`, registration window, place, contact) and `roles` (`role`, `capacity`, `reserve_places`, `min_age`,
+  `max_age`, `price` …). Prices by age or date, instalments, discounts, registration rounds, costs, documents and
+  the image are set in the admin interface.
+- Automations: `GET|PATCH /automations/{key}` for `active`, `mode`, `trigger`, `trigger_config`, `config`,
+  `approver_roles`, `approvals_needed`, `max_items` and `name`, with the checks of the automation form.
+  `trigger_config` and `config` replace the stored object. Key and action cannot be changed.
 - Ids of people, families and events are their public ids (ULIDs), not database numbers.
 
 ```

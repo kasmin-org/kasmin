@@ -50,6 +50,7 @@ class PortalChildController extends Controller
             'first_name' => ['required', 'string', 'max:120'],
             'last_name' => ['required', 'string', 'max:120'],
             'birth_date' => ['required', 'date', 'before:today', 'after:'.now()->subYears(25)->toDateString()],
+            'gender' => ['nullable', 'in:female,male,diverse,unspecified'],
         ]);
         $guardian = $this->guardian($request);
         $household = $this->household($guardian);

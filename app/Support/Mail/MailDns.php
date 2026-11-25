@@ -63,7 +63,7 @@ class MailDns
         $sender = $direct ? 'a:'.(gethostname() ?: 'your-server') : ($account?->smtp_host ? 'a:'.$account->smtp_host : 'mx');
         $checks[] = [
             'record' => 'SPF', 'status' => $spf ? (str_contains($spf, '-all') || str_contains($spf, '~all') ? 'ok' : 'warning') : 'error',
-            'found' => $spf, 'suggestion' => $spf ? null : "{$domain}. TXT \"v=spf1 mx {$sender} -all\"",
+            'found' => $spf, 'suggestion' => $spf ? null : "{$domain}. TXT \"v=spf1 ".($sender === 'mx' ? 'mx' : 'mx '.$sender).' -all"',
             'detail' => $spf ? '' : __('system.dns.spf_missing'),
         ];
 

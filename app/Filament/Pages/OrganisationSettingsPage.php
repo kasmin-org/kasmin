@@ -46,7 +46,7 @@ class OrganisationSettingsPage extends Page
         'organisation_name', 'organisation_address', 'organisation_email', 'organisation_website', 'organisation_iban',
         'organisation_bic', 'organisation_bank', 'organisation_legal_footer', 'invoice_number_format', 'invoice_next_number',
         'invoice_number_per_year', 'invoice_due_days', 'invoice_attach_paid', 'invoice_reminder_days_before', 'invoice_overdue_days', 'invoice_overdue_fees', 'public_url', 'mail_test_address', 'mailing_approval_above', 'backup_keep', 'embed_origins', 'timezone', 'digest_time', 'approval_days', 'ai_processing', 'retention_safety_years', 'retention_invoice_years',
-        'max_guardians', 'min_login_age', 'guardian_until_age', 'own_registrations', 'newsletter_ask', 'mail_logo', 'mail_color', 'mail_footer', 'retention_mail_years', 'auto_update', 'auto_update_days', 'auto_update_time',
+        'max_guardians', 'min_login_age', 'guardian_until_age', 'own_registrations', 'newsletter_ask', 'mail_logo', 'mail_color', 'mail_footer', 'retention_mail_years', 'audit_ip_days', 'retention_audit_years', 'auto_update', 'auto_update_days', 'auto_update_time',
     ];
 
     public static function getNavigationGroup(): ?string
@@ -150,6 +150,8 @@ class OrganisationSettingsPage extends Page
                 TextInput::make('retention_safety_years')->label(__('admin.settings.retention_safety_years'))->numeric()->minValue(1)->maxValue(30)->required(),
                 TextInput::make('retention_mail_years')->label(__('admin.settings.retention_mail_years'))->numeric()->minValue(0)->maxValue(30)->required()->hintIcon(...$hint('retention_mail_years')),
                 TextInput::make('retention_invoice_years')->label(__('admin.settings.retention_invoice_years'))->numeric()->minValue(1)->maxValue(30)->required(),
+                TextInput::make('audit_ip_days')->label(__('admin.settings.audit_ip_days'))->numeric()->minValue(0)->maxValue(3650)->required()->hintIcon(...$hint('audit_ip_days')),
+                TextInput::make('retention_audit_years')->label(__('admin.settings.retention_audit_years'))->numeric()->minValue(0)->maxValue(50)->required()->hintIcon(...$hint('retention_audit_years')),
             ]),
             Section::make(__('system.auto_update.title'))->visible(fn () => Permissions::administrator())->description(fn () => app(Updater::class)->available() ? __('system.auto_update.hint') : __('system.update.docker'))->columns(['md' => 3])->schema([
                 Toggle::make('auto_update')->label(__('system.auto_update.enabled'))->inline(false)->disabled(fn () => ! app(Updater::class)->available()),

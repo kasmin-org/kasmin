@@ -5,6 +5,7 @@ namespace App\Support\Reports;
 use App\Models\AutomationRun;
 use App\Models\BankImport;
 use App\Models\Consent;
+use App\Models\ContactPoint;
 use App\Models\Event;
 use App\Models\EventSeries;
 use App\Models\Form;
@@ -12,9 +13,12 @@ use App\Models\Invoice;
 use App\Models\OutgoingMail;
 use App\Models\Participation;
 use App\Models\Payment;
+use App\Models\PublicSubmission;
 use App\Support\Automations\Engine;
 use App\Support\Automations\Schedule;
 use App\Support\Forms\Forms;
+use App\Support\Lists\EventLists;
+use App\Support\People\Duplicates;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
@@ -98,6 +102,9 @@ class DashboardData
             'approvals' => AutomationRun::query()->where('status', 'pending_approval')->where('expires_at', '>', now())->count(),
             'requests' => Participation::query()->where('status', 'requested')->count(),
             'new_registrations' => Participation::query()->where('registered_at', '>=', now()->subDays(7))->count(),
+            'submissions' => PublicSubmission::query()->where('status', 'pending')->count(),
+            'duplicates' => count(app(Duplicates::class)->all()),
+            'bad_addresses' => ContactPoint::query()->where('type', 'email')->whereNotNull('bounced_at')->count(),
             'deletion_requests' => Consent::query()->where('kind', 'deletion_request')->where('granted', true)->count(),
             'bounced' => OutgoingMail::query()->whereIn('status', ['bounced', 'failed'])->where('created_at', '>=', now()->subDays(30))->count(),
             'unmatched_payments' => Payment::query()->whereIn('match', ['suggested', 'unmatched'])->count(),
@@ -129,9 +136,11 @@ class DashboardData
             return [];
         }
         $forms = app(Forms::class);
+        $lists = app(EventLists::class);
         $result = [];
         foreach (Event::query()->where('starts_at', '>', now())->where('starts_at', '<=', now()->addDays(120))->whereNotIn('status', ['cancelled', 'draft'])->orderBy('starts_at')->limit(4)->get() as $event) {
-            $counts = ['confirmed' => 0, 'missing' => 0];
+            $counts = ['confirmed' => 0, 'missing' => 0, 'changed' => 0];
+            $form->loadMissing('fields');
             foreach (Participation::query()->where('event_id', $event->id)->whereIn('status', ['registered', 'confirmed', 'offered'])->with('person')->get() as $p) {
                 if ($p->person === null) {
                     continue;
@@ -139,6 +148,7 @@ class DashboardData
                 $status = $forms->status($form, $p->person);
                 if ($status === 'confirmed') {
                     $counts['confirmed']++;
+                    $counts['changed'] += (int) (($lists->changedSince($form, $p->person, $event) ?? []) !== []);
                 } elseif ($status !== 'not_applicable') {
                     $counts['missing']++;
                 }

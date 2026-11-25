@@ -47,7 +47,7 @@ class Timeline
         }
         if (Permissions::allows($viewer, 'mailings')) {
             foreach (OutgoingMail::query()->where('person_id', $person->id)->latest('id')->limit($limit)->get() as $mail) {
-                $add($this->date($mail->getAttribute('sent_at') ?? $mail->created_at), 'mail', $mail->subject.' ('.__('admin.mail.statuses.'.$mail->status).')', url('/admin/outgoing-mails/'.$mail->id));
+                $add($this->date($mail->getAttribute('sent_at') ?? $mail->created_at), 'mail', $mail->subject.' ('.__('admin.mail.statuses.'.$mail->status).')', url('/admin/outgoing-mails?tableAction=view&tableActionRecord='.$mail->id));
             }
         }
         if (Permissions::allows($viewer, 'finance')) {

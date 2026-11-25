@@ -13,6 +13,6 @@ class ListImportBatches extends ListRecords
 
     protected function getHeaderActions(): array
     {
-        return [Action::make('new')->label(__('import.title'))->icon('heroicon-o-arrow-up-tray')->url(ImportPeoplePage::getUrl())];
+        return [Action::make('new')->label(__('import.title'))->icon('heroicon-o-arrow-up-tray')->url(ImportPeoplePage::getUrl())->visible(fn () => ImportPeoplePage::canAccess())];
     }
 }

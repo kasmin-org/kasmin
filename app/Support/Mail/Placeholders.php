@@ -168,8 +168,9 @@ class Placeholders
 
     private function date(mixed $value, string $locale, string $format): string
     {
-        $date = Carbon::parse($value);
-        $date->setLocale($locale);
+        // Not setLocale(): that one is static in Carbon and would change every date formatted afterwards.
+        $date = Carbon::parse($value)->copy();
+        $date->locale($locale === 'en' ? 'en_GB' : $locale);
 
         return $date->translatedFormat($format);
     }

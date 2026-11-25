@@ -40,3 +40,13 @@ downloads the package and verifies its checksum, backs up the database and the p
 
 **Docker:** the in-place update is disabled. Pull the new image (e.g. `ghcr.io/kasmin-org/kasmin:latest`) and
 recreate the container; the database upgrade runs with `php artisan kasmin:upgrade` (or the upgrade hook).
+
+## Finding a setting
+
+*Settings → Organisation and invoices* has a search field at the top: type a word (e.g. *IBAN* or *retention*) and only the matching
+settings stay visible.
+
+## Help
+
+*Help for this page* under the title of every page of the admin interface opens the matching page of this documentation, in the
+version that is installed.

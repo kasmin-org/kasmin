@@ -20,3 +20,6 @@ Kasmin has **no passwords**.
   administrative roles.
 - Every login, failed login, logout and confirmation is written to the **audit log**, including the login
   method and the ID of the token used (never the token itself).
+
+**Devices.** *My data* in the portal lists where the person is logged in (kind of browser, IP address, last use). *Log out everywhere
+else* ends all other logins, also remembered ones.

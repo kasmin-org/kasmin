@@ -49,7 +49,7 @@ class PeopleController extends ApiController
     {
         $this->scope('people:write');
         $row = $request->validate([
-            'first_name' => ['required', 'string', 'max:100'], 'last_name' => ['required', 'string', 'max:100'],
+            'first_name' => ['required', 'string', 'max:120'], 'last_name' => ['required', 'string', 'max:120'],
             'birth_date' => ['nullable', 'date'], 'gender' => ['nullable', 'string', 'max:32'], 'locale' => ['nullable', Rule::in(['de', 'en'])],
             'email' => ['nullable', 'email'], 'phone' => ['nullable', 'string', 'max:40'],
             'street' => ['nullable', 'string', 'max:200'], 'postal_code' => ['nullable', 'string', 'max:16'], 'city' => ['nullable', 'string', 'max:100'],
@@ -79,7 +79,7 @@ class PeopleController extends ApiController
         $this->scope('people:write');
         $model = $this->person($person);
         $data = $request->validate([
-            'first_name' => ['sometimes', 'string', 'max:100'], 'last_name' => ['sometimes', 'string', 'max:100'],
+            'first_name' => ['sometimes', 'string', 'max:120'], 'last_name' => ['sometimes', 'string', 'max:120'],
             'birth_date' => ['sometimes', 'nullable', 'date'], 'gender' => ['sometimes', 'nullable', 'string', 'max:32'], 'locale' => ['sometimes', Rule::in(['de', 'en'])],
         ]);
         $model->fill($data)->save();

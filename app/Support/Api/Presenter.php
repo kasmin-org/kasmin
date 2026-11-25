@@ -27,7 +27,7 @@ class Presenter
             'updated_at' => $p->updated_at?->toIso8601String(),
         ];
         if ($details) {
-            $data['contacts'] = $p->contactPoints->map(fn (ContactPoint $c) => ['type' => $c->type, 'value' => $c->value, 'purposes' => $c->purposes, 'primary' => (bool) $c->is_primary])->values()->all();
+            $data['contacts'] = $p->contactPoints->map(fn (ContactPoint $c) => ['id' => (int) $c->getKey(), 'type' => $c->type, 'value' => $c->value, 'purposes' => $c->purposes, 'primary' => (bool) $c->is_primary])->values()->all();
             $data['legal_guardians'] = $p->guardians->map(fn (Person $g) => ['id' => $g->public_id, 'name' => $g->fullName()])->values()->all();
             $data['children'] = $p->wards->map(fn (Person $c) => ['id' => $c->public_id, 'name' => $c->fullName()])->values()->all();
             $data['families'] = $p->households->map(fn (Household $h) => ['id' => $h->public_id, 'name' => $h->name, 'role' => $h->getRelationValue('pivot')?->getAttribute('role')])->values()->all();
@@ -52,14 +52,24 @@ class Presenter
     public static function event(Event $e, bool $details = false): array
     {
         $data = [
-            'id' => $e->public_id, 'title' => $e->title, 'status' => $e->status, 'series' => $e->series?->name,
+            'id' => $e->public_id, 'title' => $e->title, 'status' => $e->status, 'series' => $e->series?->name, 'series_id' => $e->getAttribute('event_series_id'),
             'starts_at' => $e->starts_at->toIso8601String(), 'ends_at' => $e->ends_at->toIso8601String(), 'location' => $e->getAttribute('location'),
         ];
         if ($details) {
+            foreach (['meeting_point', 'return_point', 'address', 'map_url', 'contact_name', 'contact_email', 'contact_phone', 'description', 'safety_confirm_days'] as $key) {
+                $data[$key] = $e->getAttribute($key);
+            }
+            $data += [
+                'registration_binding' => $e->registration_binding, 'max_guests' => $e->max_guests, 'public_page' => $e->public_page, 'reserve_auto_release' => $e->reserve_auto_release,
+                'announce_at' => $e->announce_at?->toIso8601String(), 'registration_opens_at' => $e->registration_opens_at?->toIso8601String(),
+                'registration_closes_at' => $e->registration_closes_at?->toIso8601String(), 'age_reference_date' => $e->age_reference_date?->toDateString(),
+                'answers_until' => $e->answers_until?->toDateString(), 'reserve_reminder_on' => $e->reserve_reminder_on?->toDateString(),
+            ];
             $data['roles'] = $e->roles->map(fn (EventRole $r) => [
                 'role' => $r->role_key, 'capacity' => $r->capacity, 'reserve_places' => $r->reserve_places, 'occupied' => $r->occupied(),
                 'bookable_left' => $r->bookableLeft(), 'waitlist' => $r->waitlistLength(), 'min_age' => $r->min_age, 'max_age' => $r->max_age,
-                'price' => $r->price_cents / 100,
+                'price' => $r->price_cents / 100, 'role_discount' => $r->role_discount_cents / 100, 'registered_by' => $r->registered_by,
+                'counts_as_sibling' => $r->counts_as_sibling, 'waitlist_order' => $r->waitlist_order ?? [],
             ])->values()->all();
             $data['installments'] = $e->installments->map(fn ($i) => ['key' => $i->key, 'label' => $i->label, 'kind' => $i->kind, 'amount' => $i->amount_cents !== null ? $i->amount_cents / 100 : null, 'due_date' => $i->due_date?->toDateString()])->values()->all();
         }
@@ -99,7 +109,8 @@ class Presenter
     {
         return [
             'key' => $a->key, 'name' => $a->label(), 'action' => $a->action, 'trigger' => $a->trigger, 'trigger_config' => $a->trigger_config,
-            'config' => $a->config, 'mode' => $a->mode, 'active' => $a->active, 'approver_roles' => $a->approverRoles(), 'last_run_at' => $a->last_run_at?->toIso8601String(),
+            'config' => $a->config, 'mode' => $a->mode, 'active' => $a->active, 'standard' => $a->is_standard, 'max_items' => $a->max_items,
+            'approvals_needed' => max(1, (int) $a->approvals_needed), 'approver_roles' => $a->approverRoles(), 'last_run_at' => $a->last_run_at?->toIso8601String(),
         ];
     }
 

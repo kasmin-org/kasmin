@@ -38,6 +38,8 @@ class Settings
         'mail_logo' => '',
         'mail_color' => '#1da029',       // MT06
         'mail_footer' => '',
+        'audit_ip_days' => '30',         // AU03; 0 = never shortened
+        'retention_audit_years' => '10', // AU05; 0 = kept for good
         'retention_mail_years' => '0',   // ML05; 0 = as long as the person exists
         'auto_update' => '0',            // UP03
         'auto_update_days' => '10',

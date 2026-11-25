@@ -28,6 +28,14 @@ class PersonForm
             Section::make(__('admin.person.section_contacts'))->schema([
                 Repeater::make('contactPoints')->relationship()->disabled(fn (?Person $record) => Permissions::administrative($record) && ! Permissions::administrator())->label('')->columns(3)->defaultItems(0)
                     ->addActionLabel(__('admin.person.add_contact'))
+                    // The address of the login cannot be taken away here; it is changed in the portal with a confirmation (as in the portal and the API).
+                    ->rule(fn (?Person $record) => function (string $attribute, mixed $value, \Closure $fail) use ($record): void {
+                        $login = $record?->user?->email;
+                        $values = array_map(fn ($row) => mb_strtolower(trim((string) (is_array($row) ? ($row['value'] ?? '') : ''))), is_array($value) ? $value : []);
+                        if ($login !== null && ! in_array(mb_strtolower($login), $values, true)) {
+                            $fail(__('admin.person.login_address_needed', ['address' => $login]));
+                        }
+                    })
                     ->schema([
                         Select::make('type')->label(__('admin.person.contact_type'))->options(['email' => __('admin.person.email'), 'phone' => __('admin.person.phone')])->required()->live(),
                         TextInput::make('value')->label(__('admin.person.contact_value'))->required()->maxLength(254)

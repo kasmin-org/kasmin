@@ -8,11 +8,11 @@ return [
     'created' => 'Token created', 'created_hint' => 'Copy it now – it is shown only this once:',
     'scope_help' => [
         'people:read' => 'read people and families', 'people:write' => 'create and change people',
-        'events:read' => 'read events and participants', 'events:write' => 'register, change participations',
+        'events:read' => 'read events and participants', 'events:write' => 'create and change events, register, change participations',
         'finance:read' => 'read invoices', 'finance:write' => 'record payments',
         'mail:read' => 'read mail templates and log', 'mail:write' => 'send mails',
-        'automations:read' => 'read automations and runs, dry runs', 'automations:run' => 'start runs (as approval requests)',
+        'automations:read' => 'read automations and runs, dry runs', 'automations:run' => 'start runs (as approval requests)', 'automations:write' => 'change automations: mode, trigger, approvers (careful)',
         'approvals:decide' => 'decide approvals (careful)', 'import:write' => 'import and roll back',
-        'audit:read' => 'read the audit log', 'health:read' => 'read health and safety data (careful)', 'settings:write' => 'change settings (careful)',
+        'audit:read' => 'read the audit log', 'health:read' => 'read health and safety data (careful)', 'health:write' => 'change health and safety data; the legal guardians confirm them (careful)', 'settings:write' => 'change settings (careful)',
     ],
 ];

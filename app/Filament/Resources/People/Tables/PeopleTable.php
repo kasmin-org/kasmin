@@ -2,10 +2,12 @@
 
 namespace App\Filament\Resources\People\Tables;
 
+use App\Filament\Support\PeopleBulkActions;
 use App\Models\Event;
 use App\Models\MembershipType;
 use App\Models\Person;
 use App\Models\Role;
+use Filament\Actions\BulkActionGroup;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DatePicker;
@@ -77,6 +79,7 @@ class PeopleTable
                         ->relationship('participations', 'status'),
                 ]),
             ])
-            ->recordActions([ViewAction::make(), EditAction::make()]);
+            ->recordActions([ViewAction::make(), EditAction::make()])
+            ->toolbarActions([BulkActionGroup::make(PeopleBulkActions::make())]);
     }
 }

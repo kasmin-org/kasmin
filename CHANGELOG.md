@@ -6,6 +6,42 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ## [Unreleased]
 
+## [0.22.0] - 2026-11-25
+
+### Added
+
+- Families get a confirmation when a registration is cancelled (by themselves, the team, or because an invoice was not paid) and when an offer of a place ran out.
+- *Start season* keeps the children on the waitlist of the last event on the waitlist of the new one, with their date.
+- Confirmation of participation as a PDF after the event, for the team and in the portal, with the amount paid.
+- List *Figures for the team meeting* (roles by gender, new and returning, waitlist); the participants list shows the gender.
+- Legal guardians can state the gender when they add a child in the portal.
+- Search in *Organisation and invoices*: shows only the settings that match.
+- Actions on selected rows: add people to a group or remove them, write to the selection (mailing as a draft), change the status of several registrations.
+- Person page with an overview (legal guardians, children, families, roles, groups, memberships, events, invoices, consents, login); family page with invoice recipient, emergency contacts, invoices and mails – each part only with the right for it.
+- Dashboard: forms to review, possible duplicates and addresses that do not work in the to-dos; safety sheets changed since the last event.
+- *My data* in the portal lists the devices that are logged in, with *Log out everywhere else*.
+- Audit log: IP address and browser are shortened after 30 days and entries are deleted after 10 years; both can be set.
+- *Help for this page* next to the title of every admin page opens the documentation of the installed version.
+- A whole camp year is tested in one run, from the registration to the next season.
+- REST API: contact data of a person (`/people/{id}/contact-points`) can be read, added and removed.
+- REST API: legal guardians of a person (`/people/{id}/guardians`) can be read, added and ended.
+- REST API: membership types (`/membership-types`) can be read, created and changed.
+- REST API: automations can be read one by one and changed (`PATCH /automations/{key}`) with the new scope `automations:write`.
+- REST API: events can be created and changed (`POST /events`, `PATCH /events/{id}`) with their basic fields and roles.
+
+### Fixed
+
+- The timeline of a person linked sent mails to a page that does not exist; the link opens the mail now.
+- The address of a login could be removed in the person form of the admin interface, which locked the person out.
+- The proposed SPF entry named `mx` twice when no mail server is set.
+- The token form showed a raw key for the scope `health:write`; the API accepted names only up to 100 characters (120 as in the interface).
+- Resetting a demo instance failed on the first call when the cache is stored in the database.
+- The dashboard and the import list showed links to pages that the role may not open.
+- A mail with a long link was wider than the screen in the portal on phones.
+- After a mail was written, dates in the same run were shown in the American order (month first) in English.
+- When a place was released because an invoice was not paid, the unpaid invoice stayed open for good; it is cancelled with a credit note now if nobody on it takes part any more.
+- *Start season* proposed children that are too old again with every run, and did not tell families whose waitlist entry was carried over.
+
 ## [0.21.0] - 2026-11-25
 
 ### Added
@@ -478,7 +514,8 @@ First public pre-release for testing. Not ready for production use.
 - Docker image: system packages updated and build packages removed after compiling the PHP extensions – the
   container scan reports no high or critical findings any more (previously 75 in Debian packages).
 
-[Unreleased]: https://github.com/kasmin-org/kasmin/compare/v0.21.0...develop
+[Unreleased]: https://github.com/kasmin-org/kasmin/compare/v0.22.0...develop
+[0.22.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.22.0
 [0.21.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.21.0
 [0.20.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.20.0
 [0.19.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.19.0

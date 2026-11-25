@@ -10,7 +10,7 @@
             @foreach ($blocks as $b)
                 <x-filament::section>
                     <x-slot name="heading">
-                        <a href="{{ \App\Filament\Resources\Events\EventResource::getUrl('edit', ['record' => $b['id']]) }}">{{ $b['title'] }}</a>
+                        @if (\App\Support\Auth\Permissions::currentEvent($b['id'], 'edit'))<a href="{{ \App\Filament\Resources\Events\EventResource::getUrl('edit', ['record' => $b['id']]) }}">{{ $b['title'] }}</a>@else{{ $b['title'] }}@endif
                     </x-slot>
                     <x-slot name="description">
                         {{ $b['series'] ?? __('dashboard.no_series') }} ·

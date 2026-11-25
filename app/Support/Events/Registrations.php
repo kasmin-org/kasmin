@@ -109,11 +109,25 @@ class Registrations
     {
         $freed = in_array($participation->status, EventRole::OCCUPYING, true);
         $participation->fill(['status' => 'cancelled', 'offer_expires_at' => null, 'cancelled_at' => now(), 'cancel_reason' => $reason !== null ? mb_substr($reason, 0, 250) : null])->save();
+        $this->tell('cancellation_confirmation', $participation);
         if ($freed && $participation->event !== null) {
             app(Engine::class)->placeFreed($participation->event);
         }
 
         return $participation;
+    }
+
+    /** Confirms to the family what happened to a registration (CA01): cancelled, declined, or an offer that ran out. */
+    public function tell(string $template, Participation $participation): void
+    {
+        $participation->loadMissing('event', 'person');
+        $person = $participation->person;
+        if ($person === null || $participation->event === null || $person->getAttribute('anonymised_at') !== null) {
+            return;
+        }
+        foreach (Routing::recipients($template, $person, $participation) as $recipient) {
+            app(Composer::class)->queue($template, $recipient, ['event' => $participation->event, 'participation' => $participation, 'household' => $person->households()->first(), 'children' => [$person]]);
+        }
     }
 
     /** The legal guardians accept or decline an offered place (A05). */
@@ -134,6 +148,7 @@ class Registrations
         }
         $participation->fill(['status' => 'declined', 'offer_expires_at' => null])->save();
         Audit::record('participation.offer_declined', $participation);
+        $this->tell('cancellation_confirmation', $participation);
         if ($participation->event !== null) {
             app(Engine::class)->placeFreed($participation->event);
         }

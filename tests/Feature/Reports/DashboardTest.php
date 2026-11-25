@@ -47,6 +47,23 @@ class DashboardTest extends TestCase
             ->assertOk()->assertSee('Summer camp')->assertDontSee('Last bank import')->assertDontSee('To do');
     }
 
+    public function test_todos_count_duplicates_bad_addresses_and_forms_to_review(): void
+    {
+        app(Defaults::class)->install('en');
+        $before = app(DashboardData::class)->todos();
+        $this->assertSame([0, 0, 0], [$before['duplicates'], $before['bad_addresses'], $before['submissions']]);
+
+        $a = Person::factory()->create(['first_name' => 'Robin', 'last_name' => 'Ash', 'birth_date' => '2015-04-01']);
+        Person::factory()->create(['first_name' => 'Robin', 'last_name' => 'Ash', 'birth_date' => '2015-04-01']);
+        $a->contactPoints()->create(['type' => 'email', 'value' => 'robin@example.org', 'is_primary' => true])->forceFill(['bounced_at' => now()])->save();
+
+        $todos = app(DashboardData::class)->todos();
+        $this->assertSame([1, 1], [$todos['duplicates'], $todos['bad_addresses']]);
+        foreach (array_keys($todos) as $key) {
+            $this->assertNotSame('dashboard.todo.'.$key, __('dashboard.todo.'.$key), $key);
+        }
+    }
+
     public function test_global_search_finds_people_families_events_and_invoices(): void
     {
         app(Defaults::class)->install('en');

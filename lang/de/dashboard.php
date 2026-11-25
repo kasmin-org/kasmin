@@ -9,6 +9,7 @@ return [
     'last_import' => 'Letzter Bankimport',
     'todo' => [
         'approvals' => 'Wartende Freigaben', 'requests' => 'Anmeldeanfragen zu bestätigen', 'new_registrations' => 'Anmeldungen der letzten 7 Tage',
-        'deletion_requests' => 'Löschanfragen', 'bounced' => 'Unzustellbare E-Mails (30 Tage)', 'unmatched_payments' => 'Zahlungen zuzuordnen',
+        'submissions' => 'Anträge und Formulare zu prüfen', 'duplicates' => 'Mögliche Dubletten', 'bad_addresses' => 'Adressen, die nicht funktionieren', 'deletion_requests' => 'Löschanfragen', 'bounced' => 'Unzustellbare E-Mails (30 Tage)', 'unmatched_payments' => 'Zahlungen zuzuordnen',
     ],
+    'changed' => 'seit der letzten Veranstaltung geändert',
 ];

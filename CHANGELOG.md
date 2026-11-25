@@ -6,6 +6,11 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ## [Unreleased]
 
+### Added
+
+- Groups, rooms and duties within an event: divisions with any number of groups or rooms, a proposal that spreads the people (equal sizes, ages and genders mixed or genders separated, siblings apart or together, junior counsellors spread, beds of a room respected), changes by hand, notes on what to check, and a list to print.
+- Demo data has genders, so lists by gender and group proposals show something.
+
 ### Changed
 
 - Travel by bus: children can be set to travel by car too, for legal guardians who bring them themselves. The list *Travel by car* names who brings a child, with phone.

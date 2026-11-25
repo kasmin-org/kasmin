@@ -38,6 +38,32 @@ In the event, *Travel by bus*: switch on **A bus is booked for this event** and 
 
 If no bus is booked, nothing of this is shown.
 
+## Groups, rooms and duties
+
+In the event, **Groups, rooms, duties** (button at the top) divides the people who take part – as often as needed: e.g. one division
+*Groups* with five groups, one *Rooms* with the rooms of the house, one *Kitchen duty* with a shift per day.
+
+1. **New division**: choose the kind, a name, how many groups or rooms, and optionally the places in each (for rooms: the beds). Choose
+   who is divided (e.g. children and junior counsellors) and what the proposal looks at:
+   - *Mix the ages* and *Mix the genders* – for groups and duties: every group gets younger and older children, and about the same share
+     of each gender.
+   - *Separate the genders* – for rooms: nobody shares a room with another gender. Rooms put similar ages together.
+   - *Siblings* apart (usual for groups), together (usual for rooms) or as it comes. Siblings are children of the same family or with the
+     same legal guardian.
+   - Junior counsellors and team members are spread first: one in every group before a second one.
+2. **Propose for those without a place** fills the groups. Sizes are kept equal, and the places of a room are never exceeded – who does
+   not fit stays under *Not placed yet*.
+3. **Change by hand**: every person has a selection to move to another group or room. Rename a group, add a note (e.g. who leads it) or
+   change its places directly in its box. *One more* adds a group; an empty one can be removed.
+4. Late registrations appear under *Not placed yet*; the proposal places only them and **never moves people who already have a place**.
+   *Start again* takes everybody out and proposes anew. People who cancel drop out by themselves.
+5. Yellow notes show what to check: people without a place, a room with more people than places, a mixed room, siblings together where
+   they should be apart.
+6. **Print the lists** (or *Events → Lists → Groups, rooms, duties*): every division with its groups and people as PDF, XLSX or CSV.
+
+The proposal uses the gender and the date of birth of the person; people without a gender are placed without looking at it.
+Camp leaders of the event can divide; other roles with access to the event see the result.
+
 ## Waitlist
 
 When the bookable places of a role are taken, further registrations go to the **waitlist**, ordered by

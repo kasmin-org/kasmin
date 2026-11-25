@@ -34,6 +34,14 @@ class Divisions
         return $division;
     }
 
+    /** One more group, room or shift at the end. */
+    public function addUnit(EventDivision $division): EventUnit
+    {
+        $n = $division->units()->count() + 1;
+
+        return $division->units()->create(['name' => __('events.divisions.unit_'.$division->kind, ['n' => $n]), 'sort' => (int) $division->units()->max('sort') + 1]);
+    }
+
     /**
      * The people a division is for: everybody who takes part with one of its roles.
      *

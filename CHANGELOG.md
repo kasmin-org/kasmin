@@ -6,6 +6,18 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ## [Unreleased]
 
+### Added
+
+- REST API: everything the admin interface can do is now also available via REST (requirement X01) – families (create, change, members, invoice recipient), memberships of a person, duplicates (list, merge, dismiss), roles of a person, event series, bus of an event (`bus_booked`, `bus_seats`, `bus`), offers out of turn and reserve places, the schedule of an event, groups, rooms and duties of an event, the lists of an event as JSON, issuing, sending and cancelling invoices, payments and refunds, the invoice archive, versions of mail templates, the mail log, addresses that do not work, sender profiles, public forms and their submissions, consents, deletion requests, the data export and anonymising, statistics and the dashboard, own automations (create, delete) and webhooks. `docs/admin/api.md` describes every group and ends with a table of what is available in the interface, via REST and via MCP.
+- REST API: the whole event form – sibling discount, cancellation fee and text, reminder days, prices by age or date and the payment plan in `POST`/`PATCH /events`, the registration form of a role (`registration_form`), registration rounds (`/events/{id}/rounds`), costs (`/events/{id}/costs`), documents with upload and download (`/events/{id}/documents`), event templates (`/event-templates`) and events from a template or as a copy (`POST /events` with `template` or `copy_of`).
+- REST API: new scopes `roles:write` (give and take roles; a token can never give or take the role administrator) and `privacy:write` (anonymise people).
+- REST API: the confidential lists of an event (kitchen, medical, emergency …) need `health:read`, and every read is recorded in the audit log, as in the admin interface.
+
+### Changed
+
+- REST API: `PATCH /participations/{id}` with the status `cancelled` takes a `reason`, recalculates draft invoices as the admin interface does, and refuses participations that are already cancelled, declined, attended or a no-show.
+- REST API: families (`GET /households`) also show `locale` and `invoice_recipient`.
+
 ## [0.24.0] - 2026-11-25
 
 ### Added

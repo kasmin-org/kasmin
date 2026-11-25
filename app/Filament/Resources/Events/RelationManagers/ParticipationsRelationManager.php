@@ -11,16 +11,14 @@ use App\Models\Person;
 use App\Models\User;
 use App\Support\Auth\Permissions;
 use App\Support\Events\Bus;
+use App\Support\Events\Offers;
 use App\Support\Events\ParticipationConfirmation;
 use App\Support\Events\RegistrationException;
 use App\Support\Events\Registrations;
-use App\Support\Events\Rounds;
 use App\Support\Finance\Corrections;
 use App\Support\Forms\FormValue;
 use App\Support\Forms\RegistrationAnswers;
 use App\Support\Lists\EventLists;
-use App\Support\Mail\Composer;
-use App\Support\Mail\Routing;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkAction;
@@ -111,14 +109,9 @@ class ParticipationsRelationManager extends RelationManager
                         /** @var Event $event */
                         $event = $this->getOwnerRecord();
                         $person = Person::query()->whereKey((int) $data['person_id'])->firstOrFail();
-                        $offered = app(Rounds::class)->offer($event, $person, (string) $data['role_key'], Carbon::parse((string) $data['until'])->endOfDay(), null, (string) $data['reason']);
+                        $offered = app(Offers::class)->offer($event, $person, (string) $data['role_key'], Carbon::parse((string) $data['until'])->endOfDay(), (string) $data['reason']);
                         if ($offered === null) {
                             Notification::make()->title(__('events.errors.no_place'))->danger()->send();
-
-                            return;
-                        }
-                        foreach (Routing::recipients('round_offer', $person, $offered) as $recipient) {
-                            app(Composer::class)->queue('round_offer', $recipient, ['event' => $event, 'participation' => $offered->load('event', 'person'), 'household' => $person->households()->first(), 'children' => [$person]]);
                         }
                     }),
                 CreateAction::make()->visible(fn () => $this->mayEdit() && Permissions::current('people'))->label(__('admin.event.add_participant'))

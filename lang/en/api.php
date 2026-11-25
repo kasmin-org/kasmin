@@ -7,12 +7,13 @@ return [
     'mcp' => 'May be used by AI assistants (MCP)', 'mcp_hint' => 'Additionally limited by the setting "AI processing allowed". Deciding approvals via MCP needs the scope approvals:decide.',
     'created' => 'Token created', 'created_hint' => 'Copy it now – it is shown only this once:',
     'scope_help' => [
-        'people:read' => 'read people and families', 'people:write' => 'create and change people',
-        'events:read' => 'read events and participants', 'events:write' => 'create and change events, register, change participations',
-        'finance:read' => 'read invoices', 'finance:write' => 'record payments',
-        'mail:read' => 'read mail templates and log', 'mail:write' => 'send mails',
+        'people:read' => 'read people, families, roles, duplicates and public forms', 'people:write' => 'create and change people, families and memberships, merge duplicates, decide applications',
+        'events:read' => 'read events and participants', 'events:write' => 'create and change events, register, change participations, offer places, prices, rounds, documents, templates, groups and rooms',
+        'finance:read' => 'read invoices, payments, refunds and the invoice archive', 'finance:write' => 'record and assign payments, issue, send and cancel invoices, settle refunds, costs of events',
+        'mail:read' => 'read mail templates, mail log and sender profiles', 'mail:write' => 'change templates, send mails',
         'automations:read' => 'read automations and runs, dry runs', 'automations:run' => 'start runs (as approval requests)', 'automations:write' => 'change automations: mode, trigger, approvers (careful)',
         'approvals:decide' => 'decide approvals (careful)', 'import:write' => 'import and roll back',
-        'audit:read' => 'read the audit log', 'health:read' => 'read health and safety data (careful)', 'health:write' => 'change health and safety data; the legal guardians confirm them (careful)', 'settings:write' => 'change settings (careful)',
+        'audit:read' => 'read the audit log, consents and deletion requests, export the data of a person', 'health:read' => 'read health and safety data (careful)', 'health:write' => 'change health and safety data; the legal guardians confirm them (careful)', 'settings:write' => 'change settings, sender profiles and webhooks (careful)',
+        'roles:write' => 'give and take roles, except administrator (careful)', 'privacy:write' => 'anonymise people – cannot be undone (careful)',
     ],
 ];

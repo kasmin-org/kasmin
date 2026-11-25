@@ -1,7 +1,6 @@
 <?php
 
-use App\Models\Automation;
-use App\Support\Install\AutomationDefaults;
+use App\Support\Install\AfterMigrations;
 use Illuminate\Database\Migrations\Migration;
 
 /**
@@ -12,8 +11,6 @@ return new class extends Migration
 {
     public function up(): void
     {
-        foreach (['payment_reminders', 'payment_followup', 'invoice_corrections', 'membership_invoices'] as $key) {
-            Automation::query()->firstOrCreate(['key' => $key], AutomationDefaults::definitions()[$key] + ['is_standard' => true, 'active' => false]);
-        }
+        AfterMigrations::automations('payment_reminders', 'payment_followup', 'invoice_corrections', 'membership_invoices');
     }
 };

@@ -4,6 +4,7 @@ namespace App\Support\Privacy;
 
 use App\Models\Consent;
 use App\Models\FormResponse;
+use App\Models\GroupWaitlistEntry;
 use App\Models\Household;
 use App\Models\Invoice;
 use App\Models\Membership;
@@ -52,6 +53,7 @@ class DataExport
             'contacts' => $person->contactPoints()->get()->map(fn ($c) => ['type' => $c->type, 'value' => $c->value])->values()->all(),
             'memberships' => $person->memberships()->with('type')->get()->map(fn (Membership $m) => ['type' => $m->type?->label(), 'from' => (string) $m->getAttribute('starts_on'), 'to' => $m->getAttribute('ends_on') !== null ? (string) $m->getAttribute('ends_on') : null])->values()->all(),
             'groups' => $person->groups()->pluck('name')->all(),
+            'group_waitlists' => GroupWaitlistEntry::query()->where('person_id', $person->id)->with('group')->get()->map(fn (GroupWaitlistEntry $e) => ['group' => $e->group?->name, 'status' => $e->status, 'since' => $e->listed_at->toIso8601String()])->values()->all(),
             'registrations' => $person->participations()->with('event', 'person')->get()->filter(fn (Participation $p) => $p->visibleInPortal($viewer))->map(function (Participation $p) use ($answers) {
                 $form = $p->event !== null ? $answers->form($p->event, $p->role_key) : null;
 

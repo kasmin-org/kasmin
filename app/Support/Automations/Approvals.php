@@ -7,6 +7,7 @@ use App\Models\AutomationRun;
 use App\Models\Role;
 use App\Models\User;
 use App\Support\Mail\Composer;
+use App\Support\Mail\MailLinks;
 use App\Support\Mail\Notifier;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
@@ -34,16 +35,24 @@ class Approvals
         $run->loadMissing('automation', 'event');
         $sent = 0;
         foreach ($this->approvers($run) as $user) {
-            $token = Str::random(48);
-            $run->tokens()->create(['user_id' => $user->id, 'token_hash' => hash('sha256', $token), 'expires_at' => $run->expires_at ?? now()->addDays(7)]);
             $locale = $user->person->locale ?? app()->getLocale();
             $subject = __($reminder ? 'automations.mail.reminder_subject' : 'automations.mail.subject', ['name' => $run->automation?->label($locale)], $locale);
-            $html = view('mail.approval-request', ['run' => $run, 'url' => route('approvals.show', $token), 'locale' => $locale, 'user' => $user])->render();
-            app(Composer::class)->queueRaw($user->email, $user->name, $subject, $html, $locale, 'notification', $user->person_id);
+            $html = view('mail.approval-request', ['run' => $run, 'url' => route('approvals.show', MailLinks::PLACEHOLDER), 'locale' => $locale, 'user' => $user])->render();
+            $mail = app(Composer::class)->queueRaw($user->email, $user->name, $subject, $html, $locale, 'notification', $user->person_id);
+            $mail->forceFill(['attachments' => [['approval_run_id' => $run->id]]])->save();
             $sent++;
         }
 
         return $sent;
+    }
+
+    /** Personal link of an approver; made when the mail is sent, so it is never stored (AT04). */
+    public function link(AutomationRun $run, User $user): string
+    {
+        $token = Str::random(48);
+        $run->tokens()->create(['user_id' => $user->id, 'token_hash' => hash('sha256', $token), 'expires_at' => $run->expires_at ?? now()->addDays(7)]);
+
+        return route('approvals.show', $token);
     }
 
     public function findByToken(string $token): ?AutomationApprovalToken

@@ -1,5 +1,6 @@
 <?php
 
+use App\Support\Install\AfterMigrations;
 use App\Support\Install\EventTemplateDefaults;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -38,7 +39,7 @@ return new class extends Migration
             $table->timestamps();
         });
         if (DB::table('mail_templates')->where('is_standard', true)->exists()) {
-            app(EventTemplateDefaults::class)->install();
+            AfterMigrations::request(EventTemplateDefaults::class);
         }
     }
 

@@ -16,6 +16,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string $kind
  * @property int|null $event_id
  * @property array<string, mixed>|null $filter
+ * @property bool $has_waitlist
+ * @property int|null $capacity
+ * @property list<string>|null $waitlist_order
  */
 class Group extends Model
 {
@@ -23,9 +26,17 @@ class Group extends Model
 
     protected $guarded = ['id'];
 
+    protected $attributes = ['has_waitlist' => false];
+
+    /** @return HasMany<GroupWaitlistEntry, $this> */
+    public function waitlistEntries(): HasMany
+    {
+        return $this->hasMany(GroupWaitlistEntry::class);
+    }
+
     protected function casts(): array
     {
-        return ['filter' => 'array', 'updated_members_at' => 'datetime'];
+        return ['filter' => 'array', 'updated_members_at' => 'datetime', 'has_waitlist' => 'boolean', 'waitlist_order' => 'array'];
     }
 
     /** @return BelongsTo<Group, $this> */

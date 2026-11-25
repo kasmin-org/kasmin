@@ -6,6 +6,24 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ## [Unreleased]
 
+### Added
+
+- Waitlist: order by rules per role (priority, took part last time, number of events, registration date), page with reasons, offers and manual actions, skipping with a reason.
+- Release of reserve places, reminder to all administrators at a date, automatic release (off by default).
+- Waitlists of groups with offers in the portal.
+
+### Security
+
+- Stored approval mails no longer contain the link that decides without a login; it is made when the mail is sent. Until now, people with access to the mail log could decide about automations in the name of an approver, e.g. about their own large mailing.
+
+### Changed
+
+- Standard texts, automations and event types of an update are installed after all changes of the database. Every change is now tested with an upgrade from 0.10.0 and from the last release (SQLite and MariaDB).
+
+### Fixed
+
+- Free places were no longer offered to the waitlist by the daily automation once the registration was closed.
+
 ## [0.19.0] - 2026-11-25
 
 Pre-release for testing. Not ready for production use.

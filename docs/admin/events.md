@@ -20,12 +20,24 @@ team confirms.
 ## Waitlist
 
 When the bookable places of a role are taken, further registrations go to the **waitlist**, ordered by
-registration time. Legal guardians see the position and the total length in the portal ("position 3 of 9").
+registration date. Legal guardians see the position and the total length in the portal ("position 3 of 9").
 When someone cancels, everyone behind moves up.
+
+- **Order**: per role, criteria one after the other – priority, took part last time, number of events so far. The registration date
+  always decides in the end. The portal shows the rule, but never the reasons of others.
+- **Priority** flags (sibling, social reasons, other) are set by the team; a sibling that takes part counts automatically (not if it
+  registered itself). Flags and notes are internal.
+- *Events → Waitlist* shows the order with its reason and open offers with their deadlines. The team can offer a place (out of turn
+  only with a reason), assign a reserve place, set priority, or **skip** somebody with a reason: the position stays, but there are no
+  offers until this is taken back.
+- Free places are also offered after the registration is closed.
 
 **Reserve places** are not given out by the system: the waitlist starts earlier (bookable places = places −
 reserve places). Only the team assigns a reserve place to someone on the waitlist, with an internal reason
 (e.g. special needs). The waitlist order of the others is not affected, and the portal does not show reserve places.
+
+Free reserve places can be **released** to the waitlist there, with a reason. With *Reserve places: remind on*, all administrators get
+a mail on that day if reserve places are still free; *Release automatically* is off by default.
 
 ## Portal for legal guardians
 

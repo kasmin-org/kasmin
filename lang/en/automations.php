@@ -13,6 +13,7 @@ return [
     'form' => 'Form (key)', 'interval_days' => 'Days between reminders', 'max' => 'At most … reminders', 'window_days' => 'Events starting within … days',
     'age' => 'Age', 'role' => 'Role', 'next_role' => 'Next role (proposal)',
     'actions' => [
+        'group_waitlist_offer' => 'Offer free places in groups',
         'waitlist_positions' => 'New position on the waitlist', 'mailing_release' => 'Approve large mailings', 'registration_rounds' => 'Registration rounds', 'payment_reminders' => 'Payment reminders', 'invoice_corrections' => 'Correct invoices', 'payment_followup' => 'Release unpaid places', 'membership_invoices' => 'Membership fee invoices',
         'waitlist_offer' => 'Offer free places to the waitlist',
         'offer_expiry' => 'Expire unanswered offers',

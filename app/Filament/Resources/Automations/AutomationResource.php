@@ -110,7 +110,7 @@ class AutomationResource extends Resource
                 Toggle::make('config.send')->label(__('automations.send'))->inline(false)->visible($is('invoice_run', 'invoice_corrections', 'membership_invoices')),
                 TextInput::make('config.days')->label(__('automations.release_days'))->numeric()->minValue(0)->placeholder('14')->visible($is('payment_followup')),
                 TextInput::make('config.year')->label(__('automations.year'))->numeric()->minValue(2000)->maxValue(2100)->placeholder(now()->format('Y'))->visible($is('membership_invoices')),
-                TextInput::make('config.offer_days')->label(__('automations.offer_days'))->numeric()->minValue(1)->visible($is('waitlist_offer')),
+                TextInput::make('config.offer_days')->label(__('automations.offer_days'))->numeric()->minValue(1)->visible($is('waitlist_offer', 'group_waitlist_offer')),
                 TextInput::make('config.form')->label(__('automations.form'))->visible($is('safety_sheet_reminder')),
                 TextInput::make('config.interval_days')->label(__('automations.interval_days'))->numeric()->minValue(1)->visible($is('safety_sheet_reminder')),
                 TextInput::make('config.max')->label(__('automations.max'))->numeric()->minValue(1)->visible($is('safety_sheet_reminder')),

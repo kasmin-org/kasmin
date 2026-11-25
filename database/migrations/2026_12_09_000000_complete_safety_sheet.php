@@ -1,5 +1,6 @@
 <?php
 
+use App\Support\Install\AfterMigrations;
 use App\Support\Install\MailTemplateDefaults;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -21,7 +22,7 @@ return new class extends Migration
         });
         // New mail templates; existing ones are not changed. Installations without defaults stay without.
         if (DB::table('mail_templates')->where('key', 'safety_sheet_request')->exists()) {
-            app(MailTemplateDefaults::class)->install();
+            AfterMigrations::request(MailTemplateDefaults::class);
         }
     }
 };

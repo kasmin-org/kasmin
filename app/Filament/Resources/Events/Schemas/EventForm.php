@@ -9,6 +9,7 @@ use App\Models\Form;
 use App\Models\Group;
 use App\Models\MembershipType;
 use App\Support\Auth\Permissions;
+use App\Support\Events\Waitlist;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\FileUpload;
@@ -62,6 +63,8 @@ class EventForm
                         FileUpload::make('path')->label(__('admin.finance.file'))->required()->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])->maxSize(10240)->disk('local')->directory(EventDocument::DIRECTORY)->visibility('private'),
                     ]),
                 DatePicker::make('answers_until')->label(__('admin.event.answers_until'))->hintIcon('heroicon-m-question-mark-circle', tooltip: __('admin.event.answers_until_hint')),
+                DatePicker::make('reserve_reminder_on')->label(__('events.reserve_reminder_on'))->hintIcon('heroicon-m-question-mark-circle', tooltip: __('events.reserve_reminder_hint')),
+                Toggle::make('reserve_auto_release')->label(__('events.reserve_auto_release'))->inline(false),
                 TextInput::make('safety_confirm_days')->label(__('admin.event.safety_confirm_days'))->numeric()->minValue(1)->maxValue(365)->hintIcon('heroicon-m-question-mark-circle', tooltip: __('admin.event.safety_confirm_hint')),
                 Textarea::make('description')->label(__('admin.event.description'))->columnSpanFull(),
             ]),
@@ -80,6 +83,8 @@ class EventForm
                             ->hintIcon('heroicon-m-question-mark-circle', tooltip: __('admin.finance.role_discount_hint')),
                         Toggle::make('counts_as_sibling')->label(__('admin.finance.counts_as_sibling'))->default(true)->inline(false)
                             ->hintIcon('heroicon-m-question-mark-circle', tooltip: __('admin.finance.counts_as_sibling_hint')),
+                        Select::make('waitlist_order')->label(__('events.waitlist_order'))->multiple()->reorderable()->options(collect(__('events.waitlist_criteria'))->only(Waitlist::CRITERIA)->all())->columnSpanFull()
+                            ->hintIcon('heroicon-m-question-mark-circle', tooltip: __('events.waitlist_order_hint')),
                         Select::make('registration_form_id')->label(__('admin.event.registration_form'))->options(fn () => Form::query()->where('kind', 'registration')->get()->mapWithKeys(fn (Form $f) => [$f->id => $f->label()])->all())
                             ->columnSpanFull(),
                     ]),

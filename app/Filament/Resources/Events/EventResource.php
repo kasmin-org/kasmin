@@ -78,6 +78,7 @@ class EventResource extends Resource
     {
         return [
             RelationManagers\ParticipationsRelationManager::class,
+            RelationManagers\WaitlistRelationManager::class,
         ];
     }
 

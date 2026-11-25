@@ -51,7 +51,7 @@ return [
     'planned' => 'Planned actions', 'results' => 'Results', 'decided_by' => 'Decided by', 'excluded' => 'Not carried out',
     'item' => 'Action', 'result' => 'Result', 'trigger_label' => 'Triggered by', 'created' => 'Created', 'expires' => 'Expires',
     'items' => [
-        'position' => ':name is now at position :position (:event)',
+        'season_waitlist' => ':name stays on the waitlist (age :age)', 'position' => ':name is now at position :position (:event)',
         'mailing' => 'Send ":name" (:count mails)',
         'round' => 'Offer to :names (:event)',
         'reminder_fee' => 'fee :amount',

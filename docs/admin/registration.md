@@ -59,6 +59,15 @@ are told. Links sent to the old login address end.
 *Download data* gives a file with everything stored about the person and the children (Art. 15 and 20 GDPR), without data that is hidden from
 the person. Administrators can create it on the person page.
 
+## Cancellations and confirmations
+
+- When a registration is cancelled – by the legal guardians, by the team or because an invoice was not paid – the family gets the mail
+  *Confirmation of the cancellation*. An offer that was not answered in time ends with the mail *Offer expired*. Both texts are
+  mail templates and can be changed.
+- After the event, the **confirmation of participation** is available as a PDF: for the team in the participants of the event
+  (*Confirmation of participation*), and for the person or the legal guardians in the portal next to the registration. It names the
+  person, the event, the period and the amount paid, e.g. for employers or insurers who refund a part of the costs.
+
 ## Spam protection
 
 Public forms have a hidden field for bots, a limit per address and a proof of work: the browser solves a small task (about a second) before it

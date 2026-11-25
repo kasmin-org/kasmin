@@ -9,6 +9,7 @@ use App\Models\Participation;
 use App\Models\Person;
 use App\Models\User;
 use App\Support\Auth\Permissions;
+use App\Support\Events\ParticipationConfirmation;
 use App\Support\Events\RegistrationException;
 use App\Support\Events\Registrations;
 use App\Support\Events\Rounds;
@@ -167,6 +168,9 @@ class ParticipationsRelationManager extends RelationManager
                             return $form === null ? [] : $form->fields->reject(fn (FormField $f) => $f->isConfidential() && ! $safety)
                                 ->map(fn (FormField $f) => TextEntry::make('a_'.$f->key)->label($f->labelText())->state(FormValue::text($f, $values[$f->key] ?? null))->placeholder('–'))->values()->all();
                         }),
+                    Action::make('confirmation')->label(__('events.confirmation.title'))->icon('heroicon-o-document-check')->openUrlInNewTab()
+                        ->visible(fn (Participation $record) => ParticipationConfirmation::available($record))
+                        ->url(fn (Participation $record) => route('admin.participation.confirmation', $record)),
                     Action::make('cancel')->label(__('admin.event.cancel_participation'))->icon('heroicon-o-x-circle')->color('danger')->requiresConfirmation()
                         ->visible(fn (Participation $record) => $this->mayEdit() && ! in_array($record->status, ['cancelled', 'declined', 'attended', 'no_show'], true))
                         ->schema([Textarea::make('reason')->label(__('admin.finance.reason'))->required()->maxLength(250)])

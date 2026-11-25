@@ -7,7 +7,8 @@ or CSV. Only people who take part are listed (registered, confirmed, attended).
 
 | List | Content | Visible for |
 |---|---|---|
-| Participants | name, date of birth, age, role, status, legal guardians | administrator, board, camp leader, safety officer |
+| Participants | name, gender, date of birth, age, role, status, legal guardians | administrator, board, camp leader, safety officer |
+| Figures for the team meeting | per role: counts by gender, total, were there before, new, waitlist – numbers only, no names | same |
 | Contacts | legal guardians with phone and e-mail | same |
 | Bus list | legal guardian with phone, boxes to tick for outward and return journey | same |
 | Birthdays | birthdays during the event | same |

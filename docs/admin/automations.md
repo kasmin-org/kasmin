@@ -89,7 +89,7 @@ Installed with the German or English defaults, **switched off** except *Payment 
 | Offer free places to the waitlist | the next person on the waitlist gets an offer with a deadline (default 7 days); mail *Place offered from the waitlist* | when a place becomes free · approval |
 | Check the waitlist daily | the same, e.g. after the capacity was raised | daily 08:00 · approval |
 | Expire unanswered offers | after the deadline the offer is declined and the place goes to the next person | daily 07:30 · automatic |
-| Start season | children of the previous event of the same series are registered if their age still fits; those too old are proposed for the next role (e.g. junior counsellor) or for leaving – as a notice to the team | by button · manual |
+| Start season | children of the previous event of the same series are registered if their age still fits; those too old are proposed for the next role (e.g. junior counsellor) or for leaving – as a notice to the team. Children on the waitlist of the previous event stay on the waitlist of the new one, with the date of their first registration, so nobody loses the position | by button · manual |
 | Deposit invoices / Balance invoices | invoices of the instalment `deposit` / `balance` per family, issued and sent ([Invoices](invoices.md)) | by button / 90 days before · approval |
 | Registration rounds | offers in the rounds of an event ([Event planning](event-planning.md)); **active** | daily · approval |
 | Payment reminders | reminders before and after the due date as set under *Organisation and invoices* ([Invoices](invoices.md)); **active** | daily · approval |

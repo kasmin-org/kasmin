@@ -9,6 +9,15 @@
         'bounced' => \App\Filament\Resources\OutgoingMails\OutgoingMailResource::getUrl('index'),
         'unmatched_payments' => \App\Filament\Resources\Payments\PaymentResource::getUrl('index'),
     ];
+    // No links to pages the role may not open.
+    $open = [
+        'approvals' => \App\Filament\Resources\AutomationRuns\AutomationRunResource::canAccess(),
+        'requests' => \App\Filament\Resources\Events\EventResource::canAccess(),
+        'new_registrations' => \App\Filament\Resources\Events\EventResource::canAccess(),
+        'deletion_requests' => \App\Filament\Resources\People\PersonResource::canAccess(),
+        'bounced' => \App\Filament\Resources\OutgoingMails\OutgoingMailResource::canAccess(),
+        'unmatched_payments' => \App\Filament\Resources\Payments\PaymentResource::canAccess(),
+    ];
 @endphp
 <x-filament-widgets::widget>
     <div style="{{ $grid }}">
@@ -17,7 +26,7 @@
                 @foreach ($todos as $key => $count)
                     @continue($key === 'unmatched_payments' && $finance === null)
                     <li style="display:flex;justify-content:space-between;gap:.5rem;padding:.15rem 0">
-                        <a href="{{ $links[$key] }}" class="underline">{{ __('dashboard.todo.'.$key) }}</a>
+                        @if ($open[$key])<a href="{{ $links[$key] }}" class="underline">{{ __('dashboard.todo.'.$key) }}</a>@else<span>{{ __('dashboard.todo.'.$key) }}</span>@endif
                         <span class="font-semibold" @if ($count > 0 && $key !== 'new_registrations') style="color:#b45309" @endif>{{ $count }}</span>
                     </li>
                 @endforeach

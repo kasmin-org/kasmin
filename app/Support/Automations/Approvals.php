@@ -54,7 +54,9 @@ class Approvals
     /** The other approvers who were asked learn who decided (RO03). */
     public function informOthers(AutomationRun $run, User $by): void
     {
-        $asked = OutgoingMail::query()->where('attachments', 'like', '%"approval_run_id":'.$run->id.'}%')->pluck('person_id')->all();
+        // Compared in PHP: databases store JSON with different spaces.
+        $asked = OutgoingMail::query()->where('kind', 'notification')->where('attachments', 'like', '%approval_run_id%')->when($run->created_at, fn ($q, $since) => $q->where('created_at', '>=', $since))->get(['id', 'person_id', 'attachments'])
+            ->filter(fn (OutgoingMail $mail) => collect($mail->attachments ?? [])->contains(fn (array $a) => (int) ($a['approval_run_id'] ?? 0) === $run->id))->pluck('person_id')->all();
         foreach ($this->approvers($run) as $user) {
             if ($user->id === $by->id || ! in_array($user->person_id, $asked, true)) {
                 continue;

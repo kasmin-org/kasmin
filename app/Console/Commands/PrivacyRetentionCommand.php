@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Http\Middleware\Idempotency;
+use App\Support\Audit\AuditRetention;
 use App\Support\Events\Guests;
 use App\Support\Events\PublicForms;
 use App\Support\Mail\MailRetention;
@@ -30,6 +31,8 @@ class PrivacyRetentionCommand extends Command
         $this->info('Deleted answers: '.$privacy->runRetention());
         $this->info('Deleted mails: '.app(MailRetention::class)->run());
         $this->info('Expired forms and invitations: '.(app(PublicForms::class)->expire() + app(Guests::class)->expire() + app(Guardians::class)->expire() + app(SignUps::class)->expire() + app(Addresses::class)->expire()));
+        $audit = app(AuditRetention::class)->run();
+        $this->info('Audit log: '.$audit['shortened'].' shortened, '.$audit['deleted'].' deleted');
         $this->info('Expired idempotency keys: '.Idempotency::prune());
         $this->info('Ended guardianships: '.app(Guardians::class)->endAtAge());
 

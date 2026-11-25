@@ -43,8 +43,8 @@ class HookController extends Controller
 
         // Demo instances can be emptied and filled again (never anywhere else).
         if ($request->boolean('reset') && $installer->isInstalled()) {
+            rescue(fn () => Cache::flush(), report: false); // before the tables go: the cache may live in the database
             Schema::dropAllTables();
-            Cache::flush();
         }
         if ($installer->isInstalled()) {
             return response()->json(['ok' => true, 'installed' => false, 'message' => 'Already installed.']);

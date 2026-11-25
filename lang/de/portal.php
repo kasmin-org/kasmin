@@ -55,4 +55,5 @@ return [
     'notify_signup' => 'Neue Registrierung: :name',
     'mails' => 'Ihre E-Mails',
     'team' => 'Meine Veranstaltungen (Team)', 'team_hint' => 'Listen für das Team. Bitte vertraulich behandeln. Jede Ansicht wird protokolliert.',
+    'sessions' => 'Wo Sie angemeldet sind', 'sessions_hint' => 'Geräte und Browser, die mit Ihrer Adresse angemeldet sind. Melden Sie ein Gerät ab, wenn Sie es nicht kennen.', 'sessions_this' => 'dieses Gerät', 'sessions_end' => 'Überall sonst abmelden', 'sessions_ended' => '{0} Es war kein anderes Gerät angemeldet.|{1} Ein anderes Gerät wurde abgemeldet.|[2,*] :count andere Geräte wurden abgemeldet.',
 ];

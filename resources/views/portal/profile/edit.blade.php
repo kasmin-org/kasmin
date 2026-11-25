@@ -50,6 +50,23 @@
         </form>
     @endforeach
 
+    @if ($sessions !== [])
+        <h2 class="mb-2 text-lg font-semibold">{{ __('portal.sessions') }}</h2>
+        <p class="mb-2 text-sm">{{ __('portal.sessions_hint') }}</p>
+        <ul class="mb-3 text-sm" data-sessions>
+            @foreach ($sessions as $s)
+                <li class="border-b border-kasmin-100 py-2">{{ $s['device'] }} · {{ $s['ip'] }} · {{ $s['last']->isoFormat('LLL') }}@if ($s['current']) · <strong>{{ __('portal.sessions_this') }}</strong>@endif</li>
+            @endforeach
+        </ul>
+        @if (collect($sessions)->contains('current', false))
+            <form method="post" action="{{ route('portal.profile.sessions') }}" class="mb-6">@csrf
+                <button class="rounded-lg bg-white px-4 py-2 text-sm font-semibold ring-1 ring-kasmin-200">{{ __('portal.sessions_end') }}</button>
+            </form>
+        @else
+            <div class="mb-6"></div>
+        @endif
+    @endif
+
     <h2 class="mb-2 text-lg font-semibold">{{ __('portal.my_data') }}</h2>
     <p class="mb-2 text-sm">{{ __('portal.export_hint') }}</p>
     <a class="inline-block rounded-lg bg-white px-4 py-2 text-sm font-semibold ring-1 ring-kasmin-200" href="{{ route('portal.profile.export') }}">{{ __('portal.export') }}</a>

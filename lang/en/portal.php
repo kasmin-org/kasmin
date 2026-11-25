@@ -55,4 +55,5 @@ return [
     'notify_signup' => 'New sign-up: :name',
     'mails' => 'Your e-mails',
     'team' => 'My events (team)', 'team_hint' => 'Lists for the team. Please treat them confidentially. Every view is logged.',
+    'sessions' => 'Where you are logged in', 'sessions_hint' => 'Devices and browsers that are logged in with your address. If you do not know one of them, log it out.', 'sessions_this' => 'this device', 'sessions_end' => 'Log out everywhere else', 'sessions_ended' => '{0} No other device was logged in.|{1} One other device was logged out.|[2,*] :count other devices were logged out.',
 ];

@@ -30,6 +30,10 @@ run it at once; every deletion is logged. Command line: `php artisan kasmin:priv
 writes, automation run and anonymisation, with time, actor (person, API token, MCP, automation, system), object,
 IP address and request id. Filter by action (e.g. `login.`), actor and date. The log cannot be changed or deleted.
 
+The log itself holds personal data, so it is kept short: after 30 days the IP address is cut to its network part and the browser to
+its kind (e.g. "Firefox, Windows"), and entries older than 10 years are deleted by the nightly job. Both periods are set under
+*Settings → Organisation and invoices → Retention* (0 = never).
+
 ## Consents and opt-outs
 
 *Data protection → Consents and opt-outs* lists newsletter consents, opt-outs, deletion requests and completed

@@ -34,7 +34,7 @@ return [
         'import_done' => ':imported imported, :matched matched automatically, :suggested suggestions, :duplicates already present',
     ],
     'settings' => [
-        'mail_layout' => 'Look of the e-mails', 'mail_logo' => 'Logo (PNG, JPG, GIF)', 'mail_color' => 'Colour', 'mail_footer' => 'Footer of the e-mails', 'mail_footer_hint' => 'Shown in every e-mail, e.g. name, address, registration number.', 'retention_mail_years' => 'Mail log: years', 'retention_mail_years_hint' => '0 = as long as the person exists. Mails with invoices stay at least as long as the invoices.',
+        'mail_layout' => 'Look of the e-mails', 'mail_logo' => 'Logo (PNG, JPG, GIF)', 'mail_color' => 'Colour', 'mail_footer' => 'Footer of the e-mails', 'mail_footer_hint' => 'Shown in every e-mail, e.g. name, address, registration number.', 'audit_ip_days' => 'Audit log: shorten IP address and browser after (days)', 'audit_ip_days_hint' => '0 = never. Afterwards only the network part of the address and the kind of browser are kept.', 'retention_audit_years' => 'Audit log: years', 'retention_audit_years_hint' => '0 = entries are kept for good.', 'retention_mail_years' => 'Mail log: years', 'retention_mail_years_hint' => '0 = as long as the person exists. Mails with invoices stay at least as long as the invoices.',
         'organisation' => 'Organisation and invoices', 'name' => 'Name of the organisation', 'email' => 'E-mail address', 'address' => 'Postal address', 'website' => 'Website',
         'legal_footer' => 'Footer (legal notice)', 'legal_footer_hint' => 'Shown on every invoice, e.g. register number, seat, contact.',
         'bank' => 'Bank account', 'bank_name' => 'Bank', 'bic_hint' => 'Optional; included in the QR code.', 'iban_invalid' => 'The IBAN is not valid.',
@@ -166,4 +166,5 @@ return [
     ],
     'genders' => ['female' => 'female', 'male' => 'male', 'diverse' => 'diverse', 'unspecified' => 'not specified'],
     'purposes' => ['login' => 'Login', 'information' => 'Information', 'invoices' => 'Invoices', 'emergency' => 'Emergency'],
+    'help' => ['title' => 'Opens the documentation of this version in a new tab', 'link' => 'Help for this page'],
 ];

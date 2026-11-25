@@ -54,7 +54,9 @@ class HookTest extends TestCase
         $this->postJson('/system/hooks/demo', [], $headers)->assertOk()->assertJson(['installed' => false]);
         $admin = User::query()->where('email', 'admin@demo.example.org')->value('id');
         User::query()->whereKey($admin)->update(['name' => 'Changed']);
+        config(['cache.default' => 'database']); // as on shared hosting: the cache table is deleted with everything else
         $this->postJson('/system/hooks/demo?reset=1', [], $headers)->assertOk()->assertJson(['installed' => true]);
+        config(['cache.default' => 'array']);
         $this->assertSame('Demo Admin', User::query()->where('email', 'admin@demo.example.org')->value('name'));
         $this->assertGreaterThan(10, MailTemplate::query()->count());
         $this->postJson('/system/hooks/upgrade', [], $headers)->assertOk()->assertJson(['ok' => true]);

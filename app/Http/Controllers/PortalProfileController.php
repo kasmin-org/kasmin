@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\ContactPoint;
 use App\Models\Household;
 use App\Models\Person;
+use App\Models\User;
 use App\Support\Audit\Audit;
 use App\Support\Auth\PortalPerson;
+use App\Support\Auth\Sessions;
 use App\Support\Mail\Notifier;
 use App\Support\People\Addresses;
 use App\Support\Privacy\DataExport;
@@ -30,7 +32,16 @@ class PortalProfileController extends Controller
         return view('portal.profile.edit', [
             'person' => $person, 'points' => $person->contactPoints()->orderByDesc('is_primary')->get(),
             'households' => $person->households()->wherePivot('role', 'guardian')->with('members')->get(),
+            'sessions' => PortalPerson::previewing($request) || ! $request->user() instanceof User ? [] : Sessions::of($request->user(), $request),
         ]);
+    }
+
+    public function logoutOthers(Request $request): RedirectResponse
+    {
+        abort_unless($request->user() instanceof User && ! PortalPerson::previewing($request), 403);
+        $ended = Sessions::logoutOthers($request->user(), $request);
+
+        return back()->with('status', trans_choice('portal.sessions_ended', $ended, ['count' => $ended]));
     }
 
     public function savePhones(Request $request): RedirectResponse

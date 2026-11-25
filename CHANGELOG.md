@@ -13,11 +13,15 @@ All notable changes to Kasmin are documented in this file. The format is based o
 - Confirmation of participation as a PDF after the event, for the team and in the portal, with the amount paid.
 - List *Figures for the team meeting* (roles by gender, new and returning, waitlist); the participants list shows the gender.
 - Legal guardians can state the gender when they add a child in the portal.
+- *My data* in the portal lists the devices that are logged in, with *Log out everywhere else*.
+- Audit log: IP address and browser are shortened after 30 days and entries are deleted after 10 years; both can be set.
+- *Help for this page* next to the title of every admin page opens the documentation of the installed version.
 - A whole camp year is tested in one run, from the registration to the next season.
 
 ### Fixed
 
 - The timeline of a person linked sent mails to a page that does not exist; the link opens the mail now.
+- Resetting a demo instance failed on the first call when the cache is stored in the database.
 - The dashboard and the import list showed links to pages that the role may not open.
 - A mail with a long link was wider than the screen in the portal on phones.
 - After a mail was written, dates in the same run were shown in the American order (month first) in English.

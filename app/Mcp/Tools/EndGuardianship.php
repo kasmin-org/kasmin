@@ -16,6 +16,8 @@ use Laravel\Mcp\Server\Tools\Annotations\IsDestructive;
 #[IsDestructive]
 class EndGuardianship extends ApiTool
 {
+    public const ENDPOINT = ['DELETE', '/people/{person}/guardians/{guardian}'];
+
     protected string $scope = 'people:write';
 
     public function handle(Request $request): Response

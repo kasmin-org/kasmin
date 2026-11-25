@@ -14,6 +14,8 @@ use Laravel\Mcp\Server\Attributes\Name;
 #[Description('Sets how a participant travels to an event that has a bus: bus or car. Everybody travels by bus unless set to car: adults who drive, or a child that its legal guardians bring themselves.')]
 class SetParticipationTravel extends ApiTool
 {
+    public const ENDPOINT = ['PATCH', '/participations/{participation}'];
+
     protected string $scope = 'events:write';
 
     public function handle(Request $request): Response

@@ -14,6 +14,8 @@ use Laravel\Mcp\Server\Attributes\Name;
 #[Description('Asks humans for the approval to send a prepared mailing.')]
 class RequestMailingRelease extends ApiTool
 {
+    public const ENDPOINT = ['POST', '/mailings/{mailing}/release'];
+
     protected string $scope = 'mail:write';
 
     public function handle(Request $request): Response

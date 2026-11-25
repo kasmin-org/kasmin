@@ -8,13 +8,11 @@ use App\Models\EventRole;
 use App\Models\Participation;
 use App\Models\Person;
 use App\Support\Auth\Permissions;
+use App\Support\Events\Offers;
 use App\Support\Events\RegistrationException;
 use App\Support\Events\Registrations;
 use App\Support\Events\ReservePlaces;
-use App\Support\Events\Rounds;
 use App\Support\Events\Waitlist;
-use App\Support\Mail\Composer;
-use App\Support\Mail\Routing;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Forms\Components\DatePicker;
@@ -133,14 +131,11 @@ class WaitlistRelationManager extends RelationManager
                         ])
                         ->action(function (Participation $record, array $data) {
                             $person = Person::query()->find($record->person_id);
-                            $offered = $person !== null ? app(Rounds::class)->offer($this->event(), $person, $record->role_key, Carbon::parse((string) $data['until'])->endOfDay(), null, (string) ($data['reason'] ?? '') ?: null) : null;
+                            $offered = $person !== null ? app(Offers::class)->offer($this->event(), $person, $record->role_key, Carbon::parse((string) $data['until'])->endOfDay(), (string) ($data['reason'] ?? '') ?: null, 'waitlist_offer') : null;
                             if ($offered === null) {
                                 Notification::make()->title(__('events.errors.no_place'))->danger()->send();
 
                                 return;
-                            }
-                            foreach (Routing::recipients('waitlist_offer', $person, $offered) as $recipient) {
-                                app(Composer::class)->queue('waitlist_offer', $recipient, ['event' => $this->event(), 'participation' => $offered->load('event', 'person'), 'household' => $person->households()->first(), 'children' => [$person]]);
                             }
                             Notification::make()->title(__('events.offered_to', ['name' => $person->fullName()]))->success()->send();
                         }),

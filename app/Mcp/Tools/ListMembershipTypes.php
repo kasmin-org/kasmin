@@ -16,6 +16,8 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 #[IsReadOnly]
 class ListMembershipTypes extends ApiTool
 {
+    public const ENDPOINT = ['GET', '/membership-types'];
+
     protected string $scope = 'people:read';
 
     public function handle(Request $request): Response

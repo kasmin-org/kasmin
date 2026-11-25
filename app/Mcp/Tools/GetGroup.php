@@ -16,6 +16,8 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 #[IsReadOnly]
 class GetGroup extends ApiTool
 {
+    public const ENDPOINT = ['GET', '/groups/{group}'];
+
     protected string $scope = 'people:read';
 
     public function handle(Request $request): Response

@@ -6,9 +6,13 @@ use App\Models\Automation;
 use App\Models\AutomationRun;
 use App\Models\ContactPoint;
 use App\Models\Event;
+use App\Models\EventInstallment;
+use App\Models\EventPrice;
 use App\Models\EventRole;
+use App\Models\Form;
 use App\Models\Household;
 use App\Models\Invoice;
+use App\Models\MembershipType;
 use App\Models\Participation;
 use App\Models\Person;
 use App\Support\Events\Bus;
@@ -44,7 +48,8 @@ class Presenter
     {
         return [
             'id' => $h->public_id, 'name' => $h->name, 'street' => $h->getAttribute('street'), 'postal_code' => $h->getAttribute('postal_code'),
-            'city' => $h->getAttribute('city'), 'country' => $h->getAttribute('country'),
+            'city' => $h->getAttribute('city'), 'country' => $h->getAttribute('country'), 'locale' => $h->getAttribute('locale'),
+            'invoice_recipient' => $h->invoiceRecipient?->public_id,
             'members' => $h->members->map(fn (Person $p) => ['id' => $p->public_id, 'name' => $p->fullName(), 'role' => $p->getRelationValue('pivot')?->getAttribute('role')])->values()->all(),
         ];
     }
@@ -66,13 +71,30 @@ class Presenter
                 'registration_closes_at' => $e->registration_closes_at?->toIso8601String(), 'age_reference_date' => $e->age_reference_date?->toDateString(),
                 'answers_until' => $e->answers_until?->toDateString(), 'reserve_reminder_on' => $e->reserve_reminder_on?->toDateString(),
             ];
+            $data += ['bus_booked' => (bool) $e->getAttribute('bus_booked'), 'bus_seats' => $e->getAttribute('bus_seats'), 'bus' => Bus::status($e)];
+            $forms = Form::query()->where('kind', 'registration')->pluck('key', 'id');
             $data['roles'] = $e->roles->map(fn (EventRole $r) => [
                 'role' => $r->role_key, 'capacity' => $r->capacity, 'reserve_places' => $r->reserve_places, 'occupied' => $r->occupied(),
                 'bookable_left' => $r->bookableLeft(), 'waitlist' => $r->waitlistLength(), 'min_age' => $r->min_age, 'max_age' => $r->max_age,
                 'price' => $r->price_cents / 100, 'role_discount' => $r->role_discount_cents / 100, 'registered_by' => $r->registered_by,
                 'counts_as_sibling' => $r->counts_as_sibling, 'waitlist_order' => $r->waitlist_order ?? [],
+                'registration_form' => $r->registration_form_id !== null ? $forms->get($r->registration_form_id) : null,
             ])->values()->all();
-            $data['installments'] = $e->installments->map(fn ($i) => ['key' => $i->key, 'label' => $i->label, 'kind' => $i->kind, 'amount' => $i->amount_cents !== null ? $i->amount_cents / 100 : null, 'due_date' => $i->due_date?->toDateString()])->values()->all();
+            $types = MembershipType::query()->pluck('key', 'id');
+            $data['installments'] = $e->installments->map(fn (EventInstallment $i) => [
+                'key' => $i->key, 'label' => $i->label, 'kind' => $i->kind, 'amount' => $i->amount_cents !== null ? $i->amount_cents / 100 : null, 'due_date' => $i->due_date?->toDateString(),
+                'due_days' => $i->due_days, 'membership_type' => $i->membership_type_id !== null ? $types->get($i->membership_type_id) : null, 'refundable' => $i->refundable,
+                'refund_until_days' => $i->refund_until_days, 'confirms_place' => $i->confirms_place, 'paid_add_group' => $i->paid_add_group_id, 'paid_remove_group' => $i->paid_remove_group_id,
+                'discounts_apply' => $i->discounts_apply,
+            ])->values()->all();
+            $data['prices'] = $e->prices->map(fn (EventPrice $p) => [
+                'role' => $p->role_key, 'min_age' => $p->min_age, 'max_age' => $p->max_age, 'from_date' => $p->from_date?->toDateString(), 'until_date' => $p->until_date?->toDateString(), 'price' => $p->price_cents / 100,
+            ])->values()->all();
+            $data += [
+                'currency' => $e->currency, 'sibling_mode' => $e->sibling_mode, 'sibling_order' => $e->sibling_order, 'sibling_amount' => $e->sibling_amount_cents / 100,
+                'sibling_cap_position' => $e->sibling_cap_position, 'sibling_min_children' => $e->sibling_min_children, 'reminder_days_before' => $e->getAttribute('reminder_days_before'),
+                'cancellation_fee' => ((int) $e->getAttribute('cancellation_fee_cents')) / 100, 'cancellation_text' => $e->getAttribute('cancellation_text'),
+            ];
         }
 
         return $data;

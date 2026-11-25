@@ -6,6 +6,25 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ## [Unreleased]
 
+### Added
+
+- REST API: everything the admin interface can do is now also available via REST (requirement X01) – families (create, change, members, invoice recipient), memberships of a person, duplicates (list, merge, dismiss), roles of a person, event series, bus of an event (`bus_booked`, `bus_seats`, `bus`), offers out of turn and reserve places, the schedule of an event, groups, rooms and duties of an event, the lists of an event as JSON, issuing, sending and cancelling invoices, payments and refunds, the invoice archive, versions of mail templates, the mail log, addresses that do not work, sender profiles, public forms and their submissions, consents, deletion requests, the data export and anonymising, statistics and the dashboard, own automations (create, delete) and webhooks. `docs/admin/api.md` describes every group and ends with a table of what is available in the interface, via REST and via MCP.
+- REST API: the whole event form – sibling discount, cancellation fee and text, reminder days, prices by age or date and the payment plan in `POST`/`PATCH /events`, the registration form of a role (`registration_form`), registration rounds (`/events/{id}/rounds`), costs (`/events/{id}/costs`), documents with upload and download (`/events/{id}/documents`), event templates (`/event-templates`) and events from a template or as a copy (`POST /events` with `template` or `copy_of`).
+- REST API: new scopes `roles:write` (give and take roles; a token can never give or take the role administrator) and `privacy:write` (anonymise people).
+- REST API: the confidential lists of an event (kitchen, medical, emergency …) need `health:read`, and every read is recorded in the audit log, as in the admin interface.
+- MCP: everything the REST API offers for administrative use is now also an MCP tool (requirement AP01) – 87 new tools (139 in total) for families, memberships, roles, duplicates, changing people and groups, event series and templates, the whole event form (bus, prices, payment plan), registration rounds, costs, documents (list, delete), participation status, offers and reserve places, groups and rooms of an event, lists, statistics and dashboard, issuing, sending and cancelling invoices, payments, refunds, the invoice archive, own automations, single runs, family suggestions for imports, form answers, public forms and their submissions, mail template changes and versions, the mail log, bad addresses, sender profiles, consents, deletion requests, data export, anonymising, settings and webhooks. A test walks the routes of the API and fails when a route has neither a tool nor a documented reason (files and webhook secrets are deliberately not available via MCP).
+- MCP: tools that only read are marked read-only and tools that delete, cannot be undone or send mails are marked destructive; optional fields can be emptied by name with `clear`.
+- MCP: more that an AI assistant cannot do without the scope `approvals:decide` – choosing the approval settings of a new automation, changing the setting from how many recipients a mailing needs an approval, and giving or taking roles (the role administrator is never available). Via MCP a webhook cannot be created and its address and secret cannot be changed, and a data export that holds emergency contacts needs the setting "All data" like other health and safety data.
+
+### Changed
+
+- REST API: `PATCH /participations/{id}` with the status `cancelled` takes a `reason`, recalculates draft invoices as the admin interface does, and refuses participations that are already cancelled, declined, attended or a no-show.
+- REST API: families (`GET /households`) also show `locale` and `invoice_recipient`.
+
+### Fixed
+
+- People who take part for free (e.g. the team) got an invoice for the fixed deposit, and a family with only free places got an invoice over 0. Found by replaying two real camp years.
+
 ## [0.24.0] - 2026-11-25
 
 ### Added

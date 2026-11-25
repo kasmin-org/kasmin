@@ -12,6 +12,7 @@ use App\Support\Audit\Audit;
 use App\Support\Mail\Notifier;
 use App\Support\Webhooks\Webhooks;
 use Illuminate\Database\UniqueConstraintViolationException;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use RuntimeException;
 
@@ -230,7 +231,13 @@ class Engine
         $started = 0;
         foreach (Automation::query()->where('active', true)->whereIn('trigger', ['daily', 'weekly', 'monthly', 'once', 'before_event', 'after_event'])->get() as $automation) {
             foreach ($this->due($automation) as [$event, $dedupe]) {
+                // Looked at once per day: an automation with nothing to do would otherwise work out its plan again every hour.
+                $checked = 'kasmin.automation-checked.'.$automation->id.'.'.$dedupe.'.'.now()->toDateString().'.'.$automation->updated_at?->timestamp;
+                if (Cache::has($checked)) {
+                    continue;
+                }
                 $started += $this->trigger($automation, $automation->trigger, $event, $dedupe) !== null ? 1 : 0;
+                Cache::put($checked, true, now()->endOfDay());
             }
         }
         $this->approvals->housekeeping();

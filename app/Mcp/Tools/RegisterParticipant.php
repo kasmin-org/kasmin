@@ -14,6 +14,8 @@ use Laravel\Mcp\Server\Attributes\Name;
 #[Description('Registers a person for an event in a role. Age limits and capacity apply; if the event is full the person goes on the waitlist. Sends the registration confirmation to the legal guardians.')]
 class RegisterParticipant extends ApiTool
 {
+    public const ENDPOINT = ['POST', '/events/{event}/registrations'];
+
     protected string $scope = 'events:write';
 
     public function handle(Request $request): Response

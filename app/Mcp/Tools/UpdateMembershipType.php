@@ -14,6 +14,8 @@ use Laravel\Mcp\Server\Attributes\Name;
 #[Description('Changes the names, whether the type pays a fee, or the yearly fee of a membership type.')]
 class UpdateMembershipType extends ApiTool
 {
+    public const ENDPOINT = ['PATCH', '/membership-types/{type}'];
+
     protected string $scope = 'people:write';
 
     public function handle(Request $request): Response

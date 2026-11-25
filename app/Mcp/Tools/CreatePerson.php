@@ -14,6 +14,8 @@ use Laravel\Mcp\Server\Attributes\Name;
 #[Description('Creates a person (optionally a child with up to two legal guardians, who get their own records and logins). Recorded as an import batch that can be rolled back.')]
 class CreatePerson extends ApiTool
 {
+    public const ENDPOINT = ['POST', '/people'];
+
     protected string $scope = 'people:write';
 
     public function handle(Request $request): Response

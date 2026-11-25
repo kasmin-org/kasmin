@@ -14,6 +14,8 @@ use Laravel\Mcp\Server\Attributes\Name;
 #[Description('Adds a person to a manual group.')]
 class AddGroupMember extends ApiTool
 {
+    public const ENDPOINT = ['POST', '/groups/{group}/members'];
+
     protected string $scope = 'people:write';
 
     public function handle(Request $request): Response

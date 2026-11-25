@@ -4,9 +4,9 @@ namespace App\Filament\Resources\Households\Pages;
 
 use App\Filament\Resources\Households\HouseholdResource;
 use App\Models\Household;
+use App\Support\People\Families;
 use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
-use Illuminate\Support\Facades\DB;
 
 class EditHousehold extends EditRecord
 {
@@ -17,11 +17,7 @@ class EditHousehold extends EditRecord
     {
         /** @var Household $household */
         $household = $this->getRecord();
-        foreach ($household->children()->get() as $child) {
-            foreach ($household->guardians()->pluck('people.id') as $guardian) {
-                DB::table('guardianships')->insertOrIgnore(['guardian_id' => $guardian, 'child_id' => $child->id, 'created_at' => now(), 'updated_at' => now()]);
-            }
-        }
+        app(Families::class)->linkGuardians($household);
     }
 
     protected function getHeaderActions(): array

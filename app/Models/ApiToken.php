@@ -26,7 +26,7 @@ class ApiToken extends Model
     /** Scopes; health data, deciding approvals and settings are separate and off by default (X03, AP02, S02). */
     public const SCOPES = [
         'people:read', 'people:write', 'events:read', 'events:write', 'finance:read', 'finance:write',
-        'mail:read', 'mail:write', 'automations:read', 'automations:run', 'approvals:decide',
+        'mail:read', 'mail:write', 'automations:read', 'automations:write', 'automations:run', 'approvals:decide',
         'import:write', 'audit:read', 'health:read', 'health:write', 'settings:write',
     ];
 

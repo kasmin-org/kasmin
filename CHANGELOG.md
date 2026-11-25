@@ -13,6 +13,7 @@ All notable changes to Kasmin are documented in this file. The format is based o
 - Confirmation of participation as a PDF after the event, for the team and in the portal, with the amount paid.
 - List *Figures for the team meeting* (roles by gender, new and returning, waitlist); the participants list shows the gender.
 - Legal guardians can state the gender when they add a child in the portal.
+- Search in *Organisation and invoices*: shows only the settings that match.
 - Actions on selected rows: add people to a group or remove them, write to the selection (mailing as a draft), change the status of several registrations.
 - Person page with an overview (legal guardians, children, families, roles, groups, memberships, events, invoices, consents, login); family page with invoice recipient, emergency contacts, invoices and mails – each part only with the right for it.
 - Dashboard: forms to review, possible duplicates and addresses that do not work in the to-dos; safety sheets changed since the last event.
@@ -20,10 +21,18 @@ All notable changes to Kasmin are documented in this file. The format is based o
 - Audit log: IP address and browser are shortened after 30 days and entries are deleted after 10 years; both can be set.
 - *Help for this page* next to the title of every admin page opens the documentation of the installed version.
 - A whole camp year is tested in one run, from the registration to the next season.
+- REST API: contact data of a person (`/people/{id}/contact-points`) can be read, added and removed.
+- REST API: legal guardians of a person (`/people/{id}/guardians`) can be read, added and ended.
+- REST API: membership types (`/membership-types`) can be read, created and changed.
+- REST API: automations can be read one by one and changed (`PATCH /automations/{key}`) with the new scope `automations:write`.
+- REST API: events can be created and changed (`POST /events`, `PATCH /events/{id}`) with their basic fields and roles.
 
 ### Fixed
 
 - The timeline of a person linked sent mails to a page that does not exist; the link opens the mail now.
+- The address of a login could be removed in the person form of the admin interface, which locked the person out.
+- The proposed SPF entry named `mx` twice when no mail server is set.
+- The token form showed a raw key for the scope `health:write`; the API accepted names only up to 100 characters (120 as in the interface).
 - Resetting a demo instance failed on the first call when the cache is stored in the database.
 - The dashboard and the import list showed links to pages that the role may not open.
 - A mail with a long link was wider than the screen in the portal on phones.

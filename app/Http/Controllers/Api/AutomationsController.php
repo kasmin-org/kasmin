@@ -6,6 +6,7 @@ use App\Models\Automation;
 use App\Models\AutomationRun;
 use App\Models\User;
 use App\Support\Api\ApiContext;
+use App\Support\Api\AutomationInput;
 use App\Support\Api\Presenter;
 use App\Support\Automations\Engine;
 use Illuminate\Http\JsonResponse;
@@ -13,7 +14,7 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
 /**
- * Automations, runs and approvals (AP01, AP02, X05). Scopes: automations:read, automations:run, approvals:decide.
+ * Automations, runs and approvals (AP01, AP02, X05). Scopes: automations:read, automations:write, automations:run, approvals:decide.
  * Runs started via the API always wait for a human decision unless the token has approvals:decide.
  */
 class AutomationsController extends ApiController
@@ -23,6 +24,28 @@ class AutomationsController extends ApiController
         $this->scope('automations:read');
 
         return response()->json(['data' => Automation::query()->orderBy('key')->get()->map(fn (Automation $a) => Presenter::automation($a))->values()]);
+    }
+
+    /** One automation with its trigger, settings, mode and approvers. */
+    public function show(string $automation): JsonResponse
+    {
+        $this->scope('automations:read');
+
+        return response()->json(['data' => Presenter::automation(Automation::query()->where('key', $automation)->firstOrFail())]);
+    }
+
+    /**
+     * Changes what the automation form allows: name, active, mode, max_items, approvals_needed, approver_roles,
+     * trigger, trigger_config and config (each of the two objects replaces the stored one). Key and action cannot
+     * be changed, so standard automations stay standard.
+     */
+    public function update(Request $request, string $automation): JsonResponse
+    {
+        $this->scope('automations:write');
+        $model = Automation::query()->where('key', $automation)->firstOrFail();
+        $model->fill(AutomationInput::check($model, $request->all()))->save();
+
+        return response()->json(['data' => Presenter::automation($model)]);
     }
 
     /** Dry run: what the automation would do now (nothing is changed). */

@@ -2,13 +2,16 @@
 
 use App\Http\Controllers\Api\AuditController;
 use App\Http\Controllers\Api\AutomationsController;
+use App\Http\Controllers\Api\ContactPointsController;
 use App\Http\Controllers\Api\EventsController;
 use App\Http\Controllers\Api\FinanceController;
 use App\Http\Controllers\Api\FormsController;
 use App\Http\Controllers\Api\GroupsController;
+use App\Http\Controllers\Api\GuardiansController;
 use App\Http\Controllers\Api\ImportsController;
 use App\Http\Controllers\Api\MailController;
 use App\Http\Controllers\Api\MeController;
+use App\Http\Controllers\Api\MembershipTypesController;
 use App\Http\Controllers\Api\PeopleController;
 use App\Http\Controllers\Api\PublicController;
 use App\Http\Controllers\Api\SettingsController;
@@ -31,11 +34,23 @@ Route::prefix('v1')->middleware([AuthenticateApiToken::class, 'throttle:api', Id
     Route::post('/people', [PeopleController::class, 'store']);
     Route::get('/people/{person}', [PeopleController::class, 'show']);
     Route::patch('/people/{person}', [PeopleController::class, 'update']);
+    Route::get('/people/{person}/contact-points', [ContactPointsController::class, 'index']);
+    Route::post('/people/{person}/contact-points', [ContactPointsController::class, 'store']);
+    Route::delete('/people/{person}/contact-points/{point}', [ContactPointsController::class, 'destroy'])->whereNumber('point');
+    Route::get('/people/{person}/guardians', [GuardiansController::class, 'index']);
+    Route::post('/people/{person}/guardians', [GuardiansController::class, 'store']);
+    Route::delete('/people/{person}/guardians/{guardian}', [GuardiansController::class, 'destroy']);
     Route::get('/households', [PeopleController::class, 'households']);
     Route::get('/households/{household}', [PeopleController::class, 'household']);
 
+    Route::get('/membership-types', [MembershipTypesController::class, 'index']);
+    Route::post('/membership-types', [MembershipTypesController::class, 'store']);
+    Route::patch('/membership-types/{type}', [MembershipTypesController::class, 'update']);
+
     Route::get('/events', [EventsController::class, 'index']);
+    Route::post('/events', [EventsController::class, 'store']);
     Route::get('/events/{event}', [EventsController::class, 'show']);
+    Route::patch('/events/{event}', [EventsController::class, 'update']);
     Route::get('/events/{event}/participations', [EventsController::class, 'participations']);
     Route::post('/events/{event}/registrations', [EventsController::class, 'register']);
     Route::patch('/participations/{participation}', [EventsController::class, 'updateParticipation'])->whereNumber('participation');
@@ -46,6 +61,8 @@ Route::prefix('v1')->middleware([AuthenticateApiToken::class, 'throttle:api', Id
     Route::post('/invoices/{invoice}/payments', [FinanceController::class, 'pay'])->whereNumber('invoice');
 
     Route::get('/automations', [AutomationsController::class, 'index']);
+    Route::get('/automations/{automation}', [AutomationsController::class, 'show']);
+    Route::patch('/automations/{automation}', [AutomationsController::class, 'update']);
     Route::post('/automations/{automation}/preview', [AutomationsController::class, 'preview']);
     Route::post('/automations/{automation}/run', [AutomationsController::class, 'run']);
     Route::get('/automation-runs', [AutomationsController::class, 'runs']);

@@ -4,7 +4,6 @@ use App\Support\Install\AfterMigrations;
 use App\Support\Install\AutomationDefaults;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 /**
@@ -25,9 +24,7 @@ return new class extends Migration
             $table->foreignId('event_id')->nullable()->constrained()->nullOnDelete();
             $table->timestamp('updated_members_at')->nullable();
         });
-        if (DB::table('mail_templates')->where('is_standard', true)->exists()) {
-            AfterMigrations::request(AutomationDefaults::class);
-        }
+        AfterMigrations::request(AutomationDefaults::class);
     }
 
     public function down(): void

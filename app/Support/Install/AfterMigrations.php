@@ -10,13 +10,13 @@ use App\Models\Automation;
  */
 class AfterMigrations
 {
-    /** @var array<class-string<MailTemplateDefaults|AutomationDefaults|EventTemplateDefaults>, true> */
+    /** @var array<class-string<MailTemplateDefaults|AutomationDefaults|EventTemplateDefaults|FormDefaults>, true> */
     private static array $requested = [];
 
     /** @var list<string> */
     private static array $automations = [];
 
-    /** @param  class-string<MailTemplateDefaults|AutomationDefaults|EventTemplateDefaults>  ...$defaults */
+    /** @param  class-string<MailTemplateDefaults|AutomationDefaults|EventTemplateDefaults|FormDefaults>  ...$defaults */
     public static function request(string ...$defaults): void
     {
         foreach ($defaults as $class) {
@@ -34,11 +34,14 @@ class AfterMigrations
     {
         [$requested, $automations] = [array_keys(self::$requested), self::$automations];
         [self::$requested, self::$automations] = [[], []];
+        // Before anything is created here: what was chosen at the installation.
+        $locale = Defaults::wanted();
         foreach ($automations as $key) {
             Automation::query()->firstOrCreate(['key' => $key], AutomationDefaults::definitions()[$key] + ['is_standard' => true, 'active' => false]);
         }
-        foreach ($requested as $class) {
-            app($class)->install();
+        // Only where the standard content was chosen at the installation.
+        foreach ($locale === null ? [] : $requested as $class) {
+            $class === EventTemplateDefaults::class ? app($class)->install((string) $locale) : app($class)->install();
         }
     }
 }

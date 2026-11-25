@@ -39,9 +39,7 @@ return new class extends Migration
                 DB::table('guardianships')->insertOrIgnore(['guardian_id' => $guardian, 'child_id' => $child->person_id, 'created_at' => now(), 'updated_at' => now()]);
             }
         }
-        if (DB::table('mail_templates')->where('is_standard', true)->exists()) {
-            AfterMigrations::request(MailTemplateDefaults::class);
-        }
+        AfterMigrations::request(MailTemplateDefaults::class);
     }
 
     public function down(): void

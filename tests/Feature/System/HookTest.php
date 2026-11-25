@@ -4,6 +4,7 @@ namespace Tests\Feature\System;
 
 use App\Models\ContactPoint;
 use App\Models\Household;
+use App\Models\MailTemplate;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabaseState;
 use Illuminate\Support\Facades\Schema;
@@ -51,6 +52,11 @@ class HookTest extends TestCase
         $this->assertSame(0, ContactPoint::query()->where('type', 'email')->where('value', 'not like', '%demo.example.org')->count());
 
         $this->postJson('/system/hooks/demo', [], $headers)->assertOk()->assertJson(['installed' => false]);
+        $admin = User::query()->where('email', 'admin@demo.example.org')->value('id');
+        User::query()->whereKey($admin)->update(['name' => 'Changed']);
+        $this->postJson('/system/hooks/demo?reset=1', [], $headers)->assertOk()->assertJson(['installed' => true]);
+        $this->assertSame('Demo Admin', User::query()->where('email', 'admin@demo.example.org')->value('name'));
+        $this->assertGreaterThan(10, MailTemplate::query()->count());
         $this->postJson('/system/hooks/upgrade', [], $headers)->assertOk()->assertJson(['ok' => true]);
         $this->getJson('/system/cron?token='.$this->token)->assertOk()->assertJson(['ok' => true]);
     }

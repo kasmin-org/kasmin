@@ -120,4 +120,25 @@ class WebUpgradeTest extends TestCase
         $this->actingAs($this->user('administrator'))->get('/admin')->assertStatus(503);
         $this->getJson('/api/v1/public/events')->assertStatus(503);
     }
+
+    public function test_old_installations_get_the_missing_standard_content_but_not_those_without(): void
+    {
+        $migration = '2026_12_14_000000_install_missing_defaults';
+        $again = function () use ($migration): void {
+            DB::table('migrations')->where('migration', $migration)->delete();
+            $this->artisan('migrate', ['--force' => true]);
+        };
+        // Installed before the mail templates existed: the choice is recorded, the content is missing.
+        DB::table('system_meta')->updateOrInsert(['key' => 'installed_defaults'], ['value' => 'en']);
+        DB::table('mail_templates')->delete();
+        DB::table('automations')->where('key', 'waitlist_offers')->delete();
+        $again();
+        $this->assertTrue(DB::table('mail_templates')->where('key', 'registration_confirmation')->exists());
+        $this->assertTrue(DB::table('automations')->where('key', 'waitlist_offers')->exists());
+
+        DB::table('system_meta')->where('key', 'installed_defaults')->update(['value' => 'none']);
+        DB::table('mail_templates')->delete();
+        $again();
+        $this->assertSame(0, DB::table('mail_templates')->count());
+    }
 }

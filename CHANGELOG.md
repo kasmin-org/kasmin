@@ -6,6 +6,8 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ## [Unreleased]
 
+## [0.24.0] - 2026-11-25
+
 ### Added
 
 - Invoice archive: invoices from the system used before are imported from a table and a ZIP with the PDFs and kept read-only; the own numbering continues after the highest imported number.
@@ -552,7 +554,8 @@ First public pre-release for testing. Not ready for production use.
 - Docker image: system packages updated and build packages removed after compiling the PHP extensions – the
   container scan reports no high or critical findings any more (previously 75 in Debian packages).
 
-[Unreleased]: https://github.com/kasmin-org/kasmin/compare/v0.23.0...develop
+[Unreleased]: https://github.com/kasmin-org/kasmin/compare/v0.24.0...develop
+[0.24.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.24.0
 [0.23.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.23.0
 [0.22.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.22.0
 [0.21.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.21.0

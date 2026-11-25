@@ -11,18 +11,39 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Stops every web request while the database does not match the code (see SchemaGuard).
+ * Stops every request (pages, admin interface, API, Livewire) while the database does not match the code (see SchemaGuard).
  */
 class EnsureSchemaIsCompatible
 {
+    /** Hooks with their own token (upgrade, cron, second step of the update) and the health check. */
+    public const ALWAYS = ['system/hooks/*', 'system/cron', 'system/update/finish', 'up'];
+
+    /** Pages that work while an upgrade is pending. */
+    public const DURING_UPGRADE = ['login', 'login/*', 'logout', 'language', 'two-factor', 'system/upgrade'];
+
     public function __construct(private readonly SchemaGuard $guard) {}
 
     public function handle(Request $request, Closure $next): Response
     {
         $status = $this->guard->status();
+        view()->share('upgradePending', $status === SchemaStatus::UpgradeRequired);
 
-        if ($status === SchemaStatus::Ok) {
+        if ($status === SchemaStatus::Ok || $request->is(...self::ALWAYS)) {
             return $next($request);
+        }
+
+        // The API never works on a database that does not match the code.
+        if ($request->is('api/*', 'mcp')) {
+            return response()->json(['message' => __('system.schema.title.'.$status->value)], 503, ['Retry-After' => '300']);
+        }
+
+        // Files of a new version are installed: the login stays open for administrators, who run the upgrade in the browser.
+        if ($status === SchemaStatus::UpgradeRequired) {
+            if ($request->is(...self::DURING_UPGRADE)) {
+                return $next($request);
+            }
+
+            return $request->expectsJson() ? response()->json(['message' => __('system.schema.title.upgrade_required')], 503) : redirect('/system/upgrade');
         }
 
         if ($status === SchemaStatus::NotInstalled) {

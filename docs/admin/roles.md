@@ -34,8 +34,8 @@ itself can change it. This also holds for imports and for merging duplicates. On
 
 ## Own events only
 
-A role can count for **everything** or for **own events only** (*Settings → Roles → Counts for*). New installations use this for
-camp leaders and counsellors; existing installations keep camp leaders as they were until an administrator changes it.
+A role can count for **everything** or for **own events only** (*Settings → Roles → Counts for*). Camp leaders and counsellors
+are set to own events, also in existing installations; an administrator can change it.
 
 Own events are events
 

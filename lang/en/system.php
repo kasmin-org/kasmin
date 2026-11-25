@@ -42,4 +42,12 @@ return [
         ],
         'versions' => 'Installed version: :code · database: :database',
     ],
+    'upgrade' => [
+        'banner' => 'A new version was installed. Until the upgrade is finished, only administrators can log in.',
+        'only_administrators' => 'An upgrade is pending. Until it is finished, only administrators can log in – with a new login link.',
+        'title' => 'Upgrade Kasmin', 'text' => 'The files of a new version are installed. The database has to be upgraded before Kasmin can be used again.',
+        'steps' => '{1} 1 step|[2,*] :count steps', 'backup' => 'A backup of the database is made first.', 'wait' => 'This can take a few minutes. Please do not close the page.',
+        'start' => 'Upgrade now', 'again' => 'Try again', 'running' => 'Upgrade is running …', 'done' => 'Kasmin is now at version :version. Everybody can log in again.', 'continue' => 'Continue to the administration',
+        'failed' => 'The upgrade did not finish. Nothing was lost: the backup made before is in the backup folder. Please try again; if it fails again, keep the details below for the support request.', 'details' => 'Details',
+    ],
 ];

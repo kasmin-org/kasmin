@@ -42,4 +42,12 @@ return [
         ],
         'versions' => 'Installierte Version: :code · Datenbank: :database',
     ],
+    'upgrade' => [
+        'banner' => 'Eine neue Version wurde installiert. Bis das Upgrade abgeschlossen ist, können sich nur Administratorinnen und Administratoren anmelden.',
+        'only_administrators' => 'Ein Upgrade steht an. Bis es abgeschlossen ist, können sich nur Administratorinnen und Administratoren anmelden – mit einem neuen Anmeldelink.',
+        'title' => 'Kasmin aktualisieren', 'text' => 'Die Dateien einer neuen Version sind installiert. Die Datenbank muss aktualisiert werden, bevor Kasmin wieder benutzt werden kann.',
+        'steps' => '{1} 1 Schritt|[2,*] :count Schritte', 'backup' => 'Zuerst wird eine Sicherung der Datenbank erstellt.', 'wait' => 'Das kann einige Minuten dauern. Bitte die Seite nicht schließen.',
+        'start' => 'Jetzt aktualisieren', 'again' => 'Erneut versuchen', 'running' => 'Upgrade läuft …', 'done' => 'Kasmin ist jetzt auf Version :version. Alle können sich wieder anmelden.', 'continue' => 'Weiter zur Verwaltung',
+        'failed' => 'Das Upgrade wurde nicht abgeschlossen. Es ist nichts verloren: Die vorher erstellte Sicherung liegt im Sicherungsordner. Bitte erneut versuchen; schlägt es wieder fehl, die Details unten für die Support-Anfrage aufbewahren.', 'details' => 'Details',
+    ],
 ];

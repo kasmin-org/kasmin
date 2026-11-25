@@ -10,6 +10,8 @@ use App\Models\User;
 use App\Support\Audit\Audit;
 use App\Support\Auth\AdminLoginNotice;
 use App\Support\Auth\LoginLinks;
+use App\Support\Schema\SchemaGuard;
+use App\Support\Schema\SchemaStatus;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -22,7 +24,13 @@ use Illuminate\View\View;
  */
 class LoginController extends Controller
 {
-    public function __construct(private readonly LoginLinks $links) {}
+    public function __construct(private readonly LoginLinks $links, private readonly SchemaGuard $schema) {}
+
+    /** While an upgrade of the database is pending, only administrators log in (they run it). */
+    private function upgradePending(): bool
+    {
+        return $this->schema->status() === SchemaStatus::UpgradeRequired;
+    }
 
     public function show(): View
     {
@@ -40,7 +48,7 @@ class LoginController extends Controller
     {
         $user = $this->findUser($email);
 
-        if ($user !== null) {
+        if ($user !== null && (! $this->upgradePending() || $user->hasAnyRole(['administrator']))) {
             ['token' => $token, 'code' => $code] = $this->links->issue($user);
             $name = $user->person->first_name ?? $user->name;
             Mail::to($email)->locale($user->person->locale ?? app()->getLocale())
@@ -111,6 +119,10 @@ class LoginController extends Controller
         $user = $token->user;
         // Remembered devices only for full logins without administrative role: every administrator login is reported (LG02).
         $limited = $token->scope === 'limited';
+        $pending = $this->upgradePending();
+        if ($pending && ($limited || ! $user->hasAnyRole(['administrator']))) {
+            return redirect()->route('login')->withErrors(['email' => __('system.upgrade.only_administrators')]);
+        }
         Auth::login($user, remember: ! $limited && ! $user->isAdministrative());
         $request->session()->regenerate();
         $request->session()->put('login_scope', $token->scope);
@@ -120,7 +132,11 @@ class LoginController extends Controller
             'method' => $method, 'token_id' => $token->id, 'purpose' => $token->purpose, 'scope' => $token->scope,
         ], 'user', $user->id);
 
-        app(AdminLoginNotice::class)->send($user, $request, $method);
+        // The notice uses tables that may still be upgraded.
+        $pending ? rescue(fn () => app(AdminLoginNotice::class)->send($user, $request, $method), report: false) : app(AdminLoginNotice::class)->send($user, $request, $method);
+        if ($pending) {
+            return redirect()->route('system.upgrade');
+        }
 
         if ($user->requiresSecondFactor()) {
             return redirect()->route('two-factor');

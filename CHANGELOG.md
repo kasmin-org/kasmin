@@ -6,6 +6,8 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ## [Unreleased]
 
+## [0.27.0] - 2026-11-26
+
 ### Added
 
 - System status: *Show every item* lists each PHP extension, function and folder with what it is needed for and whether it is there; the documentation has the same list. The database line names product and version of the server.

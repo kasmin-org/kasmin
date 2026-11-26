@@ -12,6 +12,11 @@ class CreateMailAccount extends CreateRecord
 
     protected static string $resource = MailAccountResource::class;
 
+    public function getTitle(): string
+    {
+        return __('admin.mail.sending');
+    }
+
     public function mount(): void
     {
         $account = MailAccount::main();

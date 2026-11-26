@@ -15,7 +15,8 @@ Einrichtung prüft sie, bevor es beginnt.
 5. Geben Sie das Zielverzeichnis und die Daten der Datenbank ein. Das Skript lädt das Paket herunter, **prüft seine SHA-256-Prüfsumme**,
    entpackt es und schreibt die Konfigurationsdatei `.env`.
 6. Richten Sie das Wurzelverzeichnis Ihrer Domain auf den Ordner `public` im Zielverzeichnis und öffnen Sie `/install`:
-   Name der Organisation, Sprache, **Standardinhalte (deutsche, englische oder keine – nicht empfohlen)** und die erste
+   Name der Organisation, **Sprache** (Deutsch oder Englisch – die eine Sprache der Installation, siehe
+   [System](system.md#sprache)), **Standardinhalte** in dieser Sprache (oder keine – nicht empfohlen) und die erste
    Person mit Administrationsrechten.
 
 ## Mit Docker

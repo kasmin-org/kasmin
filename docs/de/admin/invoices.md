@@ -58,7 +58,7 @@ Anzahlungen von 3 × 100 € und Restbeträge von 320 €, 295 € und 270 €.
 
 ### Stornobedingungen
 
-Pro Veranstaltung: Stornobedingungen (Text in beiden Sprachen) und eine Stornogebühr; pro Rate: erstattbar oder nicht,
+Pro Veranstaltung: Stornobedingungen (ein Text) und eine Stornogebühr; pro Rate: erstattbar oder nicht,
 und bis wie viele Tage vor dem Beginn. Erziehungsberechtigte sehen, was heute gilt, **bevor** sie im Portal
 stornieren. Administratorinnen und Administratoren stornieren in der Liste der Teilnehmenden und geben einen Grund an. Die Stornogebühr wird einmal
 verrechnet, wenn eine erstattbare Rate erstattet wird.

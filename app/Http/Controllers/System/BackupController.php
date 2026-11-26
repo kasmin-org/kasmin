@@ -121,6 +121,9 @@ class BackupController extends Controller
         $this->authorizeAdministrator();
         Audit::record('system.phpinfo_viewed');
         ob_start();
+        // Wanted: hosters ask for it and there is no shell. Administrators only, logged, and without the environment
+        // and the variables, which hold keys and passwords.
+        // nosemgrep: php.lang.security.phpinfo-use.phpinfo-use
         phpinfo(INFO_GENERAL | INFO_CONFIGURATION | INFO_MODULES);
         $html = (string) ob_get_clean();
 

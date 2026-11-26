@@ -22,7 +22,7 @@ FROM alpine:3.24
 RUN apk upgrade --no-cache \
  && apk add --no-cache bash vim ca-certificates tzdata apache2 apache2-ssl openssl uacme php85-apache2 \
     php85 php85-pdo_mysql php85-pdo_sqlite php85-intl php85-zip php85-gd php85-bcmath php85-mbstring \
-    php85-xml php85-dom php85-xmlwriter php85-simplexml php85-tokenizer php85-fileinfo php85-curl php85-openssl \
+    php85-xml php85-dom php85-xmlreader php85-xmlwriter php85-simplexml php85-tokenizer php85-fileinfo php85-curl php85-openssl \
     php85-session php85-ctype php85-iconv php85-phar \
  && ln -sf /usr/bin/php85 /usr/bin/php \
  && mkdir -p /var/www/html /run/apache2 \

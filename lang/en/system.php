@@ -77,4 +77,14 @@ return [
         'other_database' => 'This backup comes from another kind of database (:backup) than this installation uses (:here).', 'only_mysql' => 'Restoring in the browser works with MySQL and MariaDB.',
         'failed' => 'The restore stopped with an error: :error. The state before is saved as :backup – restore that one.',
     ],
+    'requirements' => [
+        'show' => 'Show every item', 'recommended' => 'recommended', 'all' => 'all :count items are there', 'some' => 'missing: :names',
+        'php' => 'installed: :version',
+        'extensions' => ['pdo_mysql' => 'database (MySQL, MariaDB)', 'intl' => 'dates, numbers and amounts in German and English', 'mbstring' => 'texts with umlauts and other characters', 'openssl' => 'encryption of confidential data, mail over TLS, backups', 'zip' => 'updates, export as XLSX, upload of several files', 'gd' => 'QR code on invoices, pictures', 'bcmath' => 'exact amounts of money', 'fileinfo' => 'checks what an uploaded file really is', 'tokenizer' => 'needed by the framework', 'xml' => 'PDFs and files of banks', 'dom' => 'PDFs (invoices, lists, camp folder)', 'xmlreader' => 'import from Excel files', 'ctype' => 'needed by the framework', 'json' => 'API, settings, logs', 'iconv' => 'mails and files in other character sets', 'zlib' => 'compressed backups', 'curl' => 'looks for new versions, backup copy outside the server, webhooks – without it these may not work'],
+        'functions' => ['proc_open' => 'the cron job starts its single tasks with it; if it is switched off, use the cron address by HTTP (see the documentation)', 'set_time_limit' => 'long tasks such as an upgrade or a big import can ask for more time', 'dns_get_record' => 'check of the DNS entries for mail (SPF, DKIM, DMARC)'],
+        'directories' => ['storage' => 'uploads, backups, logs, sessions', 'bootstrap/cache' => 'prepared files of the framework'],
+        'memory' => 'Memory for PHP', 'memory_ok' => ':mb MB (needed: :needed MB).', 'memory_unlimited' => 'no limit.', 'memory_low' => 'only :mb MB – Kasmin needs :needed MB. Ask your hoster to raise memory_limit.',
+        'memory_more' => 'Large PDFs may take 256 MB for a moment; the server allows that.', 'memory_fixed' => 'The server does not let Kasmin take more for large PDFs: a camp folder for more than about 60 people can fail – then raise memory_limit to 256M.',
+    ],
+    'phpinfo' => ['title' => 'PHP configuration (phpinfo)', 'intro' => 'What the server offers: versions, extensions, limits. Hosters ask for it. Keys and passwords of the installation are left out.', 'show' => 'Show / hide', 'new_tab' => 'open in a new tab'],
 ];

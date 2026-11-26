@@ -62,7 +62,20 @@ be undone. A merge never gives more rights, and it is refused if both have an in
 
 Legal guardians change phone numbers, e-mail addresses, the family address and the invoice recipient themselves; subscribers of the topic
 *profile updates* are notified. A new e-mail address counts after it was confirmed with a link (24 hours); all other addresses of the person
-are told. Links sent to the old login address end.
+are told. Links sent to the old login address end. The mail with the link and the page it opens both say which address is replaced by
+which, or that an address is added.
+
+Who works in the administration and belongs to no family is led to the admin interface: the start page goes there, and the portal says so
+instead of asking for a family.
+
+### Gender of a child
+
+When legal guardians add a child, they must choose the gender: female, male or diverse – rooms are planned with it, so "not specified" is
+not offered there. *Settings → Organisation and invoices → Families* holds an optional note per gender that appears below the choice as soon as this
+gender is picked. Female and male have none by default; diverse has this one, which you can change or empty:
+
+> We separate the children by gender per room. Please contact us directly and tell us in which room the child wants to sleep, so that we
+> can plan properly. If there are enough diverse children, they share a room.
 
 *Download data* gives a file with everything stored about the person and the children (Art. 15 and 20 GDPR), without data that is hidden from
 the person. Administrators can create it on the person page.

@@ -12,11 +12,18 @@
             <input name="last_name" required maxlength="120" value="{{ old('last_name') }}" class="w-full rounded-lg border border-kasmin-200 px-3 py-3"></label>
         <label class="block"><span class="mb-1 block text-sm font-medium">{{ __('admin.person.birth_date') }}</span>
             <input type="date" name="birth_date" required value="{{ old('birth_date') }}" max="{{ now()->toDateString() }}" class="w-full rounded-lg border border-kasmin-200 px-3 py-3"></label>
-        <label class="block"><span class="mb-1 block text-sm font-medium">{{ __('admin.person.gender') }}</span>
-            <select name="gender" class="w-full rounded-lg border border-kasmin-200 bg-white px-3 py-3">
-                <option value="">–</option>
-                @foreach (__('admin.genders') as $key => $label)<option value="{{ $key }}" @selected(old('gender') === $key)>{{ $label }}</option>@endforeach
-            </select></label>
+        <div>
+            <label class="block"><span class="mb-1 block text-sm font-medium">{{ __('admin.person.gender') }}</span>
+                {{-- The note of the chosen gender (setting, PE09) appears below; without JavaScript the one of the last choice. --}}
+                <select name="gender" required class="w-full rounded-lg border border-kasmin-200 bg-white px-3 py-3"
+                    onchange="document.querySelectorAll('[data-gender-note]').forEach((n) => { n.hidden = n.dataset.genderNote !== this.value })">
+                    <option value="" disabled @selected(old('gender') === null)>{{ __('portal.please_choose') }}</option>
+                    @foreach (['female', 'male', 'diverse'] as $key)<option value="{{ $key }}" @selected(old('gender') === $key)>{{ __('admin.genders.'.$key) }}</option>@endforeach
+                </select></label>
+            @foreach ($genderNotes as $key => $note)
+                <p data-gender-note="{{ $key }}" @if (old('gender') !== $key) hidden @endif class="mt-2 rounded-lg bg-kasmin-50 p-3 text-sm" role="note">{!! nl2br(e($note)) !!}</p>
+            @endforeach
+        </div>
         <button class="w-full rounded-lg bg-kasmin-600 px-4 py-3 font-semibold text-white">{{ __('portal.save') }}</button>
     </form>
 @endsection

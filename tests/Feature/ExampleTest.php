@@ -4,10 +4,13 @@ namespace Tests\Feature;
 
 use App\Models\Event;
 use App\Models\Person;
+use App\Models\Role;
 use App\Models\User;
+use App\Support\Install\Defaults;
 use App\Support\Settings;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Session\Middleware\AuthenticateSession;
+use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
 /**
@@ -36,5 +39,26 @@ class ExampleTest extends TestCase
         $this->withoutMiddleware(AuthenticateSession::class);
         $user = User::query()->create(['name' => 'Kim', 'email' => 'kim@example.org', 'password' => 'x', 'person_id' => Person::factory()->create()->id]);
         $this->actingAs($user)->get('/')->assertRedirect(route('portal'));
+    }
+
+    public function test_who_works_in_the_administration_goes_there_and_is_not_asked_for_a_family(): void
+    {
+        $this->withoutMiddleware(AuthenticateSession::class);
+        app(Defaults::class)->install('en');
+        app()->setLocale('en');
+        $person = Person::factory()->create();
+        $person->roleAssignments()->create(['role_id' => Role::query()->where('key', 'administrator')->value('id')]);
+        $admin = User::query()->create(['name' => 'Admin', 'email' => 'admin@example.org', 'password' => 'x', 'person_id' => $person->id]);
+
+        $this->actingAs($admin)->withSession(['two_factor_passed' => true])->get('/')->assertRedirect('/admin');
+        $this->get('/portal')->assertOk()->assertSee('does not belong to a family')->assertSee('href="/admin"', false)->assertDontSee('No family is linked');
+        // Changing the own address works for them like for everybody, also when coming back to the pages.
+        Mail::fake();
+        $person->contactPoints()->create(['type' => 'email', 'value' => 'admin@example.org', 'purposes' => ['login'], 'is_primary' => true]);
+        $this->get('/portal/profile')->assertOk();
+        $this->post('/portal/profile/email', ['email' => 'new-admin@example.org', 'replaces' => $person->contactPoints()->value('id')])->assertSessionHasNoErrors()->assertRedirect();
+        $this->get('/portal/profile')->assertOk();
+        $this->get('/portal')->assertOk();
+        $this->get('/admin')->assertOk();
     }
 }

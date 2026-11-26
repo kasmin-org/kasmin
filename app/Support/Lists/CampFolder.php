@@ -7,6 +7,7 @@ use App\Models\Participation;
 use App\Models\Person;
 use App\Support\Forms\Forms;
 use App\Support\Forms\FormValue;
+use App\Support\Install\Requirements;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 /**
@@ -18,6 +19,8 @@ class CampFolder
 
     public function render(Event $event, ?Person $only = null): string
     {
+        Requirements::moreMemory(); // one page per person: grows with the camp
+
         return Pdf::loadView('pdf.camp-folder', ['event' => $event, 'sheets' => $this->sheets($event, $only)])->setPaper('a4')->output();
     }
 

@@ -10,10 +10,34 @@
                         <span class="font-medium">{{ $check['label'] }}</span>
                         @if ($check['detail'])<span class="text-sm text-gray-500"> – {{ $check['detail'] }}</span>@endif
                         @if (! empty($check['url']))<a class="text-sm underline" href="{{ $check['url'] }}" target="_blank" rel="noopener">{{ __('system.status.docs') }}</a>@endif
+                        @if (! empty($check['items']))
+                            <details class="mt-1 text-sm" data-requirements>
+                                <summary class="cursor-pointer underline">{{ __('system.requirements.show') }}</summary>
+                                <table class="mt-2" style="border-collapse:collapse">
+                                    @foreach ($check['items'] as $item)
+                                        <tr style="border-top:1px solid rgba(128,128,128,.2)">
+                                            <td style="padding:.25rem .75rem .25rem 0;white-space:nowrap;color:{{ $item['ok'] ? '#15803d' : ($item['required'] ? '#b91c1c' : '#b45309') }};font-weight:600">{{ $item['ok'] ? '✓' : '✗' }}</td>
+                                            <td style="padding:.25rem .75rem .25rem 0;font-family:ui-monospace,monospace;overflow-wrap:anywhere">{{ $item['name'] }}</td>
+                                            <td style="padding:.25rem 0;overflow-wrap:anywhere">{{ $item['purpose'] }}@if (! $item['required']) <span class="text-gray-500">({{ __('system.requirements.recommended') }})</span>@endif</td>
+                                        </tr>
+                                    @endforeach
+                                </table>
+                            </details>
+                        @endif
                     </div>
                     <span class="rounded-full px-2 py-0.5 text-xs font-semibold" style="{{ $badge($check['status']) }}">{{ __('system.status.levels.'.$check['status']) }}</span>
                 </div>
             @endforeach
+        </div>
+    </x-filament::section>
+
+    <x-filament::section :heading="__('system.phpinfo.title')" :description="__('system.phpinfo.intro')" collapsible collapsed>
+        <div data-phpinfo x-data="{ shown: false }">
+            <x-filament::button color="gray" x-on:click="shown = ! shown">{{ __('system.phpinfo.show') }}</x-filament::button>
+            <a class="ml-3 text-sm underline" href="{{ route('admin.phpinfo') }}" target="_blank" rel="noopener">{{ __('system.phpinfo.new_tab') }}</a>
+            <template x-if="shown">
+                <iframe src="{{ route('admin.phpinfo') }}" title="phpinfo" style="width:100%;height:70vh;border:1px solid rgba(128,128,128,.3);border-radius:.5rem;margin-top:.75rem;background:#fff"></iframe>
+            </template>
         </div>
     </x-filament::section>
 
@@ -69,7 +93,7 @@
                             </select></label>
                         <label>{{ __('system.restore.or_file') }}<input type="file" name="file" accept=".gz,.enc" style="display:block"></label>
                         <input type="password" name="passphrase" autocomplete="off" placeholder="{{ __('system.backup.passphrase_optional') }}" style="border:1px solid rgba(128,128,128,.45);border-radius:.5rem;padding:.5rem .75rem;background:transparent">
-                        <label>{{ __('system.restore.type_word', ['word' => __('system.restore.word')]) }}
+                        <label>{!! __('system.restore.type_word', ['word' => '<strong>'.e(__('system.restore.word')).'</strong>']) !!}
                             <input name="confirm" required autocomplete="off" style="display:block;width:100%;border:1px solid rgba(128,128,128,.45);border-radius:.5rem;padding:.5rem .75rem;background:transparent"></label>
                         <div><x-filament::button type="submit" color="danger">{{ __('system.restore.button') }}</x-filament::button></div>
                     </form>

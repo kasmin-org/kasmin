@@ -6,6 +6,29 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ## [Unreleased]
 
+## [0.27.0] - 2026-11-26
+
+### Added
+
+- System status: *Show every item* lists each PHP extension, function and folder with what it is needed for and whether it is there; the documentation has the same list. The database line names product and version of the server.
+- System status: check of the memory PHP may use. Kasmin needs 128 MB; only large PDFs ask for 256 MB for their one request.
+- System status: *PHP configuration (phpinfo)* for administrators, without the keys and passwords of the installation; every view is logged.
+- An optional note per gender below the choice of the gender of a child (*Settings → Organisation and invoices → Families*), with a standard text for "diverse" about the rooms.
+- The documentation for administrators is available in German (`docs/de/admin`), page by page like the English one; a test keeps the two in step.
+
+### Changed
+
+- Legal guardians must choose the gender of a child they add (female, male, diverse); "not specified" is no longer offered there.
+- The mail that confirms a new e-mail address and the page it opens say which address is replaced by which.
+- Help links open the documentation in the language of the interface.
+- Who works in the administration is led from the start page to the admin interface; the portal no longer tells them that no family is linked.
+- The set-up also checks the extensions `dom`, `xmlreader`, `iconv`, `zlib`, `tokenizer`, `xml` and `ctype`.
+
+### Fixed
+
+- Docker image: the PHP extension `xmlreader` was missing, so importing an Excel file failed there. The new check of the requirements found it.
+- Errors (HTTP 500) while the files of a new version were being put in place: visitors now see "Kasmin is being updated" until the files are complete, during the update in the browser and during a deployment.
+
 ## [0.26.1] - 2026-11-26
 
 ### Fixed
@@ -595,7 +618,8 @@ First public pre-release for testing. Not ready for production use.
 - Docker image: system packages updated and build packages removed after compiling the PHP extensions – the
   container scan reports no high or critical findings any more (previously 75 in Debian packages).
 
-[Unreleased]: https://github.com/kasmin-org/kasmin/compare/v0.26.1...develop
+[Unreleased]: https://github.com/kasmin-org/kasmin/compare/v0.27.0...develop
+[0.27.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.27.0
 [0.26.1]: https://github.com/kasmin-org/kasmin/releases/tag/v0.26.1
 [0.26.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.26.0
 [0.25.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.25.0

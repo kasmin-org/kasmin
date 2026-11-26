@@ -100,6 +100,9 @@ class Updater
         $archive->extractTo($staging);
         $archive->close();
 
+        // While the files are swapped nobody gets a page built from half of the old and half of the new version.
+        $maintenance = storage_path('framework/maintenance.php');
+        @copy(resource_path('maintenance/updating.php'), $maintenance);
         try {
             foreach (self::REPLACE as $path) {
                 if (! file_exists($staging.'/'.$path)) {
@@ -124,6 +127,7 @@ class Updater
             $this->restoreCode($backup);
             throw new RuntimeException((string) __('system.update.rolled_back', ['error' => $e->getMessage()]));
         } finally {
+            @unlink($maintenance);
             File::deleteDirectory($staging);
             @unlink($zip);
         }

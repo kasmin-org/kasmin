@@ -27,14 +27,17 @@ use App\Http\Middleware\ReadOnlyPortalPreview;
 use App\Http\Middleware\RequireFullLogin;
 use App\Http\Middleware\RequireSecondFactor;
 use App\Models\Event;
+use App\Models\User;
 use App\Support\Mail\Placeholders;
 use Illuminate\Support\Facades\Route;
 
 // The start page: who is logged in goes on to the portal; everybody else sees the organisation, the way to log in and
 // to sign up, and the events that are public.
 Route::get('/', function () {
-    if (auth()->check()) {
-        return redirect()->route('portal');
+    $user = auth()->user();
+    if ($user instanceof User) {
+        // Who works in the admin interface lands there; everybody else in the portal.
+        return redirect()->to($user->isAdministrative() ? '/admin' : route('portal'));
     }
 
     return view('welcome', [
@@ -97,6 +100,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/two-factor', [TwoFactorController::class, 'show'])->name('two-factor');
     Route::post('/two-factor', [TwoFactorController::class, 'verify'])->middleware('throttle:two-factor')->name('two-factor.verify');
     Route::get('/admin/participations/{participation}/confirmation.pdf', [ParticipationPdfController::class, 'admin'])->middleware([RequireSecondFactor::class, RequireFullLogin::class])->whereNumber('participation')->name('admin.participation.confirmation');
+    Route::get('/admin/system/phpinfo', [BackupController::class, 'phpinfo'])->middleware([RequireSecondFactor::class, RequireFullLogin::class])->name('admin.phpinfo');
     Route::middleware([RequireSecondFactor::class, RequireFullLogin::class])->prefix('admin/system/backups')->group(function () {
         Route::post('/', [BackupController::class, 'create'])->middleware('throttle:install')->name('admin.backups.create');
         Route::post('/decrypt', [BackupController::class, 'decrypt'])->name('admin.backups.decrypt');

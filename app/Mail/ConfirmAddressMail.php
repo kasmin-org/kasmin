@@ -13,7 +13,8 @@ class ConfirmAddressMail extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public function __construct(public string $name, public string $url) {}
+    /** $old is the address that is replaced, or null when the new one is added next to the others. */
+    public function __construct(public string $name, public string $url, public ?string $old = null, public string $new = '') {}
 
     public function envelope(): Envelope
     {
@@ -23,7 +24,7 @@ class ConfirmAddressMail extends Mailable
     public function content(): Content
     {
         return new Content(view: 'mail.simple', text: 'mail.simple-text', with: [
-            'text' => __('portal.mail_address_text', ['name' => $this->name]), 'button' => __('public.confirm'), 'url' => $this->url, 'note' => __('portal.mail_address_note'),
+            'text' => __('portal.mail_address_text', ['name' => $this->name]).' '.__($this->old !== null ? 'portal.address_replace' : 'portal.address_add', ['old' => (string) $this->old, 'new' => $this->new]), 'button' => __('public.confirm'), 'url' => $this->url, 'note' => __('portal.mail_address_note'),
         ]);
     }
 }

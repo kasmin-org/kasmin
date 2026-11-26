@@ -99,12 +99,17 @@ jobs:
           FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
         run: |
           sudo apt-get install -y -qq lftp >/dev/null
+          # While the files are uploaded (many minutes) visitors see "Kasmin is being updated" instead of errors from
+          # half-replaced files: the page is put in place first and taken away last.
+          cp /tmp/app/resources/maintenance/updating.php /tmp/maintenance.php
           lftp --env-password -u "$FTP_USERNAME" "$FTP_SERVER" -e "
             set ftp:ssl-force true; set ftp:ssl-protect-data true; set ssl:verify-certificate yes;
             set net:max-retries 5; set net:reconnect-interval-base 5; set net:timeout 30;
+            mkdir -p -f storage/framework; put /tmp/maintenance.php -o storage/framework/maintenance.php;
             mirror -R --parallel=4 --only-newer --no-perms \
               --exclude-glob .git* --exclude storage/logs/ --exclude storage/framework/sessions/ \
               --exclude storage/framework/cache/data/ --exclude storage/app/backups/ /tmp/app/ ./;
+            rm -f storage/framework/maintenance.php;
             quit"
       - name: Wait for valid HTTPS
         run: |

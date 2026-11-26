@@ -618,7 +618,8 @@ First public pre-release for testing. Not ready for production use.
 - Docker image: system packages updated and build packages removed after compiling the PHP extensions – the
   container scan reports no high or critical findings any more (previously 75 in Debian packages).
 
-[Unreleased]: https://github.com/kasmin-org/kasmin/compare/v0.26.1...develop
+[Unreleased]: https://github.com/kasmin-org/kasmin/compare/v0.27.0...develop
+[0.27.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.27.0
 [0.26.1]: https://github.com/kasmin-org/kasmin/releases/tag/v0.26.1
 [0.26.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.26.0
 [0.25.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.25.0

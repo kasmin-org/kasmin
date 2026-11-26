@@ -13,6 +13,9 @@ use App\Models\Role;
 use App\Models\User;
 use App\Support\Install\Defaults;
 use App\Support\Mail\Composer;
+use App\Support\Mail\MailException;
+use App\Support\Mail\Placeholders;
+use App\Support\Mail\TemplateCatalogue;
 use App\Support\Mail\TemplateHtml;
 use App\Support\Mail\TemplateRenderer;
 use App\Support\Mail\TemplateStandards;
@@ -84,7 +87,7 @@ class TemplateEditorTest extends TestCase
         $this->login();
         $template = $this->template();
         $page = Livewire::test(EditMailTemplate::class, ['record' => $template->id]);
-        $key = (string) collect((array) $page->get('data.contents'))->search(fn ($c) => $c['locale'] === 'en');
+        $key = (string) array_key_first((array) $page->get('data.contents'));
         $page->set("data.contents.{$key}.source", true);
         $this->assertStringContainsString('{{ links.login }}', (string) $page->get("data.contents.{$key}.html_source"));
         $page->set("data.contents.{$key}.html_source", '<p style="color:red">{{ unknown.value }}</p>')->call('save')->assertHasFormErrors(["contents.{$key}.html_source"]);
@@ -137,7 +140,7 @@ class TemplateEditorTest extends TestCase
         User::query()->create(['name' => 'Robin', 'email' => 'robin@example.org', 'password' => 'x', 'person_id' => $person->id]);
         $template = $this->template();
         $template->contents()->where('locale', 'en')->update(['html' => '<p>{{ recipient.full_name }}</p><script>alert(1)</script><p><a href="{{ links.login }}">x</a></p>']);
-        $html = Livewire::test(PreviewMailTemplate::class, ['record' => $template->id])->assertOk()->set('search', 'Exam')->assertSee('Robin Example')->set('person', $person->id)->html();
+        $html = Livewire::test(PreviewMailTemplate::class, ['record' => $template->id])->assertOk()->assertSee('Example, Robin')->assertSee('data-preview-person', false)->set('person', $person->id)->assertSee('Robin Example')->html();
         $this->assertStringContainsString('sandbox=""', $html);
         $this->assertStringNotContainsString('<script>alert(1)', $html);
         $this->assertStringNotContainsString('made-when-sending', $html);
@@ -148,7 +151,7 @@ class TemplateEditorTest extends TestCase
     {
         $user = $this->login();
         $template = $this->template();
-        Livewire::test(PreviewMailTemplate::class, ['record' => $template->id])->call('test', 'en')->assertOk();
+        Livewire::test(PreviewMailTemplate::class, ['record' => $template->id])->call('test')->assertOk();
         $mail = OutgoingMail::query()->sole();
         $this->assertSame($user->email, $mail->to_address);
         $this->assertStringStartsWith('[TEST]', $mail->subject);
@@ -166,5 +169,72 @@ class TemplateEditorTest extends TestCase
         $this->assertStringContainsString('&lt;b&gt;Street 1&lt;/b&gt;', $html);
         Settings::set('mail_color', 'red;} body{display:none');
         $this->assertSame('#1da029', Composer::colour());
+    }
+
+    public function test_the_list_of_people_for_the_preview_is_narrowed_by_typing(): void
+    {
+        $this->login();
+        Person::factory()->create(['first_name' => 'Robin', 'last_name' => 'Example']);
+        Person::factory()->create(['first_name' => 'Sam', 'last_name' => 'Other']);
+        Livewire::test(PreviewMailTemplate::class, ['record' => $this->template()->id])->assertSee('Example, Robin')->assertSee('Other, Sam')
+            ->set('search', 'Oth')->assertSee('Other, Sam')->assertDontSee('Example, Robin');
+    }
+
+    public function test_every_placeholder_of_the_insert_list_is_valid_and_has_a_name(): void
+    {
+        $renderer = app(TemplateRenderer::class);
+        $all = array_merge(...array_values(TemplateCatalogue::placeholders()));
+        $this->assertArrayHasKey('{{ salutation }}', $all);
+        $this->assertArrayHasKey('{{ event.title }}', $all);
+        $this->assertArrayHasKey('{{ children[0].first_name }}', $all);
+        foreach ($all as $placeholder => $label) {
+            $this->assertSame([], $renderer->validate('x', '<p>'.$placeholder.'</p>', null), (string) $placeholder);
+            $this->assertStringNotContainsString('mail.placeholders', $label, 'no text for '.$placeholder);
+            $this->assertDoesNotMatchRegularExpression('/^[a-z_]+\.[a-z_]+( |$)/', $label, 'no name for '.$placeholder);
+        }
+        app()->setLocale('de');
+        $this->assertContains('Titel – z. B. Summer camp', array_merge(...array_values(TemplateCatalogue::placeholders())));
+    }
+
+    public function test_conditions_are_built_from_lists_and_always_valid(): void
+    {
+        $renderer = app(TemplateRenderer::class);
+        foreach (array_keys(array_merge(...array_values(TemplateCatalogue::fields()))) as $field) {
+            foreach (TemplateCatalogue::OPERATORS as $operator) {
+                $condition = TemplateCatalogue::condition($field, $operator, "O'Brien \"x\" \\", 'Yes {{ salutation }}', 'No');
+                $this->assertSame([], $renderer->validate('x', '<p>'.$condition.'</p>', null), $condition);
+            }
+        }
+        $this->assertSame('{% if event.location %}in {{ event.location }}{% endif %}', TemplateCatalogue::condition('event.location', 'filled', null, 'in {{ event.location }}'));
+        $this->assertSame('{% if registration.waitlist_position > 3 %}far{% else %}near{% endif %}', TemplateCatalogue::condition('registration.waitlist_position', 'greater', '3', 'far', 'near'));
+        $sample = ['children' => [['first_name' => 'Kim'], ['first_name' => 'Sam']]] + Placeholders::sample();
+        $this->assertSame('<p>two</p>', $renderer->renderStrings('x', '<p>'.TemplateCatalogue::condition('children|length', 'equals', '2', 'two', 'other').'</p>', null, $sample)['html']);
+        $this->expectException(MailException::class);
+        TemplateCatalogue::condition('event.title %}{{ secret', 'filled', null, 'x');
+    }
+
+    public function test_mistakes_in_a_template_are_named_in_plain_words_and_block_saving(): void
+    {
+        $find = fn (string $html) => implode(' ', app(TemplateRenderer::class)->validate('x', $html, null));
+        $this->assertStringContainsString('is not closed with }}', $find('<p>Hello {{ salutation </p>'));
+        $this->assertStringContainsString('{% endif %} is missing', $find('<p>{% if event %}Camp</p>'));
+        $this->assertStringContainsString('{% endif %} without a {% if %}', $find('<p>Camp{% endif %}</p>'));
+        $this->assertStringContainsString('bracket ( has no matching )', $find('<p>{% if (event.title %}x{% endif %}</p>'));
+        $this->assertStringContainsString('Unknown placeholder: unknown', $find('<p>{{ unknown }}</p>'));
+        $this->assertStringContainsString('Unknown field "shoe_size"', $find('<p>{{ recipient.shoe_size }}</p>'));
+        $this->assertStringContainsString('not available in templates', $find('<p>{% include "x" %}</p>'));
+        $this->assertSame('', $find('<p>{{ "a (b" }} {% if event %}{% for child in children %}{{ child.first_name }}{% endfor %}{% else %}-{% endif %}</p>'));
+        app()->setLocale('de');
+        $this->assertStringContainsString('{% endif %} fehlt', $find('<p>{% if event %}Lager</p>'));
+        app()->setLocale('en');
+
+        $this->login();
+        $template = $this->template();
+        $before = $this->html($template);
+        $page = Livewire::test(EditMailTemplate::class, ['record' => $template->id]);
+        $key = (string) array_key_first((array) $page->get('data.contents'));
+        $page->set("data.contents.{$key}.subject", 'Camp {{ event.title')->call('save')->assertHasFormErrors(["contents.{$key}.subject"])->assertSee('is not closed with }}');
+        $this->assertSame($before, $this->html($template), 'nothing is saved while there is a mistake');
+        $page->assertSee('data-rich-editor-tool="insertPlaceholder"', false)->assertSee('data-rich-editor-tool="insertCondition"', false)->assertSee('Insert placeholder')->assertSee('Insert condition');
     }
 }

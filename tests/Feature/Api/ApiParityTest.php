@@ -212,7 +212,7 @@ class ApiParityTest extends TestCase
                 ['key' => 'rest', 'label' => ['de' => 'Rest', 'en' => 'Balance'], 'kind' => 'rest', 'due_date' => '2027-06-01', 'discounts_apply' => true],
             ],
         ])->assertCreated()->assertJsonPath('data.currency', 'EUR')->assertJsonPath('data.sibling_mode', 'staggered')->assertJsonPath('data.sibling_amount', 25.5)->assertJsonPath('data.sibling_cap_position', 3)
-            ->assertJsonPath('data.reminder_days_before', [7, 2])->assertJsonPath('data.cancellation_fee', 50)->assertJsonPath('data.cancellation_text.en', 'Free until May.')
+            ->assertJsonPath('data.reminder_days_before', [7, 2])->assertJsonPath('data.cancellation_fee', 50)->assertJsonPath('data.cancellation_text', 'Free until May.')
             ->assertJsonPath('data.roles.0.registration_form', 'camp_questions')->assertJsonCount(2, 'data.prices')->assertJsonPath('data.prices.0.max_age', 9)->assertJsonPath('data.prices.1.until_date', '2027-03-01')
             ->assertJsonCount(3, 'data.installments')->assertJsonPath('data.installments.0.confirms_place', true)->assertJsonPath('data.installments.0.refund_until_days', 30)
             ->assertJsonPath('data.installments.1.membership_type', $type->key)->assertJsonPath('data.installments.2.due_date', '2027-06-01')->json('data.id');
@@ -224,7 +224,7 @@ class ApiParityTest extends TestCase
         $this->withToken($token)->patchJson("/api/v1/events/$id", ['prices' => [['role' => 'child', 'price' => 390]], 'reminder_days_before' => [], 'roles' => [['role' => 'child', 'registration_form' => null]],
             'installments' => [['key' => 'deposit', 'amount' => 120], ['key' => 'rest']]])
             ->assertOk()->assertJsonCount(1, 'data.prices')->assertJsonPath('data.reminder_days_before', null)->assertJsonPath('data.roles.0.registration_form', null)->assertJsonPath('data.roles.0.capacity', 20)
-            ->assertJsonCount(2, 'data.installments')->assertJsonPath('data.installments.0.amount', 120)->assertJsonPath('data.installments.0.label.en', 'Deposit')->assertJsonPath('data.installments.0.confirms_place', true);
+            ->assertJsonCount(2, 'data.installments')->assertJsonPath('data.installments.0.amount', 120)->assertJsonPath('data.installments.0.label', 'Deposit')->assertJsonPath('data.installments.0.confirms_place', true);
         Invoice::query()->create(['event_id' => $event->id, 'installment_key' => 'deposit', 'payer_name' => 'Alex Ash', 'total_cents' => 12000]);
         $this->withToken($token)->patchJson("/api/v1/events/$id", ['installments' => [['key' => 'rest']]])->assertUnprocessable()->assertJsonValidationErrors('installments');
         $this->assertSame(2, $event->installments()->count());
@@ -379,8 +379,8 @@ class ApiParityTest extends TestCase
         $token = $this->token(['people:read', 'people:write']);
         $this->withToken($token)->postJson('/api/v1/households', ['street' => 'Oak Lane 1'])->assertUnprocessable()->assertJsonValidationErrors('name');
         $this->withToken($token)->postJson('/api/v1/households', ['name' => 'Family Ash', 'postal_code' => '10<0'])->assertUnprocessable()->assertJsonValidationErrors('postal_code');
-        $id = $this->withToken($token)->postJson('/api/v1/households', ['name' => 'Family Ash', 'street' => 'Oak Lane 1', 'postal_code' => '1010', 'city' => 'Vienna', 'country' => 'at', 'locale' => 'en'])
-            ->assertCreated()->assertJsonPath('data.country', 'AT')->assertJsonPath('data.locale', 'en')->assertJsonPath('data.invoice_recipient', null)->json('data.id');
+        $id = $this->withToken($token)->postJson('/api/v1/households', ['name' => 'Family Ash', 'street' => 'Oak Lane 1', 'postal_code' => '1010', 'city' => 'Vienna', 'country' => 'at'])
+            ->assertCreated()->assertJsonPath('data.country', 'AT')->assertJsonMissingPath('data.locale')->assertJsonPath('data.invoice_recipient', null)->json('data.id');
         $url = "/api/v1/households/$id";
         $alex = $this->person('Alex', 'Ash', 40);
         $ann = $this->person('Ann', 'Ash');
@@ -427,7 +427,7 @@ class ApiParityTest extends TestCase
         $this->withToken($token)->getJson('/api/v1/duplicates')->assertOk()->assertJsonCount(1, 'data');
         $this->withToken($token)->postJson('/api/v1/duplicates/merge', ['keep' => $ann->public_id, 'duplicate' => $ann->public_id])->assertUnprocessable()->assertJsonValidationErrors('duplicate');
         $this->withToken($token)->postJson('/api/v1/duplicates/merge', ['keep' => $ann->public_id, 'duplicate' => $twin->public_id, 'fields' => ['shoe_size' => 'keep']])->assertUnprocessable();
-        $this->withToken($token)->postJson('/api/v1/duplicates/merge', ['keep' => $ann->public_id, 'duplicate' => $twin->public_id, 'fields' => ['locale' => 'duplicate']])->assertOk()->assertJsonPath('data.locale', 'de');
+        $this->withToken($token)->postJson('/api/v1/duplicates/merge', ['keep' => $ann->public_id, 'duplicate' => $twin->public_id, 'fields' => ['gender' => 'duplicate']])->assertOk()->assertJsonMissingPath('data.locale');
         $this->assertNull(Person::query()->find($twin->id));
         $this->assertSame(1, AuditEvent::query()->where('action', 'person.merged')->where('actor_type', 'api')->count());
         // A merge never gives somebody more rights.
@@ -524,11 +524,11 @@ class ApiParityTest extends TestCase
     public function test_mail_versions_log_without_personal_links_bad_addresses_and_sender_profiles(): void
     {
         $token = $this->token(['mail:read', 'mail:write']);
-        $contents = fn (string $subject) => ['contents' => [['locale' => 'en', 'subject' => $subject, 'html' => '<p>Hello</p>']]];
+        $contents = fn (string $subject) => ['subject' => $subject, 'html' => '<p>Hello</p>'];
         $this->withToken($token)->patchJson('/api/v1/mail-templates/invoice', $contents('First change'))->assertOk();
         $this->withToken($token)->patchJson('/api/v1/mail-templates/invoice', $contents('Second change'))->assertOk();
         $versions = $this->withToken($token)->getJson('/api/v1/mail-templates/invoice/versions')->assertOk()->assertJsonCount(3, 'data')->json('data');
-        $this->assertSame('Second change', array_column((array) $versions[0]['contents'], 'subject', 'locale')['en'] ?? null);
+        $this->assertSame('Second change', $versions[0]['subject']);
         $this->assertSame('Owner', $versions[0]['changed_by']);
         $this->withToken($token)->postJson('/api/v1/mail-templates/invoice/versions/999/restore')->assertNotFound();
         $this->withToken($token)->postJson('/api/v1/mail-templates/invoice/versions/'.$versions[1]['version'].'/restore')->assertOk()->assertJsonPath('data.version', $versions[0]['version'] + 1);

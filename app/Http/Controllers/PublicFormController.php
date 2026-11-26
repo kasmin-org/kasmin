@@ -131,7 +131,6 @@ class PublicFormController extends Controller
             'first_name' => ['required', 'string', 'max:120'],
             'last_name' => ['required', 'string', 'max:120'],
             'phone' => ['nullable', 'string', 'max:40'],
-            'locale' => ['required', 'in:de,en'],
             'privacy' => ['accepted'],
         ] + ($email ? ['email' => ['required', 'email', 'max:254']] : [])
           + ($birthDate ? ['birth_date' => ['required', 'date', 'before:today', 'after:1900-01-01']] : [])

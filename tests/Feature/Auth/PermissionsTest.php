@@ -159,7 +159,7 @@ class PermissionsTest extends TestCase
         $this->assertFalse(Permissions::allows($leader, 'mailings', 'edit'));
         $this->actingAs($this->user('administrator'));
         $role = Role::query()->where('key', 'camp_leader')->firstOrFail();
-        Livewire::test(ManageRoles::class)->callTableAction('edit', $role, data: ['name' => ['de' => 'Lagerleitung', 'en' => 'Camp leader'], 'is_admin' => true, 'scope' => 'all', 'permissions' => ['mailings' => 'edit', 'events' => 'view']])->assertHasNoTableActionErrors();
+        Livewire::test(ManageRoles::class)->callTableAction('edit', $role, data: ['name' => 'Camp leader', 'is_admin' => true, 'scope' => 'all', 'permissions' => ['mailings' => 'edit', 'events' => 'view']])->assertHasNoTableActionErrors();
         $this->assertTrue(Permissions::allows($leader, 'mailings', 'edit'));
         $this->assertTrue(Permissions::allows($leader, 'events'));
         $this->assertFalse(Permissions::allows($leader, 'events', 'edit'));

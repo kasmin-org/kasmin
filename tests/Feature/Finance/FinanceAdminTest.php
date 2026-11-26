@@ -165,8 +165,8 @@ class FinanceAdminTest extends TestCase
     public function test_membership_type_fee(): void
     {
         $this->actAs('treasurer');
-        $type = MembershipType::query()->create(['key' => 'club', 'name' => ['de' => 'Club', 'en' => 'Club'], 'pays_fee' => true, 'sort' => 50]);
-        Livewire::test(ManageMembershipTypes::class)->callTableAction('edit', $type, data: ['fee_cents' => '25.50', 'pays_fee' => true, 'name' => ['de' => 'Club', 'en' => 'Club']])->assertHasNoTableActionErrors();
+        $type = MembershipType::query()->create(['key' => 'club', 'name' => 'Club', 'pays_fee' => true, 'sort' => 50]);
+        Livewire::test(ManageMembershipTypes::class)->callTableAction('edit', $type, data: ['fee_cents' => '25.50', 'pays_fee' => true, 'name' => 'Club'])->assertHasNoTableActionErrors();
         $this->assertSame(2550, $type->fresh()?->fee_cents);
     }
 

@@ -37,13 +37,14 @@
                 <option value="de" @selected(app()->getLocale() === 'de')>Deutsch</option>
                 <option value="en" @selected(app()->getLocale() === 'en')>English</option>
             </select>
+            <span class="mt-1 block text-sm text-kasmin-700">{{ __('install.locale_hint') }}</span>
         </label>
         <fieldset>
             <legend class="mb-1 text-sm font-medium">{{ __('install.defaults') }}</legend>
             <p class="mb-2 text-sm text-kasmin-700">{{ __('install.defaults_hint') }}</p>
-            @foreach (['de' => __('install.defaults_de'), 'en' => __('install.defaults_en'), 'none' => __('install.defaults_none')] as $value => $label)
+            @foreach (['yes' => __('install.defaults_yes'), 'none' => __('install.defaults_none')] as $value => $label)
                 <label class="flex items-center gap-2 py-1">
-                    <input type="radio" name="defaults" value="{{ $value }}" @checked(old('defaults', app()->getLocale()) === $value) required>
+                    <input type="radio" name="defaults" value="{{ $value }}" @checked(old('defaults', 'yes') === $value) required>
                     <span>{{ $label }}</span>
                 </label>
             @endforeach

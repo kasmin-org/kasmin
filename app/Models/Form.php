@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Casts\OneText;
 use App\Models\Concerns\Auditable;
 use App\Support\Forms\SensitivityGuard;
 use Illuminate\Database\Eloquent\Model;
@@ -12,8 +13,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  *
  * @property int $id
  * @property string $key
- * @property array<string, string> $name
- * @property array<string, string>|null $description
+ * @property string|null $name
+ * @property string|null $description
  * @property int $version
  * @property string $kind
  * @property int|null $applies_until_age
@@ -30,7 +31,7 @@ class Form extends Model
 
     protected function casts(): array
     {
-        return ['name' => 'array', 'description' => 'array', 'family_emergency_contacts' => 'boolean', 'active' => 'boolean'];
+        return ['name' => OneText::class, 'description' => OneText::class, 'family_emergency_contacts' => 'boolean', 'active' => 'boolean'];
     }
 
     protected static function booted(): void
@@ -47,11 +48,11 @@ class Form extends Model
 
     public function label(): string
     {
-        return $this->name[app()->getLocale()] ?? $this->name['en'] ?? $this->key;
+        return $this->name ?: $this->key;
     }
 
     public function descriptionText(): ?string
     {
-        return $this->description[app()->getLocale()] ?? $this->description['en'] ?? null;
+        return $this->description ?: null;
     }
 }

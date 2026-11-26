@@ -60,7 +60,7 @@ class PublicController extends Controller
         $questions = $this->forms->questions($form);
         $data = $request->validate([
             'first_name' => ['required', 'string', 'max:120'], 'last_name' => ['required', 'string', 'max:120'], 'email' => ['required', 'email', 'max:254'], 'phone' => ['nullable', 'string', 'max:40'],
-            'locale' => ['required', 'in:de,en'], 'privacy' => ['accepted'],
+            'privacy' => ['accepted'],
         ] + ($form->kind !== 'interest' ? ['birth_date' => ['required', 'date', 'before:today', 'after:1900-01-01']] : []) + ($questions !== null ? $this->answers->rules($questions) : []));
         abort_unless(ProofOfWork::valid($request->input('pow')), 422, 'The proof of work is missing, wrong or already used.');
         $this->forms->submit($form, $data);

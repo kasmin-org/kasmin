@@ -7,6 +7,7 @@ use App\Models\MailTemplate;
 use App\Models\MailTemplateVersion;
 use App\Models\OutgoingMail;
 use App\Models\SenderProfile;
+use App\Support\Language;
 use App\Support\Mail\BadAddresses;
 use App\Support\Mail\MailLinks;
 use Illuminate\Http\JsonResponse;
@@ -20,16 +21,23 @@ use Illuminate\Validation\Rule;
  */
 class MailLogController extends ApiController
 {
-    /** The versions of a template, newest first, each with its contents per language. */
+    /** The versions of a template, newest first, each with its subject and text. */
     public function versions(string $template): JsonResponse
     {
         $this->scope('mail:read');
         $versions = $this->template($template)->versions()->with('changedBy')->get();
 
-        return response()->json(['data' => $versions->map(fn (MailTemplateVersion $v) => [
-            'version' => $v->version, 'created_at' => $v->created_at->toIso8601String(), 'changed_by' => $v->changedBy?->name,
-            'contents' => array_map(fn (array $c) => ['locale' => $c['locale'] ?? null, 'subject' => $c['subject'] ?? null, 'html' => $c['html'] ?? null, 'text' => $c['text'] ?? null], array_values((array) ($v->snapshot['contents'] ?? []))),
-        ])->values()]);
+        // A version holds one text; those of the versions up to 0.27 hold one per language, of which the one in the
+        // language of the installation is shown (it is the one a restore brings back).
+        return response()->json(['data' => $versions->map(function (MailTemplateVersion $v): array {
+            $contents = collect((array) ($v->snapshot['contents'] ?? []));
+            $c = (array) ($contents->firstWhere('locale', Language::current()) ?? $contents->first() ?? []);
+
+            return [
+                'version' => $v->version, 'created_at' => $v->created_at->toIso8601String(), 'changed_by' => $v->changedBy?->name,
+                'subject' => $c['subject'] ?? null, 'html' => $c['html'] ?? null, 'text' => $c['text'] ?? null,
+            ];
+        })->values()]);
     }
 
     /** Makes the contents of an earlier version the current ones; this is a new version, nothing is lost. */
@@ -42,7 +50,7 @@ class MailLogController extends ApiController
 
         return response()->json(['data' => [
             'key' => $model->key, 'name' => $model->name, 'version' => $model->version, 'restored' => $version,
-            'contents' => $model->contents()->get()->map(fn ($c) => ['locale' => $c->locale, 'subject' => $c->subject, 'html' => $c->html, 'text' => $c->text])->values()->all(),
+            'subject' => $model->contents()->value('subject'), 'html' => $model->contents()->value('html'), 'text' => $model->contents()->value('text'),
         ]]);
     }
 

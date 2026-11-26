@@ -28,7 +28,7 @@ class Presenter
     {
         $data = [
             'id' => $p->public_id, 'first_name' => $p->first_name, 'last_name' => $p->last_name,
-            'birth_date' => $p->birth_date?->toDateString(), 'age' => $p->ageAt(), 'gender' => $p->gender, 'locale' => $p->locale,
+            'birth_date' => $p->birth_date?->toDateString(), 'age' => $p->ageAt(), 'gender' => $p->gender,
             'updated_at' => $p->updated_at?->toIso8601String(),
         ];
         if ($details) {
@@ -48,7 +48,7 @@ class Presenter
     {
         return [
             'id' => $h->public_id, 'name' => $h->name, 'street' => $h->getAttribute('street'), 'postal_code' => $h->getAttribute('postal_code'),
-            'city' => $h->getAttribute('city'), 'country' => $h->getAttribute('country'), 'locale' => $h->getAttribute('locale'),
+            'city' => $h->getAttribute('city'), 'country' => $h->getAttribute('country'),
             'invoice_recipient' => $h->invoiceRecipient?->public_id,
             'members' => $h->members->map(fn (Person $p) => ['id' => $p->public_id, 'name' => $p->fullName(), 'role' => $p->getRelationValue('pivot')?->getAttribute('role')])->values()->all(),
         ];

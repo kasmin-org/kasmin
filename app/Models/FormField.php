@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Casts\OneText;
 use App\Models\Concerns\Auditable;
 use App\Support\Forms\ChoiceLists;
 use App\Support\Forms\SensitivityGuard;
@@ -12,8 +13,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $form_id
  * @property string $key
  * @property string $type
- * @property array<string, string> $label
- * @property array<string, string>|null $help
+ * @property string|null $label
+ * @property string|null $help
  * @property array<string, mixed>|null $options
  * @property bool $required
  * @property string $scope
@@ -39,11 +40,21 @@ class FormField extends Model
 
     protected function casts(): array
     {
-        return ['label' => 'array', 'help' => 'array', 'options' => 'array', 'required' => 'boolean', 'carry_over' => 'boolean', 'list_use' => 'array'];
+        return ['label' => OneText::class, 'help' => OneText::class, 'options' => 'array', 'required' => 'boolean', 'carry_over' => 'boolean', 'list_use' => 'array'];
     }
 
     protected static function booted(): void
     {
+        // One text per choice and per column; standard forms of the software come with both languages.
+        static::saving(function (FormField $field): void {
+            $options = $field->options;
+            foreach (['choices', 'fields'] as $part) {
+                if (is_array($options[$part] ?? null)) {
+                    $options[$part] = array_map(fn ($text) => (string) OneText::of($text), $options[$part]);
+                    $field->options = $options;
+                }
+            }
+        });
         static::updating(fn (FormField $field) => SensitivityGuard::field($field));
         static::deleting(fn (FormField $field) => SensitivityGuard::field($field, deleting: true));
     }
@@ -62,20 +73,20 @@ class FormField extends Model
 
     public function labelText(): string
     {
-        return $this->label[app()->getLocale()] ?? $this->label['en'] ?? $this->key;
+        return $this->label ?: $this->key;
     }
 
     public function helpText(): ?string
     {
-        return $this->help[app()->getLocale()] ?? $this->help['en'] ?? null;
+        return $this->help ?: null;
     }
 
-    /** @return array<string, string> choice value => label in the current language */
+    /** @return array<string, string> choice value => label */
     public function choices(): array
     {
         $choices = ChoiceLists::get((string) ($this->options['list'] ?? ''));
         foreach ((array) ($this->options['choices'] ?? []) as $value => $labels) {
-            $choices[(string) $value] = is_array($labels) ? (string) ($labels[app()->getLocale()] ?? $labels['en'] ?? $value) : (string) $labels;
+            $choices[(string) $value] = OneText::of($labels) ?? (string) $value;
         }
 
         return $choices;
@@ -94,8 +105,6 @@ class FormField extends Model
 
     public function subFieldLabel(string $key): string
     {
-        $labels = (array) (($this->options['fields'] ?? [])[$key] ?? []);
-
-        return (string) ($labels[app()->getLocale()] ?? $labels['en'] ?? $key);
+        return OneText::of(($this->options['fields'] ?? [])[$key] ?? null) ?: $key;
     }
 }

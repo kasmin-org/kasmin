@@ -31,7 +31,7 @@ class MergeDuplicates extends ApiTool
         return [
             'keep' => $schema->string()->description('person id that stays')->required(),
             'duplicate' => $schema->string()->description('person id that is merged into the other and deleted')->required(),
-            'fields' => $schema->object()->description('whose value stays per field (first_name, last_name, birth_date, gender, locale): "keep" (default) or "duplicate", e.g. {"birth_date": "duplicate"}'),
+            'fields' => $schema->object()->description('whose value stays per field (first_name, last_name, birth_date, gender): "keep" (default) or "duplicate", e.g. {"birth_date": "duplicate"}'),
         ];
     }
 }

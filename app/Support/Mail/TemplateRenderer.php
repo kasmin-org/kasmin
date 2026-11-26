@@ -62,12 +62,16 @@ class TemplateRenderer
      */
     public function validate(string $subject, string $html, ?string $text): array
     {
+        $problems = [...TemplateProblems::find($subject), ...TemplateProblems::find($html), ...TemplateProblems::find((string) $text)];
+        if ($problems !== []) {
+            return array_values(array_unique($problems));
+        }
         try {
             $this->renderStrings($subject, $html, $text, Placeholders::sample());
 
             return [];
         } catch (MailException $e) {
-            return [$e->getMessage()];
+            return [TemplateProblems::translate($e->getMessage())];
         }
     }
 

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Forms\Schemas;
 
+use App\Casts\OneText;
 use App\Models\FormField;
 use App\Support\Forms\ChoiceLists;
 use App\Support\Forms\Formats;
@@ -30,10 +31,8 @@ class FormForm
                 TextInput::make('key')->label(__('admin.form.key'))->required()->alphaDash()->maxLength(64)->unique(ignoreRecord: true),
                 Toggle::make('active')->label(__('admin.form.active'))->default(true),
                 Select::make('kind')->label(__('admin.form.kind'))->options(__('admin.form.kinds'))->default('person')->required()->live()->disabledOn('edit')->hintIcon(...$hint('kind')),
-                TextInput::make('name.de')->label(__('admin.form.name').' (Deutsch)')->required(),
-                TextInput::make('name.en')->label(__('admin.form.name').' (English)')->required(),
-                Textarea::make('description.de')->label(__('admin.form.description').' (Deutsch)'),
-                Textarea::make('description.en')->label(__('admin.form.description').' (English)'),
+                TextInput::make('name')->label(__('admin.form.name'))->required(),
+                Textarea::make('description')->label(__('admin.form.description')),
                 TextInput::make('applies_until_age')->label(__('admin.form.applies_until_age'))->numeric()->minValue(1)->maxValue(120)->visible(fn ($get) => $get('kind') !== 'registration')
                     ->hintIcon(...$hint('applies_until_age')),
                 TextInput::make('confirm_every_days')->label(__('admin.form.confirm_every_days'))->numeric()->minValue(1)->visible(fn ($get) => $get('kind') !== 'registration')
@@ -44,7 +43,7 @@ class FormForm
             ]),
             Section::make(__('admin.form.fields'))->columnSpanFull()->schema([
                 Repeater::make('fields')->relationship()->orderColumn('sort')->label(__('admin.form.fields'))->hiddenLabel()->collapsible()->cloneable()
-                    ->itemLabel(fn (array $state) => ($state['label']['de'] ?? $state['key'] ?? '').' · '.($state['type'] ?? ''))
+                    ->itemLabel(fn (array $state) => (OneText::of($state['label'] ?? null) ?: ($state['key'] ?? '')).' · '.($state['type'] ?? ''))
                     ->addActionLabel(__('admin.form.add_field'))->columns(['md' => 2])
                     ->mutateRelationshipDataBeforeFillUsing(fn (array $data) => self::toRows($data))
                     ->mutateRelationshipDataBeforeSaveUsing(fn (array $data) => self::fromRows($data))
@@ -52,10 +51,8 @@ class FormForm
                     ->schema([
                         TextInput::make('key')->label(__('admin.form.key'))->required()->alphaDash()->maxLength(64)->distinct(),
                         Select::make('type')->label(__('admin.form.type'))->options(__('admin.form.types'))->required()->live(),
-                        TextInput::make('label.de')->label(__('admin.form.label').' (Deutsch)')->required(),
-                        TextInput::make('label.en')->label(__('admin.form.label').' (English)')->required(),
-                        TextInput::make('help.de')->label(__('admin.form.help').' (Deutsch)'),
-                        TextInput::make('help.en')->label(__('admin.form.help').' (English)'),
+                        TextInput::make('label')->label(__('admin.form.label'))->required(),
+                        TextInput::make('help')->label(__('admin.form.help')),
                         Select::make('sensitivity')->label(__('admin.form.sensitivity'))->options(__('admin.form.sensitivities'))->default('normal')->required()
                             ->hintIcon(...$hint('sensitivity')),
                         Select::make('list_use')->label(__('admin.form.list_use'))->multiple()->options(__('admin.form.lists')),
@@ -76,11 +73,10 @@ class FormForm
     private static function options(): array
     {
         $is = fn (string ...$types) => fn ($get) => in_array($get('type'), $types, true);
-        $rows = fn (string $name, string $label, string $add) => Repeater::make($name)->label($label)->addActionLabel($add)->columns(['md' => 3])->columnSpanFull()->defaultItems(0)->reorderable()
+        $rows = fn (string $name, string $label, string $add) => Repeater::make($name)->label($label)->addActionLabel($add)->columns(['md' => 2])->columnSpanFull()->defaultItems(0)->reorderable()
             ->schema([
                 TextInput::make('value')->label(__('admin.form.choice_value'))->required()->maxLength(64)->distinct(),
-                TextInput::make('de')->label('Deutsch')->required()->maxLength(200),
-                TextInput::make('en')->label('English')->required()->maxLength(200),
+                TextInput::make('text')->label(__('admin.form.label'))->required()->maxLength(200),
             ]);
 
         return [
@@ -98,7 +94,7 @@ class FormForm
     }
 
     /**
-     * Choices and columns are stored as value => texts and edited as rows.
+     * Choices and columns are stored as value => text and edited as rows.
      *
      * @param  array<string, mixed>  $data
      * @return array<string, mixed>
@@ -107,7 +103,7 @@ class FormForm
     {
         foreach (['choices', 'fields'] as $part) {
             if (is_array($data['options'] ?? null) && isset($data['options'][$part])) {
-                $data['options'][$part] = collect((array) $data['options'][$part])->map(fn ($l, $v) => ['value' => (string) $v, 'de' => is_array($l) ? ($l['de'] ?? '') : (string) $l, 'en' => is_array($l) ? ($l['en'] ?? '') : (string) $l])->values()->all();
+                $data['options'][$part] = collect((array) $data['options'][$part])->map(fn ($l, $v) => ['value' => (string) $v, 'text' => (string) OneText::of($l)])->values()->all();
             }
         }
 
@@ -122,7 +118,7 @@ class FormForm
     {
         foreach (['choices', 'fields'] as $part) {
             if (is_array($data['options'] ?? null) && isset($data['options'][$part])) {
-                $data['options'][$part] = collect((array) $data['options'][$part])->filter(fn ($r) => is_array($r) && filled($r['value'] ?? null))->mapWithKeys(fn ($r) => [(string) $r['value'] => ['de' => $r['de'] ?? '', 'en' => $r['en'] ?? '']])->all();
+                $data['options'][$part] = collect((array) $data['options'][$part])->filter(fn ($r) => is_array($r) && filled($r['value'] ?? null))->mapWithKeys(fn ($r) => [(string) $r['value'] => (string) ($r['text'] ?? '')])->all();
             }
         }
 

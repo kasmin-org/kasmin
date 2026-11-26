@@ -69,7 +69,7 @@ class PeopleTable
                         ->options(fn () => MembershipType::query()->get()->mapWithKeys(fn (MembershipType $t) => [$t->id => $t->label()])->all())
                         ->relationship('memberships', 'membership_type_id'),
                     SelectConstraint::make('role')->label(__('automations.role'))->multiple()
-                        ->options(fn () => Role::query()->get()->mapWithKeys(fn (Role $r) => [$r->id => $r->name[app()->getLocale()] ?? $r->key])->all())
+                        ->options(fn () => Role::query()->get()->mapWithKeys(fn (Role $r) => [$r->id => $r->label()])->all())
                         ->relationship('roleAssignments', 'role_id'),
                     SelectConstraint::make('event')->label(__('admin.event.singular'))->multiple()
                         ->options(fn () => Event::query()->orderByDesc('starts_at')->limit(50)->pluck('title', 'id')->all())

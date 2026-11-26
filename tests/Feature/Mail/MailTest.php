@@ -23,6 +23,7 @@ use App\Support\Mail\Notifier;
 use App\Support\Mail\Placeholders;
 use App\Support\Mail\Sender;
 use App\Support\Mail\TemplateRenderer;
+use App\Support\Settings;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\URL;
 use Symfony\Component\Mailer\Transport\NullTransport;
@@ -77,6 +78,11 @@ class MailTest extends TestCase
 
     public function test_registration_sends_a_confirmation_with_the_waitlist_position(): void
     {
+        // A German installation: the texts of the software and the standard templates are German for everybody.
+        Settings::set('default_locale', 'de');
+        app()->setLocale('de');
+        MailTemplate::query()->delete();
+        app(Defaults::class)->install('de');
         [, $child] = $this->family();
         $event = Event::query()->create(['title' => 'Summer camp', 'starts_at' => now()->addMonths(6), 'ends_at' => now()->addMonths(6)->addWeek(), 'status' => 'open']);
         $event->roles()->create(['role_key' => 'child', 'capacity' => 0, 'min_age' => 8, 'max_age' => 13]);

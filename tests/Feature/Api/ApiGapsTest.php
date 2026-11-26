@@ -149,16 +149,16 @@ class ApiGapsTest extends TestCase
         $token = $this->token(['people:read', 'people:write']);
         $before = MembershipType::query()->count();
         $this->withToken($token)->postJson('/api/v1/membership-types', ['key' => 'supporter', 'name' => ['de' => 'Fördermitglied', 'en' => 'Supporter'], 'pays_fee' => true, 'fee' => 25.5])
-            ->assertCreated()->assertJsonPath('data.key', 'supporter')->assertJsonPath('data.fee', 25.5)->assertJsonPath('data.name.en', 'Supporter');
+            ->assertCreated()->assertJsonPath('data.key', 'supporter')->assertJsonPath('data.fee', 25.5)->assertJsonPath('data.name', 'Supporter');
         $this->assertSame(2550, MembershipType::query()->where('key', 'supporter')->firstOrFail()->fee_cents);
         $this->withToken($token)->getJson('/api/v1/membership-types')->assertOk()->assertJsonCount($before + 1, 'data');
 
-        $this->withToken($token)->patchJson('/api/v1/membership-types/supporter', ['fee' => 30, 'name' => ['de' => 'Förderer', 'en' => 'Supporter']])
-            ->assertOk()->assertJsonPath('data.fee', 30)->assertJsonPath('data.name.de', 'Förderer')->assertJsonPath('data.pays_fee', true);
+        $this->withToken($token)->patchJson('/api/v1/membership-types/supporter', ['fee' => 30, 'name' => 'Förderer'])
+            ->assertOk()->assertJsonPath('data.fee', 30)->assertJsonPath('data.name', 'Förderer')->assertJsonPath('data.pays_fee', true);
 
         $this->withToken($token)->postJson('/api/v1/membership-types', ['key' => 'supporter', 'name' => ['de' => 'A', 'en' => 'B']])->assertUnprocessable()->assertJsonValidationErrors('key');
         $this->withToken($token)->postJson('/api/v1/membership-types', ['key' => 'not a key', 'name' => ['de' => 'A', 'en' => 'B']])->assertUnprocessable()->assertJsonValidationErrors('key');
-        $this->withToken($token)->postJson('/api/v1/membership-types', ['key' => 'friend', 'name' => ['de' => 'A']])->assertUnprocessable()->assertJsonValidationErrors('name.en');
+        $this->withToken($token)->postJson('/api/v1/membership-types', ['key' => 'friend', 'name' => ''])->assertUnprocessable()->assertJsonValidationErrors('name');
         $this->withToken($token)->patchJson('/api/v1/membership-types/supporter', ['key' => 'other'])->assertUnprocessable()->assertJsonValidationErrors('key');
         $this->withToken($token)->patchJson('/api/v1/membership-types/supporter', ['fee' => -1])->assertUnprocessable();
         $this->withToken($token)->patchJson('/api/v1/membership-types/unknown', ['fee' => 1])->assertNotFound();

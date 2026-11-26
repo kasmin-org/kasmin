@@ -15,11 +15,6 @@
         </div>
         <label class="block"><span class="mb-1 block text-sm font-medium">{{ __('auth_link.email') }}</span>
             <input type="email" name="email" required maxlength="254" value="{{ old('email') }}" autocomplete="email" class="w-full rounded-lg border border-kasmin-200 px-3 py-3"></label>
-        <label class="block"><span class="mb-1 block text-sm font-medium">{{ __('admin.person.locale') }}</span>
-            <select name="locale" class="w-full rounded-lg border border-kasmin-200 px-3 py-3">
-                <option value="de" @selected(app()->getLocale() === 'de')>Deutsch</option>
-                <option value="en" @selected(app()->getLocale() === 'en')>English</option>
-            </select></label>
         <label class="flex items-start gap-2 text-sm"><input type="checkbox" name="privacy" value="1" required class="mt-1"> <span>{{ __('portal.privacy_consent') }}</span></label>
         @if (\App\Support\Settings::bool('newsletter_ask'))<label class="flex items-start gap-2 text-sm"><input type="checkbox" name="newsletter" value="1" class="mt-1"> <span>{{ __('public.newsletter_consent') }}</span></label>@endif
         <x-proof-of-work />

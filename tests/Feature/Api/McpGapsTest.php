@@ -125,7 +125,7 @@ class McpGapsTest extends TestCase
         $child = $this->child();
         $event = Event::query()->create(['title' => 'Camp', 'starts_at' => now()->addMonth(), 'ends_at' => now()->addMonth()->addWeek()]);
         $arguments = ['person' => $child->public_id, 'guardian' => $child->public_id, 'id' => $event->public_id, 'key' => 'member', 'type' => 'email', 'value' => 'ann@example.org',
-            'name' => ['de' => 'A', 'en' => 'B'], 'title' => 'X', 'starts_at' => now()->toIso8601String(), 'ends_at' => now()->toIso8601String(), 'travel' => 'bus', 'active' => true];
+            'name' => 'B', 'title' => 'X', 'starts_at' => now()->toIso8601String(), 'ends_at' => now()->toIso8601String(), 'travel' => 'bus', 'active' => true];
         $events = Event::query()->count();
         foreach (array_keys(self::TOOLS) as $name) {
             $this->assertContains($name, $all, "{$name} is offered with its scope");
@@ -186,7 +186,7 @@ class McpGapsTest extends TestCase
     {
         $token = $this->token(['people:read', 'people:write']);
         $before = MembershipType::query()->count();
-        $created = $this->tool($token, 'create_membership_type', ['key' => 'supporter', 'name' => ['de' => 'Fördermitglied', 'en' => 'Supporter'], 'pays_fee' => true, 'fee' => 25.5]);
+        $created = $this->tool($token, 'create_membership_type', ['key' => 'supporter', 'name' => 'Supporter', 'pays_fee' => true, 'fee' => 25.5]);
         $this->assertSame('supporter', $created['data']['key'] ?? null);
         $this->assertSame(2550, MembershipType::query()->where('key', 'supporter')->firstOrFail()->fee_cents);
         $this->assertCount($before + 1, $this->tool($token, 'list_membership_types')['data'] ?? []);
@@ -194,9 +194,9 @@ class McpGapsTest extends TestCase
         $updated = $this->tool($token, 'update_membership_type', ['key' => 'supporter', 'fee' => 30, 'pays_fee' => false]);
         $this->assertEquals(30, $updated['data']['fee'] ?? null);
         $this->assertFalse($updated['data']['pays_fee']);
-        $this->assertSame('Supporter', $updated['data']['name']['en']);
+        $this->assertSame('Supporter', $updated['data']['name']);
 
-        $error = $this->refused($token, 'create_membership_type', ['key' => 'supporter', 'name' => ['de' => 'A', 'en' => 'B']], 'the key is taken');
+        $error = $this->refused($token, 'create_membership_type', ['key' => 'supporter', 'name' => 'B'], 'the key is taken');
         $this->assertStringContainsString('HTTP 422', $error);
     }
 
@@ -278,7 +278,7 @@ class McpGapsTest extends TestCase
         $automation->refresh();
         $this->assertSame([false, 'before_event', 90], [$automation->active, $automation->trigger, $automation->trigger_config['days'] ?? null]);
         // The name can be changed, and it stays switched off when asked.
-        $renamed = $this->tool($token, 'update_automation', ['key' => $key, 'name' => ['de' => 'Lauf', 'en' => 'Run'], 'active' => false]);
+        $renamed = $this->tool($token, 'update_automation', ['key' => $key, 'name' => 'Run', 'active' => false]);
         $this->assertSame('automatic', $renamed['data']['mode'] ?? null);
         $automation->update(['active' => true]);
         $this->assertFalse($this->tool($token, 'update_automation', ['key' => $key, 'active' => false])['data']['active'] ?? null, 'switching off is always possible');

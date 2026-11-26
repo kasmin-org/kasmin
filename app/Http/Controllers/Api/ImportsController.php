@@ -7,7 +7,6 @@ use App\Support\Import\FamilyBuilder;
 use App\Support\Import\PeopleImporter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 
 /**
  * Import of people and families (MI02–MI06, MI10): dry run, family suggestions, import batch, rollback.
@@ -15,16 +14,15 @@ use Illuminate\Validation\Rule;
  */
 class ImportsController extends ApiController
 {
-    /** @return array{source: string, locale: string, rows: list<array<string, mixed>>} */
+    /** @return array{source: string, rows: list<array<string, mixed>>} */
     private function input(Request $request): array
     {
         $data = $request->validate([
             'source' => ['required', 'string', 'max:60', 'regex:/^[a-z0-9_.-]+$/'],
-            'locale' => ['nullable', Rule::in(['de', 'en'])],
             'rows' => ['required', 'array', 'min:1', 'max:5000'], 'rows.*' => ['array'],
         ]);
 
-        return ['source' => $data['source'], 'locale' => $data['locale'] ?? 'de', 'rows' => array_values($data['rows'])];
+        return ['source' => $data['source'], 'rows' => array_values($data['rows'])];
     }
 
     /** Dry run: per row create/update/error with messages, plus family suggestions. Changes nothing. */
@@ -33,7 +31,7 @@ class ImportsController extends ApiController
         $this->scope('import:write');
         $in = $this->input($request);
 
-        return response()->json(['data' => app(PeopleImporter::class)->plan($in['rows'], $in['source'], $in['locale'])]);
+        return response()->json(['data' => app(PeopleImporter::class)->plan($in['rows'], $in['source'])]);
     }
 
     /** Family suggestions only (MI04). */
@@ -49,7 +47,7 @@ class ImportsController extends ApiController
     {
         $this->scope('import:write');
         $in = $this->input($request);
-        $batch = app(PeopleImporter::class)->import($in['rows'], $in['source'], $in['locale']);
+        $batch = app(PeopleImporter::class)->import($in['rows'], $in['source']);
 
         return response()->json(['data' => ['batch' => $batch->id, 'stats' => $batch->stats]], 201);
     }

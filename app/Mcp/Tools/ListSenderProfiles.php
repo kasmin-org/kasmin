@@ -12,7 +12,7 @@ use Laravel\Mcp\Server\Attributes\Name;
 use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 
 #[Name('list_sender_profiles')]
-#[Description('Sender profiles: from name and address, reply-to and the name of the mail account they send with. Passwords and keys of mail accounts are never part of an answer.')]
+#[Description('The sender of the installation (there is one): from name and address, reply-to and the name of the mail account. Passwords and keys of mail accounts are never part of an answer.')]
 #[IsReadOnly]
 class ListSenderProfiles extends ApiTool
 {

@@ -13,6 +13,7 @@ use App\Models\PublicSubmission;
 use App\Models\User;
 use App\Support\Audit\Audit;
 use App\Support\Forms\RegistrationAnswers;
+use App\Support\Language;
 use App\Support\Mail\Composer;
 use App\Support\Mail\Notifier;
 use Illuminate\Support\Facades\DB;
@@ -47,7 +48,7 @@ class PublicForms
         PublicSubmission::query()->create([
             'public_form_id' => $form->id, 'token_hash' => hash('sha256', $token), 'data' => $data, 'expires_at' => now()->addDays(self::CONFIRM_DAYS),
         ]);
-        Mail::to((string) $data['email'])->locale((string) $data['locale'])
+        Mail::to((string) $data['email'])->locale(Language::current())
             ->send(new ConfirmSubmissionMail((string) $data['first_name'], $form->titleText(), route('public.confirm', $token), self::CONFIRM_DAYS));
     }
 
@@ -156,7 +157,7 @@ class PublicForms
 
             return $person;
         }
-        $person = Person::query()->create(['first_name' => $data['first_name'], 'last_name' => $data['last_name'], 'birth_date' => $data['birth_date'] ?? null, 'locale' => $data['locale'] ?? 'de']);
+        $person = Person::query()->create(['first_name' => $data['first_name'], 'last_name' => $data['last_name'], 'birth_date' => $data['birth_date'] ?? null]);
         $person->contactPoints()->create(['type' => 'email', 'value' => $email, 'purposes' => ['login', 'information', 'invoices'], 'is_primary' => true]);
         if (filled($data['phone'] ?? null)) {
             $person->contactPoints()->create(['type' => 'phone', 'value' => $data['phone'], 'is_primary' => true]);

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Casts\OneText;
 use App\Models\Automation;
 use App\Models\Event;
 use App\Models\EventInstallment;
@@ -291,6 +292,7 @@ class EventsController extends ApiController
     {
         $need = $event === null ? 'required' : 'sometimes';
         $text = fn (int $max) => ['sometimes', 'nullable', 'string', 'max:'.$max];
+        $request->merge(OneText::collapse($request->only('cancellation_text', 'installments'), ['cancellation_text', 'installments.*.label']));
         $data = $request->validate([
             'title' => [$need, 'string', 'max:200'],
             'series_id' => ['sometimes', 'nullable', 'integer', 'exists:event_series,id'],
@@ -326,7 +328,7 @@ class EventsController extends ApiController
             'sibling_cap_position' => ['sometimes', 'nullable', 'integer', 'between:2,255'], 'sibling_min_children' => ['sometimes', 'integer', 'between:2,255'],
             'reminder_days_before' => ['sometimes', 'nullable', 'array', 'max:10'], 'reminder_days_before.*' => ['integer', 'between:0,365'],
             'cancellation_fee' => ['sometimes', 'numeric', 'min:0', 'max:1000000'],
-            'cancellation_text' => ['sometimes', 'nullable', 'array:de,en'], 'cancellation_text.*' => ['nullable', 'string', 'max:2000'],
+            'cancellation_text' => ['sometimes', 'nullable', 'string', 'max:2000'],
             'currency' => ['prohibited'],
             'prices' => ['sometimes', 'array', 'max:100'],
             'prices.*.role' => ['required', Rule::in(EventRole::KEYS)],
@@ -335,8 +337,7 @@ class EventsController extends ApiController
             'prices.*.price' => ['required', 'numeric', 'min:0', 'max:1000000'],
             'installments' => ['sometimes', 'array', 'max:20'],
             'installments.*.key' => ['required', 'string', 'alpha_dash', 'max:32', 'distinct'],
-            'installments.*.label' => ['sometimes', 'array:de,en'],
-            'installments.*.label.de' => ['required_with:installments.*.label', 'string', 'max:200'], 'installments.*.label.en' => ['required_with:installments.*.label', 'string', 'max:200'],
+            'installments.*.label' => ['sometimes', 'string', 'max:200'],
             'installments.*.kind' => ['sometimes', Rule::in(['fixed', 'rest', 'member'])],
             'installments.*.amount' => ['nullable', 'numeric', 'min:0', 'max:1000000'],
             'installments.*.due_date' => ['nullable', 'date'], 'installments.*.due_days' => ['nullable', 'integer', 'between:0,3650'],

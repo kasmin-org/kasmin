@@ -2,6 +2,7 @@
 
 namespace App\Support\Forms;
 
+use App\Casts\OneText;
 use App\Models\Form;
 use App\Models\FormField;
 use App\Support\Audit\Audit;
@@ -33,6 +34,7 @@ class FormDefinitions
      */
     public function import(array $definition): Form
     {
+        $definition = OneText::collapse($definition, ['name', 'description', 'fields.*.label', 'fields.*.help', 'fields.*.options.choices.*', 'fields.*.options.fields.*']);
         $data = validator($definition, $this->rules())->validate();
 
         return DB::transaction(function () use ($data) {
@@ -67,23 +69,21 @@ class FormDefinitions
             'format' => ['required', Rule::in([self::FORMAT])],
             'key' => $key,
             'kind' => ['required', Rule::in(array_keys((array) __('admin.form.kinds')))],
-            'name' => ['required', 'array:de,en'], 'name.*' => ['required', 'string', 'max:200'],
-            'description' => ['nullable', 'array:de,en'], 'description.*' => ['nullable', 'string', 'max:2000'],
+            'name' => ['required', 'string', 'max:200'],
+            'description' => ['nullable', 'string', 'max:2000'],
             'applies_until_age' => ['nullable', 'integer', 'min:1', 'max:120'],
             'confirm_every_days' => ['nullable', 'integer', 'min:1', 'max:3650'],
             'family_emergency_contacts' => ['boolean'], 'active' => ['boolean'],
             'fields' => ['required', 'array', 'min:1', 'max:200'],
             'fields.*.key' => [...$key, 'distinct'],
             'fields.*.type' => ['required', Rule::in(FormField::TYPES)],
-            'fields.*.label' => ['required', 'array:de,en'], 'fields.*.label.*' => ['required', 'string', 'max:500'],
-            'fields.*.help' => ['nullable', 'array:de,en'], 'fields.*.help.*' => ['nullable', 'string', 'max:2000'],
+            'fields.*.label' => ['required', 'string', 'max:500'],
+            'fields.*.help' => ['nullable', 'string', 'max:2000'],
             'fields.*.options' => ['nullable', 'array:choices,other,list,fields,format,number,min,max'],
             'fields.*.options.choices' => ['nullable', 'array', 'max:200'],
-            'fields.*.options.choices.*' => ['array:de,en'],
-            'fields.*.options.choices.*.*' => ['string', 'max:200'],
+            'fields.*.options.choices.*' => ['string', 'max:200'],
             'fields.*.options.fields' => ['nullable', 'array', 'max:10'],
-            'fields.*.options.fields.*' => ['array:de,en'],
-            'fields.*.options.fields.*.*' => ['string', 'max:200'],
+            'fields.*.options.fields.*' => ['string', 'max:200'],
             'fields.*.options.other' => ['nullable', 'boolean'], 'fields.*.options.number' => ['nullable', 'boolean'],
             'fields.*.options.list' => ['nullable', 'string', 'max:64'], 'fields.*.options.format' => ['nullable', 'string', 'max:64'],
             'fields.*.options.min' => ['nullable', 'regex:/^-?\d+(\.\d+)?$|^\d{4}-\d{2}-\d{2}$/'], 'fields.*.options.max' => ['nullable', 'regex:/^-?\d+(\.\d+)?$|^\d{4}-\d{2}-\d{2}$/'],

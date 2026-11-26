@@ -34,7 +34,6 @@ class PreviewMailTemplate extends ApiTool
     {
         return [
             'key' => $schema->string()->description('template key')->required(),
-            'locale' => $schema->string()->description('de or en'),
             'subject' => $schema->string()->description('new subject'),
             'html' => $schema->string()->description('new html'),
         ];

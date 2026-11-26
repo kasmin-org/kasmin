@@ -11,6 +11,7 @@ use App\Models\Person;
 use App\Models\User;
 use App\Support\Audit\Audit;
 use App\Support\Auth\Permissions;
+use App\Support\Language;
 use App\Support\Mail\Composer;
 use App\Support\Mail\MailException;
 use App\Support\Mail\Placeholders;
@@ -22,8 +23,8 @@ use Filament\Resources\Pages\Page;
 use Illuminate\Support\HtmlString;
 
 /**
- * Preview of a template with the data of a real recipient, in all languages, for desktop and phone, and a test mail to
- * oneself (MT09, TP08).
+ * Preview of a template with the data of a real recipient, chosen from a list, for desktop and phone, and a test
+ * mail to oneself (MT09, TP08).
  */
 class PreviewMailTemplate extends Page
 {
@@ -32,6 +33,9 @@ class PreviewMailTemplate extends Page
     protected static string $resource = MailTemplateResource::class;
 
     protected string $view = 'filament.pages.mail-template-preview';
+
+    /** How many people the list offers before typing is needed. */
+    private const PEOPLE = 100;
 
     public string $search = '';
 
@@ -52,38 +56,40 @@ class PreviewMailTemplate extends Page
         return __('admin.mail.preview').': '.$this->template()->label();
     }
 
-    /** Sends the preview of one language to the person who is logged in, never to somebody else. */
-    public function test(string $locale): void
+    /** Sends the preview to the person who is logged in, never to somebody else. */
+    public function test(): void
     {
         abort_unless(Permissions::current('mailings', 'edit'), 403);
         /** @var User $user */
         $user = auth()->user();
         $address = $user->person?->primaryEmail() ?? $user->email;
-        $rendered = $this->contentFor($locale);
-        app(Composer::class)->queueRaw($address, $user->name, '[TEST] '.$rendered['subject'], $rendered['html'], $locale);
-        Audit::record('mail.test_sent', $this->template(), null, ['locale' => $locale]);
+        $rendered = $this->renderedMail();
+        app(Composer::class)->queueRaw($address, $user->name, '[TEST] '.$rendered['subject'], $rendered['html'], Language::current());
+        Audit::record('mail.test_sent', $this->template());
         Notification::make()->title(__('admin.mail.test_sent', ['to' => $address]))->success()->send();
     }
 
     /** @return array<string, mixed> */
     protected function getViewData(): array
     {
-        $previews = [];
-        foreach ($this->template()->contents()->orderBy('locale')->get() as $content) {
-            try {
-                $rendered = $this->contentFor($content->locale);
-                $html = app(Composer::class)->layout($rendered['subject'], $rendered['html'], $content->locale, '#');
-                $previews[$content->locale] = ['subject' => $rendered['subject'], 'frame' => PreviewFrame::make($html, strtoupper($content->locale), 560), 'text' => $rendered['text']];
-            } catch (MailException $e) {
-                $previews[$content->locale] = ['subject' => __('admin.mail.template_error', ['error' => $e->getMessage()]), 'frame' => new HtmlString(''), 'text' => ''];
-            }
+        try {
+            $rendered = $this->renderedMail();
+            $html = app(Composer::class)->layout($rendered['subject'], $rendered['html'], Language::current(), '#');
+            $preview = ['subject' => $rendered['subject'], 'frame' => PreviewFrame::make($html, $rendered['subject'], 560), 'text' => $rendered['text'], 'error' => null];
+        } catch (MailException $e) {
+            $preview = ['subject' => '', 'frame' => new HtmlString(''), 'text' => '', 'error' => __('admin.mail.template_error', ['error' => $e->getMessage()])];
         }
+        $search = trim($this->search);
 
         return [
-            'previews' => $previews,
+            'preview' => $preview,
             'real' => Permissions::current('people'),
-            'people' => Permissions::current('people') && mb_strlen(trim($this->search)) >= 2 ? Person::query()->whereNull('anonymised_at')
-                ->where(fn ($q) => $q->where('last_name', 'like', trim($this->search).'%')->orWhere('first_name', 'like', trim($this->search).'%'))->orderBy('last_name')->limit(20)->get()->mapWithKeys(fn (Person $p) => [$p->id => $p->fullName()])->all() : [],
+            // The list is there at once (first names in alphabetical order); typing narrows it down.
+            'people' => ! Permissions::current('people') ? [] : Person::query()->whereNull('anonymised_at')
+                ->when($search !== '', fn ($q) => $q->where(fn ($q) => $q->where('last_name', 'like', $search.'%')->orWhere('first_name', 'like', $search.'%')))
+                ->when($this->person !== null, fn ($q) => $q->orWhere('id', $this->person))
+                ->orderBy('last_name')->orderBy('first_name')->limit(self::PEOPLE)->get()->mapWithKeys(fn (Person $p) => [$p->id => $p->last_name.', '.$p->first_name])->all(),
+            'morePeople' => Permissions::current('people') && Person::query()->whereNull('anonymised_at')->count() > self::PEOPLE,
             'chosen' => $this->person()?->fullName(),
             'events' => Event::query()->orderByDesc('starts_at')->limit(50)->pluck('title', 'id')->all(),
             'maySend' => Permissions::current('mailings', 'edit'),
@@ -91,14 +97,14 @@ class PreviewMailTemplate extends Page
     }
 
     /** @return array{subject: string, html: string, text: string} */
-    private function contentFor(string $locale): array
+    private function renderedMail(): array
     {
-        $content = $this->template()->contents()->where('locale', $locale)->first();
+        $content = $this->template()->contents()->first();
         if (! $content instanceof MailTemplateContent) {
             throw new MailException('No content.');
         }
 
-        return app(TemplateRenderer::class)->renderStrings($content->subject, $content->html, $content->text, $this->context($locale));
+        return app(TemplateRenderer::class)->renderStrings($content->subject, $content->html, $content->text, $this->context(Language::current()));
     }
 
     /**

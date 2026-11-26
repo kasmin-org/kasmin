@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Casts\OneText;
 use App\Models\Concerns\Auditable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
@@ -35,7 +36,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $image_path
  * @property string $currency
  * @property int $cancellation_fee_cents
- * @property array<string, string>|null $cancellation_text
+ * @property string|null $cancellation_text
  * @property string $sibling_mode
  * @property int $sibling_amount_cents
  * @property int|null $sibling_cap_position
@@ -74,7 +75,7 @@ class Event extends Model
 
     protected function casts(): array
     {
-        return ['starts_at' => 'datetime', 'ends_at' => 'datetime', 'registration_binding' => 'boolean', 'bus_booked' => 'boolean', 'bus_seats' => 'integer', 'age_reference_date' => 'date', 'is_template' => 'boolean', 'public_page' => 'boolean', 'announce_at' => 'datetime', 'registration_opens_at' => 'datetime', 'registration_closes_at' => 'datetime', 'status_checked_at' => 'datetime', 'answers_until' => 'date', 'reserve_reminder_on' => 'date', 'reserve_auto_release' => 'boolean', 'reserve_reminded_at' => 'datetime', 'reminder_days_before' => 'array', 'cancellation_text' => 'array'];
+        return ['starts_at' => 'datetime', 'ends_at' => 'datetime', 'registration_binding' => 'boolean', 'bus_booked' => 'boolean', 'bus_seats' => 'integer', 'age_reference_date' => 'date', 'is_template' => 'boolean', 'public_page' => 'boolean', 'announce_at' => 'datetime', 'registration_opens_at' => 'datetime', 'registration_closes_at' => 'datetime', 'status_checked_at' => 'datetime', 'answers_until' => 'date', 'reserve_reminder_on' => 'date', 'reserve_auto_release' => 'boolean', 'reserve_reminded_at' => 'datetime', 'reminder_days_before' => 'array', 'cancellation_text' => OneText::class];
     }
 
     /** @return BelongsTo<EventSeries, $this> */

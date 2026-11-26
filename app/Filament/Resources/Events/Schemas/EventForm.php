@@ -110,8 +110,7 @@ class EventForm
                     ->hintIcon('heroicon-m-question-mark-circle', tooltip: __('admin.finance.reminder_days_hint'))
                     ->dehydrateStateUsing(fn ($state) => is_array($state) && $state !== [] ? array_values(array_map('intval', $state)) : null),
                 Money::input('cancellation_fee_cents', __('admin.finance.cancellation_fee'))->hintIcon('heroicon-m-question-mark-circle', tooltip: __('admin.finance.cancellation_fee_hint')),
-                Textarea::make('cancellation_text.de')->label(__('admin.finance.cancellation_text').' (DE)')->rows(2),
-                Textarea::make('cancellation_text.en')->label(__('admin.finance.cancellation_text').' (EN)')->rows(2),
+                Textarea::make('cancellation_text')->label(__('admin.finance.cancellation_text'))->rows(2),
                 Repeater::make('prices')->relationship()->label(__('admin.finance.prices'))->columnSpanFull()->columns(['md' => 3, 'xl' => 6])
                     ->orderColumn('sort')->addActionLabel(__('admin.finance.add_price'))->defaultItems(0)->helperText(__('admin.finance.prices_hint'))
                     ->schema([
@@ -126,8 +125,7 @@ class EventForm
                     ->orderColumn('sort')->addActionLabel(__('admin.finance.add_installment'))->defaultItems(0)
                     ->schema([
                         TextInput::make('key')->label(__('admin.finance.installment_key'))->required()->alphaDash()->maxLength(32)->distinct(),
-                        TextInput::make('label.de')->label(__('admin.finance.label_de'))->required(),
-                        TextInput::make('label.en')->label(__('admin.finance.label_en'))->required(),
+                        TextInput::make('label')->label(__('admin.finance.label_de'))->required(),
                         Select::make('kind')->label(__('admin.finance.installment_kind'))->options(__('finance.installment_kind'))->default('fixed')->required()->live(),
                         Money::input('amount_cents', __('admin.finance.amount'))->visible(fn ($get) => $get('kind') === 'fixed'),
                         DatePicker::make('due_date')->label(__('admin.finance.due_date'))

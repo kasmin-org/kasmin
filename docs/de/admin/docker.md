@@ -70,7 +70,7 @@ ersten Start (mit einer Datensicherung im Volume `storage`; `KASMIN_AUTO_UPGRADE
 |---|---|
 | `KASMIN_PUBLIC_URL` | Adresse der Installation, z. B. `https://camp.example.org`: Links in Mails, Weiterleitung, Zertifikat |
 | `KASMIN_ORGANISATION`, `KASMIN_ADMIN_EMAIL`, `KASMIN_ADMIN_NAME` | Name der Organisation, erste Person mit Administrationsrechten |
-| `KASMIN_LOCALE` (`de`/`en`), `KASMIN_DEFAULTS` (`de`/`en`/`none`) | Sprache, Standardinhalte |
+| `KASMIN_LOCALE` (`de`/`en`), `KASMIN_DEFAULTS` | die Sprache der Installation; `KASMIN_DEFAULTS=none` legt keine Standardinhalte an, jeder andere Wert legt sie in dieser Sprache an |
 | `KASMIN_ORGANISATION_ADDRESS`, `_EMAIL`, `_WEBSITE`, `_IBAN`, `_BIC`, `_BANK`, `_LEGAL_FOOTER` | Daten auf Rechnungen |
 | `KASMIN_INVOICE_NUMBER_FORMAT`, `KASMIN_INVOICE_DUE_DAYS`, `KASMIN_INVOICE_ATTACH_PAID`, `KASMIN_INVOICE_REMINDER_DAYS_BEFORE`, `KASMIN_INVOICE_OVERDUE_DAYS` | [Rechnungen](invoices.md) |
 | `KASMIN_RETENTION_SAFETY_YEARS`, `KASMIN_RETENTION_INVOICE_YEARS` | [Aufbewahrung](privacy.md) |

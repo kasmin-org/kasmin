@@ -125,9 +125,9 @@ class OwnAutomationsTest extends TestCase
         GroupMembers::join($from, $old->id, 'manual');
         $this->assertSame([$old->id], $to->people()->pluck('people.id')->all());
 
-        $own = $this->own(['target' => ['source' => 'subject'], 'once' => true, 'steps' => [['type' => 'notify_team', 'text' => 'Changed']]], 'on_person_changed', ['fields' => ['locale']]);
-        $old->update(['locale' => 'de']);
-        $old->update(['locale' => 'en']);
+        $own = $this->own(['target' => ['source' => 'subject'], 'once' => true, 'steps' => [['type' => 'notify_team', 'text' => 'Changed']]], 'on_person_changed', ['fields' => ['gender']]);
+        $old->update(['gender' => 'female']);
+        $old->update(['gender' => 'male']);
         $old->update(['last_name' => 'Other']);
         $this->assertSame(1, $own->runs()->count(), 'once per person, and only for the chosen field');
     }
@@ -280,7 +280,7 @@ class OwnAutomationsTest extends TestCase
     {
         $this->actingAs($this->user('administrator', 'admin'))->withSession(['two_factor_passed' => true]);
         $group = Group::query()->create(['name' => 'G', 'kind' => 'manual']);
-        $form = ['name' => ['de' => 'Neu', 'en' => 'New'], 'mode' => 'confirm', 'max_items' => 50, 'approvals_needed' => 1, 'trigger' => 'on_status', 'trigger_config' => ['statuses' => ['confirmed']], 'config' => ['target' => ['source' => 'event'], 'steps' => [['type' => 'add_group', 'group_id' => $group->id]]], 'active' => true];
+        $form = ['name' => 'New', 'mode' => 'confirm', 'max_items' => 50, 'approvals_needed' => 1, 'trigger' => 'on_status', 'trigger_config' => ['statuses' => ['confirmed']], 'config' => ['target' => ['source' => 'event'], 'steps' => [['type' => 'add_group', 'group_id' => $group->id]]], 'active' => true];
         Livewire::test(CreateAutomation::class)->fillForm($form)->call('create')->assertHasFormErrors(['config.target.source']);
         $form['config']['target']['source'] = 'subject';
         Livewire::test(CreateAutomation::class)->fillForm($form)->call('create')->assertHasNoFormErrors();
@@ -294,7 +294,7 @@ class OwnAutomationsTest extends TestCase
     {
         $this->actingAs($this->user('board', 'board'))->withSession(['two_factor_passed' => true]);
         Role::query()->where('key', 'board')->firstOrFail()->update(['permissions' => ['automations' => 'edit']]);
-        Livewire::test(CreateAutomation::class)->fillForm(['name' => ['de' => 'Neu', 'en' => 'New'], 'mode' => 'confirm', 'max_items' => 50, 'approvals_needed' => 1, 'trigger' => 'manual', 'config' => ['target' => ['source' => 'event'], 'steps' => [['type' => 'invoice', 'description' => 'x', 'amount' => '1']]]])
+        Livewire::test(CreateAutomation::class)->fillForm(['name' => 'New', 'mode' => 'confirm', 'max_items' => 50, 'approvals_needed' => 1, 'trigger' => 'manual', 'config' => ['target' => ['source' => 'event'], 'steps' => [['type' => 'invoice', 'description' => 'x', 'amount' => '1']]]])
             ->call('create')->assertHasFormErrors();
         $this->assertSame(0, Automation::query()->where('key', 'like', 'own_%')->count());
     }

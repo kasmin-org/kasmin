@@ -35,7 +35,7 @@ class InstallController extends Controller
         }
         $data = $request->validate([
             'locale' => ['required', 'in:de,en'],
-            'defaults' => ['required', 'in:de,en,none'],
+            'defaults' => ['required', 'in:yes,de,en,none'],
             'organisation' => ['required', 'string', 'max:200'],
             'admin_name' => ['required', 'string', 'max:200'],
             'admin_email' => ['required', 'email', 'max:254'],
@@ -46,7 +46,7 @@ class InstallController extends Controller
             return back()->withErrors(['requirements' => __('install.requirements_failed')]);
         }
 
-        $this->installer->install($data['organisation'], $data['locale'], $data['defaults'], $data['admin_name'], $data['admin_email']);
+        $this->installer->install($data['organisation'], $data['locale'], $data['defaults'] === 'none' ? 'none' : $data['locale'], $data['admin_name'], $data['admin_email']);
 
         return view('install.done', ['version' => config('kasmin.version')]);
     }

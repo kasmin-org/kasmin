@@ -31,7 +31,6 @@ class SuggestImportFamilies extends ApiTool
         return [
             'rows' => $schema->array()->items($schema->object())->description('rows as for import_preview')->required(),
             'source' => $schema->string()->description('name of the source system, lowercase, e.g. old-list')->required(),
-            'locale' => $schema->string()->description('de or en'),
         ];
     }
 }

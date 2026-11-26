@@ -32,7 +32,6 @@ class UpdatePerson extends ApiTool
             'last_name' => $schema->string()->description('last name'),
             'birth_date' => $schema->string()->description('date of birth YYYY-MM-DD'),
             'gender' => $schema->string()->description('gender'),
-            'locale' => $schema->string()->description('language of the person: de or en'),
             'clear' => $schema->array()->items($schema->string())->description('names of fields to empty: birth_date, gender'),
         ];
     }

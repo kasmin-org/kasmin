@@ -31,7 +31,7 @@ class CreateMembershipType extends ApiTool
     {
         return [
             'key' => $schema->string()->description('short key: letters, digits, dashes, underscores')->required(),
-            'name' => $schema->object()->description('names: {"de": "…", "en": "…"}, both languages')->required(),
+            'name' => $schema->string()->description('name')->required(),
             'pays_fee' => $schema->boolean()->description('whether members of this type pay the yearly fee'),
             'fee' => $schema->number()->description('yearly fee in the invoice currency'),
         ];

@@ -2,6 +2,7 @@
 
 namespace App\Support\Api;
 
+use App\Casts\OneText;
 use App\Models\Automation;
 use App\Models\EventRole;
 use App\Models\Participation;
@@ -59,10 +60,8 @@ class AutomationInput
     public static function check(Automation $automation, array $input): array
     {
         self::known(array_keys($input), self::FIELDS, 'automation');
-        $data = Validator::make($input, [
-            'name' => ['sometimes', 'array:de,en'],
-            'name.de' => ['required_with:name', 'string', 'max:200'],
-            'name.en' => ['required_with:name', 'string', 'max:200'],
+        $data = Validator::make(OneText::collapse($input, ['name']), [
+            'name' => ['sometimes', 'string', 'max:200'],
             'active' => ['sometimes', 'boolean'],
             'mode' => ['sometimes', Rule::in(Automation::MODES)],
             'max_items' => ['sometimes', 'integer', 'min:1', 'max:100000'],
@@ -136,7 +135,7 @@ class AutomationInput
         ], array_flip($allowed)) + [
             'statuses.*' => ['string', 'distinct', Rule::in(Participation::STATUSES)],
             'roles.*' => ['string', 'distinct', Rule::in(EventRole::KEYS)],
-            'fields.*' => ['string', 'distinct', Rule::in(['birth_date', 'locale', 'first_name', 'last_name', 'gender'])],
+            'fields.*' => ['string', 'distinct', Rule::in(['birth_date', 'first_name', 'last_name', 'gender'])],
         ];
         $valid = self::prefixed('trigger_config', $config, $rules);
         if (isset($valid['date'])) {

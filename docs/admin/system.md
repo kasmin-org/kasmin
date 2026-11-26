@@ -1,5 +1,19 @@
 # System status, notifications and updates
 
+## Language
+
+An installation works in **one language** – German or English – for everybody: admin interface, portal, public
+pages, mails and documents. It is chosen at the installation; administrators change it under *Settings → Organisation
+and invoices → System → Language*. There is no switch per person or per visit.
+
+The language decides the texts of the software. Everything that was **entered** – forms and their fields, mail
+templates, names of roles and membership types, automations, texts of events – exists once and is not translated:
+it stays exactly as it is when the language is changed.
+
+An installation of a version up to 0.27 stored such texts once per language. The upgrade keeps the text in the
+language of the installation (the other one if that was empty). For mail templates the text of the other language
+is kept in the version history of the template.
+
 ## Time zone
 
 *Settings → Organisation and invoices → Time zone*: all times and daily jobs. Installations before 0.13 run in UTC until a

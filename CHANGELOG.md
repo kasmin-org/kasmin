@@ -6,6 +6,22 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ## [Unreleased]
 
+### Changed
+
+- **One language per installation.** The language (German or English) is chosen at the installation and changed only by administrators (*Settings → Organisation and invoices → System → Language*). The language switch on the pages, the language of a person or family and the choice at the sign-up are gone; interface, portal, mails and documents use the language of the installation.
+- **Texts are entered once.** Forms, fields and choices, public forms, membership types, roles, automations, labels of instalments and cancellation conditions have one text instead of one per language. The upgrade keeps the text in the language of the installation (the other one if that was empty). Changing the language later leaves everything that was entered as it is.
+- **A mail template has one text.** The upgrade keeps the text in the language of the installation and stores the other one in the version history of the template.
+- **One mail account with one sender.** *Communication → E-mail sending* replaces the lists of mail accounts and sender profiles: one page with the sender (name, address, reply-to) and the account. Templates and mailings no longer choose a sender. An installation that had several keeps using its standard account and the first sender of it.
+- Installer: the standard content is installed in the chosen language (or not at all); there is no separate choice of its language.
+- REST API and MCP: names, labels and texts are plain strings (objects with `de` and `en` are still accepted, the text in the language of the installation is taken); `locale` of people and families is gone; a mail template has `subject`, `html`, `text` instead of `contents` per language; `/sender-profiles` returns the one sender and refuses a second one.
+
+### Added
+
+- Mail templates: **Insert placeholder** – every placeholder with a name and an example, inserted at the cursor (also for the subject and the HTML source).
+- Mail templates: **Insert condition** – an "if" built from a field, a comparison, a value and the texts for "then" and "otherwise", written in the right syntax.
+- Mail templates: mistakes are named in plain words and all at once (placeholder not closed, bracket without partner, `if` without `endif`, unknown placeholder); saving stays blocked until they are corrected. The plain text part is checked, too.
+- Mail templates: the preview offers the people in a list right away; typing narrows it down.
+
 ## [0.27.0] - 2026-11-26
 
 ### Added

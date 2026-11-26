@@ -34,7 +34,6 @@ class ImportPreview extends ApiTool
         return [
             'source' => $schema->string()->description('name of the source system, lowercase, e.g. webling or old-list')->required(),
             'rows' => $schema->array()->items($schema->object())->description('rows with fields first_name, last_name, birth_date, email, phone, street, postal_code, city, source_id, groups, membership_type, guardian1_first_name, guardian1_last_name, guardian1_email, guardian1_phone, guardian2_…, participations')->required(),
-            'locale' => $schema->string()->description('de or en'),
         ];
     }
 }

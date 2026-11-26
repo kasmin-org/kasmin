@@ -5,15 +5,16 @@ namespace App\Http\Controllers\Api;
 use App\Models\Event;
 use App\Models\Mailing;
 use App\Models\MailTemplate;
-use App\Models\MailTemplateContent;
 use App\Models\Person;
 use App\Models\User;
 use App\Support\Api\ApiContext;
+use App\Support\Language;
 use App\Support\Mail\Mailings;
 use App\Support\Mail\Placeholders;
 use App\Support\Mail\TemplateRenderer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
@@ -31,7 +32,7 @@ class MailController extends ApiController
         return response()->json(['data' => MailTemplate::query()->orderBy('key')->get()->map(fn (MailTemplate $t) => $this->presentTemplate($t))->values()]);
     }
 
-    /** One template with its contents per language. */
+    /** One template with its subject and text. */
     public function template(string $template): JsonResponse
     {
         $this->scope('mail:read');
@@ -44,23 +45,23 @@ class MailController extends ApiController
     {
         $this->scope('mail:write');
         $model = $this->find($template);
+        // A template has one text (subject, html, text). The list "contents" of the versions up to 0.27 is still
+        // read: of several entries the one in the language of the installation counts.
+        if (! $request->has('subject') && is_array($request->input('contents'))) {
+            $contents = collect($request->input('contents'))->filter(fn ($c) => is_array($c));
+            $request->merge(Arr::only((array) ($contents->firstWhere('locale', Language::current()) ?? $contents->first()), ['subject', 'html', 'text']));
+        }
         $data = $request->validate([
-            'contents' => ['required', 'array', 'min:1', 'max:2'],
-            'contents.*.locale' => ['required', Rule::in(['de', 'en'])],
-            'contents.*.subject' => ['required', 'string', 'max:250'],
-            'contents.*.html' => ['required', 'string', 'max:200000'],
-            'contents.*.text' => ['nullable', 'string', 'max:200000'],
+            'subject' => ['required', 'string', 'max:250'],
+            'html' => ['required', 'string', 'max:200000'],
+            'text' => ['nullable', 'string', 'max:200000'],
         ]);
-        foreach ($data['contents'] as $i => $content) {
-            $errors = app(TemplateRenderer::class)->validate($content['subject'], $content['html'], $content['text'] ?? null);
-            if ($errors !== []) {
-                throw ValidationException::withMessages(["contents.{$i}" => $errors]);
-            }
+        $errors = app(TemplateRenderer::class)->validate($data['subject'], $data['html'], $data['text'] ?? null);
+        if ($errors !== []) {
+            throw ValidationException::withMessages(['html' => $errors]);
         }
         $model->keepFirstVersion();
-        foreach ($data['contents'] as $content) {
-            $model->contents()->updateOrCreate(['locale' => $content['locale']], ['subject' => $content['subject'], 'html' => $content['html'], 'text' => $content['text'] ?? null]);
-        }
+        $model->setContent($data['subject'], $data['html'], $data['text'] ?? null);
         $model->newVersion();
 
         return response()->json(['data' => $this->presentTemplate($model->refresh(), true)]);
@@ -70,8 +71,8 @@ class MailController extends ApiController
     public function preview(Request $request, string $template): JsonResponse
     {
         $this->scope('mail:read');
-        $data = $request->validate(['locale' => ['nullable', Rule::in(['de', 'en'])], 'subject' => ['nullable', 'string', 'max:250'], 'html' => ['nullable', 'string', 'max:200000']]);
-        $content = $this->find($template)->content($data['locale'] ?? 'en');
+        $data = $request->validate(['subject' => ['nullable', 'string', 'max:250'], 'html' => ['nullable', 'string', 'max:200000']]);
+        $content = $this->find($template)->content();
         $subject = (string) ($data['subject'] ?? $content?->subject);
         $html = (string) ($data['html'] ?? $content?->html);
         $errors = app(TemplateRenderer::class)->validate($subject, $html, null);
@@ -164,7 +165,9 @@ class MailController extends ApiController
     {
         $data = ['key' => $t->key, 'name' => $t->name, 'category' => $t->category, 'audience' => $t->audience, 'version' => $t->version, 'active' => (bool) $t->getAttribute('active')];
 
-        return $contents ? $data + ['contents' => $t->contents()->get()->map(fn (MailTemplateContent $c) => ['locale' => $c->locale, 'subject' => $c->subject, 'html' => $c->html, 'text' => $c->text])->values()->all()] : $data;
+        $content = $contents ? $t->contents()->first() : null;
+
+        return $contents ? $data + ['subject' => $content?->subject, 'html' => $content?->html, 'text' => $content?->text] : $data;
     }
 
     /** @return array<string, mixed> */

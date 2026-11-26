@@ -91,7 +91,7 @@ visible on the dashboard and under *Automations → Runs and approvals*, also be
 
 ## Standard automations
 
-Installed with the German or English defaults, **switched off** except *Payment reminders*,
+Installed with the standard content, **switched off** except *Payment reminders*,
 *Correct invoices* and *Registration rounds* (they only propose, nothing is sent without approval) – review the settings and activate what you need.
 
 | Automation | Action | Default trigger and mode |

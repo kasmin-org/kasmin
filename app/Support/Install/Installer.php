@@ -27,7 +27,8 @@ class Installer
     }
 
     /**
-     * @param  string  $defaults  'de', 'en' or 'none': which default content (forms, templates, automations …) to install
+     * @param  string  $defaults  'none' for no standard content (forms, templates, automations …); anything else installs
+     *                            it in the language of the installation
      */
     public function install(string $organisation, string $locale, string $defaults, string $adminName, string $adminEmail): User
     {
@@ -37,6 +38,9 @@ class Installer
         if (! in_array($defaults, self::DEFAULTS, true) || ! in_array($locale, ['de', 'en'], true)) {
             throw new RuntimeException('Invalid language or defaults.');
         }
+
+        // One language: the standard content comes in the language of the installation.
+        $defaults = $defaults === 'none' ? 'none' : $locale;
 
         Artisan::call('migrate', ['--force' => true]);
         $this->guard->recordCodeVersion();

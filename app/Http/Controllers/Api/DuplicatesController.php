@@ -26,7 +26,7 @@ class DuplicatesController extends ApiController
 
     /**
      * Moves everything from the person "duplicate" to the person "keep" and deletes the duplicate. This cannot be
-     * undone. fields says per field (first_name, last_name, birth_date, gender, locale) whose value stays: "keep"
+     * undone. fields says per field (first_name, last_name, birth_date, gender) whose value stays: "keep"
      * (default) or "duplicate". Refused (422) when the merge would give somebody more rights or both people have
      * an invoiced registration for the same event.
      */

@@ -1,6 +1,7 @@
 # Formulare und Sicherheitsblatt
 
-Kasmin hat frei einstellbare **Personenformulare**. Mit den deutschen oder englischen Standardinhalten werden zwei angelegt:
+Kasmin hat frei einstellbare **Personenformulare**. Jede Bezeichnung und jeder Text wird einmal eingegeben, in der Sprache Ihrer Installation.
+Mit den Standardinhalten werden zwei Formulare angelegt:
 
 - **Sicherheitsblatt** – Versicherung, Ernährung, Unverträglichkeiten, Allergien (mit Schweregrad), Dauermedikamente (Name, Dosis,
   Zeitpunkt, wer sie gibt), besondere medizinische Bedürfnisse, Impfungen (Jahr / nein / unbekannt), Schwimmen, Einwilligungen zu Fotos
@@ -11,13 +12,13 @@ Kasmin hat frei einstellbare **Personenformulare**. Mit den deutschen oder engli
 ## Formulare bearbeiten
 
 Administratorinnen und Administratoren bearbeiten Formulare unter *Formulare*: Felder mit Typ (Text, langer Text, Auswahl, Mehrfachauswahl, Ja/Nein, Zahl,
-Datum, Jahr oder nein/unbekannt, Telefon, E-Mail, „Keine oder Text“, wiederholbare Gruppe, Person, Einwilligung), Bezeichnungen und **Hilfetexte (Tooltips)**
-in Deutsch und Englisch, Pflichtfeld, **Vertraulichkeit** (normal, Gesundheit, Ausweis-/Versicherungsnummer), Übernahme ins nächste
+Datum, Jahr oder nein/unbekannt, Telefon, E-Mail, „Keine oder Text“, wiederholbare Gruppe, Person, Einwilligung), Bezeichnungen und **Hilfetexte (Tooltips)**,
+Pflichtfeld, **Vertraulichkeit** (normal, Gesundheit, Ausweis-/Versicherungsnummer), Übernahme ins nächste
 Jahr und Verwendung in Listen. Jede Änderung erzeugt eine neue **Version des Formulars**; bestehende Antworten behalten ihre.
 
 „Keine“ ist eine echte Antwort und etwas anderes als „nicht beantwortet“.
 
-- **Auswahlmöglichkeiten** haben Texte in Deutsch und Englisch, können „Andere“ mit Text erlauben und eine fertige Liste verwenden, z. B. die
+- **Auswahlmöglichkeiten** haben einen Wert und einen Text, können „Andere“ mit Text erlauben und eine fertige Liste verwenden, z. B. die
   Krankenversicherungen in Österreich, Deutschland oder der Schweiz.
 - **Zahlen und Datumsangaben** können einen kleinsten und größten Wert haben.
 - **Nummer prüfen**: Textfelder können die Prüfziffer einer österreichischen, deutschen oder Schweizer Versicherungsnummer prüfen. Erweiterungen

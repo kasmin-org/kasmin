@@ -18,7 +18,7 @@ class CancellationTerms
             return [];
         }
         $terms = [];
-        $text = $event->cancellation_text[app()->getLocale()] ?? $event->cancellation_text['en'] ?? null;
+        $text = $event->cancellation_text;
         if (is_string($text) && trim($text) !== '') {
             $terms[] = $text;
         }

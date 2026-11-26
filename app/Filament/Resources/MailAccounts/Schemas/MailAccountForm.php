@@ -4,7 +4,6 @@ namespace App\Filament\Resources\MailAccounts\Schemas;
 
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
@@ -15,9 +14,13 @@ class MailAccountForm
         $hint = fn (string $k) => ['heroicon-m-question-mark-circle', __('admin.mail.hints.'.$k)];
 
         return $schema->components([
+            // The sender is stored next to the account (SenderProfile); the pages read and write it.
+            Section::make(__('admin.mail.sender'))->description(__('admin.mail.sender_hint'))->columns(2)->schema([
+                TextInput::make('from_name')->label(__('admin.mail.from_name'))->required()->maxLength(120),
+                TextInput::make('from_address')->label(__('admin.mail.from_address'))->email()->required()->maxLength(254),
+                TextInput::make('reply_to')->label(__('admin.mail.reply_to'))->email()->maxLength(254)->hintIcon(...$hint('reply_to')),
+            ]),
             Section::make(__('admin.mail.account'))->columns(2)->schema([
-                TextInput::make('name')->label(__('admin.mail.name'))->required()->maxLength(120),
-                Toggle::make('is_default')->label(__('admin.mail.is_default'))->hintIcon(...$hint('is_default')),
                 Select::make('delivery')->label(__('admin.mail.delivery'))->options(['smtp' => __('admin.mail.delivery_smtp'), 'direct' => __('admin.mail.delivery_direct')])
                     ->default('smtp')->required()->live()->hintIcon(...$hint('delivery')),
             ]),

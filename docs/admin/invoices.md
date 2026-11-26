@@ -58,7 +58,7 @@ deposits of 3 × 100 € and balances of 320 €, 295 € and 270 €.
 
 ### Cancellation rules
 
-Per event: cancellation conditions (text in both languages) and a cancellation fee; per instalment: refundable or not,
+Per event: cancellation conditions (a text) and a cancellation fee; per instalment: refundable or not,
 and until how many days before the start. Legal guardians see what applies today **before** they cancel in the
 portal. Administrators cancel in the list of participants and enter a reason. The cancellation fee is charged once, when
 a refundable instalment is refunded.

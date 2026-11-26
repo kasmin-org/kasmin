@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Casts\OneText;
 use App\Models\Concerns\Auditable;
 use Illuminate\Database\Eloquent\Model;
 
 /**
  * @property string $key
  * @property int $fee_cents
- * @property array<string, string> $name translations, e.g. ['de' => …, 'en' => …]
+ * @property string|null $name
  */
 class MembershipType extends Model
 {
@@ -18,11 +19,11 @@ class MembershipType extends Model
 
     protected function casts(): array
     {
-        return ['name' => 'array', 'pays_fee' => 'boolean'];
+        return ['name' => OneText::class, 'pays_fee' => 'boolean'];
     }
 
     public function label(): string
     {
-        return $this->name[app()->getLocale()] ?? $this->name['en'] ?? $this->key;
+        return $this->name ?: $this->key;
     }
 }

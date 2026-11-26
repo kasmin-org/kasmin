@@ -198,13 +198,7 @@ class McpParityTest extends TestCase
      */
     private function subject(array $answer): ?string
     {
-        foreach ((array) ($answer['data']['contents'] ?? []) as $content) {
-            if (($content['locale'] ?? null) === 'en') {
-                return (string) $content['subject'];
-            }
-        }
-
-        return null;
+        return isset($answer['data']['subject']) ? (string) $answer['data']['subject'] : null;
     }
 
     /**
@@ -373,7 +367,7 @@ class McpParityTest extends TestCase
         $ann->refresh();
         $this->assertSame(['Anna', 'Ash', null], [$ann->first_name, $ann->last_name, $ann->getAttribute('gender')], 'only optional fields can be emptied');
         $this->assertSame('mcp', AuditEvent::query()->where('action', 'Person.updated')->latest('id')->firstOrFail()->actor_type);
-        $this->assertStringContainsString('HTTP 422', $this->refused($token, 'update_person', ['id' => $ann->public_id, 'locale' => 'fr']));
+        $this->assertStringContainsString('HTTP 422', $this->refused($token, 'update_person', ['id' => $ann->public_id, 'birth_date' => 'not a date']));
 
         // Families: create, members, invoice recipient.
         $family = $this->tool($token, 'create_household', ['name' => 'Ash-Birch', 'city' => 'Lakeside', 'country' => 'at']);
@@ -614,7 +608,7 @@ class McpParityTest extends TestCase
     {
         $token = $this->token(['automations:read', 'automations:write']);
         $own = [
-            'name' => ['de' => 'Dank an das Team', 'en' => 'Thanks to the team'], 'trigger' => 'after_event', 'trigger_config' => ['days' => 2],
+            'name' => 'Thanks to the team', 'trigger' => 'after_event', 'trigger_config' => ['days' => 2],
             'config' => ['target' => ['source' => 'event', 'roles' => ['staff']], 'steps' => [['type' => 'notify_team', 'text' => 'Say thank you']]],
         ];
         $before = Automation::query()->count();
@@ -727,11 +721,11 @@ class McpParityTest extends TestCase
     public function test_mail_templates_log_bad_addresses_and_sender_profiles(): void
     {
         $token = $this->token(['mail:read', 'mail:write', 'settings:write']);
-        $contents = fn (string $subject) => ['key' => 'invoice', 'contents' => [['locale' => 'en', 'subject' => $subject, 'html' => '<p>Hello</p>']]];
+        $contents = fn (string $subject) => ['key' => 'invoice', 'subject' => $subject, 'html' => '<p>Hello</p>'];
         $this->tool($token, 'update_mail_template', $contents('First change'));
         $second = $this->tool($token, 'update_mail_template', $contents('Second change'));
         $this->assertSame('Second change', $this->subject($second));
-        $this->assertStringContainsString('HTTP 422', $this->refused($token, 'update_mail_template', ['key' => 'invoice', 'contents' => [['locale' => 'en', 'subject' => 'x', 'html' => '{{ unknown.placeholder|raw }}{% include "x" %}']]], 'checked by the template sandbox'));
+        $this->assertStringContainsString('HTTP 422', $this->refused($token, 'update_mail_template', ['key' => 'invoice', 'subject' => 'x', 'html' => '{{ unknown.placeholder|raw }}{% include "x" %}'], 'checked by the template sandbox'));
         $versions = $this->tool($token, 'list_mail_template_versions', ['key' => 'invoice'])['data'] ?? [];
         $this->assertCount(3, $versions);
         $restored = $this->tool($token, 'restore_mail_template_version', ['key' => 'invoice', 'version' => 2]);

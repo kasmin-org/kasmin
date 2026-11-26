@@ -32,7 +32,7 @@ class UpdateMembershipType extends ApiTool
     {
         return [
             'key' => $schema->string()->description('key of the membership type')->required(),
-            'name' => $schema->object()->description('names: {"de": "…", "en": "…"}, both languages'),
+            'name' => $schema->string()->description('name'),
             'pays_fee' => $schema->boolean()->description('whether members of this type pay the yearly fee'),
             'fee' => $schema->number()->description('yearly fee in the invoice currency'),
         ];

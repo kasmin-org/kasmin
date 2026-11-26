@@ -48,7 +48,6 @@ class Docs
         'resources.mail' => 'admin/mail',
         'resources.outgoing-mails' => 'admin/mail',
         'resources.bad-addresses' => 'admin/mail',
-        'resources.sender-profiles' => 'admin/mail',
     ];
 
     /** The page in the language the interface is shown in: German readers get the German documentation. */

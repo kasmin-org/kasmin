@@ -57,11 +57,11 @@ class PermissionsTest extends TestCase
     public static function pages(): array
     {
         $all = ['people', 'people/create', 'households', 'groups', 'membership-types', 'duplicates', 'import/people', 'events', 'events/create', 'event-series', 'event-templates', 'lists', 'forms', 'forms/create', 'public-forms', 'public-submissions',
-            'invoices', 'payments', 'refunds', 'mailings', 'mail-templates', 'outgoing-mails', 'mail-accounts', 'mail-accounts/create', 'sender-profiles', 'automations', 'automation-runs', 'settings/organisation', 'privacy', 'consents', 'audit-events', 'api-tokens', 'webhooks', 'roles', 'reports', 'system'];
+            'invoices', 'payments', 'refunds', 'mailings', 'mail-templates', 'outgoing-mails', 'mail-accounts/create', 'automations', 'automation-runs', 'settings/organisation', 'privacy', 'consents', 'audit-events', 'api-tokens', 'webhooks', 'roles', 'reports', 'system'];
 
         return [
             'administrator' => ['administrator', $all],
-            'board' => ['board', array_values(array_diff($all, ['mail-accounts', 'mail-accounts/create', 'sender-profiles', 'audit-events', 'api-tokens', 'webhooks', 'roles', 'system']))],
+            'board' => ['board', array_values(array_diff($all, ['mail-accounts/create', 'audit-events', 'api-tokens', 'webhooks', 'roles', 'system']))],
             'treasurer' => ['treasurer', ['people', 'households', 'groups', 'membership-types', 'events', 'invoices', 'payments', 'refunds', 'settings/organisation', 'reports']],
             'safety_officer' => ['safety_officer', ['people', 'households', 'groups', 'events', 'event-series', 'event-templates', 'lists', 'reports']],
             'camp_leader' => ['camp_leader', []], // without own events; with own events: OwnEventsTest
@@ -159,7 +159,7 @@ class PermissionsTest extends TestCase
         $this->assertFalse(Permissions::allows($leader, 'mailings', 'edit'));
         $this->actingAs($this->user('administrator'));
         $role = Role::query()->where('key', 'camp_leader')->firstOrFail();
-        Livewire::test(ManageRoles::class)->callTableAction('edit', $role, data: ['name' => ['de' => 'Lagerleitung', 'en' => 'Camp leader'], 'is_admin' => true, 'scope' => 'all', 'permissions' => ['mailings' => 'edit', 'events' => 'view']])->assertHasNoTableActionErrors();
+        Livewire::test(ManageRoles::class)->callTableAction('edit', $role, data: ['name' => 'Camp leader', 'is_admin' => true, 'scope' => 'all', 'permissions' => ['mailings' => 'edit', 'events' => 'view']])->assertHasNoTableActionErrors();
         $this->assertTrue(Permissions::allows($leader, 'mailings', 'edit'));
         $this->assertTrue(Permissions::allows($leader, 'events'));
         $this->assertFalse(Permissions::allows($leader, 'events', 'edit'));

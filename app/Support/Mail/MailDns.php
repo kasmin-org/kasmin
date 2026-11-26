@@ -31,11 +31,11 @@ class MailDns
     public function report(): array
     {
         $rows = [];
-        $profiles = SenderProfile::query()->with('account')->get();
-        $pairs = $profiles->map(fn (SenderProfile $p) => [Str::lower(Str::after($p->from_address, '@')), $p->account])->all();
+        $sender = SenderProfile::main();
+        $pairs = $sender === null ? [] : [[Str::lower(Str::after($sender->from_address, '@')), MailAccount::main()]];
         $default = (string) config('mail.from.address');
         if ($default !== '' && str_contains($default, '@')) {
-            $pairs[] = [Str::lower(Str::after($default, '@')), MailAccount::query()->where('is_default', true)->first()];
+            $pairs[] = [Str::lower(Str::after($default, '@')), MailAccount::main()];
         }
         $seen = [];
         foreach ($pairs as [$domain, $account]) {

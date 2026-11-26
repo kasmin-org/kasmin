@@ -89,8 +89,8 @@ Beispiel: `POST /people/{id}/memberships` mit `{"type": "member", "starts_on": "
 
 Scopes `people:read` / `people:write`.
 
-- `GET /households` (`search`), `GET /households/{id}` – mit Mitgliedern, Sprache und `invoice_recipient`.
-- `POST /households` (`name`, `street`, `postal_code`, `city`, `country`, `locale`) legt eine Familie ohne
+- `GET /households` (`search`), `GET /households/{id}` – mit Mitgliedern und `invoice_recipient`.
+- `POST /households` (`name`, `street`, `postal_code`, `city`, `country`) legt eine Familie ohne
   Mitglieder an; `PATCH /households/{id}` ändert sie. `invoice_recipient` ist die ID einer der erziehungsberechtigten Personen der
   Familie (`null` = wird automatisch gewählt); jemand anderer wird abgelehnt.
 - `POST /households/{id}/members/{person}` mit `role` `guardian` (erziehungsberechtigt) oder `child` fügt eine Person hinzu oder
@@ -217,7 +217,12 @@ Beispiel: `POST /invoices/{number}/cancel` mit `{"reason": "Lager abgesagt"}`.
 
 Scopes `mail:read` / `mail:write`.
 
-- `GET /mail-templates`, `GET|PATCH /mail-templates/{key}`, `POST /mail-templates/{key}/preview`.
+- `GET /mail-templates`, `GET|PATCH /mail-templates/{key}`, `POST /mail-templates/{key}/preview`. Eine Vorlage hat einen
+  Text: `subject`, `html` und optional `text`.
+- **Texte sind einzelne Werte.** Namen, Bezeichnungen und Texte (Formulare mit ihren Feldern und Auswahlmöglichkeiten, Mitgliedsarten,
+  Automatisierungen, Bezeichnungen von Raten, Stornobedingungen, Mailvorlagen) sind einfache Zeichenketten. Bis 0.27 waren
+  sie Objekte mit einem Text pro Sprache (`{"de": …, "en": …}`); solche Eingaben werden weiter angenommen, und es wird der Text in
+  der Sprache der Installation genommen. Personen und Familien haben kein `locale` mehr.
 - Versionen: `GET /mail-templates/{key}/versions` und `POST /mail-templates/{key}/versions/{version}/restore`.
   Das Wiederherstellen erzeugt eine neue Version; nichts geht verloren.
 - `GET|POST /mailings`, `GET /mailings/{number}`, `POST /mailings/{number}/prepare`,
@@ -226,7 +231,8 @@ Scopes `mail:read` / `mail:write`.
   Freigabe sind nie Teil der Antwort**: Gespeicherte Mails enthalten einen Platzhalter, der Link entsteht erst beim Senden einer Mail.
 - `GET /bad-addresses` – Adressen, die als nicht vorhanden zurückgekommen sind; `POST /bad-addresses/{number}/clear`, wenn eine
   Adresse wieder funktioniert.
-- `GET /sender-profiles` (Name, Absender, Antwortadresse, Name des Mailkontos). `POST /sender-profiles` und
+- `GET /sender-profiles` – der eine Absender der Installation (Name, Absender, Antwortadresse, Name des Mailkontos).
+  `POST /sender-profiles` legt ihn an, wenn es noch keinen gibt (ein zweiter wird abgelehnt);
   `PATCH /sender-profiles/{number}` (`name`, `from_name`, `from_address`, `reply_to`, `mail_account`) brauchen
   `settings:write`, weil die Maileinstellungen in der Verwaltung ein eigenes Recht sind.
 - Nur in der Verwaltung: Mailkonten. Ihre Passwörter und DKIM-Schlüssel sind nie Teil einer Antwort.

@@ -56,8 +56,7 @@ class MembershipTypeResource extends Resource
     {
         return $schema->components([
             TextInput::make('key')->label(__('admin.finance.installment_key'))->required()->alphaDash()->maxLength(64)->unique(ignoreRecord: true)->disabledOn('edit'),
-            TextInput::make('name.de')->label(__('admin.finance.label_de'))->required(),
-            TextInput::make('name.en')->label(__('admin.finance.label_en'))->required(),
+            TextInput::make('name')->label(__('admin.finance.label_de'))->required(),
             Toggle::make('pays_fee')->label(__('admin.finance.pays_fee'))->live(),
             Money::input('fee_cents', __('admin.finance.yearly_fee'))->visible(fn ($get) => (bool) $get('pays_fee')),
         ]);

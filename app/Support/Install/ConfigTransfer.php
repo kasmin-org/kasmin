@@ -6,6 +6,7 @@ use App\Models\Automation;
 use App\Models\MailTemplate;
 use App\Support\Audit\Audit;
 use App\Support\Automations\Engine;
+use App\Support\Language;
 use App\Support\Mail\TemplateRenderer;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
@@ -91,8 +92,11 @@ class ConfigTransfer
                 $isNew = $template === null;
                 $template ??= MailTemplate::query()->create(['key' => $t['key'], 'category' => $t['category'], 'audience' => $t['audience'] ?? 'guardians', 'name' => $t['name'], 'is_standard' => false]);
                 $template->fill(['category' => $t['category'], 'audience' => $t['audience'] ?? $template->audience, 'name' => $t['name']])->save();
-                foreach ((array) $t['contents'] as $c) {
-                    $template->contents()->updateOrCreate(['locale' => $c['locale']], ['subject' => $c['subject'], 'html' => $c['html'], 'text' => $c['text'] ?? null]);
+                // A template has one text; files of the versions up to 0.27 hold one per language.
+                $contents = collect((array) $t['contents']);
+                $c = $contents->firstWhere('locale', Language::current()) ?? $contents->first();
+                if (is_array($c)) {
+                    $template->setContent((string) $c['subject'], (string) $c['html'], $c['text'] ?? null);
                 }
                 if (! $isNew) {
                     $template->increment('version');

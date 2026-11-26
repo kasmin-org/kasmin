@@ -56,7 +56,7 @@ class PortalChildController extends Controller
         $guardian = $this->guardian($request);
         $household = $this->household($guardian);
 
-        $child = Person::query()->create($data + ['locale' => $guardian->locale]);
+        $child = Person::query()->create($data);
         $child->guardians()->attach($guardian->id);
         $household->members()->attach($child->id, ['role' => 'child']);
         foreach ($household->guardians()->where('people.id', '!=', $guardian->id)->get() as $other) {
@@ -271,7 +271,7 @@ class PortalChildController extends Controller
     {
         $household = $guardian->households()->wherePivot('role', 'guardian')->first();
         if ($household === null) {
-            $household = Household::query()->create(['name' => $guardian->last_name, 'locale' => $guardian->locale]);
+            $household = Household::query()->create(['name' => $guardian->last_name]);
             $household->members()->attach($guardian->id, ['role' => 'guardian']);
         }
 

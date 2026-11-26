@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\Auditable;
+use App\Support\Language;
 use Database\Factories\HouseholdFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -58,5 +59,14 @@ class Household extends Model
     public function invoiceRecipient(): BelongsTo
     {
         return $this->belongsTo(Person::class, 'invoice_recipient_id');
+    }
+
+    /**
+     * People and families have no language of their own: the installation has one. The column is a leftover of the
+     * versions up to 0.27 and is no longer read.
+     */
+    public function getLocaleAttribute(): string
+    {
+        return Language::current();
     }
 }

@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Support\Api\Presenter;
 use App\Support\Automations\Triggers;
 use App\Support\Install\AfterMigrations;
+use App\Support\Language;
 use App\Support\RuntimeSettings;
 use App\Support\Schema\SchemaGuard;
 use App\Support\Schema\SchemaStatus;
@@ -50,7 +51,7 @@ class AppServiceProvider extends ServiceProvider
     public static function defineRateLimiters(): void
     {
         app(RateLimiter::class)->for('api', fn (Request $request) => Limit::perMinute(120)->by('api|'.($request->bearerToken() !== null ? hash('sha256', (string) $request->bearerToken()) : $request->ip())));
-        foreach (['install' => 10, 'preferences' => 10, 'register' => 5, 'public-form' => 5, 'language' => 60, 'login-send' => 5, 'login-code' => 10, 'login-link' => 10, 'approvals' => 10, 'two-factor' => 10] as $name => $perMinute) {
+        foreach (['install' => 10, 'preferences' => 10, 'register' => 5, 'public-form' => 5, 'login-send' => 5, 'login-code' => 10, 'login-link' => 10, 'approvals' => 10, 'two-factor' => 10] as $name => $perMinute) {
             app(RateLimiter::class)->for($name, fn (Request $request) => Limit::perMinute($perMinute)->by($name.'|'.$request->ip()));
         }
     }
@@ -110,6 +111,7 @@ class AppServiceProvider extends ServiceProvider
             if ($this->app->make(SchemaGuard::class)->status() === SchemaStatus::DatabaseNewer) {
                 throw new RuntimeException((string) __('system.schema.text.database_newer'));
             }
+            Language::apply(); // cron and commands write mails and texts in the language of the installation
         });
     }
 }

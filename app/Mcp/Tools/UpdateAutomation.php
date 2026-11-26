@@ -35,7 +35,7 @@ class UpdateAutomation extends ApiTool
         return [
             'key' => $schema->string()->description('automation key')->required(),
             'active' => $schema->boolean()->description('switched on or off'),
-            'name' => $schema->object()->description('names: {"de": "…", "en": "…"}'),
+            'name' => $schema->string()->description('name'),
             'trigger' => $schema->string()->description('manual, daily, weekly, monthly, once, before_event, after_event, on_place_freed, on_status, on_group_joined, on_group_left, on_person_created or on_person_changed'),
             'trigger_config' => $schema->object()->description('settings of the trigger, e.g. {"days": 60} or {"weekday": 2, "time": "07:15"}'),
             'config' => $schema->object()->description('settings of the action, as returned by get_automation'),

@@ -24,6 +24,7 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ### Fixed
 
+- Docker image: the PHP extension `xmlreader` was missing, so importing an Excel file failed there. The new check of the requirements found it.
 - Errors (HTTP 500) while the files of a new version were being put in place: visitors now see "Kasmin is being updated" until the files are complete, during the update in the browser and during a deployment.
 
 ## [0.26.1] - 2026-11-26

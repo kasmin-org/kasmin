@@ -47,7 +47,7 @@ class OrganisationSettingsPage extends Page
         'organisation_name', 'organisation_address', 'organisation_email', 'organisation_website', 'organisation_iban',
         'organisation_bic', 'organisation_bank', 'organisation_legal_footer', 'invoice_number_format', 'invoice_next_number',
         'invoice_number_per_year', 'invoice_due_days', 'invoice_attach_paid', 'invoice_reminder_days_before', 'invoice_overdue_days', 'invoice_overdue_fees', 'public_url', 'mail_test_address', 'mailing_approval_above', 'backup_keep', 'embed_origins', 'timezone', 'digest_time', 'approval_days', 'approval_summary_time', 'ai_processing', 'retention_safety_years', 'retention_invoice_years',
-        'max_guardians', 'own_event_days', 'min_login_age', 'guardian_until_age', 'own_registrations', 'newsletter_ask', 'mail_logo', 'mail_color', 'mail_footer', 'retention_mail_years', 'backup_remote_url', 'backup_remote_user', 'audit_ip_days', 'retention_audit_years', 'auto_update', 'auto_update_days', 'auto_update_time',
+        'max_guardians', 'own_event_days', 'min_login_age', 'guardian_until_age', 'own_registrations', 'newsletter_ask', 'gender_note_female', 'gender_note_male', 'gender_note_diverse', 'mail_logo', 'mail_color', 'mail_footer', 'retention_mail_years', 'backup_remote_url', 'backup_remote_user', 'audit_ip_days', 'retention_audit_years', 'auto_update', 'auto_update_days', 'auto_update_time',
     ];
 
     public static function getNavigationGroup(): ?string
@@ -79,6 +79,7 @@ class OrganisationSettingsPage extends Page
             $data[$key] = Settings::get($key);
         }
         $data['mail_logo'] = Settings::get('mail_logo') ?: null;
+        $data['gender_note_diverse'] ??= __('portal.gender_note_diverse');
         $data['organisation_name'] ??= config('app.name');
         foreach (['invoice_attach_paid', 'invoice_number_per_year', 'newsletter_ask', 'auto_update'] as $key) {
             $data[$key] = Settings::bool($key);
@@ -148,6 +149,9 @@ class OrganisationSettingsPage extends Page
                 TextInput::make('own_event_days')->label(__('admin.settings.own_event_days'))->numeric()->minValue(0)->maxValue(3650)->required()->hintIcon(...$hint('own_event_days')),
                 Select::make('own_registrations')->label(__('admin.settings.own_registrations'))->options(__('admin.settings.own_registrations_options'))->required()->hintIcon(...$hint('own_registrations')),
                 Toggle::make('newsletter_ask')->label(__('admin.settings.newsletter_ask'))->inline(false)->hintIcon(...$hint('newsletter_ask')),
+                Textarea::make('gender_note_female')->label(__('admin.settings.gender_note', ['gender' => __('admin.genders.female')]))->rows(2)->maxLength(1000)->columnSpanFull()->hintIcon(...$hint('gender_note')),
+                Textarea::make('gender_note_male')->label(__('admin.settings.gender_note', ['gender' => __('admin.genders.male')]))->rows(2)->maxLength(1000)->columnSpanFull()->hintIcon(...$hint('gender_note')),
+                Textarea::make('gender_note_diverse')->label(__('admin.settings.gender_note', ['gender' => __('admin.genders.diverse')]))->rows(3)->maxLength(1000)->columnSpanFull()->hintIcon(...$hint('gender_note')),
             ]),
             Section::make(__('admin.settings.retention'))->visible(fn () => Permissions::current('settings', 'edit'))->columns(2)->schema([
                 TextInput::make('retention_safety_years')->label(__('admin.settings.retention_safety_years'))->numeric()->minValue(1)->maxValue(30)->required(),
@@ -185,6 +189,10 @@ class OrganisationSettingsPage extends Page
             $value = $data[$key];
             if (in_array($key, ['invoice_attach_paid', 'invoice_number_per_year', 'newsletter_ask', 'auto_update'], true)) {
                 $value = $value ? '1' : '0';
+            }
+            if (str_starts_with($key, 'gender_note_')) {
+                // The unchanged standard text stays "not set", so it keeps following the language of the reader.
+                $value = $key === 'gender_note_diverse' && trim((string) $value) === __('portal.gender_note_diverse') ? null : trim((string) $value);
             }
             if (in_array($key, ['organisation_iban', 'organisation_bic'], true)) {
                 $value = strtoupper(str_replace(' ', '', (string) $value));

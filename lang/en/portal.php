@@ -56,4 +56,6 @@ return [
     'mails' => 'Your e-mails',
     'team' => 'My events (team)', 'team_hint' => 'Lists for the team. Please treat them confidentially. Every view is logged.',
     'sessions' => 'Where you are logged in', 'sessions_hint' => 'Devices and browsers that are logged in with your address. If you do not know one of them, log it out.', 'sessions_this' => 'this device', 'sessions_end' => 'Log out everywhere else', 'sessions_ended' => '{0} No other device was logged in.|{1} One other device was logged out.|[2,*] :count other devices were logged out.',
+    'no_family_admin' => 'This account is for the administration; it does not belong to a family. Your work is in the admin interface.', 'to_admin' => 'To the admin interface', 'address_replace' => 'Your address :old will be replaced by :new.', 'address_add' => 'The address :new will be added to your account.',
+    'please_choose' => 'Please choose', 'gender_note_diverse' => 'We separate the children by gender per room. Please contact us directly and tell us in which room the child wants to sleep, so that we can plan properly. If there are enough diverse children, they share a room.',
 ];

@@ -111,9 +111,15 @@ class PortalProfileController extends Controller
 
     public function confirmation(string $token): View
     {
-        return $this->addresses->find($token) === null
-            ? view('public.confirm-simple', ['title' => __('public.invalid_title'), 'action' => null, 'text' => __('public.invalid')])
-            : view('public.confirm-simple', ['title' => __('portal.confirm_address'), 'action' => route('address.confirm.store', $token), 'text' => null]);
+        $change = $this->addresses->find($token);
+        if ($change === null) {
+            return view('public.confirm-simple', ['title' => __('public.invalid_title'), 'action' => null, 'text' => __('public.invalid')]);
+        }
+        // What exactly is confirmed: which address goes, which one comes.
+        $old = $change->contact_point_id !== null ? ContactPoint::query()->whereKey($change->contact_point_id)->value('value') : null;
+
+        return view('public.confirm-simple', ['title' => __('portal.confirm_address'), 'action' => route('address.confirm.store', $token), 'text' => null,
+            'intro' => __($old !== null ? 'portal.address_replace' : 'portal.address_add', ['old' => (string) $old, 'new' => $change->email])]);
     }
 
     public function confirm(string $token): View

@@ -117,7 +117,7 @@ function ks_release_list(bool $development): array
 function ks_requirements(string $target): array
 {
     $checks = [['label' => 'PHP >= '.KASMIN_MIN_PHP.' ('.PHP_VERSION.')', 'ok' => version_compare(PHP_VERSION, KASMIN_MIN_PHP, '>=')]];
-    foreach (['pdo_mysql', 'intl', 'mbstring', 'openssl', 'zip', 'gd', 'bcmath', 'fileinfo', 'json'] as $ext) {
+    foreach (['pdo_mysql', 'intl', 'mbstring', 'openssl', 'zip', 'gd', 'bcmath', 'fileinfo', 'tokenizer', 'xml', 'dom', 'xmlreader', 'ctype', 'json', 'iconv', 'zlib'] as $ext) {
         $checks[] = ['label' => 'PHP extension '.$ext, 'ok' => extension_loaded($ext)];
     }
     $checks[] = ['label' => 'HTTPS downloads (curl or allow_url_fopen)', 'ok' => function_exists('curl_init') || (bool) ini_get('allow_url_fopen')];

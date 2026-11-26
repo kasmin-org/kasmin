@@ -56,4 +56,6 @@ return [
     'mails' => 'Ihre E-Mails',
     'team' => 'Meine Veranstaltungen (Team)', 'team_hint' => 'Listen für das Team. Bitte vertraulich behandeln. Jede Ansicht wird protokolliert.',
     'sessions' => 'Wo Sie angemeldet sind', 'sessions_hint' => 'Geräte und Browser, die mit Ihrer Adresse angemeldet sind. Melden Sie ein Gerät ab, wenn Sie es nicht kennen.', 'sessions_this' => 'dieses Gerät', 'sessions_end' => 'Überall sonst abmelden', 'sessions_ended' => '{0} Es war kein anderes Gerät angemeldet.|{1} Ein anderes Gerät wurde abgemeldet.|[2,*] :count andere Geräte wurden abgemeldet.',
+    'no_family_admin' => 'Dieses Konto ist für die Verwaltung; es gehört zu keiner Familie. Ihre Arbeit liegt in der Verwaltungsoberfläche.', 'to_admin' => 'Zur Verwaltungsoberfläche', 'address_replace' => 'Ihre Adresse :old wird durch :new ersetzt.', 'address_add' => 'Die Adresse :new wird Ihrem Konto hinzugefügt.',
+    'please_choose' => 'Bitte wählen', 'gender_note_diverse' => 'Wir trennen die Kinder in den Zimmern nach Geschlecht. Bitte melden Sie sich direkt bei uns und sagen Sie uns, in welchem Zimmer das Kind schlafen möchte, damit wir gut planen können. Gibt es genug diverse Kinder, kommen sie gemeinsam in ein Zimmer.',
 ];

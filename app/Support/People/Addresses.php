@@ -31,7 +31,7 @@ class Addresses
         $token = Str::random(48);
         EmailChange::query()->create(['person_id' => $person->id, 'contact_point_id' => $replaces?->id, 'token_hash' => hash('sha256', $token), 'email' => $email, 'expires_at' => now()->addHours(self::HOURS)]);
         Audit::record('address.change_requested', $person);
-        Mail::to($email)->locale($person->locale)->send(new ConfirmAddressMail($person->fullName(), route('address.confirm', $token)));
+        Mail::to($email)->locale($person->locale)->send(new ConfirmAddressMail($person->fullName(), route('address.confirm', $token), $replaces?->value, $email));
     }
 
     public function find(string $token): ?EmailChange

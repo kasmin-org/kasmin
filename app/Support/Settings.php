@@ -32,6 +32,9 @@ class Settings
         'guardian_until_age' => '18',      // PE05
         'own_registrations' => 'hidden',   // PE05a: hidden, informed, visible
         'newsletter_ask' => '1',           // CO02
+        'gender_note_female' => '',        // PE09: text below the choice of the gender of a child
+        'gender_note_male' => '',
+        'gender_note_diverse' => null,     // null = the text of the language files (in both languages)
         'retention_safety_years' => '7', // CO01
         'retention_invoice_years' => '7',
         'public_url' => '',
@@ -71,6 +74,24 @@ class Settings
         }
 
         return self::$cache[$key] ?? $default ?? self::DEFAULTS[$key] ?? null;
+    }
+
+    /**
+     * PE09: the note shown below the gender of a child, per gender; an empty text shows nothing.
+     *
+     * @return array<string, string>
+     */
+    public static function genderNotes(): array
+    {
+        $notes = [];
+        foreach (['female', 'male', 'diverse'] as $gender) {
+            $text = trim((string) (self::get('gender_note_'.$gender) ?? ($gender === 'diverse' ? __('portal.gender_note_diverse') : '')));
+            if ($text !== '') {
+                $notes[$gender] = $text;
+            }
+        }
+
+        return $notes;
     }
 
     public static function int(string $key): int

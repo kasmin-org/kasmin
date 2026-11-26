@@ -38,7 +38,7 @@ class ViewAsTest extends TestCase
         $this->withSession(['two_factor_passed' => true, 'portal_view_as' => $guardian->id]);
         $this->get('/portal')->assertOk()->assertSee('Preview as Robin Ash')->assertSee('Kim Ash');
         $this->get('/portal/children/'.$child->public_id)->assertOk()->assertSee('Kim Ash');
-        $this->post('/portal/children', ['first_name' => 'New', 'last_name' => 'Child', 'birth_date' => '2016-01-01'])->assertRedirect();
+        $this->post('/portal/children', ['first_name' => 'New', 'last_name' => 'Child', 'birth_date' => '2016-01-01', 'gender' => 'male'])->assertRedirect();
         $this->assertFalse(Person::query()->where('first_name', 'New')->exists(), 'no changes in the preview');
 
         $this->post('/portal/view-as/end')->assertRedirect('/admin/people/'.$guardian->id);

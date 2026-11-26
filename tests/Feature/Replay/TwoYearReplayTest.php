@@ -307,7 +307,7 @@ class TwoYearReplayTest extends TestCase
         $this->guardianLogsIn($family);
         $person = $this->people[$id] ?? null;
         if ($person === null) {
-            $this->post('/portal/children', ['first_name' => $source['first_name'], 'last_name' => $source['last_name'], 'birth_date' => $source['birth_date'], 'gender' => $source['gender'] ?: null])->assertSessionHasNoErrors()->assertRedirect();
+            $this->post('/portal/children', ['first_name' => $source['first_name'], 'last_name' => $source['last_name'], 'birth_date' => $source['birth_date'], 'gender' => in_array($source['gender'], ['female', 'male', 'diverse'], true) ? $source['gender'] : 'female'])->assertSessionHasNoErrors()->assertRedirect();
             $person = $this->people[$id] = Person::query()->where('first_name', $source['first_name'])->where('last_name', $source['last_name'])->whereDate('birth_date', $source['birth_date'])->latest('id')->firstOrFail();
         }
         $event = $this->camps[$year];

@@ -6,6 +6,25 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ## [Unreleased]
 
+### Added
+
+- System status: *Show every item* lists each PHP extension, function and folder with what it is needed for and whether it is there; the documentation has the same list. The database line names product and version of the server.
+- System status: check of the memory PHP may use. Kasmin needs 128 MB; only large PDFs ask for 256 MB for their one request.
+- System status: *PHP configuration (phpinfo)* for administrators, without the keys and passwords of the installation; every view is logged.
+- An optional note per gender below the choice of the gender of a child (*Settings → Organisation → Families*), with a standard text for "diverse" about the rooms.
+
+### Changed
+
+- Legal guardians must choose the gender of a child they add (female, male, diverse); "not specified" is no longer offered there.
+- The mail that confirms a new e-mail address and the page it opens say which address is replaced by which.
+- Help links open the documentation in the language of the interface.
+- Who works in the administration is led from the start page to the admin interface; the portal no longer tells them that no family is linked.
+- The set-up also checks the extensions `dom`, `xmlreader`, `iconv`, `zlib`, `tokenizer`, `xml` and `ctype`.
+
+### Fixed
+
+- Errors (HTTP 500) while the files of a new version were being put in place: visitors now see "Kasmin is being updated" until the files are complete, during the update in the browser and during a deployment.
+
 ## [0.26.1] - 2026-11-26
 
 ### Fixed

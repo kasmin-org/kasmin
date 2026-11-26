@@ -9,7 +9,9 @@ use App\Models\Role;
 use App\Models\SystemNotification;
 use App\Models\User;
 use App\Support\Install\Defaults;
+use App\Support\Install\Requirements;
 use App\Support\Mail\MailDns;
+use App\Support\System\Docs;
 use App\Support\System\PhpSupport;
 use App\Support\System\Releases;
 use App\Support\System\SystemNotifications;
@@ -126,5 +128,68 @@ class SystemStatusTest extends TestCase
         config(['kasmin.runtime' => null]);
         $this->assertTrue(collect(app(Updater::class)->precheck()['checks'])->contains(fn ($c) => str_starts_with($c['label'], 'PHP '.PHP_VERSION)));
         $this->assertFalse(app(Updater::class)->finish('wrong-token'));
+    }
+
+    public function test_requirements_name_every_item_and_the_database_version_and_memory_are_shown(): void
+    {
+        /** @var array<string, array{items: list<array{name: string, purpose: string}>, detail: string}> $checks */
+        $checks = collect(app(SystemStatus::class)->checks())->keyBy('key')->all();
+        $names = array_column($checks['requirements']['items'], 'name');
+        foreach (['pdo_mysql', 'dom', 'zip', 'curl', 'proc_open()', 'storage/', 'bootstrap/cache/'] as $name) {
+            $this->assertContains($name, $names);
+        }
+        foreach ($checks['requirements']['items'] as $item) {
+            $this->assertNotSame('', $item['purpose'], $item['name']);
+            $this->assertStringNotContainsString('system.requirements', $item['purpose'], 'missing text for '.$item['name']);
+        }
+        $this->assertMatchesRegularExpression('/(MariaDB|MySQL|SQLite) \d+\.\d+/', $checks['database']['detail']);
+        $this->assertArrayHasKey('memory', $checks);
+        $this->assertGreaterThanOrEqual(128, Requirements::MEMORY_MB);
+
+        $this->withoutMiddleware(AuthenticateSession::class);
+        $this->actingAs($this->user('administrator', 'admin@example.org'))->withSession(['two_factor_passed' => true])->get('/admin/system')->assertOk()
+            ->assertSee('data-requirements', false)->assertSee('pdo_mysql')->assertSee('exact amounts of money')
+            ->assertSee('<strong>restore</strong>', false)->assertSee(route('admin.phpinfo'), false);
+    }
+
+    public function test_phpinfo_only_for_administrators_and_without_the_environment(): void
+    {
+        $this->withoutMiddleware(AuthenticateSession::class);
+        $admin = $this->user('administrator', 'admin@example.org');
+        $board = $this->user('board', 'board@example.org');
+        $this->actingAs($board)->withSession(['two_factor_passed' => true])->get('/admin/system/phpinfo')->assertForbidden();
+        putenv('KASMIN_TEST_SECRET=must-not-show');
+        $_ENV['KASMIN_TEST_SECRET'] = $_SERVER['KASMIN_TEST_SECRET'] = 'must-not-show';
+        $response = $this->actingAs($admin)->withSession(['two_factor_passed' => true])->get('/admin/system/phpinfo')->assertOk();
+        $this->assertStringContainsString('memory_limit', (string) $response->getContent());
+        $this->assertStringNotContainsString('must-not-show', (string) $response->getContent());
+        $this->assertDatabaseHas('audit_events', ['action' => 'system.phpinfo_viewed']);
+    }
+
+    public function test_help_links_follow_the_language_of_the_interface(): void
+    {
+        $this->assertStringStartsWith('https://www.kasmin.org/docs/', Docs::url('admin/hosting'));
+        app()->setLocale('de');
+        $this->assertStringStartsWith('https://www.kasmin.org/de/docs/', Docs::url('admin/hosting'));
+        $this->assertStringEndsWith('/admin/hosting/', Docs::url('admin/hosting'));
+    }
+
+    public function test_the_page_shown_while_files_are_replaced_needs_no_framework(): void
+    {
+        $stub = base_path('resources/maintenance/updating.php');
+        $run = function (string $uri, string $accept = 'text/html') use ($stub): string {
+            $copy = sys_get_temp_dir().'/kasmin-maintenance-'.bin2hex(random_bytes(4)).'.php';
+            copy($stub, $copy);
+            $code = '$_SERVER["REQUEST_URI"]='.var_export($uri, true).';$_SERVER["HTTP_ACCEPT"]='.var_export($accept, true).';$_SERVER["HTTP_ACCEPT_LANGUAGE"]="de-AT";require '.var_export($copy, true).';echo "PASSED-ON";';
+            $out = (string) shell_exec(escapeshellarg(PHP_BINARY).' -r '.escapeshellarg($code));
+            unlink($copy);
+
+            return $out;
+        };
+        $this->assertStringContainsString('Kasmin wird gerade aktualisiert', $run('/admin/people'));
+        $this->assertStringNotContainsString('PASSED-ON', $run('/admin/people'));
+        $this->assertStringContainsString('"message"', $run('/api/v1/people', 'application/json'));
+        $this->assertStringContainsString('PASSED-ON', $run('/system/update/finish'));
+        $this->assertStringContainsString('PASSED-ON', $run('/system/hooks/demo-reset'));
     }
 }

@@ -26,6 +26,7 @@ use App\Support\Mail\Notifier;
 use App\Support\People\Duplicates;
 use App\Support\People\GroupWaitlist;
 use App\Support\People\Guardians;
+use App\Support\Settings;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -41,7 +42,7 @@ class PortalChildController extends Controller
 
     public function create(): View
     {
-        return view('portal.child-create');
+        return view('portal.child-create', ['genderNotes' => Settings::genderNotes()]);
     }
 
     public function store(Request $request): RedirectResponse
@@ -50,7 +51,7 @@ class PortalChildController extends Controller
             'first_name' => ['required', 'string', 'max:120'],
             'last_name' => ['required', 'string', 'max:120'],
             'birth_date' => ['required', 'date', 'before:today', 'after:'.now()->subYears(25)->toDateString()],
-            'gender' => ['nullable', 'in:female,male,diverse,unspecified'],
+            'gender' => ['required', 'in:female,male,diverse'], // rooms are planned by gender, so "not specified" is no choice here
         ]);
         $guardian = $this->guardian($request);
         $household = $this->household($guardian);

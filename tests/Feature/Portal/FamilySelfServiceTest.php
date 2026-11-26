@@ -103,7 +103,8 @@ class FamilySelfServiceTest extends TestCase
         $this->assertSame('alex@example.org', $this->user->fresh()?->email);
         $this->assertStringNotContainsString('new@example.org', (string) DB::table('email_changes')->get()->toJson());
         $token = $this->addressToken();
-        $this->get('/address/'.$token)->assertOk();
+        Mail::assertSent(ConfirmAddressMail::class, fn (ConfirmAddressMail $mail) => str_contains($mail->render(), 'Your address alex@example.org will be replaced by new@example.org.'));
+        $this->get('/address/'.$token)->assertOk()->assertSee('Your address alex@example.org will be replaced by new@example.org.')->assertSee('Confirm');
         $this->assertSame('alex@example.org', $this->user->fresh()?->email);
         $this->user->loginTokens()->create(['token_hash' => 'x', 'code_hash' => 'x', 'purpose' => 'login', 'scope' => 'full', 'expires_at' => now()->addHour()]);
         $this->post('/address/'.$token)->assertOk()->assertSee('is confirmed');
@@ -258,5 +259,31 @@ class FamilySelfServiceTest extends TestCase
         Settings::set('newsletter_ask', '1');
         $this->post('/f/team', ['first_name' => 'A', 'last_name' => 'B', 'email' => 'a@example.org', 'birth_date' => '1990-01-01', 'locale' => 'en', 'privacy' => '1', 'newsletter' => '1'])->assertSessionHasNoErrors();
         $this->assertNotEmpty(PublicSubmission::query()->where('public_form_id', $form->id)->sole()->data['newsletter'] ?? null);
+    }
+
+    public function test_a_further_address_is_named_in_the_mail_and_on_the_page(): void
+    {
+        Mail::fake();
+        $this->actingAs($this->user)->post('/portal/profile/email', ['email' => 'second@example.org'])->assertSessionHasNoErrors();
+        $token = $this->addressToken();
+        Mail::assertSent(ConfirmAddressMail::class, fn (ConfirmAddressMail $mail) => str_contains($mail->render(), 'The address second@example.org will be added to your account.'));
+        $this->get('/address/'.$token)->assertOk()->assertSee('The address second@example.org will be added to your account.')->assertDontSee('replaced');
+    }
+
+    public function test_the_gender_of_a_child_must_be_chosen_and_can_carry_a_note(): void
+    {
+        $this->actingAs($this->user)->get('/portal/children/new')->assertOk()
+            ->assertSee('data-gender-note="diverse"', false)->assertSee('We separate the children by gender per room.')
+            ->assertDontSee('data-gender-note="female"', false)->assertDontSee('value="unspecified"', false)->assertDontSee('not specified');
+        $child = ['first_name' => 'Robin', 'last_name' => 'Ash', 'birth_date' => now()->subYears(9)->toDateString()];
+        $this->post('/portal/children', $child)->assertSessionHasErrors('gender');
+        $this->post('/portal/children', $child + ['gender' => 'unspecified'])->assertSessionHasErrors('gender');
+        $this->post('/portal/children', $child + ['gender' => 'diverse'])->assertSessionHasNoErrors();
+        $this->assertSame('diverse', Person::query()->where('first_name', 'Robin')->value('gender'));
+
+        Settings::set('gender_note_diverse', '');
+        Settings::set('gender_note_female', "Rooms for girls are on the first floor.\nSecond line <b>");
+        $this->get('/portal/children/new')->assertOk()->assertDontSee('data-gender-note="diverse"', false)
+            ->assertSee('data-gender-note="female"', false)->assertSee('Rooms for girls are on the first floor.<br />', false)->assertSee('&lt;b&gt;', false);
     }
 }

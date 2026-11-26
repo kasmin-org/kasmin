@@ -29,6 +29,49 @@ Daily and hourly jobs (digest, reminders, automations, retention) run once at th
 call that comes a few minutes late does no harm. The "cron job not configured" warning appears
 only after 15 minutes without a call.
 
+## What the server must offer
+
+*System → System status* lists every item below with a tick or a cross (*Show every item*), so you can compare your hosting with it.
+
+| What | Needed for |
+|---|---|
+| PHP 8.3 or newer | see the README for the versions that are supported |
+| MariaDB or MySQL | the data |
+| **128 MB** memory for PHP (`memory_limit`) | enough for all pages. Only large PDFs (a camp folder for more than about 60 people) need more; Kasmin then asks for 256 MB for this one request, which most hosters allow. No `.user.ini` is needed. |
+| a cron job, every minute or every few minutes | mail queue, reminders, automations, backups, automatic updates |
+
+Required PHP extensions:
+
+| Extension | Needed for |
+|---|---|
+| `pdo_mysql` | database (MySQL, MariaDB) |
+| `intl` | dates, numbers and amounts in German and English |
+| `mbstring` | texts with umlauts and other characters |
+| `openssl` | encryption of confidential data, mail over TLS, backups |
+| `zip` | updates, export as XLSX, upload of several files |
+| `gd` | QR code on invoices, pictures |
+| `bcmath` | exact amounts of money |
+| `fileinfo` | checks what an uploaded file really is |
+| `xml`, `dom` | PDFs (invoices, lists, camp folder), files of banks |
+| `xmlreader` | import from Excel files |
+| `iconv` | mails and files in other character sets |
+| `zlib` | compressed backups |
+| `tokenizer`, `ctype`, `json` | needed by the framework |
+
+Recommended (Kasmin works without them, with the limits named):
+
+| Item | Without it |
+|---|---|
+| extension `curl` | the search for new versions, the backup copy outside the server and webhooks may not work |
+| function `proc_open()` | the cron job cannot start its tasks as a command – use the cron address by HTTP (below) |
+| function `set_time_limit()` | a long upgrade or a big import can run into the time limit of the server |
+| function `dns_get_record()` | the DNS records for mail (SPF, DKIM, DMARC) cannot be checked |
+
+Folders Kasmin must be able to write to: `storage/` (uploads, backups, logs, sessions) and `bootstrap/cache/`.
+
+If your hoster asks what is installed: *System → System status → PHP configuration (phpinfo)* shows the versions, extensions and limits of
+the server. Only administrators see it, every view is recorded in the log, and the keys and passwords of the installation are left out.
+
 # Hosting without a command line
 
 Many web hosting packages offer no SSH access and run cron jobs only as HTTP calls. Kasmin therefore offers

@@ -8,6 +8,9 @@ Kasmin only upgrades; there are no downgrades.
    `storage/app/private/backups` first, then upgrades the database and records the new version. This can take a few minutes; only one
    upgrade runs at a time. If it does not finish, the page shows the details and can be tried again.
 
+While the files of a new version are put in place, visitors see a short page "Kasmin is being updated" (HTTP 503) instead of errors from
+half-replaced files; it disappears by itself.
+
 No command line is needed. Where there is one, `php artisan kasmin:upgrade` does the same, `php artisan kasmin:status` shows the
 versions, and deployment scripts can call `POST /system/hooks/upgrade` (see [Hosting](hosting.md)). Docker upgrades by itself at the start.
 

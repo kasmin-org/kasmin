@@ -8,7 +8,7 @@
     @endif
     @foreach ($divisions as $d)
         <x-filament::section :heading="$d['model']->name" :description="__('events.divisions.kinds.'.$d['model']->kind).' · '.__('events.divisions.rule_'.($d['model']->option('separate_gender') ? 'separate' : ($d['model']->option('balance_gender') ? 'mixed' : 'any'))).' · '.__('events.divisions.siblings_options.'.$d['model']->option('siblings'))">
-            <div data-division="{{ $d['model']->id }}" class="text-sm">
+            <div data-division="{{ $d['model']->id }}" data-division-name="{{ $d['model']->name }}" class="text-sm">
                 @foreach ($d['warnings'] as $w)
                     <p class="mb-2 rounded-lg p-2" style="background:#fdf0d5;color:#7a4b00">{{ $w }}</p>
                 @endforeach

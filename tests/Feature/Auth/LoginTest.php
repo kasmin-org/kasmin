@@ -201,7 +201,7 @@ class LoginTest extends TestCase
         foreach (['/admin', '/admin/people', '/portal/children/'.$child->public_id.'/forms/safety_sheet', '/portal/children/new'] as $page) {
             $this->get($page)->assertRedirect(route('step-up'));
         }
-        $this->post('/portal/children', ['first_name' => 'X', 'last_name' => 'Y', 'birth_date' => '2016-01-01'])->assertRedirect(route('step-up'));
+        $this->post('/portal/children', ['first_name' => 'X', 'last_name' => 'Y', 'birth_date' => '2016-01-01', 'gender' => 'male'])->assertRedirect(route('step-up'));
         $this->assertFalse(Person::query()->where('first_name', 'X')->exists());
 
         // Fresh link to the own address, then the page that was asked for.

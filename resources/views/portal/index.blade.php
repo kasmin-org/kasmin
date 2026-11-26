@@ -59,7 +59,12 @@
             @endif
         </section>
     @empty
-        <p>{{ __('portal.no_family') }}</p>
+        @if (auth()->user()?->isAdministrative())
+            <p class="mb-2">{{ __('portal.no_family_admin') }}</p>
+            <a href="/admin" class="mb-4 block w-full rounded-lg bg-kasmin-600 px-4 py-3 text-center font-semibold text-white">{{ __('portal.to_admin') }}</a>
+        @else
+            <p>{{ __('portal.no_family') }}</p>
+        @endif
     @endforelse
     @if ($person)<p class="mb-4 flex flex-wrap gap-x-6 gap-y-2"><a class="underline" href="{{ route('portal.profile') }}">{{ __('portal.profile') }}</a><a class="underline" href="{{ route('portal.child', $person->public_id) }}">{{ __('public.own') }}</a></p>@endif
     <a href="{{ route('portal.child.create') }}" class="mt-2 block w-full rounded-lg bg-kasmin-600 px-4 py-3 text-center font-semibold text-white">{{ __('portal.add_child') }}</a>

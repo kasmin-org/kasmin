@@ -11,15 +11,20 @@ to two hours earlier or later.
 *System → System status* (administrators only) shows:
 
 - PHP version and the date until which it receives security updates
-- missing PHP extensions, functions or write permissions
+- PHP extensions, functions and write permissions: *Show every item* lists each one with what it is needed for and
+  whether it is there (the full list: [Hosting](hosting.md#what-the-server-must-offer))
+- the memory PHP may use (128 MB are needed)
 - whether the cron job runs (last run of the scheduler)
 - old mails waiting in the queue
-- database connection and schema version
+- database: product and version of the server (for example "MariaDB 11.4") and the schema version
 - installed and latest Kasmin version
 - **mail DNS records** of every sender domain: SPF, DKIM and DMARC, each with a concrete suggestion for the DNS
   record. DMARC should use `p=reject`; anything weaker is shown as a warning. With *direct delivery* (to the
   recipients' mail servers, without an SMTP relay) Kasmin signs every mail with DKIM – generate the key at the mail
   account and publish the record shown.
+
+At the end of the page, *PHP configuration (phpinfo)* shows what the server offers – versions, extensions, limits. Hosters ask for it.
+The keys and passwords of the installation are left out; every view is recorded in the log.
 
 ## System notifications
 
@@ -49,4 +54,4 @@ settings stay visible.
 ## Help
 
 *Help for this page* under the title of every page of the admin interface opens the matching page of this documentation, in the
-version that is installed.
+version that is installed and in the language of the interface.

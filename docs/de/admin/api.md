@@ -1,0 +1,510 @@
+# REST-API, MCP und Webhooks
+
+Alles, was eine Anbindung oder ein KI-Assistent braucht, läuft über **API-Tokens**. Ein Token handelt im Namen der
+Administratorin oder des Administrators, die oder der es erstellt hat, begrenzt auf die dafür gewählten **Berechtigungen (Scopes)**.
+Es funktioniert nicht mehr, sobald diese Person die Rolle Administration verliert.
+
+## API-Tokens
+
+*Einstellungen → API-Tokens* (Administratorinnen und Administratoren): **Token erstellen**, dann einen Namen, die Scopes und ein Ablaufdatum wählen. Das Token
+(`kas_…`) wird **einmal** angezeigt – kopieren Sie es in das andere System. Widerrufen Sie Tokens, die Sie nicht mehr brauchen; die Liste zeigt, wann
+jedes Token zuletzt verwendet wurde. Jeder schreibende Zugriff über die API steht im Audit-Protokoll, mit dem Token als Akteur.
+
+| Scope | Erlaubt |
+|---|---|
+| `people:read` / `people:write` | Personen, Familien, Kontaktdaten, Erziehungsberechtigte, Mitgliedschaften, Gruppen und Mitgliedsarten lesen / anlegen und ändern; Rollen lesen; doppelte Einträge anführen / zusammenführen; öffentliche Einsendungen lesen / entscheiden |
+| `events:read` / `events:write` | Veranstaltungen, Teilnehmende, Runden, Dokumente, Vorlagen, Listen, Gruppen und Zimmer, Statistik und Dashboard lesen / Veranstaltungen (inkl. Preise und Ratenplan), Reihen, Vorlagen, Runden und Dokumente anlegen und ändern, anmelden, Teilnahmen ändern, Plätze anbieten, Gruppen und Zimmer |
+| `finance:read` / `finance:write` | Rechnungen (inkl. PDF), Zahlungen, Rückzahlungen, das Rechnungsarchiv und die Kosten einer Veranstaltung lesen / Rechnungen ausstellen, senden und stornieren, Zahlungen erfassen und zuordnen, Rückzahlungen erledigen, die Kosten einer Veranstaltung ändern |
+| `mail:read` / `mail:write` | Mailvorlagen und ihre Versionen, Aussendungen, das Mailprotokoll, unzustellbare Adressen und Absenderprofile lesen / Vorlagen ändern und wiederherstellen, Aussendungen anlegen, vorbereiten und freigeben |
+| `automations:read` | Automatisierungen und Läufe lesen, Probeläufe |
+| `automations:write` | Automatisierungen ändern: aktiv, Modus, Auslöser, Einstellungen, Freigebende. Damit lässt sich eine Freigabe abschalten – geben Sie den Scope nur Tokens, über die ein Mensch bestimmt. Über MCP brauchen Änderungen an einer Freigabe zusätzlich `approvals:decide` |
+| `automations:run` | Läufe starten – **als Freigabe-Anfragen** (die Freigebenden entscheiden) |
+| `approvals:decide` | Freigaben entscheiden (und Läufe direkt starten). Geben Sie den Scope nur Tokens, über die ein Mensch bestimmt |
+| `import:write` | Personen importieren, Importe zurückrollen |
+| `audit:read` | das Audit-Protokoll, Einwilligungen und Löschanfragen lesen; mit `people:read` die Daten einer Person exportieren |
+| `health:read` | vertrauliche Werte von Formularen, z. B. des Sicherheitsblatts, und die vertraulichen Listen einer Veranstaltung (absichtlich getrennt; jeder Lesezugriff wird protokolliert) |
+| `health:write` | vertrauliche Werte ändern; die Erziehungsberechtigten müssen sie im Portal bestätigen |
+| `settings:write` | Einstellungen lesen und ändern – nicht Bankdaten, öffentliche Adresse, Testmodus, Einbettung, Zeitzone und KI-Einstellungen; Absenderprofile ändern; Webhooks |
+| `roles:write` | Rollen geben und nehmen – nie die Rolle Administration. Geben Sie den Scope nur Tokens, über die ein Mensch bestimmt |
+| `privacy:write` | Personen anonymisieren (kann nicht rückgängig gemacht werden). Geben Sie den Scope nur Tokens, über die ein Mensch bestimmt |
+
+Begrenzung: 120 Anfragen pro Minute und Token.
+
+## REST-API v1
+
+Basisadresse `https://your-kasmin.example/api/v1`, Header `Authorization: Bearer kas_…`, JSON hinein und heraus.
+
+- **Dokumentation** mit jedem Endpunkt, jedem Parameter und jeder Antwort: `https://your-kasmin.example/docs/api`
+  (OpenAPI 3.1 als JSON: `/docs/api.json`; jede Version liefert außerdem `openapi.json` mit).
+- Alles, was die Verwaltung kann, gibt es auch hier (siehe den [Vergleich](#vergleich-verwaltung-rest-und-mcp)
+  am Ende). Ein Endpunkt ruft dieselbe Funktion auf wie die Seite. Mails, Einträge im Audit-Protokoll und Regeln sind also dieselben.
+- Listen, die lang werden können (`/people`, `/households`, `/events`, `/invoices`, `/payments`, `/refunds`,
+  `/invoice-archive`, `/automation-runs`, `/outgoing-mails`, `/public-submissions`, `/consents`), kommen in Seiten:
+  `page` und `per_page` (Voreinstellung 50, höchstens 200) in der Anfrage und `meta` mit `total`, `page` und `last_page` in
+  der Antwort. Sie sind nach dem Neuesten sortiert, Personen und Familien nach Namen.
+- Anlegen antwortet mit `201`. Wo es den Eintrag schon gab (eine Person, die schon Mitglied der Gruppe
+  in `POST /groups/{id}/members` oder der Familie ist oder schon erziehungsberechtigt ist), lautet die Antwort `200`, und nichts
+  ändert sich. Eine Anfrage, die die Verwaltung ablehnen würde, antwortet mit `422` und einer `message`; ein fehlender Scope mit `403`.
+- Die API ist nur für die Verwaltung gedacht: Ein Token handelt immer für eine Administratorin oder einen Administrator, und es gibt keine API für
+  Familien oder andere Personen im Portal.
+- IDs von Personen, Familien und Veranstaltungen sind ihre öffentlichen IDs (ULIDs), keine Nummern der Datenbank. Alles andere
+  (Teilnahmen, Rechnungen, Zahlungen, Gruppen, Einteilungen, Einheiten …) hat eine Nummer.
+- `GET /me` zeigt das verwendete Token: Name, Scopes, Ablauf und die Person, für die es handelt.
+
+```
+curl -H "Authorization: Bearer kas_…" https://your-kasmin.example/api/v1/events
+```
+
+**Gefährliche Aktionen brauchen einen Menschen** (X05): Wird eine Automatisierung über die API gestartet (Rechnungsläufe, Aussendungen …), entsteht eine
+Freigabe-Anfrage, außer das Token hat `approvals:decide`.
+
+### Personen
+
+Scopes `people:read` / `people:write`.
+
+- `GET|POST /people`, `GET|PATCH /people/{id}` – suchen (`search`, `group`, `updated_since`), lesen, anlegen (die
+  Felder einer Importzeile, festgehalten als Import, der zurückgerollt werden kann) und Name, Geburtsdatum, Geschlecht
+  und Sprache ändern.
+- Kontaktdaten: `GET|POST /people/{id}/contact-points` (`type` `email` oder `phone`, `value`, `purposes`,
+  `is_primary`), `DELETE /people/{id}/contact-points/{number}`. Die Adresse, mit der sich eine Person anmeldet, kann nicht entfernt werden.
+- Erziehungsberechtigte: `GET|POST /people/{id}/guardians` (`guardian` = ID der Person),
+  `DELETE /people/{id}/guardians/{guardian id}` beendet die Erziehungsberechtigung. Die Einstellung *Erziehungsberechtigte pro Familie (höchstens)*
+  gilt auch hier; Familien werden nicht geändert.
+- Mitgliedschaften einer Person: `GET|POST /people/{id}/memberships` (`type` = Schlüssel einer Mitgliedsart, `starts_on`,
+  `ends_on`), `PATCH /people/{id}/memberships/{number}` mit `ends_on` beendet eine Mitgliedschaft (`null` lässt sie wieder
+  laufen). Eine Person hat pro Art höchstens eine laufende Mitgliedschaft.
+- Mitgliedsarten: `GET|POST /membership-types`, `PATCH /membership-types/{key}` (`name.de`, `name.en`, `pays_fee`, `fee`).
+- Doppelte Einträge: `GET /duplicates` führt die Paare an, die wahrscheinlich dieselbe Person sind, mit dem Grund.
+  `POST /duplicates/merge` (`keep`, `duplicate` und `fields` wie `{"birth_date": "duplicate"}` für die Werte,
+  die vom doppelten Eintrag kommen sollen) verschiebt alles zur Person, die bleibt, und löscht den doppelten Eintrag – das
+  kann nicht rückgängig gemacht werden. Es wird abgelehnt, wenn das Zusammenführen jemandem mehr Rechte gäbe oder beide eine verrechnete
+  Anmeldung zur selben Veranstaltung haben. `POST /duplicates/dismiss` (`first`, `second`) markiert zwei Personen als verschieden.
+- Formulare: `GET /forms`, `GET /people/{id}/forms`, `GET|PATCH /people/{id}/forms/{form}`. Vertrauliche Werte brauchen
+  `health:read` / `health:write`. `GET|PUT /forms/{form}/definition` liest und ersetzt die Definition eines Formulars
+  (`settings:write` zum Ersetzen).
+
+Beispiel: `POST /people/{id}/memberships` mit `{"type": "member", "starts_on": "2027-01-01"}`.
+
+### Familien
+
+Scopes `people:read` / `people:write`.
+
+- `GET /households` (`search`), `GET /households/{id}` – mit Mitgliedern, Sprache und `invoice_recipient`.
+- `POST /households` (`name`, `street`, `postal_code`, `city`, `country`, `locale`) legt eine Familie ohne
+  Mitglieder an; `PATCH /households/{id}` ändert sie. `invoice_recipient` ist die ID einer der erziehungsberechtigten Personen der
+  Familie (`null` = wird automatisch gewählt); jemand anderer wird abgelehnt.
+- `POST /households/{id}/members/{person}` mit `role` `guardian` (erziehungsberechtigt) oder `child` fügt eine Person hinzu oder
+  ändert ihre Rolle; `DELETE /households/{id}/members/{person}` nimmt sie heraus. Wie in der Verwaltung werden die
+  Erziehungsberechtigten einer Familie die Erziehungsberechtigten ihrer Kinder; eine beendete Erziehungsberechtigung bleibt beendet, und
+  wer aus einer Familie herausgenommen wird, bleibt erziehungsberechtigt.
+
+Beispiel: `POST /households` mit `{"name": "Familie Esche", "street": "Eichenweg 1", "postal_code": "1010", "city": "Wien", "country": "AT"}`.
+
+### Rollen
+
+Lesen mit `people:read`, Ändern mit dem eigenen Scope `roles:write`.
+
+- `GET /roles` – alle Rollen; `admin` sagt, ob die Rolle Zugang zur Verwaltung hat.
+- `GET /people/{id}/roles` – die Rollen einer Person mit ihrem Zeitraum.
+- `POST /people/{id}/roles` (`role` = Schlüssel, `event` nur bei Rollen, die für die eigenen Veranstaltungen gelten, `starts_on`,
+  `ends_on`) und `DELETE /people/{id}/roles/{number}`.
+- **Ein Token kann die Rolle `administrator` nie geben oder nehmen** (403). In der Verwaltung dürfen nur Administratorinnen und Administratoren
+  Rollen ändern; ein Token ist kein Mensch, deshalb bleibt diese Rolle dort bei einem Menschen. Die letzte Administration
+  kann nirgends entfernt werden.
+- Eine Person, die eine Rolle mit Zugang zur Verwaltung bekommt, bekommt auch einen Zugang für ihre erste E-Mail-Adresse, wie in der
+  Verwaltung. Geben Sie `roles:write` nur Tokens, über die ein Mensch bestimmt.
+
+### Veranstaltungen und Teilnehmende
+
+Scopes `events:read` / `events:write`.
+
+- `GET|POST /events`, `GET|PATCH /events/{id}` mit den Feldern des Veranstaltungsformulars: Grunddaten (Titel, Termine,
+  Status, `series_id`, Anmeldezeitraum, Ort, Kontakt, `bus_booked`, `bus_seats`) und `roles` (`role`,
+  `capacity`, `reserve_places`, `min_age`, `max_age`, `price`, `registration_form` = Schlüssel eines Formulars mit Fragen einer Veranstaltung …).
+  Ein gebuchter Bus braucht die Zahl seiner Sitzplätze. Die Antwort hat `bus` mit `riders`, `cars`, `free`, `over`,
+  `adults_on_bus` und `children_by_car`. Das Bild wird in der Verwaltung gesetzt.
+- Preise und Ratenplan, in denselben Anfragen: `sibling_mode` (`none`, `staggered`, `all`), `sibling_order`
+  (`oldest`, `highest_price`, `registration`), `sibling_amount`, `sibling_cap_position`, `sibling_min_children`,
+  `cancellation_fee`, `cancellation_text.de` / `.en`, `reminder_days_before` (Liste von Tagen), `prices` (Preise nach
+  Alter oder Datum: `role`, `min_age`, `max_age`, `from_date`, `until_date`, `price` – die Liste ersetzt die
+  gespeicherte) und `installments` (`key`, `label.de`, `label.en`, `kind` = `fixed`, `rest` oder `member`, `amount`,
+  `due_date`, `due_days`, `membership_type`, `refundable`, `refund_until_days`, `confirms_place`,
+  `paid_add_group`, `paid_remove_group`, `discounts_apply`). Raten werden wie Rollen über den Schlüssel geführt: Was angeführt ist, wird
+  angelegt oder geändert, der Rest wird entfernt. Wie im Veranstaltungsformular können Preise geändert werden, während es Rechnungen gibt:
+  Ausgestellte Rechnungen bleiben, wie sie sind. Eine Rate, zu der es schon Rechnungen gibt, kann nicht
+  entfernt werden (422). Die Währung wird angezeigt, kann aber nicht geändert werden, wie im Formular.
+- Anmelderunden: `GET|PUT /events/{id}/rounds`. `PUT` sendet `rounds` (`id` für eine bestehende Runde, `role`,
+  `kind` = `returning`, `selection`, `waitlist` oder `open`, `mode` = `accept` oder `payment`, `opens_at`, `closes_at`,
+  `min_events`, `group`) und ersetzt die Liste; Runden, die nicht angeführt sind, werden entfernt.
+- Kosten (`finance:read` / `finance:write`): `GET|POST /events/{id}/costs` (`label`, `category`, `amount`),
+  `PATCH /costs/{number}`, `DELETE /costs/{number}`.
+- Dokumente: `GET /events/{id}/documents`; `POST /events/{id}/documents` als `multipart/form-data` mit `title`,
+  `visibility` (`participants` oder `public`) und `file` (PDF, JPEG oder PNG, höchstens 10 MB, wie im Formular);
+  `GET /event-documents/{number}/download` (`events:read`); `DELETE /event-documents/{number}`.
+- Veranstaltungsvorlagen: `GET /event-templates`; `POST /event-templates` mit `event` und `title` speichert eine Veranstaltung als
+  Vorlage (oder senden Sie die Felder einer Veranstaltung, um eine Vorlage neu anzulegen); `PATCH /event-templates/{id}`,
+  `DELETE /event-templates/{id}`. `POST /events` mit `template` (oder `copy_of` = eine Veranstaltung), `title` und
+  `starts_at` legt eine Veranstaltung als Kopie an, mit allem, was eingestellt ist, und allen Terminen verschoben, wie es
+  *Aus Vorlage* und *Kopieren* tun; Personen, Rechnungen und Kosten werden nicht kopiert.
+- Veranstaltungsreihen: `GET|POST /event-series` (`name`, `type`), `PATCH /event-series/{number}`.
+- `GET /events/{id}/participations` (`status`, `role`), `POST /events/{id}/registrations` (`person`, `role`).
+- `PATCH /participations/{number}` ändert `status` oder `travel` (`bus`, `car`). Mit `status` `cancelled` wird ein
+  optionaler `reason` gespeichert; die Familie wird informiert, der Platz geht an die Warteliste, und Rechnungsentwürfe werden
+  neu berechnet. Eine Teilnahme mit dem Status Storniert, Abgesagt, Teilgenommen oder Nicht erschienen kann nicht storniert werden.
+- Einen Platz außer der Reihe anbieten: `POST /events/{id}/offers` mit `person`, `role`, `until` (Datum) und `reason`
+  (Pflicht). Die Familie bekommt das Angebot per Mail und antwortet im Portal.
+- Reserveplätze: `POST /participations/{number}/reserve-place` (`reason` ist Pflicht) gibt einen freien Reserveplatz an
+  jemanden auf der Warteliste; `POST /events/{id}/reserve-places/release` (`role`, `count`, `reason`) gibt Reserveplätze,
+  die nicht gebraucht werden, für die Warteliste frei.
+- `GET /events/{id}/schedule` – die Termine der Veranstaltung, die davor und danach geplanten Automatisierungen und ihre Läufe.
+
+Beispiel: `POST /events/{id}/offers` mit `{"person": "01J…", "role": "child", "until": "2027-05-31", "reason": "Geschwisterkind einer Betreuungsperson"}`.
+
+### Gruppen, Zimmer und Dienste einer Veranstaltung
+
+Scopes `events:read` / `events:write`.
+
+- `GET /events/{id}/divisions` – die Einteilungen mit ihren Einheiten, den Personen in jeder Einheit, wer noch nicht eingeteilt ist
+  (`not_placed`) und was von Hand zu prüfen ist (`warnings`).
+- `POST /events/{id}/divisions` mit `kind` (`groups`, `rooms`, `duty`), `name`, `units` (wie viele), `capacity`
+  (pro Einheit) und `options` (`roles`, `balance_age`, `balance_gender`, `separate_gender`, `siblings` = `apart`,
+  `together` oder `any`; die Voreinstellungen hängen von der Art ab). `DELETE /divisions/{number}` entfernt eine Einteilung.
+- `POST /divisions/{number}/propose` teilt alle ein, die noch keine Einheit haben; mit `restart` `true` werden alle neu
+  eingeteilt.
+- `PUT /divisions/{number}/members/{participation}` mit `unit` (Nummer, oder `null`, um die Person herauszunehmen).
+- `POST /divisions/{number}/units` fügt eine Einheit hinzu, `PATCH /units/{number}` ändert `name`, `note` und `capacity`,
+  `DELETE /units/{number}` entfernt eine Einheit, in der niemand ist.
+
+### Listen einer Veranstaltung
+
+- `GET /events/{id}/lists` – die Listen, die das Token lesen darf, mit Titeln.
+- `GET /events/{id}/lists/{key}` (`role` optional) – `headers` und `rows` wie auf der Seite *Listen*. `events:read`
+  genügt für `participants`, `figures`, `contacts`, `bus`, `cars`, `groups`, `birthdays`, `answers` und `missing`.
+- Die Listen aus dem Sicherheitsblatt – `emergency`, `kitchen`, `medical`, `medication`, `insurance`, `swimmers`,
+  `consents`, `changes` – sind vertraulich: Sie brauchen zusätzlich `health:read`, und jeder Lesezugriff steht im
+  Audit-Protokoll (`list.viewed`), wie in der Verwaltung.
+
+### Gruppen
+
+Scopes `people:read` / `people:write`: `GET|POST /groups`, `GET|PATCH /groups/{number}`,
+`POST /groups/{number}/members` (`person`), `DELETE /groups/{number}/members/{person}`.
+
+### Rechnungen, Zahlungen und Rückzahlungen
+
+Scopes `finance:read` / `finance:write`.
+
+- `GET /invoices` (`status`, `event`), `GET /invoices/{number}`, `GET /invoices/{number}/pdf`.
+- `POST /invoices/{number}/issue` stellt einen Entwurf aus (Nummer, Referenz, Fälligkeitsdatum) und sendet ihn an die zahlungspflichtige Person, wie
+  *Ausstellen und senden*; mit `send` `false` wird er nur ausgestellt. `POST /invoices/{number}/send` sendet eine ausgestellte
+  Rechnung noch einmal. Nur Entwürfe können ausgestellt werden, und Entwürfe können nicht gesendet werden.
+- `POST /invoices/{number}/cancel` mit `reason` (**Pflicht**, steht auf der Gutschrift) storniert eine ausgestellte
+  Rechnung mit einer Gutschrift. Zahlungen zur Rechnung werden ein Guthaben der Familie mit einem Vorschlag zur Rückzahlung. Die
+  Antwort ist die Gutschrift.
+- `POST /invoices/{number}/payments` (`amount`, `paid_on`, `method`, `note`) erfasst eine Zahlung.
+- `GET /payments` (`match` = `auto`, `manual`, `suggested`, `unmatched`, `credit`, `refunded`).
+  `POST /payments/{number}/assign` ordnet eine noch nicht zugeordnete Zahlung einer offenen Rechnung zu (`invoice` = ihre
+  Nummer; ohne sie wird die vorgeschlagene Rechnung bestätigt). Was zu viel bezahlt wurde, wird ein Guthaben mit einem Vorschlag
+  zur Rückzahlung.
+- `GET /refunds` (`status` = `proposed`, `done`, `declined`), `POST /refunds/{number}/done` mit `date` (der Tag der
+  Überweisung, nicht in der Zukunft), `POST /refunds/{number}/keep`, wenn die Familie das Guthaben behält.
+- `GET /invoice-archive` (`search`, `status`) – die Rechnungen aus dem bisherigen System, nur zum Lesen.
+- Nur in der Verwaltung: der Bankimport aus einer Datei, das Aufteilen einer Zahlung auf mehrere Rechnungen, das Verwenden eines Guthabens für
+  eine andere Rechnung, der ermäßigte Preis eines Platzes und Einzelrechnungen.
+
+Beispiel: `POST /invoices/{number}/cancel` mit `{"reason": "Lager abgesagt"}`.
+
+### Mail
+
+Scopes `mail:read` / `mail:write`.
+
+- `GET /mail-templates`, `GET|PATCH /mail-templates/{key}`, `POST /mail-templates/{key}/preview`.
+- Versionen: `GET /mail-templates/{key}/versions` und `POST /mail-templates/{key}/versions/{version}/restore`.
+  Das Wiederherstellen erzeugt eine neue Version; nichts geht verloren.
+- `GET|POST /mailings`, `GET /mailings/{number}`, `POST /mailings/{number}/prepare`,
+  `POST /mailings/{number}/release` (bittet um die Freigabe, außer das Token hat `approvals:decide`).
+- `GET /outgoing-mails` (`status`, `person`) – das Mailprotokoll mit dem gespeicherten Text. **Persönliche Links zur Anmeldung und zur
+  Freigabe sind nie Teil der Antwort**: Gespeicherte Mails enthalten einen Platzhalter, der Link entsteht erst beim Senden einer Mail.
+- `GET /bad-addresses` – Adressen, die als nicht vorhanden zurückgekommen sind; `POST /bad-addresses/{number}/clear`, wenn eine
+  Adresse wieder funktioniert.
+- `GET /sender-profiles` (Name, Absender, Antwortadresse, Name des Mailkontos). `POST /sender-profiles` und
+  `PATCH /sender-profiles/{number}` (`name`, `from_name`, `from_address`, `reply_to`, `mail_account`) brauchen
+  `settings:write`, weil die Maileinstellungen in der Verwaltung ein eigenes Recht sind.
+- Nur in der Verwaltung: Mailkonten. Ihre Passwörter und DKIM-Schlüssel sind nie Teil einer Antwort.
+
+### Öffentliche Formulare
+
+Scopes `people:read` / `people:write`.
+
+- `GET /public-forms` – die Formulare mit ihrer Adresse und wohin sie führen.
+- `GET /public-submissions` (`status` = `pending`, `done`, `declined`, `failed`) – was gesendet und bestätigt wurde.
+  Antworten auf vertrauliche Fragen sind nie Teil der Antwort (`hidden` nennt sie).
+- `POST /public-submissions/{number}/accept` führt eine wartende Bewerbung aus,
+  `POST /public-submissions/{number}/reject` (`note`) lehnt sie ab und löscht ihre Antworten.
+
+### Datenschutz
+
+Lesen mit `audit:read`, Anonymisieren mit dem eigenen Scope `privacy:write`.
+
+- `GET /consents` (`kind`, `person`) – Einwilligungen und Abmeldungen mit ihrem Nachweis.
+- `GET /deletion-requests` – Personen, die die Löschung beantragt haben, mit dem, was gelöscht würde und was erhalten bliebe.
+- `GET /people/{id}/export` – die Kopie der Daten einer Person und der Kinder, für die sie erziehungsberechtigt ist,
+  dieselbe wie in der Verwaltung. Braucht `audit:read` und `people:read`, und `health:read`, wenn der Export
+  Antworten auf vertrauliche Fragen enthält (z. B. ein Sicherheitsblatt). Jeder Export steht im Audit-Protokoll.
+- `POST /people/{id}/anonymise` mit `reason`. Das kann nicht rückgängig gemacht werden. Mit `preview` `true` wird nichts geändert, und
+  die Antwort zeigt, was gelöscht würde und was erhalten bliebe. Wo die Verwaltung ablehnt – z. B. weil die Person noch eine
+  Rolle hat –, lautet die Antwort `422` mit `reasons`.
+- Nur in der Verwaltung: der Lauf, der alte vertrauliche Angaben nach der Aufbewahrungsfrist löscht.
+
+### Auswertungen
+
+- `GET /statistics` (`event`, `role`, `groups`) – was die Seite *Statistik* zeigt: Altersverteilung, Altersgruppen,
+  Teilnehmende pro Jahr und mit `finance:read` Kosten und Ermäßigungen. Scope `events:read`.
+- `GET /dashboard` – die nächste Veranstaltung jeder Reihe (Anmeldungen, freie Plätze, Warteliste, Bus), was zu erledigen ist, und
+  Sicherheitsblätter bestätigt und fehlend (nur Zahlen). Scope `events:read`; Zahlen zu Geld nur mit `finance:read`,
+  Läufe von Automatisierungen nur mit `automations:read`.
+
+### Automatisierungen
+
+- `GET /automations`, `GET|PATCH /automations/{key}` für `active`, `mode`, `trigger`, `trigger_config`, `config`,
+  `approver_roles`, `approvals_needed`, `max_items` und `name`, mit den Prüfungen des Formulars der Automatisierung.
+  `trigger_config` und `config` ersetzen das gespeicherte Objekt. Schlüssel und Aktion können nicht geändert werden.
+  `approver_roles_default` ist `true`, solange keine Freigebenden gespeichert sind: `approver_roles` zeigt dann die voreingestellten Rollen.
+  Eine leere Liste für `approver_roles` stellt die Voreinstellung wieder her.
+- Eigene Automatisierungen (`automations:write`): `POST /automations` mit `name.de`, `name.en`, `trigger` und `config`
+  (`target`, `conditions`, `steps`) legt eine mit der Aktion `custom` an; sie wird ausgeschaltet angelegt, wie in der
+  Verwaltung. `DELETE /automations/{key}` löscht eine eigene Automatisierung. **Standard-Automatisierungen können nicht
+  gelöscht werden** (403); schalten Sie sie stattdessen aus.
+- `POST /automations/{key}/preview` (Probelauf), `POST /automations/{key}/run`, `GET /automation-runs`,
+  `GET /automation-runs/{number}`, `POST /automation-runs/{number}/decision`.
+
+### Import, Einstellungen und Audit-Protokoll
+
+- `GET /imports`, `POST /imports/people/preview`, `POST /imports/people/families`, `POST /imports/people`,
+  `POST /imports/{number}/rollback` (`import:write`).
+- `GET|PATCH /settings` (`settings:write`).
+- `GET /audit` (`audit:read`).
+
+### Webhooks über die API
+
+Scope `settings:write` (in der Verwaltung: Administratorinnen und Administratoren).
+
+- `GET|POST /webhooks` (`name`, `url` mit https, `events`, `active`), `PATCH /webhooks/{number}`,
+  `DELETE /webhooks/{number}`.
+- **Das Signatur-Geheimnis wird einmal angezeigt**: in der Antwort auf `POST /webhooks` und auf `POST /webhooks/{number}/secret`,
+  das es ersetzt. Keine andere Antwort enthält es, und es kann nicht gesetzt oder gelesen werden.
+
+### Nur in der Verwaltung
+
+Eigene Benachrichtigungen (über welche Ereignisse eine Person informiert wird) gehören der angemeldeten Person, deshalb gibt es dafür
+keinen Endpunkt. API-Tokens, Systemstatus, Datensicherungen und Updates gibt es absichtlich nur in der Verwaltung.
+
+## Anfragen sicher wiederholen
+
+Senden Sie bei einer schreibenden Anfrage den Header `Idempotency-Key: <your unique key>` mit. Kommt dieselbe Anfrage innerhalb von 24 Stunden noch einmal, wird sie nicht
+noch einmal ausgeführt; Sie bekommen die erste Antwort mit `Idempotent-Replayed: true`. Derselbe Schlüssel mit einer anderen Anfrage wird abgelehnt (422); solange
+die erste noch läuft, bekommen Sie 409.
+
+## Öffentliche Veranstaltungen und Formulare
+
+Ohne Token, für Ihre eigene Website: `GET /api/v1/public/events`, `GET /api/v1/public/forms/{name}` und
+`POST /api/v1/public/forms/{name}`. Verfügbar sind nur Veranstaltungen mit öffentlicher Seite und aktive Formulare. Das Absenden eines Formulars sendet nur die
+Mail zur Bestätigung, und die Antwort ist für bekannte und unbekannte Adressen dieselbe.
+
+## MCP für KI-Assistenten
+
+Kasmin hat einen eingebauten MCP-Server (Model Context Protocol, Streamable HTTP) unter `https://your-kasmin.example/mcp`.
+Er bietet die REST-API als Tools an, mit demselben Token und denselben Scopes. Ein Tool ruft den REST-Endpunkt auf. Es gelten also dieselben
+Prüfungen, und das Audit-Protokoll zeigt die Änderung mit „mcp“. Jeder Endpunkt für die Verwaltung hat genau ein Tool
+(die Teilnahme hat zwei, für Status und Anreise); ein Test geht die Routen der API durch und schlägt fehl, wenn eine
+vergessen wurde (`tests/Feature/Api/McpParityTest.php`).
+
+| Bereich | Tools | Scopes |
+|---|---|---|
+| Token | `who_am_i` | – |
+| Personen | `search_people`, `get_person` / `create_person`, `update_person` | `people:read` / `people:write` |
+| Kontaktdaten | `list_contact_points` / `add_contact_point`, `remove_contact_point` | `people:read` / `people:write` |
+| Erziehungsberechtigte | `list_guardians` / `add_guardian`, `end_guardianship` | `people:read` / `people:write` |
+| Familien | `list_households`, `get_household` / `create_household`, `update_household`, `add_household_member`, `remove_household_member` | `people:read` / `people:write` |
+| Mitgliedschaften | `list_membership_types`, `list_memberships` / `create_membership_type`, `update_membership_type`, `add_membership`, `update_membership` | `people:read` / `people:write` |
+| Rollen | `list_roles`, `list_person_roles` / `assign_role`, `remove_role` | `people:read` / `roles:write` **und** `approvals:decide` |
+| Doppelte Einträge | `list_duplicates` / `merge_duplicates`, `dismiss_duplicate` | `people:read` / `people:write` |
+| Gruppen | `list_groups`, `get_group` / `create_group`, `update_group`, `add_group_member`, `remove_group_member` | `people:read` / `people:write` |
+| Veranstaltungen | `list_events`, `get_event`, `get_event_schedule` / `create_event`, `update_event` (das ganze Veranstaltungsformular: Bus, Preise, Ratenplan) | `events:read` / `events:write` |
+| Veranstaltungsreihen und Vorlagen | `list_event_series`, `list_event_templates` / `create_event_series`, `update_event_series`, `create_event_template`, `update_event_template`, `delete_event_template` | `events:read` / `events:write` |
+| Anmelderunden, Dokumente | `list_registration_rounds`, `list_event_documents` / `save_registration_rounds`, `delete_event_document` | `events:read` / `events:write` |
+| Kosten einer Veranstaltung | `list_event_costs` / `add_event_cost`, `update_event_cost`, `delete_event_cost` | `finance:read` / `finance:write` |
+| Teilnehmende und Plätze | `list_participants` / `register_participant`, `update_participation_status`, `set_participation_travel`, `offer_place`, `assign_reserve_place`, `release_reserve_places` | `events:read` / `events:write` |
+| Gruppen, Zimmer, Dienste einer Veranstaltung | `list_divisions` / `create_division`, `delete_division`, `propose_division`, `move_division_member`, `add_division_unit`, `update_division_unit`, `delete_division_unit` | `events:read` / `events:write` |
+| Listen und Auswertungen | `list_event_lists`, `get_event_list`, `get_statistics`, `get_dashboard` | `events:read` (vertrauliche Listen: `health:read`; Geld: `finance:read`) |
+| Rechnungen | `list_invoices`, `get_invoice` / `record_payment`, `issue_invoice`, `send_invoice`, `cancel_invoice` | `finance:read` / `finance:write` |
+| Zahlungen, Rückzahlungen, Archiv | `list_payments`, `list_refunds`, `list_archived_invoices` / `assign_payment`, `mark_refund_done`, `keep_refund_as_credit` | `finance:read` / `finance:write` |
+| Automatisierungen | `list_automations`, `get_automation`, `preview_automation`, `list_approvals`, `get_automation_run` / `create_automation`, `update_automation`, `delete_automation` / `request_automation_run` / `decide_approval` | `automations:read` / `automations:write` / `automations:run` / `approvals:decide` |
+| Importe | `import_preview`, `suggest_import_families`, `import_people`, `list_imports`, `rollback_import` | `import:write` |
+| Formulare | `list_forms`, `get_form_definition`, `get_person_forms`, `get_person_form` / `update_person_form` / `save_form_definition` | `people:read` / `people:write` / `settings:write` (vertrauliche Antworten: `health:read`, `health:write`) |
+| Öffentliche Formulare | `list_public_forms`, `list_public_submissions` / `accept_public_submission`, `reject_public_submission` | `people:read` / `people:write` |
+| Mailvorlagen | `list_mail_templates`, `get_mail_template`, `preview_mail_template`, `list_mail_template_versions` / `update_mail_template`, `restore_mail_template_version` | `mail:read` / `mail:write` |
+| Aussendungen | `list_mailings`, `get_mailing` / `create_mailing`, `prepare_mailing`, `request_mailing_release` | `mail:read` / `mail:write` |
+| Mailprotokoll, Absenderprofile | `list_outgoing_mails`, `list_bad_addresses`, `list_sender_profiles` / `clear_bad_address` / `create_sender_profile`, `update_sender_profile` | `mail:read` / `mail:write` / `settings:write` |
+| Datenschutz | `list_consents`, `list_deletion_requests` / `export_person_data` / `anonymise_person` | `audit:read` / `audit:read` und `people:read` / `privacy:write` |
+| Einstellungen, Webhooks | `get_settings`, `update_settings`, `list_webhooks`, `update_webhook`, `delete_webhook` | `settings:write` |
+| Audit-Protokoll | `read_audit_log` | `audit:read` |
+
+Tools, die nur lesen, sind als nur lesend gekennzeichnet. Tools, die löschen, nicht rückgängig gemacht werden können oder Mails an Familien senden, sind als
+destruktiv gekennzeichnet. So kann ein MCP-Client nachfragen, bevor er sie aufruft. Optionale Felder werden mit `clear` über ihren Namen geleert.
+
+Absichtlich nicht über MCP verfügbar:
+
+- **Dateien**: ein Dokument einer Veranstaltung hochladen, ein Dokument herunterladen und das PDF einer Rechnung. Ein Tool-Aufruf
+  überträgt nur JSON; verwenden Sie die Verwaltung oder die REST-API.
+- **Einen Webhook anlegen, ein neues Signatur-Geheimnis, eine neue Adresse eines Webhooks**: Das Geheimnis wird einmal angezeigt und gehört
+  der Person, die das empfangende System einrichtet, und ein Assistent darf Daten der Organisation nicht an eine
+  Adresse seiner Wahl senden. `update_webhook` benennt einen Webhook um, ändert die Ereignisse und schaltet ihn ein oder aus.
+- Einstellungen, die auch die REST-API nicht anbietet (Bankdaten, öffentliche Adresse, Mail-Testmodus, Einbettung, die KI-Einstellung
+  selbst), API-Tokens und die eigenen Einstellungen einer Person für Benachrichtigungen (nur in der Verwaltung).
+
+### Was ein Assistent nicht kann
+
+**Ein Assistent kann eine Freigabe nicht abschalten.** Über MCP erlaubt `automations:write` allein, mit `update_automation`
+den Namen, den Auslöser und die Einstellungen einer Automatisierung zu ändern und sie ein- oder auszuschalten. Ein Token ohne
+`approvals:decide` wird abgelehnt (403), wenn es versucht,
+
+- zu ändern, wer wann freigibt: `mode`, `max_items`, `approvals_needed` oder `approver_roles` – auch bei einer neuen
+  Automatisierung: `create_automation` ohne diese Felder legt eine Automatisierung an, die ausgeschaltet ist und vor jedem Lauf
+  die Freigebenden fragt (Modus *confirm*). Eine eigene Automatisierung zu löschen und neu anzulegen ist daher kein
+  Weg an einer Freigabe vorbei;
+- den Auslöser oder die Einstellungen einer Automatisierung im Modus *automatic* zu ändern (sie läuft ohne Freigabe) oder
+  eine solche Automatisierung einzuschalten. Ausschalten und Umbenennen bleiben möglich;
+- die Einstellung `mailing_approval_above` (ab wie vielen Mails eine Aussendung eine Freigabe braucht) mit
+  `update_settings` zu ändern;
+- eine Rolle zu geben oder zu nehmen (`assign_role`, `remove_role`): Eine Rolle kann jemanden zur Freigabe berechtigen oder die
+  Verwaltung öffnen. Die zwei Tools werden nur mit `roles:write` **und** `approvals:decide` angeboten. Die Rolle
+  *administrator* kann mit einem Token nie gegeben oder genommen werden, wie in der REST-API.
+
+Diese Grenzen gelten nur für MCP; in der REST-API genügen `automations:write`, `settings:write` und `roles:write`.
+
+**Gesundheits- und Sicherheitsdaten folgen der Einstellung „KI-Verarbeitung erlaubt“.** Mit „Nicht vertrauliche Daten“ zählen die Scopes
+`health:read` und `health:write` über MCP nicht, was immer das Token hat:
+
+- `get_event_list` lehnt die vertraulichen Listen ab (Notfallkontakte, Küche, Medizinisches, Medikamente, Versicherung, Schwimmen,
+  Einwilligungen, Änderungen), und `list_event_lists` nennt sie nicht;
+- `get_person_form` lässt die Antworten auf vertrauliche Fragen weg (ihre Felder stehen in `hidden`), und
+  `update_person_form` lehnt es ab, sie zu schreiben;
+- `export_person_data` wird abgelehnt, wenn der Export Antworten auf vertrauliche Fragen oder Notfallkontakte
+  der Familie enthält;
+- `list_public_submissions` zeigt nie Antworten auf vertrauliche Fragen, bei jeder Einstellung.
+
+Mit „Alle Daten“ zählen die Scopes wie in der REST-API, und jeder Lesezugriff auf vertrauliche Daten steht im Audit-Protokoll.
+
+**Was nicht rückgängig gemacht werden kann, braucht einen eigenen Scope und einen Menschen.** `anonymise_person` braucht `privacy:write`
+(nichts anderes schließt es ein), und der Assistent wird angewiesen, es zuerst mit `preview` aufzurufen und erst nach der
+Freigabe durch einen Menschen zu handeln; dasselbe gilt für `merge_duplicates`, `cancel_invoice`, `issue_invoice` und die Tools, die
+löschen.
+
+Voraussetzungen:
+
+1. *Einstellungen → Organisation und Rechnungen → KI-Assistenten*: **KI-Verarbeitung erlaubt** darf nicht auf „Keine“ stehen. Mit
+   „Nicht vertrauliche Daten“ bleiben Gesundheits- und Sicherheitsdaten über MCP gesperrt, auch mit dem Scope `health:read`.
+   Erlauben Sie nur, was Ihre Datenschutzerklärung und ein Vertrag zur Auftragsverarbeitung mit dem KI-Anbieter abdecken.
+2. Ein Token, bei dem **Darf von KI-Assistenten (MCP) verwendet werden** eingeschaltet ist, und nur mit den Scopes, die der Assistent braucht.
+   Der Assistent sieht nur die Tools, die seine Scopes erlauben.
+
+Beispiel für die Konfiguration eines MCP-Clients (das genaue Format hängt vom Client ab):
+
+```json
+{
+  "mcpServers": {
+    "kasmin": {
+      "type": "http",
+      "url": "https://your-kasmin.example/mcp",
+      "headers": { "Authorization": "Bearer kas_…" }
+    }
+  }
+}
+```
+
+Empfehlung: Geben Sie einem KI-Assistenten `automations:run`, aber nicht `approvals:decide` – er kann Läufe vorbereiten, die
+Freigebenden entscheiden per E-Mail. Geben Sie ihm `automations:write` nur, wenn er Automatisierungen einrichten soll; ohne
+`approvals:decide` bleiben die Freigaben, wie sie sind. Geben Sie `finance:write`, `privacy:write`, `settings:write` und
+`roles:write` nur für die jeweilige Aufgabe und mit einem Ablaufdatum: Damit kann ein Assistent ohne eine zweite Person Rechnungen
+ausstellen und stornieren, Personen anonymisieren und Einstellungen ändern.
+
+## Webhooks
+
+*Einstellungen → Webhooks* (Administratorinnen und Administratoren): Kasmin ruft Ihre HTTPS-Adresse auf, wenn etwas passiert. Ereignisse:
+`participation.created`, `participation.status_changed`, `person.created`, `invoice.issued`, `invoice.paid`,
+`payment.received`, `form.confirmed`, `automation.approval_requested`, `automation.run_finished`, `import.finished`.
+
+Jeder Aufruf ist ein `POST` mit JSON (`event`, `occurred_at`, `data`, `delivery`) und den Headern `X-Kasmin-Event`,
+`X-Kasmin-Delivery`, `X-Kasmin-Timestamp` und `X-Kasmin-Signature: sha256=<HMAC-SHA256 of "timestamp.body" with
+the secret>`. Prüfen Sie die Signatur und lehnen Sie alte Zeitstempel ab (z. B. älter als 5 Minuten):
+
+```php
+$expected = 'sha256='.hash_hmac('sha256', $_SERVER['HTTP_X_KASMIN_TIMESTAMP'].'.'.$body, $secret);
+$valid = hash_equals($expected, $_SERVER['HTTP_X_KASMIN_SIGNATURE'])
+    && abs(time() - (int) $_SERVER['HTTP_X_KASMIN_TIMESTAMP']) < 300;
+```
+
+Antworten Sie mit einem Status 2xx. Fehlgeschlagene Zustellungen werden nach 1, 5, 30, 120 und 720 Minuten wiederholt; das Protokoll der Zustellungen
+zeigt jeden Versuch und erlaubt, erneut zu senden. Die Inhalte enthalten keine Gesundheits- oder Sicherheitsdaten.
+
+## Vorlagen und Automatisierungen als Dateien
+
+```
+php artisan kasmin:config:export kasmin-config.json         # templates and automations
+php artisan kasmin:config:import kasmin-config.json --dry-run
+php artisan kasmin:config:import kasmin-config.json [--update]
+```
+
+Der Import legt an, was fehlt, und lässt bestehende Einträge in Ruhe, außer `--update` ist angegeben (Vorlagen bekommen dann eine
+neue Version). Vorlagen werden zuerst in der abgeschotteten Umgebung für Vorlagen geprüft; importierte Automatisierungen sind ausgeschaltet.
+
+## Vergleich: Verwaltung, REST und MCP
+
+Legende: ja / teils / nein / entfällt (absichtlich nur in der Verwaltung). MCP-Tools rufen die REST-API auf, MCP kann also nie mehr
+als REST; was REST anbietet und MCP absichtlich nicht (Dateien, Geheimnisse von Webhooks), steht im Abschnitt zu MCP.
+
+| Bereich | Browser | REST | MCP | Lücke |
+|---|---|---|---|---|
+| Personen: suchen, lesen, anlegen, ändern | ja | ja | ja | – |
+| Kontaktdaten, Erziehungsberechtigte | ja | ja | ja | – |
+| Familien (households) | ja | ja | ja | – |
+| Doppelte Einträge: anführen, zusammenführen, als verschieden markieren | ja | ja | ja | – |
+| Mitgliedschaften einer Person (Art zuweisen) | ja | ja | ja | – |
+| Mitgliedsarten | ja | ja | ja | – |
+| Rollen: anführen, einer Person zuweisen | ja | ja (nicht die Rolle Administration) | ja (braucht zusätzlich approvals:decide) | – |
+| Gruppen, Mitglieder | ja | ja | ja | – |
+| Warteliste einer Gruppe | ja | nein | nein | beide |
+| Veranstaltungsreihen, Veranstaltungsvorlagen | ja | ja | ja | – |
+| Veranstaltungen: Grunddaten, Rollen | ja | ja | ja | – |
+| Veranstaltungen: Bus gebucht, Sitzplätze | ja | ja | ja | – |
+| Veranstaltungen: Preise, Raten, Runden, Kosten, Dokumente | ja | ja (Bild in der Verwaltung) | teils (Dokumente: anführen und löschen) | MCP: keine Dateien (hochladen, herunterladen) |
+| Anmeldung, Teilnehmende, Anreise | ja | ja | ja | – |
+| Angebote, Reserveplätze, Vorrang auf der Warteliste | ja | teils (Angebote, Reserveplätze) | teils (wie REST) | REST und MCP: Vorrang auf der Warteliste und Überspringen |
+| Gruppen, Zimmer, Dienste einer Veranstaltung | ja | ja | ja | – |
+| Listen einer Veranstaltung (Teilnehmende, Bus, Küche …) | ja | ja (JSON; Gesundheitslisten brauchen health:read) | ja (Gesundheitslisten nur mit „Alle Daten“) | Dateien (PDF, XLSX) nur in der Verwaltung |
+| Teilnahmebestätigung (PDF) | ja | nein | nein | REST |
+| Formulare: Definition | ja | ja | ja | – |
+| Formulare: Antworten einer Person | ja | ja | ja (vertrauliche Antworten nur mit „Alle Daten“) | – |
+| Öffentliche Formulare und ihre Einsendungen | ja | teils (lesen, annehmen, ablehnen) | teils (wie REST) | REST und MCP: ein öffentliches Formular anlegen und ändern |
+| Rechnungen: anführen, lesen, PDF, Zahlung erfassen | ja | ja | ja (kein PDF) | entfällt für MCP: Dateien |
+| Rechnungen: ausstellen, senden, stornieren/Gutschrift, ermäßigter Platz | ja | teils (ausstellen, senden, stornieren) | teils (wie REST) | REST und MCP: ermäßigter Platz, Einzelrechnung |
+| Zahlungen: anführen, Bankimport, zuordnen | ja | teils (anführen, zuordnen) | teils (wie REST) | REST und MCP: Bankimport, aufteilen, ein Guthaben verwenden |
+| Rückzahlungen, Guthaben | ja | ja | ja | – |
+| Rechnungsarchiv | ja | ja (lesen; Import in der Verwaltung) | ja (lesen) | – |
+| Mailvorlagen: lesen, Vorschau, ändern | ja | ja | ja | – |
+| Versionen von Mailvorlagen, wiederherstellen | ja | ja | ja | – |
+| Aussendungen: anlegen, vorbereiten, freigeben | ja | ja | ja | – |
+| Gesendete Mails, unzustellbare Adressen | ja | ja | ja | – |
+| Mailkonten, Absenderprofile | ja | teils (Absenderprofile) | teils (Absenderprofile) | entfällt für Konten und Passwörter |
+| Automatisierungen: lesen, ändern, Probelauf, ausführen, Freigaben | ja | ja | ja | – |
+| Eigene Automatisierungen: anlegen, löschen | ja | ja | ja (Einstellungen zur Freigabe brauchen approvals:decide) | – |
+| Neue Saison / Zeitplan einer Veranstaltung | ja | teils (Zeitplan) | teils (Zeitplan) | REST und MCP: Neue Saison |
+| Import von Personen | ja | ja | ja | – |
+| Statistik, Zahlen des Dashboards | ja | ja | ja | – |
+| Einstellungen | ja | ja | ja (mailing_approval_above braucht approvals:decide) | – |
+| Audit-Protokoll | ja | ja | ja | – |
+| Einwilligungen, Löschanfragen, Datenexport, anonymisieren | ja | ja (Lauf zur Aufbewahrung in der Verwaltung) | ja (Export mit Gesundheits- oder Sicherheitsdaten nur mit „Alle Daten“) | – |
+| Benachrichtigungen (eigene Abonnements) | ja | entfällt (nur in der Verwaltung) | nein | gehören der angemeldeten Person |
+| Webhooks | ja | ja | teils (anführen, umbenennen, Ereignisse, schalten, löschen) | entfällt für MCP: anlegen, Adresse und Signatur-Geheimnis (absichtlich nicht für einen Assistenten) |
+| API-Tokens, Systemstatus, Datensicherungen, Update, Upgrade | ja | nein | nein | entfällt (absichtlich nur in der Verwaltung) |
+| Portal der Familie (eigene Daten, Kinder, Sicherheitsblatt) | ja | entfällt | entfällt | entschieden: Die API ist nur für die Verwaltung gedacht |

@@ -2,6 +2,7 @@
 
 namespace App\Support\Lists;
 
+use App\Support\Install\Requirements;
 use Barryvdh\DomPDF\Facade\Pdf;
 use OpenSpout\Common\Entity\Cell\StringCell;
 use OpenSpout\Common\Entity\Row;
@@ -19,6 +20,10 @@ class ListExport
 
     public function render(ListTable $list, string $format, ?string $subtitle = null): string
     {
+        if ($format === 'pdf') {
+            Requirements::moreMemory();
+        }
+
         return match ($format) {
             'pdf' => Pdf::loadView('pdf.list', ['list' => $list, 'subtitle' => $subtitle])->setPaper('a4', count($list->headers) > 5 ? 'landscape' : 'portrait')->output(),
             'xlsx' => $this->xlsx($list),

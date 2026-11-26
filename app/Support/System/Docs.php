@@ -51,9 +51,12 @@ class Docs
         'resources.sender-profiles' => 'admin/mail',
     ];
 
-    public static function url(string $page): string
+    /** The page in the language the interface is shown in: German readers get the German documentation. */
+    public static function url(string $page, ?string $locale = null): string
     {
-        return self::BASE.self::versionSlug().'/'.trim($page, '/').'/';
+        $base = ($locale ?? app()->getLocale()) === 'de' ? str_replace('/docs/', '/de/docs/', self::BASE) : self::BASE;
+
+        return $base.self::versionSlug().'/'.trim($page, '/').'/';
     }
 
     /** "0.22" for 0.22.3, "dev" for a development version. */

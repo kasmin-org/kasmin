@@ -77,4 +77,14 @@ return [
         'other_database' => 'Diese Sicherung stammt aus einer anderen Art von Datenbank (:backup) als diese Installation nutzt (:here).', 'only_mysql' => 'Das Wiederherstellen im Browser geht mit MySQL und MariaDB.',
         'failed' => 'Das Wiederherstellen wurde mit einem Fehler abgebrochen: :error. Der Stand davor ist als :backup gespeichert – stellen Sie diese Sicherung wieder her.',
     ],
+    'requirements' => [
+        'show' => 'Jeden Punkt anzeigen', 'recommended' => 'empfohlen', 'all' => 'alle :count Punkte sind vorhanden', 'some' => 'fehlt: :names',
+        'php' => 'installiert: :version',
+        'extensions' => ['pdo_mysql' => 'Datenbank (MySQL, MariaDB)', 'intl' => 'Datum, Zahlen und Beträge auf Deutsch und Englisch', 'mbstring' => 'Texte mit Umlauten und anderen Zeichen', 'openssl' => 'Verschlüsselung vertraulicher Daten, Mail über TLS, Sicherungen', 'zip' => 'Aktualisierungen, Export als XLSX, Hochladen mehrerer Dateien', 'gd' => 'QR-Code auf Rechnungen, Bilder', 'bcmath' => 'genaue Geldbeträge', 'fileinfo' => 'prüft, was eine hochgeladene Datei wirklich ist', 'tokenizer' => 'vom Framework benötigt', 'xml' => 'PDFs und Dateien von Banken', 'dom' => 'PDFs (Rechnungen, Listen, Lagermappe)', 'xmlreader' => 'Import aus Excel-Dateien', 'ctype' => 'vom Framework benötigt', 'json' => 'API, Einstellungen, Protokolle', 'iconv' => 'Mails und Dateien in anderen Zeichensätzen', 'zlib' => 'komprimierte Sicherungen', 'curl' => 'sucht nach neuen Versionen, Sicherungskopie außerhalb des Servers, Webhooks – ohne sie funktionieren diese eventuell nicht'],
+        'functions' => ['proc_open' => 'damit startet der Cronjob seine einzelnen Aufgaben; ist sie abgeschaltet, nutzen Sie die Cron-Adresse per HTTP (siehe Dokumentation)', 'set_time_limit' => 'lange Aufgaben wie ein Upgrade oder ein großer Import können mehr Zeit anfordern', 'dns_get_record' => 'Prüfung der DNS-Einträge für Mail (SPF, DKIM, DMARC)'],
+        'directories' => ['storage' => 'Uploads, Sicherungen, Protokolle, Sitzungen', 'bootstrap/cache' => 'vorbereitete Dateien des Frameworks'],
+        'memory' => 'Arbeitsspeicher für PHP', 'memory_ok' => ':mb MB (benötigt: :needed MB).', 'memory_unlimited' => 'keine Grenze.', 'memory_low' => 'nur :mb MB – Kasmin braucht :needed MB. Bitten Sie Ihren Hoster, memory_limit zu erhöhen.',
+        'memory_more' => 'Große PDFs dürfen kurz 256 MB belegen; der Server erlaubt das.', 'memory_fixed' => 'Der Server lässt Kasmin für große PDFs nicht mehr belegen: Eine Lagermappe für mehr als etwa 60 Personen kann scheitern – dann memory_limit auf 256M erhöhen.',
+    ],
+    'phpinfo' => ['title' => 'PHP-Konfiguration (phpinfo)', 'intro' => 'Was der Server bietet: Versionen, Erweiterungen, Grenzen. Hoster fragen danach. Schlüssel und Passwörter der Installation sind ausgelassen.', 'show' => 'Anzeigen / verbergen', 'new_tab' => 'in neuem Tab öffnen'],
 ];

@@ -9,10 +9,18 @@ test('health endpoint answers', async ({ request }) => {
     expect((await request.get('/up')).status()).toBe(200);
 });
 
-test('start page shows the logo and fits the screen', async ({ page }) => {
+// The bare address is where people arrive. It once showed a leftover text and no way to log in.
+test('start page shows the logo, fits the screen and leads to the login and to the sign-up', async ({ page }) => {
     await page.goto('/');
     await expect(page.getByAltText('Kasmin')).toBeVisible();
     await noHorizontalScroll(page);
+    await page.locator('[data-start] a').first().click();
+    await expect(page).toHaveURL(/\/login$/);
+    await expect(page.locator('input[type=email]')).toBeVisible();
+    await page.goto('/');
+    await page.locator('[data-start] a').nth(1).click();
+    await expect(page).toHaveURL(/\/register$/);
+    await expect(page.locator('input[name=first_name]')).toBeVisible();
 });
 
 test('login page asks only for the e-mail address', async ({ page }) => {

@@ -1,8 +1,8 @@
 # Installing Kasmin
 
-Requirements: PHP 8.3 or newer (see the README for the supported versions) with the extensions `pdo_mysql`, `intl`,
-`mbstring`, `openssl`, `zip`, `gd`, `bcmath`, `fileinfo`; MariaDB or MySQL; a cron job for automations (later
-versions).
+Requirements: PHP 8.3 or newer with 128 MB of memory and the usual extensions, MariaDB or MySQL, and a cron job. The
+full list, with what each item is needed for, is in [Hosting](hosting.md#what-the-server-must-offer); the set-up
+script checks it before it starts.
 
 ## On ordinary web hosting (recommended way)
 

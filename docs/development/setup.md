@@ -25,6 +25,10 @@ docker compose -f compose.dev.yaml run --rm app php artisan test              # 
 docker compose -f compose.dev.yaml run --rm app composer audit                # known vulnerabilities
 ```
 
+The documentation for administrators exists in English (`docs/admin`) and in German (`docs/de/admin`), with the same file names.
+Every change is made in both languages; `tests/Feature/System/DocsGermanTest.php` fails when a page or a `## ` section is missing in one
+of them.
+
 ## Dynamic security scan (CI job `dast`)
 
 Besides the static scans (Semgrep, CodeQL) the CI scans the running application with

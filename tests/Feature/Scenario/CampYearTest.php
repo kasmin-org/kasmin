@@ -336,8 +336,8 @@ class CampYearTest extends TestCase
 
         $figures = $lists->build($this->event, 'figures');
         // role, female, male, diverse, not specified, total, were there before, new, waitlist
-        // The portal never asks for the gender of a child, so the figures by gender stay empty until the team enters it.
-        $this->assertSame(['Child', '0', '0', '0', '3', '3', '0', '3', '1'], $figures->rows[0]);
+        // Legal guardians must choose the gender when they add a child, so the figures are complete from the start.
+        $this->assertSame(['Child', '3', '0', '0', '0', '3', '0', '3', '1'], $figures->rows[0]);
 
         $safety = Person::factory()->create(['locale' => 'en']);
         $safety->roleAssignments()->create(['role_id' => Role::query()->where('key', 'safety_officer')->value('id')]);
@@ -471,7 +471,7 @@ class CampYearTest extends TestCase
 
     private function addChild(string $first, string $last, string $born): Person
     {
-        $this->post('/portal/children', ['first_name' => $first, 'last_name' => $last, 'birth_date' => $born])->assertSessionHasNoErrors()->assertRedirect();
+        $this->post('/portal/children', ['first_name' => $first, 'last_name' => $last, 'birth_date' => $born, 'gender' => 'female'])->assertSessionHasNoErrors()->assertRedirect();
 
         return $this->children[$first] = Person::query()->where('first_name', $first)->where('last_name', $last)->sole();
     }

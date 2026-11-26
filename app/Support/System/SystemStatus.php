@@ -74,7 +74,20 @@ class SystemStatus
                 $checks[] = ['key' => 'requirement', 'label' => $req['label'], 'status' => 'error', 'detail' => __('system.status.missing')];
             }
         }
-        $checks[] = ['key' => 'requirements', 'label' => __('system.status.requirements'), 'status' => $this->requirements->passes() ? 'ok' : 'error', 'detail' => ''];
+        $items = $this->requirements->details();
+        $missing = collect($items)->where('ok', false);
+        $checks[] = [
+            'key' => 'requirements', 'label' => __('system.status.requirements'), 'items' => $items, 'url' => self::docsUrl('admin/hosting'),
+            'status' => $this->requirements->passes() ? ($missing->isNotEmpty() ? 'warning' : 'ok') : 'error',
+            'detail' => $missing->isEmpty() ? __('system.requirements.all', ['count' => count($items)]) : __('system.requirements.some', ['names' => $missing->pluck('name')->implode(', ')]),
+        ];
+        $memory = Requirements::memoryLimitMb();
+        $checks[] = [
+            'key' => 'memory', 'label' => __('system.requirements.memory'), 'url' => self::docsUrl('admin/hosting'),
+            'status' => $memory === null || $memory >= Requirements::MEMORY_MB ? 'ok' : 'warning',
+            'detail' => __($memory === null ? 'system.requirements.memory_unlimited' : ($memory >= Requirements::MEMORY_MB ? 'system.requirements.memory_ok' : 'system.requirements.memory_low'), ['mb' => $memory, 'needed' => Requirements::MEMORY_MB])
+                .' '.__(Requirements::moreMemory() ? 'system.requirements.memory_more' : 'system.requirements.memory_fixed'),
+        ];
         $last = $this->lastSchedulerRun();
         $checks[] = [
             'key' => 'cron', 'label' => __('system.status.cron'), 'status' => $this->cronMissing() ? 'error' : 'ok',
@@ -83,7 +96,7 @@ class SystemStatus
         ];
         $queued = DB::table('outgoing_mails')->where('status', 'queued')->where('created_at', '<', now()->subMinutes(30))->count();
         $checks[] = ['key' => 'queue', 'label' => __('system.status.queue'), 'status' => $queued > 0 ? 'warning' : 'ok', 'detail' => __('system.status.queue_old', ['count' => $queued])];
-        $checks[] = ['key' => 'database', 'label' => __('system.status.database'), 'status' => $this->schema->status(fresh: true) === SchemaStatus::Ok ? 'ok' : 'error', 'detail' => DB::connection()->getDriverName().' · '.__('system.schema.versions', ['code' => $this->schema->codeVersion(), 'database' => $this->schema->databaseVersion() ?? '–'])];
+        $checks[] = ['key' => 'database', 'label' => __('system.status.database'), 'status' => $this->schema->status(fresh: true) === SchemaStatus::Ok ? 'ok' : 'error', 'detail' => self::databaseVersion().' · '.__('system.schema.versions', ['code' => $this->schema->codeVersion(), 'database' => $this->schema->databaseVersion() ?? '–'])];
         $backup = app(Backups::class)->all()[0] ?? null;
         $checks[] = [
             'key' => 'backup', 'label' => __('system.status.backup'), 'status' => $backup === null || $backup['at']->lt(now()->subDays(2)) ? 'warning' : 'ok',
@@ -146,6 +159,22 @@ class SystemStatus
                     'en' => "A new Kasmin version is available ({$latest['version']}, installed: ".config('kasmin.version').'). Start the update on the system page.'],
                 $latest['url']);
         }
+    }
+
+    /** Kind and version of the database server, e.g. "MariaDB 11.4.2". */
+    public static function databaseVersion(): string
+    {
+        $driver = DB::connection()->getDriverName();
+        try {
+            $version = (string) (DB::selectOne($driver === 'sqlite' ? 'select sqlite_version() as v' : 'select version() as v')->v ?? '');
+        } catch (Throwable) {
+            $version = '';
+        }
+        $name = match (true) {
+            stripos($version, 'mariadb') !== false => 'MariaDB', $driver === 'sqlite' => 'SQLite', default => 'MySQL',
+        };
+
+        return trim($name.' '.preg_replace('/-MariaDB.*$/i', '', $version));
     }
 
     public static function docsUrl(string $page): string

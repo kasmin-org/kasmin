@@ -112,6 +112,24 @@ class BackupController extends Controller
         return redirect()->route('login')->with('status', __('system.restore.done', ['backup' => $before]));
     }
 
+    /**
+     * The configuration of PHP on this server, for administrators (hosters ask for it, and it answers "is … switched
+     * on?"). Without the environment and the variables of the request: they hold the keys and passwords of the installation.
+     */
+    public function phpinfo(): Response
+    {
+        $this->authorizeAdministrator();
+        Audit::record('system.phpinfo_viewed');
+        ob_start();
+        // Wanted: hosters ask for it and there is no shell. Administrators only, logged, and without the environment
+        // and the variables, which hold keys and passwords.
+        // nosemgrep: php.lang.security.phpinfo-use.phpinfo-use
+        phpinfo(INFO_GENERAL | INFO_CONFIGURATION | INFO_MODULES);
+        $html = (string) ob_get_clean();
+
+        return response($html, 200, ['Content-Type' => 'text/html; charset=utf-8', 'Cache-Control' => 'private, no-store', 'X-Robots-Tag' => 'noindex']);
+    }
+
     private function path(Backups $backups, string $name): string
     {
         foreach ($backups->all() as $backup) {

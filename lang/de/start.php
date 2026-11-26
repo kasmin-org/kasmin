@@ -1,7 +1,8 @@
 <?php
 
 return [
-    'title' => 'Willkommen bei Kasmin',
-    'text' => 'Kasmin ist installiert. Anmeldung und das Portal für Erziehungsberechtigte folgen in den nächsten Versionen.',
-    'version' => 'Version :version',
+    'text' => 'Hier verwalten Sie Ihre Anmeldungen, die Daten Ihrer Kinder, Sicherheitsblätter und Rechnungen. Sie melden sich mit Ihrer E-Mail-Adresse an – ein Passwort ist nicht nötig.',
+    'login' => 'Anmelden',
+    'register' => 'Zum ersten Mal registrieren',
+    'events' => 'Veranstaltungen',
 ];

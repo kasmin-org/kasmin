@@ -85,7 +85,7 @@ class PortalRegistrationTest extends TestCase
         $event = Event::query()->create(['title' => 'Summer camp 2027', 'starts_at' => now()->addMonths(6), 'ends_at' => now()->addMonths(6)->addWeek(), 'status' => 'open']);
         $event->roles()->create(['role_key' => 'child', 'capacity' => 0, 'min_age' => 8, 'max_age' => 13]);
 
-        $this->actingAs($user)->post('/portal/children', ['first_name' => 'Kim', 'last_name' => 'Example', 'birth_date' => now()->subYears(10)->toDateString()])
+        $this->actingAs($user)->post('/portal/children', ['first_name' => 'Kim', 'last_name' => 'Example', 'birth_date' => now()->subYears(10)->toDateString(), 'gender' => 'female'])
             ->assertRedirect();
         $child = $guardian->wards()->firstOrFail();
 

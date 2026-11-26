@@ -6,6 +6,8 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ## [Unreleased]
 
+## [0.28.0] - 2026-11-26
+
 ### Changed
 
 - **One language per installation.** The language (German or English) is chosen at the installation and changed only by administrators (*Settings → Organisation and invoices → System → Language*). The language switch on the pages, the language of a person or family and the choice at the sign-up are gone; interface, portal, mails and documents use the language of the installation.
@@ -634,7 +636,8 @@ First public pre-release for testing. Not ready for production use.
 - Docker image: system packages updated and build packages removed after compiling the PHP extensions – the
   container scan reports no high or critical findings any more (previously 75 in Debian packages).
 
-[Unreleased]: https://github.com/kasmin-org/kasmin/compare/v0.27.0...develop
+[Unreleased]: https://github.com/kasmin-org/kasmin/compare/v0.28.0...develop
+[0.28.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.28.0
 [0.27.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.27.0
 [0.26.1]: https://github.com/kasmin-org/kasmin/releases/tag/v0.26.1
 [0.26.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.26.0

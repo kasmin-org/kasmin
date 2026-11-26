@@ -6,6 +6,10 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ## [Unreleased]
 
+### Added
+
+- The documentation for administrators is available in German (`docs/de/admin`), page by page like the English one; a test keeps the two in step.
+
 ## [0.26.0] - 2026-11-26
 
 ### Changed

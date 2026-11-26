@@ -69,4 +69,12 @@ return [
         'remote_never' => 'Eingerichtet; die erste Kopie geht mit der nächsten Sicherung hinaus.', 'remote_ok' => 'Letzte verschlüsselte Kopie gesendet :time.', 'remote_failed' => 'Die letzte Kopie konnte nicht gesendet werden (:time): :error',
         'decrypt' => 'Verschlüsselte Sicherung öffnen', 'decrypt_hint' => 'Laden Sie eine Datei mit der Endung .enc hoch; Sie erhalten die Datenbanksicherung (.sql.gz), die sich z. B. mit phpMyAdmin importieren lässt.', 'passphrase_optional' => 'Passphrase (leer = die gespeicherte)', 'decrypt_button' => 'Entschlüsseln und herunterladen', 'wrong_passphrase' => 'Die Datei ließ sich nicht öffnen: falsche Passphrase oder keine verschlüsselte Sicherung.',
     ],
+    'restore' => [
+        'title' => 'Sicherung wiederherstellen', 'warning' => 'Das ersetzt alles in der Datenbank durch die Sicherung: Personen, Anmeldungen, Rechnungen, E-Mails, Einstellungen. Der aktuelle Stand wird vorher als Sicherung gespeichert. Hochgeladene Dateien und der Schlüssel der Installation sind nicht Teil einer Sicherung. Danach müssen sich alle neu anmelden.',
+        'from_list' => 'Eine Sicherung dieses Servers', 'or_file' => 'oder eine Datei von Ihrem Computer (.sql.gz oder .enc)', 'type_word' => 'Zur Bestätigung tippen Sie das Wort :word', 'word' => 'wiederherstellen', 'word_needed' => 'Bitte tippen Sie zur Bestätigung das Wort :word.',
+        'button' => 'Datenbank durch diese Sicherung ersetzen', 'refused' => 'Es wurde nichts wiederhergestellt', 'done' => 'Die Sicherung wurde wiederhergestellt. Der Stand davor ist als :backup gespeichert. Bitte melden Sie sich neu an.',
+        'not_a_backup' => 'Diese Datei ist keine Datenbanksicherung von Kasmin.', 'incomplete' => 'Diese Sicherung ist nicht vollständig (die letzte Zeile fehlt). Es wurde nichts geändert.',
+        'other_database' => 'Diese Sicherung stammt aus einer anderen Art von Datenbank (:backup) als diese Installation nutzt (:here).', 'only_mysql' => 'Das Wiederherstellen im Browser geht mit MySQL und MariaDB.',
+        'failed' => 'Das Wiederherstellen wurde mit einem Fehler abgebrochen: :error. Der Stand davor ist als :backup gespeichert – stellen Sie diese Sicherung wieder her.',
+    ],
 ];

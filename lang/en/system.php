@@ -69,4 +69,12 @@ return [
         'remote_never' => 'Set up; the first copy is sent with the next backup.', 'remote_ok' => 'Last encrypted copy sent :time.', 'remote_failed' => 'The last copy could not be sent (:time): :error',
         'decrypt' => 'Open an encrypted backup', 'decrypt_hint' => 'Upload a file ending in .enc; you get the database backup (.sql.gz) that can be imported, e.g. with phpMyAdmin.', 'passphrase_optional' => 'Passphrase (empty = the saved one)', 'decrypt_button' => 'Decrypt and download', 'wrong_passphrase' => 'The file could not be opened: wrong passphrase, or not an encrypted backup.',
     ],
+    'restore' => [
+        'title' => 'Restore a backup', 'warning' => 'This replaces everything in the database with the backup: people, registrations, invoices, mails, settings. The current state is saved as a backup first. Uploaded files and the key of the installation are not part of a backup. Afterwards everybody has to log in again.',
+        'from_list' => 'A backup of this server', 'or_file' => 'or a file from your computer (.sql.gz or .enc)', 'type_word' => 'To confirm, type the word :word', 'word' => 'restore', 'word_needed' => 'Please type the word :word to confirm.',
+        'button' => 'Replace the database with this backup', 'refused' => 'Nothing was restored', 'done' => 'The backup was restored. The state before is saved as :backup. Please log in again.',
+        'not_a_backup' => 'This file is not a database backup made by Kasmin.', 'incomplete' => 'This backup is not complete (its last line is missing). Nothing was changed.',
+        'other_database' => 'This backup comes from another kind of database (:backup) than this installation uses (:here).', 'only_mysql' => 'Restoring in the browser works with MySQL and MariaDB.',
+        'failed' => 'The restore stopped with an error: :error. The state before is saved as :backup – restore that one.',
+    ],
 ];

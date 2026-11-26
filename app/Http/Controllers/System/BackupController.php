@@ -7,6 +7,7 @@ use App\Support\Audit\Audit;
 use App\Support\Auth\Permissions;
 use App\Support\Backup\BackupCrypt;
 use App\Support\Backup\Backups;
+use App\Support\Backup\DatabaseRestore;
 use App\Support\Backup\RemoteBackup;
 use Filament\Notifications\Notification;
 use Illuminate\Http\RedirectResponse;
@@ -64,6 +65,51 @@ class BackupController extends Controller
             'Content-Type' => 'application/gzip', 'Cache-Control' => 'private, no-store',
             'Content-Disposition' => 'attachment; filename="'.preg_replace('/[^A-Za-z0-9_.-]+/', '-', (string) preg_replace('/\.enc$/', '', $request->file('file')->getClientOriginalName())).'"',
         ]);
+    }
+
+    /**
+     * Brings a backup back: one of the list, or an uploaded file (also an encrypted one). Replaces everything in the
+     * database; the state before is saved as a backup first. Afterwards everybody has to log in again.
+     */
+    public function restore(Request $request, Backups $backups, DatabaseRestore $restore): RedirectResponse
+    {
+        $this->authorizeAdministrator();
+        abort_unless(DatabaseRestore::available(), 404);
+        $data = $request->validate([
+            'name' => ['nullable', 'string', 'max:200', 'required_without:file'], 'file' => ['nullable', 'file', 'max:204800', 'required_without:name'],
+            'passphrase' => ['nullable', 'string', 'max:200'], 'confirm' => ['required', 'in:'.__('system.restore.word')],
+        ], ['confirm.in' => __('system.restore.word_needed', ['word' => __('system.restore.word')])]);
+        $temporary = null;
+        try {
+            if ($request->hasFile('file')) {
+                $bytes = (string) file_get_contents($request->file('file')->getRealPath());
+                if (str_starts_with($bytes, 'Salted__')) {
+                    $passphrase = (string) ($data['passphrase'] ?? '') !== '' ? (string) $data['passphrase'] : RemoteBackup::secret('backup_passphrase');
+                    $bytes = BackupCrypt::decrypt($bytes, $passphrase) ?? throw new \RuntimeException((string) __('system.backup.wrong_passphrase'));
+                }
+                $temporary = (string) tempnam(sys_get_temp_dir(), 'kasmin-restore');
+                file_put_contents($temporary, $bytes);
+                $file = $temporary;
+            } else {
+                $file = Storage::disk('local')->path($this->path($backups, (string) $data['name']));
+            }
+            $user = $request->user();
+            $before = $restore->restore($file);
+            Audit::record('backup.restored', null, null, ['before' => $before, 'by' => $user?->email], 'system');
+        } catch (\RuntimeException $e) {
+            Notification::make()->title(__('system.restore.refused'))->body($e->getMessage())->danger()->persistent()->send();
+
+            return back();
+        } finally {
+            if ($temporary !== null) {
+                @unlink($temporary);
+            }
+        }
+        // The logins of the backup count now: this session is gone with the old database.
+        auth()->guard()->logout();
+        $request->session()->invalidate();
+
+        return redirect()->route('login')->with('status', __('system.restore.done', ['backup' => $before]));
     }
 
     private function path(Backups $backups, string $name): string

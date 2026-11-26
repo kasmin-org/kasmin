@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\Mail;
 
+use App\Filament\Resources\MailAccounts\Pages\CreateMailAccount;
+use App\Filament\Resources\MailAccounts\Pages\EditMailAccount;
 use App\Models\Consent;
 use App\Models\Event;
 use App\Models\Group;
@@ -26,6 +28,7 @@ use App\Support\Mail\TemplateRenderer;
 use App\Support\Settings;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\URL;
+use Livewire\Livewire;
 use Symfony\Component\Mailer\Transport\NullTransport;
 use Symfony\Component\Mailer\Transport\TransportInterface;
 use Tests\TestCase;
@@ -182,5 +185,38 @@ class MailTest extends TestCase
         $this->assertSame(1, app(Notifier::class)->digests());
         $this->assertStringContainsString('Robin Example', OutgoingMail::query()->where('to_address', 'board@example.org')->firstOrFail()->html);
         $this->assertSame(0, app(Notifier::class)->digests());
+    }
+
+    public function test_one_mail_account_with_one_sender_for_every_mail(): void
+    {
+        auth()->forgetUser();
+        $person = Person::factory()->create();
+        $person->roleAssignments()->create(['role_id' => Role::query()->where('key', 'administrator')->value('id')]);
+        $admin = User::query()->create(['name' => 'Admin', 'email' => 'admin@example.org', 'password' => 'x', 'person_id' => $person->id]);
+        $this->actingAs($admin)->withSession(['two_factor_passed' => true]);
+
+        // No list: the menu entry leads to the one form.
+        $this->get('/admin/mail-accounts')->assertRedirect('/admin/mail-accounts/create');
+        $this->get('/admin/sender-profiles')->assertNotFound();
+        Livewire::test(CreateMailAccount::class)->fillForm(['from_name' => 'Example Camp', 'from_address' => 'office@example.org', 'reply_to' => 'team@example.org', 'delivery' => 'smtp', 'smtp_host' => 'smtp.example.org', 'smtp_port' => 465, 'smtp_encryption' => 'ssl'])
+            ->call('create')->assertHasNoFormErrors();
+        $account = MailAccount::query()->sole();
+        $this->assertTrue($account->is_default);
+        $this->assertSame(['Example Camp', 'office@example.org', 'team@example.org'], array_values(SenderProfile::query()->sole()->only(['from_name', 'from_address', 'reply_to'])));
+        $this->get('/admin/mail-accounts')->assertRedirect('/admin/mail-accounts/'.$account->id.'/edit');
+        $this->get('/admin/mail-accounts/create')->assertRedirect('/admin/mail-accounts/'.$account->id.'/edit');
+
+        Livewire::test(EditMailAccount::class, ['record' => $account->id])->assertFormSet(['from_address' => 'office@example.org', 'smtp_host' => 'smtp.example.org'])
+            ->fillForm(['from_name' => 'The Camp', 'reply_to' => null])->call('save')->assertHasNoFormErrors();
+        $this->assertSame(['The Camp', null], array_values(SenderProfile::query()->sole()->only(['from_name', 'reply_to'])));
+
+        // Templates and mailings offer no choice of a sender, and a mail that still names an old one uses the one sender.
+        $this->get('/admin/mail-templates/'.MailTemplate::query()->firstOrFail()->id.'/edit')->assertOk()->assertDontSee('Sender profile');
+        $old = SenderProfile::query()->create(['name' => 'Old', 'from_name' => 'Old sender', 'from_address' => 'old@example.org', 'mail_account_id' => $account->id]);
+        $mail = OutgoingMail::query()->create(['sender_profile_id' => $old->id, 'to_address' => 'a@example.org', 'subject' => 'S', 'html' => '<p>x</p>', 'text' => 'x']);
+        $email = app(Sender::class)->build($mail, SenderProfile::main(), MailAccount::main());
+        $this->assertSame('office@example.org', $email->getFrom()[0]->getAddress());
+        $this->assertSame('The Camp', $email->getFrom()[0]->getName());
+        $this->assertSame($account->id, MailAccount::main()?->id);
     }
 }

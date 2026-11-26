@@ -85,4 +85,10 @@ class MailAccount extends Model
     {
         return $this->imap_host !== null && $this->imap_host !== '';
     }
+
+    /** The mail account of the installation: there is one (the standard one, if older versions left several). */
+    public static function main(): ?self
+    {
+        return self::query()->orderByDesc('is_default')->orderBy('id')->first();
+    }
 }

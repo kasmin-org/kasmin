@@ -12,7 +12,7 @@ use Laravel\Mcp\Server\Attributes\Name;
 use Laravel\Mcp\Server\Tools\Annotations\IsDestructive;
 
 #[Name('update_sender_profile')]
-#[Description('Changes a sender profile. All mails sent with the profile then come from the new sender, and replies go to the new reply-to address: show the human the change and ask first.')]
+#[Description('Changes the sender of the installation. All mails then come from the new sender, and replies go to the new reply-to address: show the human the change and ask first.')]
 #[IsDestructive]
 class UpdateSenderProfile extends ApiTool
 {

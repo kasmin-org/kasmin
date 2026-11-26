@@ -127,7 +127,7 @@ return [
         'delivery' => 'Zustellung', 'delivery_smtp' => 'Über SMTP-Server', 'delivery_direct' => 'Direkt an den Mailserver der Empfänger',
         'dkim_hint' => 'Bei direkter Zustellung signiert Kasmin selbst mit DKIM. Beim Versand über einen SMTP-Server signiert meist der Anbieter; geben Sie dann dessen Selektor an, damit der DNS-Check ihn findet.', 'dkim_domain' => 'DKIM-Domain', 'dkim_selector' => 'DKIM-Selektor',
         'dkim_generate' => 'DKIM-Schlüssel erzeugen', 'dkim_generate_hint' => 'Ein neuer Schlüssel ersetzt den bisherigen. Danach müssen Sie den angezeigten DNS-Eintrag setzen.', 'dkim_generated' => 'Schlüssel erzeugt – bitte diesen DNS-Eintrag setzen:',
-        'account' => 'Mailkonto', 'account_plural' => 'Mailkonten',
+        'account' => 'Mailkonto', 'account_plural' => 'Mailkonten', 'sending' => 'E-Mail-Versand', 'sender' => 'Absender', 'sender_hint' => 'Jede Mail dieser Installation geht mit diesem Namen und dieser Adresse hinaus.', 'one_sender' => 'Es gibt einen Absender. Ändern Sie ihn, statt einen weiteren anzulegen.',
         'sender_profile' => 'Absenderprofil', 'sender_profile_plural' => 'Absenderprofile',
         'template' => 'Mailvorlage', 'template_plural' => 'Mailvorlagen',
         'attachments' => 'Anhänge', 'attachments_hint' => 'PDF, JPG oder PNG, höchstens 5 Dateien mit 5 MB. Große Anhänge machen Mails langsam und werden oft abgelehnt; ein Dokument bei der Veranstaltung ist meist besser.', 'needs_approval' => 'Diese Aussendung ist groß: Sie wird erst nach einer Freigabe verschickt.', 'waiting' => 'Wartet auf Freigabe.',
@@ -158,7 +158,7 @@ return [
         'statuses' => ['paused' => 'Angehalten', 'held' => 'Zurückgehalten', 'queued' => 'Warteschlange', 'sending' => 'Wird gesendet', 'sent' => 'Gesendet', 'failed' => 'Fehlgeschlagen', 'bounced' => 'Unzustellbar', 'cancelled' => 'Abgebrochen'],
         'kinds' => ['transactional' => 'Einzelmail', 'mailing' => 'Aussendung', 'newsletter' => 'Newsletter', 'notification' => 'Benachrichtigung'],
         'hints' => [
-            'is_default' => 'Wird für Mails ohne eigenes Absenderprofil verwendet.',
+            'is_default' => 'Wird für Mails ohne eigenes Absenderprofil verwendet.', 'reply_to' => 'Wohin Antworten gehen, wenn nicht an die Absenderadresse. Leer = an die Absenderadresse.',
             'delivery' => 'Direkte Zustellung braucht offenen Port 25 und korrekte SPF/DKIM/DMARC-Einträge; auf normalem Webhosting ist ein SMTP-Server meist zuverlässiger.',
             'sent_folder' => 'Z. B. Sent oder Gesendet. Leer = keine Kopie.',
             'rate_limits' => 'Grenzen Ihres Mailanbieters; was darüber liegt, geht beim nächsten Durchlauf hinaus.',

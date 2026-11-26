@@ -127,7 +127,7 @@ return [
         'delivery' => 'Delivery', 'delivery_smtp' => 'Via SMTP server', 'delivery_direct' => 'Directly to the mail servers of the recipients',
         'dkim_hint' => 'With direct delivery Kasmin signs with DKIM itself. When sending via an SMTP server the provider usually signs; enter its selector so the DNS check finds it.', 'dkim_domain' => 'DKIM domain', 'dkim_selector' => 'DKIM selector',
         'dkim_generate' => 'Generate DKIM key', 'dkim_generate_hint' => 'A new key replaces the previous one. Then you have to publish the DNS record shown.', 'dkim_generated' => 'Key generated – please publish this DNS record:',
-        'account' => 'Mail account', 'account_plural' => 'Mail accounts',
+        'account' => 'Mail account', 'account_plural' => 'Mail accounts', 'sending' => 'E-mail sending', 'sender' => 'Sender', 'sender_hint' => 'Every mail of this installation goes out with this name and address.', 'one_sender' => 'There is one sender. Change it instead of adding another one.',
         'sender_profile' => 'Sender profile', 'sender_profile_plural' => 'Sender profiles',
         'template' => 'Mail template', 'template_plural' => 'Mail templates',
         'attachments' => 'Attachments', 'attachments_hint' => 'PDF, JPG or PNG, at most 5 files of 5 MB. Large attachments make mails slow and are often rejected; a document at the event is usually better.', 'needs_approval' => 'This mailing is large: it is sent after an approval.', 'waiting' => 'Waiting for approval.',
@@ -158,7 +158,7 @@ return [
         'statuses' => ['paused' => 'Paused', 'held' => 'Held', 'queued' => 'Queued', 'sending' => 'Sending', 'sent' => 'Sent', 'failed' => 'Failed', 'bounced' => 'Bounced', 'cancelled' => 'Cancelled'],
         'kinds' => ['transactional' => 'Single mail', 'mailing' => 'Mailing', 'newsletter' => 'Newsletter', 'notification' => 'Notification'],
         'hints' => [
-            'is_default' => 'Used for mails without their own sender profile.',
+            'is_default' => 'Used for mails without their own sender profile.', 'reply_to' => 'Where answers go if not to the sender address. Empty = to the sender address.',
             'delivery' => 'Direct delivery needs outgoing port 25 and correct SPF/DKIM/DMARC records; on ordinary web hosting an SMTP server is usually more reliable.',
             'sent_folder' => 'E.g. Sent. Empty = no copy.',
             'rate_limits' => 'Limits of your mail provider; anything above them goes out in the next run.',

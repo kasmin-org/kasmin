@@ -34,8 +34,6 @@ class MailTemplateForm
                 TextInput::make('key')->label(__('admin.form.key'))->required()->alphaDash()->unique(ignoreRecord: true),
                 Select::make('category')->label(__('admin.mail.category'))->options(array_combine(MailTemplate::CATEGORIES, array_map(fn ($c) => __('admin.mail.categories.'.$c), MailTemplate::CATEGORIES)))->required(),
                 TextInput::make('name')->label(__('admin.form.name'))->required(),
-                Select::make('sender_profile_id')->label(__('admin.mail.sender_profile'))->relationship('senderProfile', 'name')
-                    ->hintIcon('heroicon-m-question-mark-circle', tooltip: __('admin.mail.hints.sender_profile')),
                 Select::make('audience')->label(__('admin.mail.audience'))->options(__('admin.mail.audiences'))->default('guardians')->required(),
                 Toggle::make('active')->label(__('admin.form.active'))->default(true),
                 TextInput::make('version')->label(__('admin.form.version'))->disabled()->dehydrated(false),

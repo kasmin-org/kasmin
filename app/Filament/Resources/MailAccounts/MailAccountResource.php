@@ -6,14 +6,12 @@ use App\Filament\Resources\MailAccounts\Pages\CreateMailAccount;
 use App\Filament\Resources\MailAccounts\Pages\EditMailAccount;
 use App\Filament\Resources\MailAccounts\Pages\ListMailAccounts;
 use App\Filament\Resources\MailAccounts\Schemas\MailAccountForm;
-use App\Filament\Resources\MailAccounts\Tables\MailAccountsTable;
 use App\Filament\Support\AreaAccess;
 use App\Models\MailAccount;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
-use Filament\Tables\Table;
 
 class MailAccountResource extends Resource
 {
@@ -33,7 +31,12 @@ class MailAccountResource extends Resource
 
     public static function getPluralModelLabel(): string
     {
-        return __('admin.mail.account_plural');
+        return __('admin.mail.sending');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('admin.mail.sending');
     }
 
     public static function getNavigationGroup(): ?string
@@ -46,11 +49,6 @@ class MailAccountResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return MailAccountForm::configure($schema);
-    }
-
-    public static function table(Table $table): Table
-    {
-        return MailAccountsTable::configure($table);
     }
 
     public static function getRelations(): array

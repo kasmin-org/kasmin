@@ -38,7 +38,8 @@ class RuntimeSettings
             if (Sender::testAddress() !== null) {
                 config(['mail.to' => ['address' => Sender::testAddress(), 'name' => 'Kasmin test mode']]);
             }
-            $account = MailAccount::query()->where('is_default', true)->where('delivery', 'smtp')->whereNotNull('smtp_host')->first();
+            $account = MailAccount::main();
+            $account = $account !== null && $account->delivery === 'smtp' && $account->smtp_host ? $account : null;
             if ($account !== null) {
                 $from = $account->senderProfiles()->orderBy('id')->first();
                 config([

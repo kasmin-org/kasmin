@@ -571,8 +571,8 @@ class ApiParityTest extends TestCase
         $this->withToken($admin)->postJson('/api/v1/sender-profiles', ['mail_account' => 999] + $profile)->assertUnprocessable()->assertJsonValidationErrors('mail_account');
         $id = $this->withToken($admin)->postJson('/api/v1/sender-profiles', $profile)->assertCreated()->assertJsonPath('data.mail_account_name', 'Office')->json('data.id');
         $changed = $this->withToken($admin)->patchJson("/api/v1/sender-profiles/$id", ['reply_to' => 'team@example.org', 'smtp_password' => 'x'])->assertOk()->assertJsonPath('data.reply_to', 'team@example.org');
-        $list = $this->withToken($token)->getJson('/api/v1/sender-profiles')->assertOk();
-        $this->assertGreaterThanOrEqual(1, count($list->json('data')));
+        $this->withToken($admin)->postJson('/api/v1/sender-profiles', ['from_address' => 'second@example.org'] + $profile)->assertUnprocessable()->assertJsonValidationErrors('from_address'); // an installation has one sender
+        $list = $this->withToken($token)->getJson('/api/v1/sender-profiles')->assertOk()->assertJsonCount(1, 'data');
         foreach ([$changed, $list] as $answer) {
             $this->assertStringNotContainsString('secret', (string) $answer->getContent());
             $this->assertStringNotContainsString('password', (string) $answer->getContent());

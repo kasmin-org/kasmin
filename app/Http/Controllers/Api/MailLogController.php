@@ -13,6 +13,7 @@ use App\Support\Mail\MailLinks;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 /**
  * Versions of mail templates, the mail log, addresses that do not work and sender profiles. Scopes: mail:read,
@@ -95,24 +96,30 @@ class MailLogController extends ApiController
         return response()->json(['data' => $this->presentBad($point->refresh())]);
     }
 
-    /** Sender profiles: from name and address, reply-to and the mail account they send with (name only). */
+    /** The sender of the installation: from name and address, reply-to and the mail account (name only). There is one. */
     public function senderProfiles(): JsonResponse
     {
         $this->scope('mail:read');
 
-        return response()->json(['data' => SenderProfile::query()->with('account')->orderBy('name')->get()->map(fn (SenderProfile $p) => $this->presentProfile($p))->values()]);
+        $sender = SenderProfile::main();
+
+        return response()->json(['data' => $sender === null ? [] : [$this->presentProfile($sender->load('account'))]]);
     }
 
-    /** Creates a sender profile for an existing mail account (mail_account = its number). Needs settings:write. */
+    /** Creates the sender for the mail account (mail_account = its number), if there is none yet – an installation has one sender. Needs settings:write. */
     public function createSenderProfile(Request $request): JsonResponse
     {
         $this->scope('settings:write');
-        $profile = SenderProfile::query()->create($this->profileData($request, true));
+        $data = $this->profileData($request, true);
+        if (SenderProfile::query()->exists()) {
+            throw ValidationException::withMessages(['from_address' => [__('admin.mail.one_sender')]]);
+        }
+        $profile = SenderProfile::query()->create($data);
 
         return response()->json(['data' => $this->presentProfile($profile->load('account'))], 201);
     }
 
-    /** Changes a sender profile. Needs settings:write. */
+    /** Changes the sender. Needs settings:write. */
     public function updateSenderProfile(Request $request, int $profile): JsonResponse
     {
         $this->scope('settings:write');

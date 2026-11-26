@@ -91,7 +91,7 @@ class PeopleController extends ApiController
     public function households(Request $request): JsonResponse
     {
         $this->scope('people:read');
-        $page = Household::query()->with('members')->orderBy('name')
+        $page = Household::query()->with('members', 'invoiceRecipient')->orderBy('name')
             ->when($request->string('search')->toString(), fn ($q, string $s) => $q->where('name', 'like', '%'.$s.'%'))->paginate($this->perPage());
 
         return response()->json(['data' => $page->getCollection()->map(fn (Household $h) => Presenter::household($h))->values(), 'meta' => ['total' => $page->total(), 'page' => $page->currentPage(), 'last_page' => $page->lastPage()]]);
@@ -101,6 +101,6 @@ class PeopleController extends ApiController
     {
         $this->scope('people:read');
 
-        return response()->json(['data' => Presenter::household(Household::query()->where('public_id', $household)->with('members')->firstOrFail())]);
+        return response()->json(['data' => Presenter::household(Household::query()->where('public_id', $household)->with('members', 'invoiceRecipient')->firstOrFail())]);
     }
 }

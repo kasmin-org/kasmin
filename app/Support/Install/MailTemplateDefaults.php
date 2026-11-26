@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Schema;
  */
 class MailTemplateDefaults
 {
-    public const VERSION = 9;
+    public const VERSION = 10;
 
     public function install(): void
     {
@@ -74,10 +74,10 @@ class MailTemplateDefaults
                 '<p>{{ salutation }}</p><p>{{ children[0].full_name }} has reached the age from which people manage their own data. Legal guardians no longer have access in the portal; future invoices go to {{ children[0].full_name }}.</p><p>Kind regards<br>{{ organisation.name }}</p>',
             ]],
             'round_offer' => ['registration', 'guardians', ['de' => 'Platzangebot (Anmelderunde)', 'en' => 'Place offered (registration round)'], [
-                '{{ event.title }}: Platz für {% for child in children %}{{ child.first_name }}{% if not loop.last %}, {% endif %}{% endfor %}',
+                '{{ event.title }}: Platz für {% for child in children %}{{ child.first_name }}{% if loop.revindex == 2 %} und {% elseif not loop.last %}, {% endif %}{% endfor %}',
                 '<p>{{ salutation }}</p><p>für {% for child in children %}<strong>{{ child.first_name }}</strong>{% if not loop.last %}, {% endif %}{% endfor %} ist bei <strong>{{ event.title }}</strong> ({{ event.starts_at }} – {{ event.ends_at }}) ein Platz reserviert, bis <strong>{{ registration.offer_until }}</strong>.</p>{% if registration.by_payment %}<p>Mit der Bezahlung der beiliegenden Rechnung bis zu diesem Termin nehmen Sie den Platz an. Ohne Zahlung wird er weitergegeben.</p>{% else %}<p>Bitte nehmen Sie den Platz im Portal an oder sagen Sie ab. Ohne Antwort wird er weitergegeben.</p>{% endif %}'.$button('Zum Portal').'<p>Mit freundlichen Grüßen<br>{{ organisation.name }}</p>',
             ], [
-                '{{ event.title }}: place for {% for child in children %}{{ child.first_name }}{% if not loop.last %}, {% endif %}{% endfor %}',
+                '{{ event.title }}: place for {% for child in children %}{{ child.first_name }}{% if loop.revindex == 2 %} and {% elseif not loop.last %}, {% endif %}{% endfor %}',
                 '<p>{{ salutation }}</p><p>a place at <strong>{{ event.title }}</strong> ({{ event.starts_at }} – {{ event.ends_at }}) is reserved for {% for child in children %}<strong>{{ child.first_name }}</strong>{% if not loop.last %}, {% endif %}{% endfor %} until <strong>{{ registration.offer_until }}</strong>.</p>{% if registration.by_payment %}<p>By paying the attached invoice until then you accept the place. Without payment it is passed on.</p>{% else %}<p>Please accept or decline the place in the portal. Without an answer it is passed on.</p>{% endif %}'.$button('Open the portal').'<p>Kind regards<br>{{ organisation.name }}</p>',
             ]],
             'own_registration_notice' => ['registration', 'guardians', ['de' => 'Hinweis: eigene Anmeldung', 'en' => 'Notice: own registration'], [
@@ -96,38 +96,38 @@ class MailTemplateDefaults
             ]],
             'safety_sheet_request' => ['safety_sheet', 'guardians', ['de' => 'Sicherheitsblatt ausfüllen', 'en' => 'Fill in the safety sheet'], [
                 'Bitte Sicherheitsblatt ausfüllen oder bestätigen',
-                '<p>{{ salutation }}</p><p>für {{ event.title }} brauchen wir das aktuelle Sicherheitsblatt{% if children|length > 0 %} von {% for child in children %}{{ child.first_name }}{% if not loop.last %}, {% endif %}{% endfor %}{% endif %}. Wenn sich nichts geändert hat, bestätigen Sie die Angaben im Portal mit einem Klick.</p>'.$button('Sicherheitsblatt öffnen').'<p>Die Angaben selbst stehen aus Datenschutzgründen nicht in dieser E-Mail.</p><p>Mit freundlichen Grüßen<br>{{ organisation.name }}</p>',
+                '<p>{{ salutation }}</p><p>für {{ event.title }} brauchen wir das aktuelle Sicherheitsblatt{% if children|length > 0 %} von {% for child in children %}{{ child.first_name }}{% if loop.revindex == 2 %} und {% elseif not loop.last %}, {% endif %}{% endfor %}{% endif %}. Wenn sich nichts geändert hat, bestätigen Sie die Angaben im Portal mit einem Klick.</p>'.$button('Sicherheitsblatt öffnen').'<p>Die Angaben selbst stehen aus Datenschutzgründen nicht in dieser E-Mail.</p><p>Mit freundlichen Grüßen<br>{{ organisation.name }}</p>',
             ], [
                 'Please fill in or confirm the safety sheet',
-                '<p>{{ salutation }}</p><p>for {{ event.title }} we need the current safety sheet{% if children|length > 0 %} of {% for child in children %}{{ child.first_name }}{% if not loop.last %}, {% endif %}{% endfor %}{% endif %}. If nothing has changed, confirm the information in the portal with one click.</p>'.$button('Open the safety sheet').'<p>For data protection reasons the information itself is not included in this e-mail.</p><p>Kind regards<br>{{ organisation.name }}</p>',
+                '<p>{{ salutation }}</p><p>for {{ event.title }} we need the current safety sheet{% if children|length > 0 %} of {% for child in children %}{{ child.first_name }}{% if loop.revindex == 2 %} and {% elseif not loop.last %}, {% endif %}{% endfor %}{% endif %}. If nothing has changed, confirm the information in the portal with one click.</p>'.$button('Open the safety sheet').'<p>For data protection reasons the information itself is not included in this e-mail.</p><p>Kind regards<br>{{ organisation.name }}</p>',
             ]],
             'safety_sheet_confirm' => ['safety_sheet', 'guardians', ['de' => 'Sicherheitsblatt jährlich bestätigen', 'en' => 'Yearly confirmation of the safety sheet'], [
                 'Bitte Sicherheitsblatt bestätigen',
-                '<p>{{ salutation }}</p><p>vor {{ event.title }} brauchen wir die Bestätigung, dass das Sicherheitsblatt{% if children|length > 0 %} von {% for child in children %}{{ child.first_name }}{% if not loop.last %}, {% endif %}{% endfor %}{% endif %} noch stimmt. Wenn sich nichts geändert hat, genügt ein Klick im Portal.</p>'.$button('Sicherheitsblatt öffnen').'<p>Die Angaben selbst stehen aus Datenschutzgründen nicht in dieser E-Mail.</p><p>Mit freundlichen Grüßen<br>{{ organisation.name }}</p>',
+                '<p>{{ salutation }}</p><p>vor {{ event.title }} brauchen wir die Bestätigung, dass das Sicherheitsblatt{% if children|length > 0 %} von {% for child in children %}{{ child.first_name }}{% if loop.revindex == 2 %} und {% elseif not loop.last %}, {% endif %}{% endfor %}{% endif %} noch stimmt. Wenn sich nichts geändert hat, genügt ein Klick im Portal.</p>'.$button('Sicherheitsblatt öffnen').'<p>Die Angaben selbst stehen aus Datenschutzgründen nicht in dieser E-Mail.</p><p>Mit freundlichen Grüßen<br>{{ organisation.name }}</p>',
             ], [
                 'Please confirm the safety sheet',
-                '<p>{{ salutation }}</p><p>before {{ event.title }} we need your confirmation that the safety sheet{% if children|length > 0 %} of {% for child in children %}{{ child.first_name }}{% if not loop.last %}, {% endif %}{% endfor %}{% endif %} is still correct. If nothing has changed, one click in the portal is enough.</p>'.$button('Open the safety sheet').'<p>For data protection reasons the information itself is not included in this e-mail.</p><p>Kind regards<br>{{ organisation.name }}</p>',
+                '<p>{{ salutation }}</p><p>before {{ event.title }} we need your confirmation that the safety sheet{% if children|length > 0 %} of {% for child in children %}{{ child.first_name }}{% if loop.revindex == 2 %} and {% elseif not loop.last %}, {% endif %}{% endfor %}{% endif %} is still correct. If nothing has changed, one click in the portal is enough.</p>'.$button('Open the safety sheet').'<p>For data protection reasons the information itself is not included in this e-mail.</p><p>Kind regards<br>{{ organisation.name }}</p>',
             ]],
             'safety_sheet_thanks' => ['safety_sheet', 'guardians', ['de' => 'Danke, Sicherheitsblatt bestätigt', 'en' => 'Thank you, safety sheet confirmed'], [
                 'Danke: Sicherheitsblatt bestätigt',
-                '<p>{{ salutation }}</p><p>vielen Dank, das Sicherheitsblatt{% if children|length > 0 %} von {% for child in children %}{{ child.first_name }}{% if not loop.last %}, {% endif %}{% endfor %}{% endif %} ist gespeichert und bestätigt. Sie können es im Portal jederzeit ansehen und ändern.</p>'.$button('Sicherheitsblatt öffnen').'<p>Mit freundlichen Grüßen<br>{{ organisation.name }}</p>',
+                '<p>{{ salutation }}</p><p>vielen Dank, das Sicherheitsblatt{% if children|length > 0 %} von {% for child in children %}{{ child.first_name }}{% if loop.revindex == 2 %} und {% elseif not loop.last %}, {% endif %}{% endfor %}{% endif %} ist gespeichert und bestätigt. Sie können es im Portal jederzeit ansehen und ändern.</p>'.$button('Sicherheitsblatt öffnen').'<p>Mit freundlichen Grüßen<br>{{ organisation.name }}</p>',
             ], [
                 'Thank you: safety sheet confirmed',
-                '<p>{{ salutation }}</p><p>thank you, the safety sheet{% if children|length > 0 %} of {% for child in children %}{{ child.first_name }}{% if not loop.last %}, {% endif %}{% endfor %}{% endif %} has been saved and confirmed. You can view and change it in the portal at any time.</p>'.$button('Open the safety sheet').'<p>Kind regards<br>{{ organisation.name }}</p>',
+                '<p>{{ salutation }}</p><p>thank you, the safety sheet{% if children|length > 0 %} of {% for child in children %}{{ child.first_name }}{% if loop.revindex == 2 %} and {% elseif not loop.last %}, {% endif %}{% endfor %}{% endif %} has been saved and confirmed. You can view and change it in the portal at any time.</p>'.$button('Open the safety sheet').'<p>Kind regards<br>{{ organisation.name }}</p>',
             ]],
             'safety_sheet_reminder' => ['reminder', 'guardians', ['de' => 'Erinnerung Sicherheitsblatt', 'en' => 'Safety sheet reminder'], [
                 'Erinnerung: Sicherheitsblatt für {{ event.title }}',
-                '<p>{{ salutation }}</p><p>das Sicherheitsblatt{% if children|length > 0 %} von {% for child in children %}{{ child.first_name }}{% if not loop.last %}, {% endif %}{% endfor %}{% endif %} fehlt noch oder ist nicht bestätigt. Bitte erledigen Sie das im Portal – es dauert nur wenige Minuten.</p>'.$button('Jetzt erledigen').'<p>Mit freundlichen Grüßen<br>{{ organisation.name }}</p>',
+                '<p>{{ salutation }}</p><p>das Sicherheitsblatt{% if children|length > 0 %} von {% for child in children %}{{ child.first_name }}{% if loop.revindex == 2 %} und {% elseif not loop.last %}, {% endif %}{% endfor %}{% endif %} fehlt noch oder ist nicht bestätigt. Bitte erledigen Sie das im Portal – es dauert nur wenige Minuten.</p>'.$button('Jetzt erledigen').'<p>Mit freundlichen Grüßen<br>{{ organisation.name }}</p>',
             ], [
                 'Reminder: safety sheet for {{ event.title }}',
-                '<p>{{ salutation }}</p><p>the safety sheet{% if children|length > 0 %} of {% for child in children %}{{ child.first_name }}{% if not loop.last %}, {% endif %}{% endfor %}{% endif %} is still missing or not confirmed. Please complete it in the portal – it only takes a few minutes.</p>'.$button('Do it now').'<p>Kind regards<br>{{ organisation.name }}</p>',
+                '<p>{{ salutation }}</p><p>the safety sheet{% if children|length > 0 %} of {% for child in children %}{{ child.first_name }}{% if loop.revindex == 2 %} and {% elseif not loop.last %}, {% endif %}{% endfor %}{% endif %} is still missing or not confirmed. Please complete it in the portal – it only takes a few minutes.</p>'.$button('Do it now').'<p>Kind regards<br>{{ organisation.name }}</p>',
             ]],
             'event_information' => ['event_information', 'guardians', ['de' => 'Informationen zur Veranstaltung', 'en' => 'Event information'], [
                 'Informationen zu {{ event.title }}',
-                '<p>{{ salutation }}</p><p>hier die wichtigsten Informationen zu <strong>{{ event.title }}</strong>:</p><ul><li>Beginn: {{ event.starts_at }}</li><li>Ende: {{ event.ends_at }}</li><li>Ort: {{ event.location }}</li><li>Treffpunkt: {{ event.meeting_point }}</li></ul><p>Mit freundlichen Grüßen<br>{{ organisation.name }}</p>',
+                '<p>{{ salutation }}</p><p>hier die wichtigsten Informationen zu <strong>{{ event.title }}</strong>:</p><ul><li>Beginn: {{ event.starts_at }}</li><li>Ende: {{ event.ends_at }}</li>{% if event.location %}<li>Ort: {{ event.location }}</li>{% endif %}{% if event.meeting_point %}<li>Treffpunkt: {{ event.meeting_point }}</li>{% endif %}</ul><p>Mit freundlichen Grüßen<br>{{ organisation.name }}</p>',
             ], [
                 'Information about {{ event.title }}',
-                '<p>{{ salutation }}</p><p>here is the most important information about <strong>{{ event.title }}</strong>:</p><ul><li>Start: {{ event.starts_at }}</li><li>End: {{ event.ends_at }}</li><li>Place: {{ event.location }}</li><li>Meeting point: {{ event.meeting_point }}</li></ul><p>Kind regards<br>{{ organisation.name }}</p>',
+                '<p>{{ salutation }}</p><p>here is the most important information about <strong>{{ event.title }}</strong>:</p><ul><li>Start: {{ event.starts_at }}</li><li>End: {{ event.ends_at }}</li>{% if event.location %}<li>Place: {{ event.location }}</li>{% endif %}{% if event.meeting_point %}<li>Meeting point: {{ event.meeting_point }}</li>{% endif %}</ul><p>Kind regards<br>{{ organisation.name }}</p>',
             ]],
             'invoice' => ['invoice', 'guardians', ['de' => 'Rechnung', 'en' => 'Invoice'], [
                 'Rechnung {{ invoice.number }}{% if event %} – {{ event.title }}{% endif %}',
@@ -166,10 +166,10 @@ class MailTemplateDefaults
             ]],
             'group_place_offer' => ['waitlist', 'guardians', ['de' => 'Platzangebot in einer Gruppe', 'en' => 'Place offered in a group'], [
                 'Ein Platz ist frei: {{ group.name }}',
-                '<p>{{ salutation }}</p><p>gute Nachrichten: In <strong>{{ group.name }}</strong> ist ein Platz{% if children|length > 0 %} für {% for child in children %}{{ child.first_name }}{% if not loop.last %}, {% endif %}{% endfor %}{% endif %} frei geworden.</p><p>Bitte nehmen Sie den Platz bis <strong>{{ group.offer_until }}</strong> im Portal an oder lehnen Sie ihn ab.</p>'.$button('Platz annehmen oder ablehnen').'<p>Mit freundlichen Grüßen<br>{{ organisation.name }}</p>',
+                '<p>{{ salutation }}</p><p>gute Nachrichten: In <strong>{{ group.name }}</strong> ist ein Platz{% if children|length > 0 %} für {% for child in children %}{{ child.first_name }}{% if loop.revindex == 2 %} und {% elseif not loop.last %}, {% endif %}{% endfor %}{% endif %} frei geworden.</p><p>Bitte nehmen Sie den Platz bis <strong>{{ group.offer_until }}</strong> im Portal an oder lehnen Sie ihn ab.</p>'.$button('Platz annehmen oder ablehnen').'<p>Mit freundlichen Grüßen<br>{{ organisation.name }}</p>',
             ], [
                 'A place is free: {{ group.name }}',
-                '<p>{{ salutation }}</p><p>good news: a place has become free in <strong>{{ group.name }}</strong>{% if children|length > 0 %} for {% for child in children %}{{ child.first_name }}{% if not loop.last %}, {% endif %}{% endfor %}{% endif %}.</p><p>Please accept or decline the place in the portal by <strong>{{ group.offer_until }}</strong>.</p>'.$button('Accept or decline the place').'<p>Kind regards<br>{{ organisation.name }}</p>',
+                '<p>{{ salutation }}</p><p>good news: a place has become free in <strong>{{ group.name }}</strong>{% if children|length > 0 %} for {% for child in children %}{{ child.first_name }}{% if loop.revindex == 2 %} and {% elseif not loop.last %}, {% endif %}{% endfor %}{% endif %}.</p><p>Please accept or decline the place in the portal by <strong>{{ group.offer_until }}</strong>.</p>'.$button('Accept or decline the place').'<p>Kind regards<br>{{ organisation.name }}</p>',
             ]],
             'cancellation_confirmation' => ['registration', 'guardians', ['de' => 'Bestätigung der Abmeldung', 'en' => 'Confirmation of the cancellation'], [
                 'Abmeldung von {{ event.title }}: {{ registration.child }}',

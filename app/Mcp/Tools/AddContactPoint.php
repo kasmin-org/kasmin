@@ -14,6 +14,8 @@ use Laravel\Mcp\Server\Attributes\Name;
 #[Description('Adds an e-mail address or a phone number to a person. The first one of its type becomes the primary one. The login of the person is not changed.')]
 class AddContactPoint extends ApiTool
 {
+    public const ENDPOINT = ['POST', '/people/{person}/contact-points'];
+
     protected string $scope = 'people:write';
 
     public function handle(Request $request): Response

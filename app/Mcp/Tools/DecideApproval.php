@@ -16,6 +16,8 @@ use Laravel\Mcp\Server\Tools\Annotations\IsDestructive;
 #[IsDestructive]
 class DecideApproval extends ApiTool
 {
+    public const ENDPOINT = ['POST', '/automation-runs/{run}/decision'];
+
     protected string $scope = 'approvals:decide';
 
     public function handle(Request $request): Response

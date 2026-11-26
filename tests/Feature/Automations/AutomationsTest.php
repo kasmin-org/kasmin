@@ -24,7 +24,9 @@ use App\Support\Install\MailTemplateDefaults;
 use App\Support\Mail\MailLinks;
 use App\Support\Settings;
 use Filament\Http\Middleware\AuthenticateSession;
+use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Tests\TestCase;
 
@@ -153,6 +155,33 @@ class AutomationsTest extends TestCase
         $this->actingAs($user)->get('/portal/children/'.$child->public_id)->assertSee('A place has become free!');
         $this->post('/portal/children/'.$child->public_id.'/participations/'.$c->id.'/offer', ['answer' => 'decline'])->assertRedirect();
         $this->assertSame('declined', $c->refresh()->status);
+    }
+
+    /** Found by the replay of two years: an automation with nothing to do worked out its plan again every hour. */
+    public function test_a_daily_automation_with_nothing_to_do_is_looked_at_once_per_day(): void
+    {
+        Automation::query()->update(['active' => false]);
+        $reminders = Automation::query()->where('key', 'payment_reminders')->firstOrFail();
+        $reminders->update(['active' => true]);
+        $queries = function (): int {
+            $count = 0;
+            DB::listen(function () use (&$count): void {
+                $count++;
+            });
+            app(Engine::class)->tick();
+            DB::getEventDispatcher()?->forget(QueryExecuted::class);
+
+            return $count;
+        };
+        $first = $queries();
+        $second = $queries();
+        $this->assertLessThan($first, $second, 'the second look of the day does not work out the plan again');
+
+        $this->travel(1)->days();
+        $this->assertSame($first, $queries(), 'the next day it is looked at again');
+        $reminders->update(['max_items' => 99]);
+        $this->travel(1)->seconds();
+        $this->assertGreaterThan($second, $queries(), 'and at once after the automation was changed');
     }
 
     public function test_dry_run_changes_nothing_and_manual_run_by_approver_executes(): void

@@ -14,6 +14,8 @@ use Laravel\Mcp\Server\Attributes\Name;
 #[Description('Renders all mails of a draft for review. Nothing is sent.')]
 class PrepareMailing extends ApiTool
 {
+    public const ENDPOINT = ['POST', '/mailings/{mailing}/prepare'];
+
     protected string $scope = 'mail:write';
 
     public function handle(Request $request): Response

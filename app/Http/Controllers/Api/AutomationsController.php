@@ -11,7 +11,9 @@ use App\Support\Api\Presenter;
 use App\Support\Automations\Engine;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 /**
  * Automations, runs and approvals (AP01, AP02, X05). Scopes: automations:read, automations:write, automations:run, approvals:decide.
@@ -49,6 +51,39 @@ class AutomationsController extends ApiController
         $model->save();
 
         return response()->json(['data' => Presenter::automation($model)]);
+    }
+
+    /**
+     * Creates an own automation (action custom): name.de, name.en, trigger and config (target, conditions, steps)
+     * are required; trigger_config, mode, max_items, approvals_needed and approver_roles as in PATCH. As in the
+     * admin interface it is created switched off; switch it on with PATCH (active).
+     */
+    public function store(Request $request): JsonResponse
+    {
+        $this->scope('automations:write');
+        $input = $request->all();
+        $missing = array_values(array_diff(['name', 'trigger', 'config'], array_keys($input)));
+        if ($missing !== [] || array_key_exists('active', $input)) {
+            throw ValidationException::withMessages(array_fill_keys($missing, ['This field is required.']) + (array_key_exists('active', $input) ? ['active' => ['A new automation is switched off; switch it on with PATCH.']] : []));
+        }
+        $model = new Automation(['key' => 'own_'.Str::lower(Str::random(10)), 'action' => 'custom', 'is_standard' => false, 'active' => false, 'trigger' => 'manual']);
+        $model->syncOriginal();
+        $model->fill(AutomationInput::check($model, $input));
+        AutomationInput::protect($model);
+        $model->save();
+
+        return response()->json(['data' => Presenter::automation($model->refresh())], 201);
+    }
+
+    /** Deletes an own automation with its runs. Standard automations cannot be deleted (403); switch them off instead. */
+    public function destroy(string $automation): JsonResponse
+    {
+        $this->scope('automations:write');
+        $model = Automation::query()->where('key', $automation)->firstOrFail();
+        abort_if($model->is_standard, 403, 'Standard automations cannot be deleted. Switch them off instead.');
+        $model->delete();
+
+        return response()->json(['data' => null]);
     }
 
     /** Dry run: what the automation would do now (nothing is changed). */

@@ -16,6 +16,8 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 #[IsReadOnly]
 class GetFormDefinition extends ApiTool
 {
+    public const ENDPOINT = ['GET', '/forms/{form}/definition'];
+
     protected string $scope = 'people:read';
 
     public function handle(Request $request): Response

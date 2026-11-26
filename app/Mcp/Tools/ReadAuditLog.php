@@ -16,6 +16,8 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 #[IsReadOnly]
 class ReadAuditLog extends ApiTool
 {
+    public const ENDPOINT = ['GET', '/audit'];
+
     protected string $scope = 'audit:read';
 
     public function handle(Request $request): Response

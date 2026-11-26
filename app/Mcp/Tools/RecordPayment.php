@@ -14,6 +14,8 @@ use Laravel\Mcp\Server\Attributes\Name;
 #[Description('Records a payment for an open invoice; a fully paid invoice sends the payment confirmation to the family.')]
 class RecordPayment extends ApiTool
 {
+    public const ENDPOINT = ['POST', '/invoices/{invoice}/payments'];
+
     protected string $scope = 'finance:write';
 
     public function handle(Request $request): Response

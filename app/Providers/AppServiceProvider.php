@@ -57,6 +57,8 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // PDFs carry only the characters they use, not the whole font: an invoice was 880 KB, every mail with one 1.2 MB.
+        config(['dompdf.options.enable_font_subsetting' => true]);
         // Separate rate limits per purpose: anonymous "throttle:x,y" limits share one counter per IP across all
         // routes, so e.g. using login links or approvals would block requesting a login link.
         self::defineRateLimiters();

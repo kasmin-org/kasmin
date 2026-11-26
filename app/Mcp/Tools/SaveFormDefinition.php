@@ -14,6 +14,8 @@ use Laravel\Mcp\Server\Attributes\Name;
 #[Description('Creates a form or replaces its definition (new version, answers stay). Fields that are missing in the definition are removed.')]
 class SaveFormDefinition extends ApiTool
 {
+    public const ENDPOINT = ['PUT', '/forms/{form}/definition'];
+
     protected string $scope = 'settings:write';
 
     public function handle(Request $request): Response

@@ -16,6 +16,8 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 #[IsReadOnly]
 class PreviewAutomation extends ApiTool
 {
+    public const ENDPOINT = ['POST', '/automations/{automation}/preview'];
+
     protected string $scope = 'automations:read';
 
     public function handle(Request $request): Response

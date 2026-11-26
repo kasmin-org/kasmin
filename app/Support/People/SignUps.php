@@ -40,7 +40,7 @@ class SignUps
         }
         $token = Str::random(48);
         SignUp::query()->create(['token_hash' => hash('sha256', $token), 'data' => ['email' => $email] + $data, 'expires_at' => now()->addDays(self::DAYS)]);
-        Mail::to($email)->locale($data['locale'])->send(new ConfirmSignUpMail($data['first_name'], route('register.confirm', $token), self::DAYS));
+        Mail::to($email)->locale($data['locale'])->send(new ConfirmSignUpMail(trim($data['first_name'].' '.$data['last_name']), route('register.confirm', $token), self::DAYS));
     }
 
     public function find(string $token): ?SignUp

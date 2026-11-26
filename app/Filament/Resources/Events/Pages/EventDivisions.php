@@ -128,9 +128,7 @@ class EventDivisions extends Page
 
     public function addUnit(int $divisionId): void
     {
-        $division = $this->division($divisionId);
-        $n = $division->units()->count() + 1;
-        $division->units()->create(['name' => __('events.divisions.unit_'.$division->kind, ['n' => $n]), 'sort' => (int) $division->units()->max('sort') + 1]);
+        app(Divisions::class)->addUnit($this->division($divisionId));
     }
 
     public function removeUnit(int $unitId): void

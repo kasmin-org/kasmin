@@ -16,6 +16,8 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 #[IsReadOnly]
 class ListImports extends ApiTool
 {
+    public const ENDPOINT = ['GET', '/imports'];
+
     protected string $scope = 'import:write';
 
     public function handle(Request $request): Response

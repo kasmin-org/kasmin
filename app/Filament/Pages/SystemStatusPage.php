@@ -5,6 +5,7 @@ namespace App\Filament\Pages;
 use App\Models\SystemNotification;
 use App\Models\User;
 use App\Support\Backup\Backups;
+use App\Support\Backup\DatabaseRestore;
 use App\Support\Backup\RemoteBackup;
 use App\Support\Mail\MailDns;
 use App\Support\System\SystemNotifications;
@@ -60,6 +61,7 @@ class SystemStatusPage extends Page
             'backups' => array_slice(app(Backups::class)->all(), 0, 12),
             'remote' => RemoteBackup::configured() ? RemoteBackup::state() : null,
             'passphrase' => RemoteBackup::secret('backup_passphrase') !== '',
+            'restore' => DatabaseRestore::available(),
             'cronDocs' => SystemStatus::docsUrl('admin/hosting'),
         ];
     }

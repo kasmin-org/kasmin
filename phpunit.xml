@@ -12,6 +12,12 @@
             <directory>tests/Feature</directory>
         </testsuite>
     </testsuites>
+    <groups>
+        <!-- The replay of two camp years takes about 20 minutes; it has its own CI job (phpunit, group replay). -->
+        <exclude>
+            <group>replay</group>
+        </exclude>
+    </groups>
     <source>
         <include>
             <directory>app</directory>

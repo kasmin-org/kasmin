@@ -16,6 +16,8 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 #[IsReadOnly]
 class ImportPreview extends ApiTool
 {
+    public const ENDPOINT = ['POST', '/imports/people/preview'];
+
     protected string $scope = 'import:write';
 
     public function handle(Request $request): Response

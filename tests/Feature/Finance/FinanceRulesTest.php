@@ -109,6 +109,36 @@ class FinanceRulesTest extends TestCase
         $this->assertSame([6000, 0], [$base('deposit'), $base('balance')]);
     }
 
+    /** Found by the replay of two real years: the team got deposit invoices although it takes part for free. */
+    public function test_who_takes_part_for_free_gets_no_invoice_and_free_places_no_invoice_over_zero(): void
+    {
+        $this->event->roles()->create(['role_key' => 'staff', 'capacity' => null, 'registered_by' => 'admin', 'counts_as_sibling' => false]);
+        $team = Person::factory()->create(['first_name' => 'Toby', 'last_name' => 'Team', 'birth_date' => '1995-01-01']);
+        $team->contactPoints()->create(['type' => 'email', 'value' => 'toby@example.org', 'is_primary' => true]);
+        $staff = Participation::query()->create(['event_id' => $this->event->id, 'person_id' => $team->id, 'role_key' => 'staff', 'status' => 'registered', 'registered_at' => now()]);
+        $paying = $this->child('Ann', '2016-01-01');
+        $free = $this->child('Ben', '2015-01-01');
+        $free->forceFill(['price_cents' => 0, 'price_reason' => 'social'])->save();
+
+        $event = Event::query()->with('roles', 'installments', 'prices')->findOrFail($this->event->id);
+        $deposit = $event->installments->firstWhere('key', 'deposit') ?? throw new RuntimeException;
+        $this->assertSame(0, app(Billing::class)->base($event, $deposit, $staff->load('person')));
+
+        foreach (['deposit', 'balance'] as $key) {
+            app(Invoices::class)->draftRun($event, $event->installments->firstWhere('key', $key) ?? throw new RuntimeException);
+        }
+        $invoices = Invoice::query()->with('lines')->get();
+        $this->assertCount(2, $invoices, 'only the family, nothing for the team');
+        $this->assertSame(0, $invoices->filter(fn (Invoice $i) => $i->lines->contains('person_id', $team->id))->count());
+        $lines = $invoices->firstWhere('installment_key', 'deposit')->lines ?? collect();
+        $this->assertSame([10000, 0], [$lines->firstWhere('person_id', $paying->person_id)?->amount_cents, $lines->firstWhere('person_id', $free->person_id)?->amount_cents], 'the free place stays visible with 0');
+
+        // A family whose only child has a free place gets no invoice over 0.
+        $paying->update(['status' => 'cancelled']);
+        Invoice::query()->get()->each(fn (Invoice $i) => $i->lines()->delete() && $i->delete());
+        $this->assertSame(0, app(Invoices::class)->draftRun($event, $deposit));
+    }
+
     public function test_issued_invoices_cannot_be_changed_or_deleted(): void
     {
         $this->child('Ann', '2016-01-01');

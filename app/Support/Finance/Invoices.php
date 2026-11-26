@@ -56,6 +56,9 @@ class Invoices
 
         return $groups->filter(function (Collection $group) use ($event, $installment) {
             $household = self::household($group);
+            if (array_sum(array_column($this->billing->lines($event, $installment, $group, 'en'), 'amount_cents')) <= 0) {
+                return false; // nobody of the family has to pay anything: no invoice over 0
+            }
 
             return ! Invoice::query()->where('event_id', $event->id)->where('installment_key', $installment->key)->where('type', 'invoice')
                 ->whereNotIn('status', ['cancelled', 'corrected'])

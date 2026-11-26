@@ -18,7 +18,19 @@ use Illuminate\Support\Facades\DB;
  */
 class Corrections
 {
+    /** @var array<int, \Illuminate\Database\Eloquent\Collection<int, Participation>> registrations of an event while its invoices are compared */
+    private array $participations = [];
+
+    /** @var array<int, int> registration => family (0 = none), while invoices are compared */
+    private array $households = [];
+
     public function __construct(private readonly Billing $billing, private readonly Invoices $invoices) {}
+
+    private function remember(Event $event): void
+    {
+        $this->households = [];
+        $this->participations = [$event->id => Participation::query()->where('event_id', $event->id)->with('event', 'person.households')->get()];
+    }
 
     /**
      * @return list<array{key: string, invoice: Invoice, old: int, new: int, lines: list<array<string, mixed>>}>
@@ -26,6 +38,7 @@ class Corrections
     public function proposals(Event $event): array
     {
         $event->load('roles', 'installments', 'prices');
+        $this->remember($event);
         $result = [];
         $invoices = Invoice::query()->where('event_id', $event->id)->where('type', 'invoice')->whereIn('status', ['issued', 'partially_paid', 'paid'])
             ->with('lines', 'payer', 'household')->get();
@@ -39,6 +52,8 @@ class Corrections
                 $result[] = ['key' => 'invoice:'.$invoice->id, 'invoice' => $invoice, 'old' => $invoice->total_cents, 'new' => array_sum(array_column($lines, 'amount_cents')), 'lines' => $lines];
             }
         }
+
+        $this->participations = [];
 
         return $result;
     }
@@ -132,9 +147,21 @@ class Corrections
         $persons = $invoice->lines->pluck('person_id')->filter()->all();
         $household = $invoice->household_id;
 
-        return Participation::query()->where('event_id', $event->id)->with('event', 'person.households')->get()
+        // Loaded once per check of an event, not once per invoice.
+        $all = $this->participations[$event->id] ?? Participation::query()->where('event_id', $event->id)->with('event', 'person.households')->get();
+
+        // The family of a registration is worked out once per check, not once per invoice.
+        $of = function (Participation $p): ?int {
+            if (! isset($this->participations[$p->event_id])) {
+                return Billing::household($p)?->id;
+            }
+
+            return $this->households[$p->id] ??= Billing::household($p)->id ?? 0;
+        };
+
+        return $all
             ->filter(fn (Participation $p) => in_array($p->id, $billed, true)
-                || ($household !== null ? Billing::household($p)?->id === $household : in_array($p->person_id, $persons, true) && Billing::household($p) === null))->values()->toBase();
+                || ($household !== null ? $of($p) === $household : in_array($p->person_id, $persons, true) && ! $of($p)))->values()->toBase();
     }
 
     /** @param  array<int, array<string, mixed>>  $lines */

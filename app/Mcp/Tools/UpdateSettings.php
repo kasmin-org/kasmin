@@ -22,7 +22,7 @@ class UpdateSettings extends ApiTool
 
     public function handle(Request $request): Response
     {
-        return $this->callEndpoint($this->argsWithClear($request, ['organisation_address', 'organisation_email', 'organisation_website', 'organisation_legal_footer', 'digest_time', 'approval_days']));
+        return $this->callEndpoint($this->argsWithClear($request, ['organisation_address', 'organisation_email', 'organisation_website', 'organisation_legal_footer', 'digest_time', 'approval_days', 'approval_summary_time']));
     }
 
     /** @return array<string, Type> */
@@ -42,6 +42,7 @@ class UpdateSettings extends ApiTool
             'mailing_approval_above' => $schema->integer()->description('mailings to more recipients need an approval; 0 = never. Needs approvals:decide'),
             'digest_time' => $schema->string()->description('time of the daily digest HH:MM'),
             'approval_days' => $schema->integer()->description('days an approval request stays open'),
+            'approval_summary_time' => $schema->string()->description('time(s) of day HH:MM, comma separated, at which approvers get one mail with all open approvals; empty = each request at once'),
             'clear' => $schema->array()->items($schema->string())->description('names of fields to empty: organisation_address, organisation_email, organisation_website, organisation_legal_footer, digest_time, approval_days'),
         ];
     }

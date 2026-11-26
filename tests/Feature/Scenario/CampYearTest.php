@@ -70,6 +70,9 @@ class CampYearTest extends TestCase
         $this->listsBeforeTheCamp();
         $this->afterTheCamp();
         $this->nextSeason();
+        // The board got its requests as summaries (one mail with everything since the last one), never as single mails.
+        $this->assertTrue(OutgoingMail::query()->where('to_address', 'board@example.org')->where('subject', 'like', '%waiting for you')->exists());
+        $this->assertFalse(OutgoingMail::query()->where('to_address', 'board@example.org')->where('subject', 'like', 'Approval needed%')->exists());
     }
 
     public function test_composing_a_mail_keeps_the_date_format_of_everything_after_it(): void
@@ -435,7 +438,6 @@ class CampYearTest extends TestCase
     {
         $run = $this->pending($key);
         $this->assertNotNull($run, 'no open request of '.$key);
-        $this->assertTrue(OutgoingMail::query()->where('to_address', 'board@example.org')->where('subject', 'like', 'Approval needed%')->exists());
         $run = app(Engine::class)->decide($run, $this->board, true);
         $this->assertSame('done', $run->status, $key.': '.json_encode($run->result));
 

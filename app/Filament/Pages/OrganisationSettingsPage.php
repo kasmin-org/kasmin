@@ -46,7 +46,7 @@ class OrganisationSettingsPage extends Page
     private const KEYS = [
         'organisation_name', 'organisation_address', 'organisation_email', 'organisation_website', 'organisation_iban',
         'organisation_bic', 'organisation_bank', 'organisation_legal_footer', 'invoice_number_format', 'invoice_next_number',
-        'invoice_number_per_year', 'invoice_due_days', 'invoice_attach_paid', 'invoice_reminder_days_before', 'invoice_overdue_days', 'invoice_overdue_fees', 'public_url', 'mail_test_address', 'mailing_approval_above', 'backup_keep', 'embed_origins', 'timezone', 'digest_time', 'approval_days', 'ai_processing', 'retention_safety_years', 'retention_invoice_years',
+        'invoice_number_per_year', 'invoice_due_days', 'invoice_attach_paid', 'invoice_reminder_days_before', 'invoice_overdue_days', 'invoice_overdue_fees', 'public_url', 'mail_test_address', 'mailing_approval_above', 'backup_keep', 'embed_origins', 'timezone', 'digest_time', 'approval_days', 'approval_summary_time', 'ai_processing', 'retention_safety_years', 'retention_invoice_years',
         'max_guardians', 'own_event_days', 'min_login_age', 'guardian_until_age', 'own_registrations', 'newsletter_ask', 'mail_logo', 'mail_color', 'mail_footer', 'retention_mail_years', 'backup_remote_url', 'backup_remote_user', 'audit_ip_days', 'retention_audit_years', 'auto_update', 'auto_update_days', 'auto_update_time',
     ];
 
@@ -133,6 +133,7 @@ class OrganisationSettingsPage extends Page
                 Select::make('timezone')->label(__('admin.settings.timezone'))->searchable()->placeholder('UTC')->options(fn () => array_combine(timezone_identifiers_list(), timezone_identifiers_list()))->hintIcon(...$hint('timezone')),
                 TextInput::make('digest_time')->label(__('admin.settings.digest_time'))->regex('/^([01]\d|2[0-3]):[0-5]\d$/')->placeholder('07:00'),
                 TextInput::make('approval_days')->label(__('admin.settings.approval_days'))->numeric()->minValue(1)->maxValue(60)->placeholder('7'),
+                TextInput::make('approval_summary_time')->label(__('admin.settings.approval_summary_time'))->regex('/^\s*(([01]\d|2[0-3]):[0-5]\d(\s*,\s*([01]\d|2[0-3]):[0-5]\d)*)?\s*$/')->placeholder('07:00')->hintIcon(...$hint('approval_summary_time')),
             ]),
             Section::make(__('admin.settings.mail_layout'))->visible(fn () => Permissions::current('settings', 'edit'))->columns(['md' => 2])->schema([
                 FileUpload::make('mail_logo')->label(__('admin.settings.mail_logo'))->disk('local')->directory(MailImages::DIRECTORY)->visibility('private')->acceptedFileTypes(MailImages::TYPES)->maxSize(1024)

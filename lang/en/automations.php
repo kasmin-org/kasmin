@@ -82,6 +82,7 @@ return [
         'not_allowed' => 'You are not allowed to approve this automation.',
     ],
     'mail' => [
+        'summary_subject' => '{1} One approval is waiting for you|[2,*] :count approvals are waiting for you', 'summary_intro' => '{1} one automation waits for your decision:|[2,*] :count automations wait for your decision:', 'summary_older' => 'Still open from earlier – these end soon:', 'summary_actions' => '{1} 1 action|[2,*] :count actions', 'summary_until' => 'until :date', 'summary_note' => 'Each button opens a page where you confirm the decision; there you can also leave out single actions. Without a decision nothing happens.',
         'decided_subject' => 'Decided: :name', 'decided_approved' => ':by approved ":name". You do not have to do anything.', 'decided_denied' => ':by cancelled ":name". You do not have to do anything.',
         'subject' => 'Approval needed: :name',
         'reminder_subject' => 'Reminder – approval needed: :name',

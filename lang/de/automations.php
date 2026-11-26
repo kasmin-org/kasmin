@@ -82,6 +82,7 @@ return [
         'not_allowed' => 'Sie dürfen diese Automatisierung nicht freigeben.',
     ],
     'mail' => [
+        'summary_subject' => '{1} Eine Freigabe wartet auf Sie|[2,*] :count Freigaben warten auf Sie', 'summary_intro' => '{1} eine Automatisierung wartet auf Ihre Entscheidung:|[2,*] :count Automatisierungen warten auf Ihre Entscheidung:', 'summary_older' => 'Noch offen von früher – diese laufen bald ab:', 'summary_actions' => '{1} 1 Aktion|[2,*] :count Aktionen', 'summary_until' => 'bis :date', 'summary_note' => 'Jede Schaltfläche öffnet eine Seite, auf der Sie die Entscheidung bestätigen; dort können Sie auch einzelne Aktionen weglassen. Ohne Entscheidung passiert nichts.',
         'decided_subject' => 'Entschieden: :name', 'decided_approved' => ':by hat „:name“ freigegeben. Sie müssen nichts mehr tun.', 'decided_denied' => ':by hat „:name“ abgebrochen. Sie müssen nichts mehr tun.',
         'subject' => 'Freigabe nötig: :name',
         'reminder_subject' => 'Erinnerung – Freigabe nötig: :name',

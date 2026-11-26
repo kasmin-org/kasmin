@@ -79,6 +79,16 @@ are switched off) and the runs so far. The dashboard shows the runs of the next 
 *Events → New season* copies an event and shows before anything is created what will happen: dates, places, prices, schedule, and who
 *Start season* would register. The season can be started in the same step; people who may not approve this only send the request.
 
+## Approvals by e-mail
+
+Approvers get **one e-mail with everything that waits for them** instead of one e-mail per request: all requests that came in since the last
+summary, each with what would happen and its own buttons *Yes, run it* / *No, cancel*. A request that is still open half-way to its end is
+named once more in the next summary.
+
+*Settings → Organisation and invoices → Approvals: summary by e-mail at*: the time of day (default 07:00). Several times are possible
+(`07:00, 17:00`). Leave the field empty to get every request at once in an e-mail of its own, as before. Open approvals are always
+visible on the dashboard and under *Automations → Runs and approvals*, also before the summary is sent.
+
 ## Standard automations
 
 Installed with the German or English defaults, **switched off** except *Payment reminders*,

@@ -27,6 +27,7 @@ use App\Support\Events\SeasonWizard;
 use App\Support\Install\Defaults;
 use App\Support\People\GroupMembers;
 use App\Support\Reports\DashboardData;
+use App\Support\Settings;
 use App\Support\Webhooks\Webhooks;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -45,6 +46,7 @@ class OwnAutomationsTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        Settings::set('approval_summary_time', ''); // single requests; the summary has its own tests
         app()->setLocale('en');
         app(Defaults::class)->install('en');
         Automation::query()->update(['active' => false]);

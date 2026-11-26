@@ -53,6 +53,7 @@ class Settings
         'timezone' => null, // UTC; stored times are in this time zone, so it is chosen at the set-up
         'digest_time' => null,
         'approval_days' => null,
+        'approval_summary_time' => '07:00', // AT06: one mail with all open approvals at this time; several times with commas; empty = each request at once
         'ai_processing' => 'none', // none, non_confidential, all (MI12)
     ];
 

@@ -6,6 +6,8 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ## [Unreleased]
 
+## [0.25.0] - 2026-11-26
+
 ### Added
 
 - A backup can be restored in the browser (administrators, MySQL and MariaDB): from the list or from an uploaded, also encrypted, file. The state before is saved first. No phpMyAdmin or shell is needed any more.
@@ -577,7 +579,8 @@ First public pre-release for testing. Not ready for production use.
 - Docker image: system packages updated and build packages removed after compiling the PHP extensions – the
   container scan reports no high or critical findings any more (previously 75 in Debian packages).
 
-[Unreleased]: https://github.com/kasmin-org/kasmin/compare/v0.24.0...develop
+[Unreleased]: https://github.com/kasmin-org/kasmin/compare/v0.25.0...develop
+[0.25.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.25.0
 [0.24.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.24.0
 [0.23.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.23.0
 [0.22.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.22.0

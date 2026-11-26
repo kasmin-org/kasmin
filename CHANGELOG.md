@@ -23,6 +23,7 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ### Fixed
 
+- The check for invoice corrections worked out the family of every registration again for every invoice (4.4 s with two years of data, now 0.7 s).
 - Every invoice PDF was about 880 KB because the whole font was embedded, so every invoice mail had 1.2 MB; PDFs carry only the characters they use now (about 25 KB). Found by really sending the mails of two replayed camp years.
 - The mail *Event information* showed "Place:" and "Meeting point:" without a value; several children were listed as "Ann, Ben" instead of "Ann and Ben"; the sign-up mail addressed adults by the first name only.
 - People who take part for free (e.g. the team) got an invoice for the fixed deposit, and a family with only free places got an invoice over 0. Found by replaying two real camp years.

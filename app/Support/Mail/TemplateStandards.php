@@ -5,6 +5,7 @@ namespace App\Support\Mail;
 use App\Models\MailTemplate;
 use App\Models\MailTemplateContent;
 use App\Support\Install\MailTemplateDefaults;
+use App\Support\Language;
 
 /**
  * Compares the mail templates of the organisation with the shipped ones (MT01, TP01): a new standard is only offered.
@@ -16,7 +17,7 @@ class TemplateStandards
     /** A shipped text exists and differs from the text of the organisation. */
     public function differs(MailTemplate $template): bool
     {
-        $standard = $this->defaults->contents($template->key);
+        $standard = $this->standard($template);
 
         return $standard !== null && self::hash($this->current($template)) !== self::hash($standard);
     }
@@ -24,36 +25,41 @@ class TemplateStandards
     /** The shipped text changed since the organisation looked at it last. */
     public function isNew(MailTemplate $template): bool
     {
-        $standard = $this->defaults->contents($template->key);
+        $standard = $this->standard($template);
         if ($standard === null || ! $template->is_standard || ! $this->differs($template)) {
             return false;
         }
 
-        return $template->standard_hash !== null ? $template->standard_hash !== self::hash($standard) : $template->version === 1;
+        if ($template->standard_hash === null) {
+            return $template->version === 1;
+        }
+
+        // Up to 0.27 the hash covered the texts of both languages.
+        return ! in_array($template->standard_hash, [self::hash($standard), self::hash($this->defaults->contents($template->key) ?? [])], true);
     }
 
     public function keep(MailTemplate $template): void
     {
-        $standard = $this->defaults->contents($template->key);
+        $standard = $this->standard($template);
         $template->forceFill(['standard_hash' => $standard === null ? null : self::hash($standard), 'standard_version' => MailTemplateDefaults::VERSION])->save();
     }
 
     public function adopt(MailTemplate $template): void
     {
-        $standard = $this->defaults->contents($template->key);
+        $standard = $this->standard($template);
         if ($standard === null) {
             return;
         }
         $template->keepFirstVersion();
-        foreach ($standard as $locale => [$subject, $html]) {
-            $template->contents()->updateOrCreate(['locale' => $locale], ['subject' => $subject, 'html' => $html, 'text' => null]);
+        foreach ($standard as [$subject, $html]) {
+            $template->setContent($subject, $html);
         }
         $template->newVersion();
         $this->keep($template);
     }
 
     /**
-     * Lines of both texts per language: "=" in both, "-" only in the organisation's, "+" only in the standard.
+     * Lines of both texts: "=" in both, "-" only in the organisation's, "+" only in the standard.
      *
      * @return array<string, list<array{0: string, 1: string}>>
      */
@@ -61,12 +67,29 @@ class TemplateStandards
     {
         $result = [];
         $current = $this->current($template);
-        foreach ($this->defaults->contents($template->key) ?? [] as $locale => [$subject, $html]) {
+        foreach ($this->standard($template) ?? [] as $locale => [$subject, $html]) {
             [$oldSubject, $oldHtml] = $current[$locale] ?? ['', ''];
             $result[$locale] = self::lines([$oldSubject, ...self::split($oldHtml)], [$subject, ...self::split($html)]);
         }
 
         return $result;
+    }
+
+    /**
+     * The standard text in the language of the text the template has (a template has one text).
+     *
+     * @return array<string, array{0: string, 1: string}>|null
+     */
+    private function standard(MailTemplate $template): ?array
+    {
+        $all = $this->defaults->contents($template->key);
+        if ($all === null) {
+            return null;
+        }
+        $locale = $template->contents()->value('locale') ?? Language::current();
+        $locale = isset($all[$locale]) ? $locale : (string) array_key_first($all);
+
+        return [$locale => $all[$locale]];
     }
 
     /** @return array<string, array{0: string, 1: string}> */

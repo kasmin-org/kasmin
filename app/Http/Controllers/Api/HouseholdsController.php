@@ -91,7 +91,6 @@ class HouseholdsController extends ApiController
     {
         $data = $request->validate([
             'name' => [$household === null ? 'required' : 'sometimes', 'string', 'max:200'],
-            'locale' => ['sometimes', Rule::in(['de', 'en'])],
             'street' => ['sometimes', 'nullable', 'string', 'max:200'],
             'postal_code' => ['sometimes', 'nullable', 'string', 'max:16', 'regex:/^[A-Za-z0-9 -]+$/'],
             'city' => ['sometimes', 'nullable', 'string', 'max:120'],

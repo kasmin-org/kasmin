@@ -19,7 +19,7 @@ class EnsureSchemaIsCompatible
     public const ALWAYS = ['system/hooks/*', 'system/cron', 'system/update/finish', 'up'];
 
     /** Pages that work while an upgrade is pending. */
-    public const DURING_UPGRADE = ['login', 'login/*', 'logout', 'language', 'two-factor', 'system/upgrade'];
+    public const DURING_UPGRADE = ['login', 'login/*', 'logout', 'two-factor', 'system/upgrade'];
 
     public function __construct(private readonly SchemaGuard $guard) {}
 

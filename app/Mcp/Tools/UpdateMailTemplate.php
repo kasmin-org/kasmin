@@ -30,7 +30,9 @@ class UpdateMailTemplate extends ApiTool
     {
         return [
             'key' => $schema->string()->description('template key')->required(),
-            'contents' => $schema->array()->items($schema->object())->description('contents per language: objects with locale (de or en), subject, html and optionally text; a language that is not sent stays')->required(),
+            'subject' => $schema->string()->description('subject')->required(),
+            'html' => $schema->string()->description('text of the mail as HTML with placeholders')->required(),
+            'text' => $schema->string()->description('plain text part; made from the HTML if empty'),
         ];
     }
 }

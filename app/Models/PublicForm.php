@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Casts\OneText;
 use App\Models\Concerns\Auditable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -13,8 +14,8 @@ use Illuminate\Support\Carbon;
  * @property int $id
  * @property string $slug
  * @property string $kind
- * @property array<string, string> $title
- * @property array<string, string>|null $intro
+ * @property string|null $title
+ * @property string|null $intro
  * @property int|null $event_id
  * @property string|null $role_key
  * @property int|null $group_id
@@ -37,7 +38,7 @@ class PublicForm extends Model
 
     protected function casts(): array
     {
-        return ['title' => 'array', 'intro' => 'array', 'needs_approval' => 'boolean', 'ask_newsletter' => 'boolean', 'active' => 'boolean', 'opens_at' => 'datetime', 'closes_at' => 'datetime'];
+        return ['title' => OneText::class, 'intro' => OneText::class, 'needs_approval' => 'boolean', 'ask_newsletter' => 'boolean', 'active' => 'boolean', 'opens_at' => 'datetime', 'closes_at' => 'datetime'];
     }
 
     /** @return BelongsTo<Event, $this> */
@@ -54,12 +55,12 @@ class PublicForm extends Model
 
     public function titleText(): string
     {
-        return $this->title[app()->getLocale()] ?? $this->title['en'] ?? $this->slug;
+        return $this->title ?: $this->slug;
     }
 
     public function introText(): ?string
     {
-        return $this->intro[app()->getLocale()] ?? $this->intro['en'] ?? null;
+        return $this->intro ?: null;
     }
 
     /** open, early or closed (PF04) */

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Casts\OneText;
 use App\Models\MembershipType;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -42,11 +43,10 @@ class MembershipTypesController extends ApiController
     private function data(Request $request, bool $new): array
     {
         $need = $new ? 'required' : 'sometimes';
+        $request->merge(OneText::collapse($request->only('name'), ['name']));
         $data = $request->validate([
             'key' => $new ? ['required', 'string', 'alpha_dash', 'max:64', 'unique:membership_types,key'] : ['prohibited'],
-            'name' => [$need, 'array:de,en'],
-            'name.de' => ['required_with:name', 'string', 'max:150'],
-            'name.en' => ['required_with:name', 'string', 'max:150'],
+            'name' => [$need, 'string', 'max:150'],
             'pays_fee' => ['sometimes', 'boolean'],
             'fee' => ['sometimes', 'numeric', 'min:0', 'max:100000'],
         ]);

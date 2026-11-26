@@ -49,7 +49,7 @@ class DataExport
         $forms = app(Forms::class);
 
         return [
-            'first_name' => $person->first_name, 'last_name' => $person->last_name, 'birth_date' => $person->birth_date?->toDateString(), 'gender' => $person->getAttribute('gender'), 'language' => $person->locale,
+            'first_name' => $person->first_name, 'last_name' => $person->last_name, 'birth_date' => $person->birth_date?->toDateString(), 'gender' => $person->getAttribute('gender'),
             'contacts' => $person->contactPoints()->get()->map(fn ($c) => ['type' => $c->type, 'value' => $c->value])->values()->all(),
             'memberships' => $person->memberships()->with('type')->get()->map(fn (Membership $m) => ['type' => $m->type?->label(), 'from' => (string) $m->getAttribute('starts_on'), 'to' => $m->getAttribute('ends_on') !== null ? (string) $m->getAttribute('ends_on') : null])->values()->all(),
             'groups' => $person->groups()->pluck('name')->all(),

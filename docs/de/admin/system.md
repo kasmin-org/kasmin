@@ -1,5 +1,19 @@
 # Systemstatus, Benachrichtigungen und Updates
 
+## Sprache
+
+Eine Installation arbeitet in **einer Sprache** – Deutsch oder Englisch – für alle: Verwaltung, Portal, öffentliche
+Seiten, Mails und Dokumente. Sie wird bei der Installation gewählt; Administratorinnen und Administratoren ändern sie unter *Einstellungen → Organisation
+und Rechnungen → System → Sprache*. Es gibt keine Umschaltung pro Person oder pro Besuch.
+
+Die Sprache bestimmt die Texte der Software. Alles, was **eingegeben** wurde – Formulare und ihre Felder, Mailvorlagen,
+Namen von Rollen und Mitgliedsarten, Automatisierungen, Texte von Veranstaltungen –, gibt es einmal, und es wird nicht übersetzt:
+Es bleibt genau so, wie es ist, wenn die Sprache geändert wird.
+
+Eine Installation einer Version bis 0.27 hat solche Texte einmal pro Sprache gespeichert. Das Upgrade behält den Text in der
+Sprache der Installation (den anderen, wenn dieser leer war). Bei Mailvorlagen bleibt der Text der anderen Sprache
+in den Versionen der Vorlage erhalten.
+
 ## Zeitzone
 
 *Einstellungen → Organisation und Rechnungen → Zeitzone*: alle Uhrzeiten und täglichen Läufe. Installationen vor 0.13 laufen in UTC, bis eine

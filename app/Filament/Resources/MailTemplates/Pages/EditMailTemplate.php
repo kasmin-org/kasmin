@@ -55,7 +55,7 @@ class EditMailTemplate extends EditRecord
                         $version = $this->template()->versions()->whereKey($get('version'))->first();
                         $frames = '';
                         foreach ((array) ($version->snapshot['contents'] ?? []) as $content) {
-                            $frames .= '<p style="font-weight:600">'.e(strtoupper((string) $content['locale']).': '.$content['subject']).'</p>'.PreviewFrame::make((string) $content['html'], (string) $content['subject'], 220);
+                            $frames .= '<p style="font-weight:600">'.e((string) $content['subject']).'</p>'.PreviewFrame::make((string) $content['html'], (string) $content['subject'], 220);
                         }
 
                         return new HtmlString($frames);

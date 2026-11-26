@@ -54,7 +54,7 @@ class AutomationsController extends ApiController
     }
 
     /**
-     * Creates an own automation (action custom): name.de, name.en, trigger and config (target, conditions, steps)
+     * Creates an own automation (action custom): name, trigger and config (target, conditions, steps)
      * are required; trigger_config, mode, max_items, approvals_needed and approver_roles as in PATCH. As in the
      * admin interface it is created switched off; switch it on with PATCH (active).
      */

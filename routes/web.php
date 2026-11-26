@@ -8,7 +8,6 @@ use App\Http\Controllers\EventListController;
 use App\Http\Controllers\GuardianController;
 use App\Http\Controllers\InstallController;
 use App\Http\Controllers\InvoicePdfController;
-use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\MailImageController;
 use App\Http\Controllers\MailPreferencesController;
 use App\Http\Controllers\ParticipationPdfController;
@@ -45,8 +44,6 @@ Route::get('/', function () {
         'events' => Event::query()->where('public_page', true)->where('is_template', false)->whereNotIn('status', ['draft', 'archived', 'cancelled'])->where('ends_at', '>=', now())->orderBy('starts_at')->limit(12)->get(),
     ]);
 })->name('start');
-
-Route::post('/language', [LanguageController::class, 'update'])->middleware('throttle:language')->name('language');
 
 Route::get('/install', [InstallController::class, 'show'])->name('install');
 Route::post('/install', [InstallController::class, 'store'])->middleware('throttle:install');

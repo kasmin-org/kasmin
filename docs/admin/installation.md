@@ -15,7 +15,8 @@ script checks it before it starts.
 5. Enter the target directory and the database data. The script downloads the package, **verifies its SHA-256
    checksum**, unpacks it and writes the configuration file `.env`.
 6. Point the document root of your domain to the `public` folder of the target directory and open `/install`:
-   organisation name, language, **default content (German, English, or none – not recommended)** and the first
+   organisation name, **language** (German or English – the one language of the installation, see
+   [System](system.md#language)), **standard content** in this language (or none – not recommended) and the first
    administrator.
 
 ## With Docker

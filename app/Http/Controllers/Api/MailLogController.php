@@ -7,11 +7,13 @@ use App\Models\MailTemplate;
 use App\Models\MailTemplateVersion;
 use App\Models\OutgoingMail;
 use App\Models\SenderProfile;
+use App\Support\Language;
 use App\Support\Mail\BadAddresses;
 use App\Support\Mail\MailLinks;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 /**
  * Versions of mail templates, the mail log, addresses that do not work and sender profiles. Scopes: mail:read,
@@ -20,16 +22,23 @@ use Illuminate\Validation\Rule;
  */
 class MailLogController extends ApiController
 {
-    /** The versions of a template, newest first, each with its contents per language. */
+    /** The versions of a template, newest first, each with its subject and text. */
     public function versions(string $template): JsonResponse
     {
         $this->scope('mail:read');
         $versions = $this->template($template)->versions()->with('changedBy')->get();
 
-        return response()->json(['data' => $versions->map(fn (MailTemplateVersion $v) => [
-            'version' => $v->version, 'created_at' => $v->created_at->toIso8601String(), 'changed_by' => $v->changedBy?->name,
-            'contents' => array_map(fn (array $c) => ['locale' => $c['locale'] ?? null, 'subject' => $c['subject'] ?? null, 'html' => $c['html'] ?? null, 'text' => $c['text'] ?? null], array_values((array) ($v->snapshot['contents'] ?? []))),
-        ])->values()]);
+        // A version holds one text; those of the versions up to 0.27 hold one per language, of which the one in the
+        // language of the installation is shown (it is the one a restore brings back).
+        return response()->json(['data' => $versions->map(function (MailTemplateVersion $v): array {
+            $contents = collect((array) ($v->snapshot['contents'] ?? []));
+            $c = (array) ($contents->firstWhere('locale', Language::current()) ?? $contents->first() ?? []);
+
+            return [
+                'version' => $v->version, 'created_at' => $v->created_at->toIso8601String(), 'changed_by' => $v->changedBy?->name,
+                'subject' => $c['subject'] ?? null, 'html' => $c['html'] ?? null, 'text' => $c['text'] ?? null,
+            ];
+        })->values()]);
     }
 
     /** Makes the contents of an earlier version the current ones; this is a new version, nothing is lost. */
@@ -42,7 +51,7 @@ class MailLogController extends ApiController
 
         return response()->json(['data' => [
             'key' => $model->key, 'name' => $model->name, 'version' => $model->version, 'restored' => $version,
-            'contents' => $model->contents()->get()->map(fn ($c) => ['locale' => $c->locale, 'subject' => $c->subject, 'html' => $c->html, 'text' => $c->text])->values()->all(),
+            'subject' => $model->contents()->value('subject'), 'html' => $model->contents()->value('html'), 'text' => $model->contents()->value('text'),
         ]]);
     }
 
@@ -87,24 +96,30 @@ class MailLogController extends ApiController
         return response()->json(['data' => $this->presentBad($point->refresh())]);
     }
 
-    /** Sender profiles: from name and address, reply-to and the mail account they send with (name only). */
+    /** The sender of the installation: from name and address, reply-to and the mail account (name only). There is one. */
     public function senderProfiles(): JsonResponse
     {
         $this->scope('mail:read');
 
-        return response()->json(['data' => SenderProfile::query()->with('account')->orderBy('name')->get()->map(fn (SenderProfile $p) => $this->presentProfile($p))->values()]);
+        $sender = SenderProfile::main();
+
+        return response()->json(['data' => $sender === null ? [] : [$this->presentProfile($sender->load('account'))]]);
     }
 
-    /** Creates a sender profile for an existing mail account (mail_account = its number). Needs settings:write. */
+    /** Creates the sender for the mail account (mail_account = its number), if there is none yet – an installation has one sender. Needs settings:write. */
     public function createSenderProfile(Request $request): JsonResponse
     {
         $this->scope('settings:write');
-        $profile = SenderProfile::query()->create($this->profileData($request, true));
+        $data = $this->profileData($request, true);
+        if (SenderProfile::query()->exists()) {
+            throw ValidationException::withMessages(['from_address' => [__('admin.mail.one_sender')]]);
+        }
+        $profile = SenderProfile::query()->create($data);
 
         return response()->json(['data' => $this->presentProfile($profile->load('account'))], 201);
     }
 
-    /** Changes a sender profile. Needs settings:write. */
+    /** Changes the sender. Needs settings:write. */
     public function updateSenderProfile(Request $request, int $profile): JsonResponse
     {
         $this->scope('settings:write');

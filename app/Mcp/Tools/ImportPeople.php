@@ -32,7 +32,6 @@ class ImportPeople extends ApiTool
         return [
             'source' => $schema->string()->description('name of the source system')->required(),
             'rows' => $schema->array()->items($schema->object())->description('rows, see import_preview')->required(),
-            'locale' => $schema->string()->description('de or en'),
         ];
     }
 }

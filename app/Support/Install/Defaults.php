@@ -4,6 +4,8 @@ namespace App\Support\Install;
 
 use App\Models\MembershipType;
 use App\Models\Role;
+use App\Support\Language;
+use App\Support\Settings;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -65,7 +67,24 @@ class Defaults
         }
     }
 
+    /**
+     * @param  string  $defaults  'de' or 'en': the standard content in this language (an installation has one language,
+     *                            so each text is stored once); 'none': the roles only
+     */
     public function install(string $defaults): void
+    {
+        $previous = app()->getLocale();
+        if (in_array($defaults, Language::SUPPORTED, true) && Settings::get('default_locale') === null) {
+            app()->setLocale($defaults); // the texts are written in the language in use
+        }
+        try {
+            $this->installAll($defaults);
+        } finally {
+            app()->setLocale($previous);
+        }
+    }
+
+    private function installAll(string $defaults): void
     {
         $this->installRoles();
         if ($defaults === 'none') {

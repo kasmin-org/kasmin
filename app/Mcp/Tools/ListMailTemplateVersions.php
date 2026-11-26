@@ -12,7 +12,7 @@ use Laravel\Mcp\Server\Attributes\Name;
 use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 
 #[Name('list_mail_template_versions')]
-#[Description('The versions of a mail template, newest first, each with its contents per language and who changed it.')]
+#[Description('The versions of a mail template, newest first, each with its subject and text and who changed it.')]
 #[IsReadOnly]
 class ListMailTemplateVersions extends ApiTool
 {

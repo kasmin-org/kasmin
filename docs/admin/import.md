@@ -29,7 +29,7 @@ Health and safety data are not imported this way.
 | `source_id` | id in the source system (needed for repeated imports) |
 | `first_name`, `last_name` | required |
 | `birth_date` | `YYYY-MM-DD` or `DD.MM.YYYY` |
-| `gender`, `locale` (`de`/`en`) | |
+| `gender` | |
 | `email`, `phone` | of the person itself (adults; they get a login) |
 | `street`, `postal_code`, `city`, `country` | address of the family |
 | `guardian1_first_name`, `guardian1_last_name`, `guardian1_email`, `guardian1_phone` | first legal guardian (makes the row a child; the guardian gets an own record and a login) |

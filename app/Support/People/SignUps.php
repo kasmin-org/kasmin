@@ -12,6 +12,7 @@ use App\Models\SignUp;
 use App\Models\User;
 use App\Support\Audit\Audit;
 use App\Support\Auth\LoginLinks;
+use App\Support\Language;
 use App\Support\Mail\Notifier;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
@@ -34,13 +35,13 @@ class SignUps
         $user = User::query()->where('email', $email)->first() ?? ($personId !== null ? User::query()->where('person_id', $personId)->first() : null);
         if ($user !== null) {
             ['token' => $token, 'code' => $code] = $this->links->issue($user);
-            Mail::to($email)->locale($data['locale'])->send(new LoginLinkMail($data['first_name'], route('login.link', $token), $code, LoginLinks::LINK_MINUTES));
+            Mail::to($email)->locale(Language::current())->send(new LoginLinkMail($data['first_name'], route('login.link', $token), $code, LoginLinks::LINK_MINUTES));
 
             return;
         }
         $token = Str::random(48);
         SignUp::query()->create(['token_hash' => hash('sha256', $token), 'data' => ['email' => $email] + $data, 'expires_at' => now()->addDays(self::DAYS)]);
-        Mail::to($email)->locale($data['locale'])->send(new ConfirmSignUpMail(trim($data['first_name'].' '.$data['last_name']), route('register.confirm', $token), self::DAYS));
+        Mail::to($email)->locale(Language::current())->send(new ConfirmSignUpMail(trim($data['first_name'].' '.$data['last_name']), route('register.confirm', $token), self::DAYS));
     }
 
     public function find(string $token): ?SignUp
@@ -59,9 +60,9 @@ class SignUps
             if ($existing !== null) {
                 return $existing; // signed up twice before confirming
             }
-            $person = Person::query()->create(['first_name' => $data['first_name'], 'last_name' => $data['last_name'], 'locale' => $data['locale']]);
+            $person = Person::query()->create(['first_name' => $data['first_name'], 'last_name' => $data['last_name']]);
             $person->contactPoints()->create(['type' => 'email', 'value' => $data['email'], 'purposes' => ['login', 'information', 'invoices'], 'is_primary' => true, 'verified_at' => now()]);
-            $household = Household::query()->create(['name' => $data['last_name'], 'locale' => $data['locale']]);
+            $household = Household::query()->create(['name' => $data['last_name']]);
             $household->members()->attach($person->id, ['role' => 'guardian']);
             $household->update(['invoice_recipient_id' => $person->id]);
             if (($data['newsletter'] ?? null) !== null) {

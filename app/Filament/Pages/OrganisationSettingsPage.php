@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Support\Audit\Audit;
 use App\Support\Auth\Permissions;
 use App\Support\Backup\RemoteBackup;
+use App\Support\Language;
 use App\Support\Mail\MailImages;
 use App\Support\Settings;
 use App\Support\System\Updater;
@@ -46,7 +47,7 @@ class OrganisationSettingsPage extends Page
     private const KEYS = [
         'organisation_name', 'organisation_address', 'organisation_email', 'organisation_website', 'organisation_iban',
         'organisation_bic', 'organisation_bank', 'organisation_legal_footer', 'invoice_number_format', 'invoice_next_number',
-        'invoice_number_per_year', 'invoice_due_days', 'invoice_attach_paid', 'invoice_reminder_days_before', 'invoice_overdue_days', 'invoice_overdue_fees', 'public_url', 'mail_test_address', 'mailing_approval_above', 'backup_keep', 'embed_origins', 'timezone', 'digest_time', 'approval_days', 'approval_summary_time', 'ai_processing', 'retention_safety_years', 'retention_invoice_years',
+        'invoice_number_per_year', 'invoice_due_days', 'invoice_attach_paid', 'invoice_reminder_days_before', 'invoice_overdue_days', 'invoice_overdue_fees', 'default_locale', 'public_url', 'mail_test_address', 'mailing_approval_above', 'backup_keep', 'embed_origins', 'timezone', 'digest_time', 'approval_days', 'approval_summary_time', 'ai_processing', 'retention_safety_years', 'retention_invoice_years',
         'max_guardians', 'own_event_days', 'min_login_age', 'guardian_until_age', 'own_registrations', 'newsletter_ask', 'gender_note_female', 'gender_note_male', 'gender_note_diverse', 'mail_logo', 'mail_color', 'mail_footer', 'retention_mail_years', 'backup_remote_url', 'backup_remote_user', 'audit_ip_days', 'retention_audit_years', 'auto_update', 'auto_update_days', 'auto_update_time',
     ];
 
@@ -79,6 +80,7 @@ class OrganisationSettingsPage extends Page
             $data[$key] = Settings::get($key);
         }
         $data['mail_logo'] = Settings::get('mail_logo') ?: null;
+        $data['default_locale'] = Language::current();
         $data['gender_note_diverse'] ??= __('portal.gender_note_diverse');
         $data['organisation_name'] ??= config('app.name');
         foreach (['invoice_attach_paid', 'invoice_number_per_year', 'newsletter_ask', 'auto_update'] as $key) {
@@ -126,6 +128,7 @@ class OrganisationSettingsPage extends Page
                 Toggle::make('invoice_attach_paid')->label(__('admin.settings.attach_paid'))->inline(false),
             ]),
             Section::make(__('admin.settings.system'))->visible(fn () => Permissions::administrator())->columns(3)->schema([
+                Select::make('default_locale')->label(__('admin.settings.language'))->options(['de' => 'Deutsch', 'en' => 'English'])->required()->selectablePlaceholder(false)->hintIcon(...$hint('language')),
                 TextInput::make('public_url')->label(__('admin.settings.public_url'))->url()->maxLength(200)->placeholder((string) config('app.url'))->hintIcon(...$hint('public_url')),
                 TextInput::make('mail_test_address')->label(__('admin.settings.mail_test_address'))->email()->hintIcon(...$hint('mail_test_address')),
                 TextInput::make('mailing_approval_above')->label(__('admin.settings.mailing_approval_above'))->numeric()->minValue(0)->required()->hintIcon(...$hint('mailing_approval_above')),

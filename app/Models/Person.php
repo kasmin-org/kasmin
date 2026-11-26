@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\Auditable;
 use App\Support\Auth\Permissions;
+use App\Support\Language;
 use Database\Factories\PersonFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -143,5 +144,14 @@ class Person extends Model
         $email = $this->contactPoints()->where('type', 'email')->orderByDesc('is_primary')->value('value');
 
         return is_string($email) ? $email : null;
+    }
+
+    /**
+     * People and families have no language of their own: the installation has one. The column is a leftover of the
+     * versions up to 0.27 and is no longer read.
+     */
+    public function getLocaleAttribute(): string
+    {
+        return Language::current();
     }
 }

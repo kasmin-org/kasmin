@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Casts\OneText;
 use App\Models\Concerns\Auditable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -10,8 +11,8 @@ use Illuminate\Support\Carbon;
 /**
  * @property int $id
  * @property string $key
- * @property array<string, string> $name
- * @property array<string, string>|null $description
+ * @property string|null $name
+ * @property string|null $description
  * @property string $action
  * @property array<string, mixed>|null $config
  * @property string $trigger
@@ -46,7 +47,7 @@ class Automation extends Model
     protected function casts(): array
     {
         return [
-            'name' => 'array', 'description' => 'array', 'config' => 'array', 'trigger_config' => 'array', 'approver_roles' => 'array',
+            'name' => OneText::class, 'description' => OneText::class, 'config' => 'array', 'trigger_config' => 'array', 'approver_roles' => 'array',
             'active' => 'boolean', 'is_standard' => 'boolean', 'last_run_at' => 'datetime',
         ];
     }
@@ -59,7 +60,7 @@ class Automation extends Model
 
     public function label(?string $locale = null): string
     {
-        return $this->name[$locale ?? app()->getLocale()] ?? $this->name['en'] ?? $this->key;
+        return $this->name ?: $this->key;
     }
 
     public function setting(string $key, mixed $default = null): mixed

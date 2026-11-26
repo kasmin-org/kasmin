@@ -65,9 +65,9 @@ class EventTemplatesTest extends TestCase
         $this->assertSame('2028-06-29', $copy->answers_until?->toDateString());
         $this->assertSame('2028-03-30', $copy->installments()->sole()->due_date?->toDateString());
         $this->assertSame('2028-01-31', $copy->prices()->sole()->until_date?->toDateString());
-        $this->assertSame(['en' => 'Conditions'], $copy->cancellation_text);
+        $this->assertSame('Conditions', $copy->cancellation_text);
         $this->assertSame([3, 14], $copy->reminder_days_before);
-        $this->assertEquals(['en' => 'Deposit', 'de' => 'Anzahlung'], $copy->installments()->sole()->label);
+        $this->assertSame('Deposit', $copy->installments()->sole()->label);
         $this->assertSame('draft', $copy->status);
         $this->assertNotSame($this->event->public_id, $copy->public_id);
         $this->assertSame([0, 0, 42000], [$copy->participations()->count(), $copy->costs()->count(), $copy->roles()->sole()->price_cents]);

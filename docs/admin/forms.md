@@ -1,6 +1,7 @@
 # Forms and safety sheet
 
-Kasmin has configurable **person forms**. With the German or English defaults two are installed:
+Kasmin has configurable **person forms**. Every label and text is entered once, in the language of your installation.
+With the standard content two forms are installed:
 
 - **Safety sheet** – insurance, diet, intolerances, allergies (with severity), permanent medication (name, dose,
   time, who gives it), special medical needs, vaccinations (year / no / unknown), swimming, photo consents
@@ -11,13 +12,13 @@ Kasmin has configurable **person forms**. With the German or English defaults tw
 ## Form builder
 
 Administrators edit forms under *Forms*: fields with type (text, long text, choice, multiple choice, yes/no, number,
-date, year or no/unknown, phone, e-mail, "none or text", repeatable group, person, consent), labels and **help texts (tooltips)**
-in German and English, required, **confidentiality** (normal, health, ID/insurance number), carry-over to the next
+date, year or no/unknown, phone, e-mail, "none or text", repeatable group, person, consent), labels and **help texts (tooltips)**,
+required, **confidentiality** (normal, health, ID/insurance number), carry-over to the next
 year and use in lists. Every change creates a new **form version**; existing answers keep theirs.
 
 "None" is a real answer and different from "not answered".
 
-- **Choices** have texts in German and English, can allow "Other" with text, and can use a ready-made list, e.g. the
+- **Choices** have a value and a text, can allow "Other" with text, and can use a ready-made list, e.g. the
   health insurance carriers of Austria, Germany or Switzerland.
 - **Numbers and dates** can have a smallest and largest value.
 - **Check number**: text fields can check the check digit of an Austrian, German or Swiss insurance number. Extensions

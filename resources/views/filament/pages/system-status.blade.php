@@ -17,7 +17,7 @@
                                     @foreach ($check['items'] as $item)
                                         <tr style="border-top:1px solid rgba(128,128,128,.2)">
                                             <td style="padding:.25rem .75rem .25rem 0;white-space:nowrap;color:{{ $item['ok'] ? '#15803d' : ($item['required'] ? '#b91c1c' : '#b45309') }};font-weight:600">{{ $item['ok'] ? '✓' : '✗' }}</td>
-                                            <td style="padding:.25rem .75rem .25rem 0;font-family:ui-monospace,monospace;overflow-wrap:anywhere">{{ $item['name'] }}</td>
+                                            <td style="padding:.25rem .75rem .25rem 0;font-family:ui-monospace,monospace;white-space:nowrap">{{ $item['name'] }}</td>
                                             <td style="padding:.25rem 0;overflow-wrap:anywhere">{{ $item['purpose'] }}@if (! $item['required']) <span class="text-gray-500">({{ __('system.requirements.recommended') }})</span>@endif</td>
                                         </tr>
                                     @endforeach

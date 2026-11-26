@@ -28,7 +28,6 @@ class CreateHousehold extends ApiTool
     {
         return [
             'name' => $schema->string()->description('family name')->required(),
-            'locale' => $schema->string()->description('language of the family: de or en'),
             'street' => $schema->string()->description('street and number'),
             'postal_code' => $schema->string()->description('postal code'),
             'city' => $schema->string()->description('city'),

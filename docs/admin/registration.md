@@ -15,7 +15,7 @@ Before registering, legal guardians see places, price, instalments and cancellat
 
 ## Public forms
 
-*Forms → Public forms*: address `/f/<name>`, title and text in both languages, opening and closing time.
+*Forms → Public forms*: address `/f/<name>`, title and text, opening and closing time.
 
 | Kind | After the confirmation |
 |---|---|

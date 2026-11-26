@@ -39,7 +39,7 @@ return Application::configure(basePath: dirname(__DIR__))
         }
         // For every request, also the admin interface, the API and Livewire.
         $middleware->prepend(EnsureSchemaIsCompatible::class);
-        $middleware->web(append: [SetLocale::class]);
+        $middleware->append(SetLocale::class); // web, API and hooks: the language of the installation
         $middleware->append(SecurityHeaders::class);
         // Public forms work in frames of other websites, where browsers send no cookies. They change nothing before the
         // address is confirmed by mail, and they never use a login.

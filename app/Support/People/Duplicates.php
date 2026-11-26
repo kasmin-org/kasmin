@@ -18,7 +18,7 @@ use RuntimeException;
  */
 class Duplicates
 {
-    public const FIELDS = ['first_name', 'last_name', 'birth_date', 'gender', 'locale'];
+    public const FIELDS = ['first_name', 'last_name', 'birth_date', 'gender'];
 
     /**
      * @return list<array{first: Person, second: Person, reason: string}>

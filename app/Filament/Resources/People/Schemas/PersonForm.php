@@ -23,7 +23,6 @@ class PersonForm
                 DatePicker::make('birth_date')->label(__('admin.person.birth_date'))->maxDate(now())
                     ->hintIcon('heroicon-m-question-mark-circle', tooltip: __('admin.person.birth_date_hint')),
                 Select::make('gender')->label(__('admin.person.gender'))->options(__('admin.genders'))->placeholder('–'),
-                Select::make('locale')->label(__('admin.person.locale'))->options(['de' => 'Deutsch', 'en' => 'English'])->default('de')->required(),
             ]),
             Section::make(__('admin.person.section_contacts'))->schema([
                 Repeater::make('contactPoints')->relationship()->disabled(fn (?Person $record) => Permissions::administrative($record) && ! Permissions::administrator())->label('')->columns(3)->defaultItems(0)

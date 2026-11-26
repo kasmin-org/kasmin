@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use App\Casts\OneText;
 use App\Models\Concerns\Auditable;
 use Illuminate\Database\Eloquent\Model;
 
 /**
  * @property string $key
- * @property array<string, string> $name
+ * @property string|null $name
  * @property bool $is_admin
  * @property array<string, string>|null $permissions
  * @property string|null $scope
@@ -24,7 +25,7 @@ class Role extends Model
 
     protected function casts(): array
     {
-        return ['name' => 'array', 'is_admin' => 'boolean', 'requires_second_factor' => 'boolean', 'permissions' => 'array'];
+        return ['name' => OneText::class, 'is_admin' => 'boolean', 'requires_second_factor' => 'boolean', 'permissions' => 'array'];
     }
 
     /** Counts only for the own events (RO01). Administrators are never restricted. */
@@ -35,6 +36,6 @@ class Role extends Model
 
     public function label(): string
     {
-        return $this->name[app()->getLocale()] ?? $this->name['en'] ?? $this->key;
+        return $this->name ?: $this->key;
     }
 }

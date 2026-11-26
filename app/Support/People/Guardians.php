@@ -71,7 +71,7 @@ class Guardians
             if ($by === null || $invitation->data === null || ! $household->guardians()->whereKey($by->id)->exists()) {
                 throw new RuntimeException(__('public.invalid'));
             }
-            $person = $this->forms->person($invitation->data + ['locale' => $by->locale]);
+            $person = $this->forms->person($invitation->data);
             $children = $by->wards()->whereHas('households', fn ($q) => $q->whereKey($household->id))->get();
             if ($children->contains('id', $person->id)) {
                 throw new RuntimeException(__('public.invalid'));

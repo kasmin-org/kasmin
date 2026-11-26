@@ -29,7 +29,7 @@ Gesundheits- und Sicherheitsdaten werden auf diesem Weg nicht importiert.
 | `source_id` | ID im Quellsystem (nötig für wiederholte Importe) |
 | `first_name`, `last_name` | Pflicht |
 | `birth_date` | `YYYY-MM-DD` oder `DD.MM.YYYY` |
-| `gender`, `locale` (`de`/`en`) | |
+| `gender` | |
 | `email`, `phone` | der Person selbst (Erwachsene; sie bekommen einen Zugang) |
 | `street`, `postal_code`, `city`, `country` | Adresse der Familie |
 | `guardian1_first_name`, `guardian1_last_name`, `guardian1_email`, `guardian1_phone` | erste erziehungsberechtigte Person (macht die Zeile zu einem Kind; die erziehungsberechtigte Person bekommt einen eigenen Eintrag und einen Zugang) |

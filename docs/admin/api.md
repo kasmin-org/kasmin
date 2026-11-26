@@ -89,8 +89,8 @@ Example: `POST /people/{id}/memberships` with `{"type": "member", "starts_on": "
 
 Scopes `people:read` / `people:write`.
 
-- `GET /households` (`search`), `GET /households/{id}` – with members, language and `invoice_recipient`.
-- `POST /households` (`name`, `street`, `postal_code`, `city`, `country`, `locale`) creates a family without
+- `GET /households` (`search`), `GET /households/{id}` – with members and `invoice_recipient`.
+- `POST /households` (`name`, `street`, `postal_code`, `city`, `country`) creates a family without
   members; `PATCH /households/{id}` changes it. `invoice_recipient` is the id of one of the legal guardians of the
   family (`null` = chosen automatically); somebody else is refused.
 - `POST /households/{id}/members/{person}` with `role` `guardian` (legal guardian) or `child` adds a person or
@@ -217,7 +217,12 @@ Example: `POST /invoices/{number}/cancel` with `{"reason": "Camp cancelled"}`.
 
 Scopes `mail:read` / `mail:write`.
 
-- `GET /mail-templates`, `GET|PATCH /mail-templates/{key}`, `POST /mail-templates/{key}/preview`.
+- `GET /mail-templates`, `GET|PATCH /mail-templates/{key}`, `POST /mail-templates/{key}/preview`. A template has one
+  text: `subject`, `html` and optionally `text`.
+- **Texts are single values.** Names, labels and texts (forms and their fields and choices, membership types,
+  automations, labels of instalments, cancellation conditions, mail templates) are plain strings. Up to 0.27 they
+  were objects with one text per language (`{"de": …, "en": …}`); such input is still accepted and the text in
+  the language of the installation is taken. People and families have no `locale` any more.
 - Versions: `GET /mail-templates/{key}/versions` and `POST /mail-templates/{key}/versions/{version}/restore`.
   Restoring makes a new version; nothing is lost.
 - `GET|POST /mailings`, `GET /mailings/{number}`, `POST /mailings/{number}/prepare`,
@@ -226,7 +231,8 @@ Scopes `mail:read` / `mail:write`.
   links are never part of the answer**: stored mails hold a placeholder, the link is only made when a mail is sent.
 - `GET /bad-addresses` – addresses that came back as not existing; `POST /bad-addresses/{number}/clear` when an
   address works again.
-- `GET /sender-profiles` (name, from, reply-to, name of the mail account). `POST /sender-profiles` and
+- `GET /sender-profiles` – the one sender of the installation (name, from, reply-to, name of the mail account).
+  `POST /sender-profiles` creates it if there is none yet (a second one is refused);
   `PATCH /sender-profiles/{number}` (`name`, `from_name`, `from_address`, `reply_to`, `mail_account`) need
   `settings:write`, as the mail settings in the admin interface are a separate permission.
 - Interface only: mail accounts. Their passwords and DKIM keys are never part of an answer.

@@ -39,7 +39,7 @@ class ImportPeoplePage extends Page
     protected string $view = 'filament.pages.import-people';
 
     /** @var array<string, mixed> */
-    public array $data = ['type' => 'file', 'locale' => 'de'];
+    public array $data = ['type' => 'file'];
 
     /** @var list<string> */
     public array $columns = [];
@@ -86,7 +86,6 @@ class ImportPeoplePage extends Page
         return $schema->statePath('data')->components([
             Section::make(__('import.step_source'))->columns(2)->schema([
                 Radio::make('type')->label(__('import.source_type'))->options(['file' => __('import.type_file'), 'webling' => 'Webling'])->live()->required(),
-                Select::make('locale')->label(__('import.locale'))->options(['de' => 'Deutsch', 'en' => 'English'])->required(),
                 TextInput::make('source')->label(__('import.source'))->helperText(__('import.source_hint'))->regex('/^[a-z0-9_.-]+$/')->maxLength(60)
                     ->visible(fn (Get $get) => $get('type') === 'file'),
                 FileUpload::make('file')->label(__('import.file'))->disk('local')->directory('imports')->maxSize(20480)
@@ -143,13 +142,13 @@ class ImportPeoplePage extends Page
     /** Step 2: dry run with the chosen assignment. */
     public function preview(): void
     {
-        $this->plan = app(PeopleImporter::class)->plan($this->mappedRows(), (string) $this->data['source'], (string) $this->data['locale']);
+        $this->plan = app(PeopleImporter::class)->plan($this->mappedRows(), (string) $this->data['source']);
     }
 
     /** Step 3: import as batch. */
     public function import(): void
     {
-        $batch = app(PeopleImporter::class)->import($this->mappedRows(), (string) $this->data['source'], (string) $this->data['locale']);
+        $batch = app(PeopleImporter::class)->import($this->mappedRows(), (string) $this->data['source']);
         Cache::forget($this->cacheKey);
         $this->plan = null;
         $this->columns = [];

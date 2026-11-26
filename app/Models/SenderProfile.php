@@ -27,4 +27,15 @@ class SenderProfile extends Model
     {
         return $this->belongsTo(MailAccount::class, 'mail_account_id');
     }
+
+    /**
+     * The sender of the installation – name, address and reply-to that every mail goes out with. There is one; if
+     * older versions left several, it is the first one of the mail account.
+     */
+    public static function main(): ?self
+    {
+        $account = MailAccount::main();
+
+        return ($account === null ? null : self::query()->where('mail_account_id', $account->id)->orderBy('id')->first()) ?? self::query()->orderBy('id')->first();
+    }
 }

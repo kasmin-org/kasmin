@@ -88,8 +88,7 @@ class AutomationResource extends Resource
 
         return $schema->components([
             Section::make()->columnSpanFull()->columns(['md' => 2, 'xl' => 3])->schema([
-                TextInput::make('name.de')->label(__('automations.name').' (DE)')->required(),
-                TextInput::make('name.en')->label(__('automations.name').' (EN)')->required(),
+                TextInput::make('name')->label(__('automations.name'))->required(),
                 Select::make('action')->label(__('automations.action'))->options(__('automations.actions'))->default('custom')->disabled()->dehydrated(false),
                 Toggle::make('active')->label(__('automations.active'))->inline(false)->hiddenOn('create'),
                 Select::make('mode')->label(__('automations.mode'))->options(__('automations.modes'))->default('confirm')->required()
@@ -99,7 +98,7 @@ class AutomationResource extends Resource
                 TextInput::make('approvals_needed')->label(__('automations.approvals_needed'))->numeric()->minValue(1)->maxValue(10)->default(1)->required()
                     ->hintIcon('heroicon-m-question-mark-circle', tooltip: __('automations.approvals_needed_hint')),
                 CheckboxList::make('approver_roles')->label(__('automations.approver_roles'))->columns(['sm' => 2, 'xl' => 4])->columnSpanFull()
-                    ->options(fn () => Role::query()->where('is_admin', true)->get()->mapWithKeys(fn (Role $r) => [$r->key => $r->name[app()->getLocale()] ?? $r->key])->all())
+                    ->options(fn () => Role::query()->where('is_admin', true)->get()->mapWithKeys(fn (Role $r) => [$r->key => $r->label()])->all())
                     ->hintIcon('heroicon-m-question-mark-circle', tooltip: __('automations.approver_roles_hint')),
             ]),
             Section::make(__('automations.trigger'))->columnSpanFull()->columns(['md' => 2, 'xl' => 3])->schema([
@@ -139,7 +138,7 @@ class AutomationResource extends Resource
             Section::make(__('automations.steps_title'))->columnSpanFull()->visible($is('custom'))->schema([self::steps()]),
             Section::make(__('automations.settings'))->columnSpanFull()->columns(['md' => 2, 'xl' => 3])->visible(fn (Get $get) => $get('action') !== 'custom')->schema([
                 Select::make('config.template')->label(__('automations.template'))->visible($is('send_template'))
-                    ->options(fn () => MailTemplate::query()->orderBy('key')->get()->mapWithKeys(fn (MailTemplate $t) => [$t->key => $t->name[app()->getLocale()] ?? $t->key])->all()),
+                    ->options(fn () => MailTemplate::query()->orderBy('key')->get()->mapWithKeys(fn (MailTemplate $t) => [$t->key => $t->label()])->all()),
                 CheckboxList::make('config.statuses')->label(__('automations.participant_statuses'))->visible($is('send_template'))
                     ->options(collect(['registered', 'confirmed', 'offered', 'waitlist', 'attended'])->mapWithKeys(fn ($s) => [$s => __('events.status.'.$s)])->all()),
                 Select::make('config.to')->label(__('automations.to'))->options(__('automations.to_options'))->visible($is('send_template')),
@@ -164,7 +163,7 @@ class AutomationResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('name')->label(__('automations.name'))->state(fn (Automation $record) => $record->label())->wrap()
-                    ->description(fn (Automation $record) => $record->description[app()->getLocale()] ?? null),
+                    ->description(fn (Automation $record) => $record->description),
                 TextColumn::make('trigger')->label(__('automations.trigger'))->formatStateUsing(fn (string $state) => __('automations.triggers.'.$state))->toggleable(),
                 TextColumn::make('mode')->label(__('automations.mode'))->badge()->formatStateUsing(fn (string $state) => __('automations.modes.'.$state))
                     ->color(fn (string $state) => $state === 'automatic' ? 'warning' : 'gray'),

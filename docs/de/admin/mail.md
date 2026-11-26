@@ -1,21 +1,39 @@
 # Mail
 
-## Konten und Absenderprofile
+## Versand: Mailkonto und Absender
 
-*Kommunikation → Mailkonten*: SMTP zum Senden (SSL/TLS auf Port 465 oder STARTTLS auf 587, das Zertifikat wird immer
-geprüft), auf Wunsch IMAP. Nur Konten mit IMAP („senden und empfangen“) können eine Kopie jeder gesendeten Mail in einem
-Ordner ablegen (z. B. `Sent`) und Antworten und Rückläufer Personen und Familien zuordnen. Die Versandgrenzen (pro Minute, Stunde, Tag)
-richten sich nach den Grenzen Ihres Anbieters – Mails über der Grenze gehen beim nächsten Durchlauf hinaus. Die Aktion *Testmail* prüft
-die Verbindung.
+*Kommunikation → E-Mail-Versand* ist eine Seite für die ganze Installation:
 
-*Absenderprofile* (Absendername, Absenderadresse, Antwortadresse, Konto) werden pro Vorlage gewählt. So können verschiedene Teams gleichzeitig
-verschiedene Adressen verwenden. Mails ohne Profil verwenden das Standardkonto (oder die Maileinstellungen des Servers
-in `.env`).
+- **Absender**: der Name und die Adresse, mit denen jede Mail hinausgeht, und auf Wunsch eine Antwortadresse für die Antworten.
+  Es gibt einen Absender. Vorlagen und Aussendungen wählen keinen aus.
+- **Mailkonto**: wie die Mails gesendet werden – SMTP (SSL/TLS auf Port 465 oder STARTTLS auf 587, das Zertifikat wird immer
+  geprüft) oder direkte Zustellung – und auf Wunsch IMAP. Nur mit IMAP („senden und empfangen“) kann Kasmin eine Kopie
+  jeder gesendeten Mail in einem Ordner ablegen (z. B. `Sent`) und Antworten und Rückläufer Personen und Familien zuordnen. Die Versandgrenzen
+  (pro Minute, Stunde, Tag) richten sich nach den Grenzen Ihres Anbieters – Mails über der Grenze gehen beim nächsten Durchlauf hinaus.
+- *Testmail* prüft die Verbindung; *DKIM-Schlüssel erzeugen* ist für die direkte Zustellung.
+
+Warum zwei Teile auf einer Seite: Das Konto ist die technische Verbindung (Server, Benutzername, Passwort), der Absender ist das, was
+die Empfängerinnen und Empfänger sehen. Bis Version 0.27 gab es Listen mit mehreren Konten und mehreren „Absenderprofilen“, aus denen
+pro Vorlage gewählt wurde. Eines von jedem genügt für eine Organisation und ist viel leichter richtig zu halten, deshalb gibt es die Listen nicht mehr; eine
+Installation, die mehrere hatte, verwendet weiter ihr Standardkonto und dessen ersten Absender.
 
 ## Vorlagen
 
-*Kommunikation → Mailvorlagen*: ein Text pro Sprache, bearbeitet in einem Editor mit Formatierung; jedes Speichern ist eine neue
-Version. Platzhalter (abgeschottet, es kann kein Code ausgeführt werden; vertrauliche Felder wie Gesundheitsdaten stehen nicht
+*Kommunikation → Mailvorlagen*: ein Text pro Vorlage, bearbeitet in einem Editor mit Formatierung; jedes Speichern ist eine neue
+Version. Eine Vorlage hat keine Fassungen pro Sprache – eine Installation arbeitet in einer Sprache (siehe
+[System](system.md#sprache)), und der Text ist einfach das, was Sie geschrieben haben.
+
+Niemand muss die Platzhalter oder ihre Schreibweise auswendig kennen:
+
+- **Platzhalter einfügen** (Schaltfläche des Editors, auch neben dem Betreff und dem HTML-Quelltext) führt jeden
+  Platzhalter mit einem Namen und einem Beispiel an und setzt den gewählten an die Stelle der Schreibmarke.
+- **Bedingung einfügen** baut ein „Wenn“: Wählen Sie das Feld (zum Beispiel *Veranstaltung: Ort*), den Vergleich (ausgefüllt / ja,
+  leer / nein, gleich, ungleich, größer als, kleiner als), bei Bedarf einen Wert, den Text für „dann“ und auf Wunsch
+  den Text für „sonst“. Kasmin schreibt das in der richtigen Schreibweise in die Vorlage.
+- **Fehler verhindern das Speichern** und werden beim Feld rot genannt, in einfachen Worten: ein Platzhalter, der nicht geschlossen ist,
+  eine Klammer ohne ihr Gegenstück, ein `if` ohne `endif`, ein unbekannter Platzhalter. Alle Fehler werden auf einmal angeführt.
+
+Die Platzhalter (abgeschottet, es kann kein Code ausgeführt werden; vertrauliche Felder wie Gesundheitsdaten stehen nicht
 zur Verfügung):
 
 | Platzhalter | Inhalt |
@@ -31,13 +49,14 @@ zur Verfügung):
 | `{{ links.login }}`, `{{ links.portal }}` | persönlicher Anmeldelink (eingeschränkt, 30 Tage gültig) und Portal |
 
 Erlaubt sind `{% if %}`, `{% for %}`, `{% set %}` und die Filter `upper`, `lower`, `capitalize`, `title`, `default`,
-`join`, `length`, `first`, `last`, `trim`, `nl2br`. Unbekannte Platzhalter verhindern das Speichern.
+`join`, `length`, `first`, `last`, `trim`, `nl2br`.
 
 - **Schaltflächen**: Ein Link allein in einem Absatz wird zu einer Schaltfläche in der Farbe der Organisation. `{{ links.login }}` kann
   als Ziel eines Links eingetragen werden.
 - **Bilder** (PNG, JPG, GIF, 2 MB) werden im Editor eingefügt und beim Senden in die Mail eingebettet.
-- **HTML-Quelltext**: Umschalten pro Sprache, für alles, was der Editor nicht kann.
-- **Vorschau**: alle Sprachen mit den Daten einer echten Person und Veranstaltung, für Computer und Handy, und eine *Testmail an mich*. Persönliche
+- **HTML-Quelltext**: ein Schalter unter dem Editor, für alles, was der Editor nicht kann.
+- **Vorschau**: Wählen Sie eine Person aus der Liste (Tippen grenzt sie ein) und eine Veranstaltung; die Vorschau zeigt die Mail so, wie diese
+  Person sie bekäme, für Computer und Handy. *Testmail an mich* sendet sie an Sie selbst. Persönliche
   Links anderer werden nie gezeigt oder gesendet. Das HTML einer Mail wird immer in einem abgeschotteten Frame angezeigt.
 - **Versionen** (in der Vorlage): frühere Texte ansehen und wiederherstellen, auch den ersten.
 - **Mit Standard vergleichen**: zeigt den Unterschied zum mitgelieferten Text. *Neuer Standard* erscheint, wenn ein Update einen neuen Text gebracht hat;

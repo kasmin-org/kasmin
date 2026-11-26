@@ -64,10 +64,8 @@ class PublicFormResource extends Resource
         return $schema->components([
             Select::make('kind')->label(__('public.kind'))->options(__('public.kinds'))->required()->live(),
             TextInput::make('slug')->label(__('public.slug'))->required()->alphaDash()->maxLength(64)->unique(ignoreRecord: true)->helperText(__('public.slug_hint')),
-            TextInput::make('title.de')->label(__('public.title').' (DE)')->required()->maxLength(150),
-            TextInput::make('title.en')->label(__('public.title').' (EN)')->required()->maxLength(150),
-            Textarea::make('intro.de')->label(__('public.intro').' (DE)')->rows(3),
-            Textarea::make('intro.en')->label(__('public.intro').' (EN)')->rows(3),
+            TextInput::make('title')->label(__('public.title'))->required()->maxLength(150),
+            Textarea::make('intro')->label(__('public.intro'))->rows(3),
             Select::make('event_id')->label(__('admin.event.singular'))->visible($is('event'))->required($is('event'))
                 ->options(fn () => Event::query()->where('ends_at', '>=', now())->orderBy('starts_at')->pluck('title', 'id')->all()),
             Select::make('role_key')->label(__('admin.event.role'))->options(__('events.roles'))->visible($is('event'))->required($is('event'))->default('guest'),

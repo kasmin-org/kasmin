@@ -91,7 +91,7 @@ auf dem Dashboard und unter *Automatisierungen → Läufe und Freigaben* sichtba
 
 ## Standard-Automatisierungen
 
-Sie werden mit den deutschen oder englischen Standardinhalten angelegt und sind **ausgeschaltet**, außer *Zahlungserinnerungen*,
+Sie werden mit den Standardinhalten angelegt und sind **ausgeschaltet**, außer *Zahlungserinnerungen*,
 *Rechnungen korrigieren* und *Anmelderunden* (diese schlagen nur vor, nichts wird ohne Freigabe gesendet). Prüfen Sie die Einstellungen und schalten Sie ein, was Sie brauchen.
 
 | Automatisierung | Aktion | Voreingestellter Auslöser und Modus |

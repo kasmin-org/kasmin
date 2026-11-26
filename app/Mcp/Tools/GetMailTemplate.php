@@ -12,7 +12,7 @@ use Laravel\Mcp\Server\Attributes\Name;
 use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 
 #[Name('get_mail_template')]
-#[Description('One mail template with its contents per language.')]
+#[Description('One mail template with its subject and text.')]
 #[IsReadOnly]
 class GetMailTemplate extends ApiTool
 {

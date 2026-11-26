@@ -16,7 +16,7 @@ Vor der Anmeldung sehen Erziehungsberechtigte Plätze, Preis, Raten und Stornobe
 
 ## Öffentliche Formulare
 
-*Formulare → Öffentliche Formulare*: Adresse `/f/<name>`, Titel und Text in beiden Sprachen, Beginn und Ende.
+*Formulare → Öffentliche Formulare*: Adresse `/f/<name>`, Titel und Text, Beginn und Ende.
 
 | Art | Nach der Bestätigung |
 |---|---|

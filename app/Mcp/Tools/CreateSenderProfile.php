@@ -11,7 +11,7 @@ use Laravel\Mcp\Server\Attributes\Description;
 use Laravel\Mcp\Server\Attributes\Name;
 
 #[Name('create_sender_profile')]
-#[Description('Creates a sender profile (from name and address, reply-to) for an existing mail account. Mail accounts themselves are set up in the admin interface. Ask the human first.')]
+#[Description('Creates the sender (from name and address, reply-to) for the mail account, if there is none yet; an installation has one sender. Mail accounts themselves are set up in the admin interface. Ask the human first.')]
 class CreateSenderProfile extends ApiTool
 {
     public const ENDPOINT = ['POST', '/sender-profiles'];

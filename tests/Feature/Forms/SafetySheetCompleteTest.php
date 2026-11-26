@@ -167,9 +167,9 @@ class SafetySheetCompleteTest extends TestCase
     public function test_vaccination_years_accept_the_words_of_the_language(): void
     {
         [$user, $guardian, $child] = $this->family();
-        $guardian->update(['locale' => 'de']);
+        Settings::set('default_locale', 'de'); // the language of the installation, not of the person
         $url = '/portal/children/'.$child->public_id.'/forms/safety_sheet';
-        $this->actingAs($user)->withSession(['locale' => 'de'])->get($url)->assertSee('„nein“ oder „unbekannt“', false);
+        $this->actingAs($user)->get($url)->assertSee('„nein“ oder „unbekannt“', false);
         $this->post($url, ['values' => ['tetanus' => 'Nein', 'tbe' => 'unbekannt'] + $this->answers()])->assertSessionHasNoErrors();
         $values = app(Forms::class)->current($this->sheet, $child)->values ?? [];
         $this->assertSame(['no', 'unknown'], [$values['tetanus'], $values['tbe']]);
@@ -294,9 +294,16 @@ class SafetySheetCompleteTest extends TestCase
         $this->assertSame($this->sheet->fields->firstWhere('key', 'diet')?->options, $copy->fields->firstWhere('key', 'diet')?->options);
 
         $version = $this->sheet->version;
-        $export['fields'][0]['label']['en'] = 'Insurer';
+        $export['fields'][0]['label'] = 'Insurer';
         $definitions->import($export);
         $this->assertSame($version + 1, $this->sheet->fresh()?->version);
+
+        // A file of the versions up to 0.27 holds one text per language: the one in use is taken.
+        $old = $export;
+        $old['name'] = ['de' => 'Sicherheitsblatt', 'en' => 'Safety sheet (old file)'];
+        $old['fields'][0]['label'] = ['de' => 'Versicherung', 'en' => 'Insurer (old file)'];
+        $imported = $definitions->import($old);
+        $this->assertSame(['Safety sheet (old file)', 'Insurer (old file)'], [$imported->label(), $imported->fields()->orderBy('sort')->first()?->labelText()]);
         $this->assertSame('Peanuts', app(Forms::class)->current($this->sheet, $child)->values['allergies'] ?? null);
 
         $this->expectException(ValidationException::class);

@@ -45,10 +45,10 @@ class Sender
         $result = ['sent' => 0, 'failed' => 0, 'deferred' => 0];
         $mails = OutgoingMail::query()->where('status', 'queued')
             ->where(fn ($q) => $q->whereNull('send_after')->orWhere('send_after', '<=', now()))
-            ->orderBy('id')->limit($limit)->with('senderProfile.account')->get();
+            ->orderBy('id')->limit($limit)->get();
+        $account = MailAccount::main(); // one account and one sender for all mails
 
         foreach ($mails as $mail) {
-            $account = $mail->senderProfile->account ?? MailAccount::query()->where('is_default', true)->first();
             if ($account !== null && ! $this->withinRateLimits($account)) {
                 $result['deferred']++;
 
@@ -64,9 +64,10 @@ class Sender
     {
         $mail->forceFill(['status' => 'sending', 'attempts' => $mail->attempts + 1])->save();
         try {
-            $email = $this->build($mail, $mail->senderProfile, $account);
+            $profile = SenderProfile::main();
+            $email = $this->build($mail, $profile, $account);
             if ($account !== null && $account->dkim_private_key && MailDns::canSignDkim()) {
-                $email = (new DkimSigner($account->dkim_private_key, (string) ($account->dkim_domain ?: Str::after($mail->senderProfile->from_address ?? '', '@')), (string) $account->dkim_selector))->sign($email);
+                $email = (new DkimSigner($account->dkim_private_key, (string) ($account->dkim_domain ?: Str::after($profile->from_address ?? '', '@')), (string) $account->dkim_selector))->sign($email);
             }
             $account?->isDirect() ? $this->sendDirect($email, self::testAddress() ?? $mail->to_address) : $this->transport($account)->send($email);
             $mail->forceFill(['status' => 'sent', 'sent_at' => now(), 'last_error' => null])->save();
@@ -221,9 +222,7 @@ class Sender
 
     private function withinRateLimits(MailAccount $account): bool
     {
-        $profiles = SenderProfile::query()->where('mail_account_id', $account->id)->pluck('id');
-        $count = fn (int $minutes) => OutgoingMail::query()->where('status', 'sent')->where('sent_at', '>=', now()->subMinutes($minutes))
-            ->where(fn ($q) => $q->whereIn('sender_profile_id', $profiles)->when($account->is_default, fn ($q) => $q->orWhereNull('sender_profile_id')))->count();
+        $count = fn (int $minutes) => OutgoingMail::query()->where('status', 'sent')->where('sent_at', '>=', now()->subMinutes($minutes))->count();
 
         return ($account->rate_per_minute === null || $count(1) < $account->rate_per_minute)
             && ($account->rate_per_hour === null || $count(60) < $account->rate_per_hour)

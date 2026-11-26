@@ -18,7 +18,7 @@ class Triggers
     private const MAX_DEPTH = 3;
 
     /** Fields of a person that can start an automation. */
-    public const FIELDS = ['birth_date', 'locale', 'first_name', 'last_name', 'gender'];
+    public const FIELDS = ['birth_date', 'first_name', 'last_name', 'gender'];
 
     private static int $depth = 0;
 

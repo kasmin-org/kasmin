@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Support\Auth\ProofOfWork;
+use App\Support\Language;
 use App\Support\People\SignUps;
 use App\Support\Settings;
 use Illuminate\Http\RedirectResponse;
@@ -32,14 +33,13 @@ class PublicRegistrationController extends Controller
             'first_name' => ['required', 'string', 'max:120'],
             'last_name' => ['required', 'string', 'max:120'],
             'email' => ['required', 'email', 'max:254'],
-            'locale' => ['required', 'in:de,en'],
             'privacy' => ['accepted'],
         ]);
         if (! ProofOfWork::valid($request->input('pow'))) {
             return back()->withInput()->withErrors(['pow' => __('public.check_failed')]);
         }
         $this->signUps->request([
-            'first_name' => (string) $data['first_name'], 'last_name' => (string) $data['last_name'], 'email' => (string) $data['email'], 'locale' => (string) $data['locale'],
+            'first_name' => (string) $data['first_name'], 'last_name' => (string) $data['last_name'], 'email' => (string) $data['email'], 'locale' => Language::current(),
             'newsletter' => Settings::bool('newsletter_ask') && $request->boolean('newsletter') ? (string) __('public.newsletter_consent') : null,
         ]);
 

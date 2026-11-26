@@ -89,6 +89,7 @@ Route::middleware('auth')->group(function () {
     Route::middleware([RequireSecondFactor::class, RequireFullLogin::class])->prefix('admin/system/backups')->group(function () {
         Route::post('/', [BackupController::class, 'create'])->middleware('throttle:install')->name('admin.backups.create');
         Route::post('/decrypt', [BackupController::class, 'decrypt'])->name('admin.backups.decrypt');
+        Route::post('/restore', [BackupController::class, 'restore'])->middleware('throttle:install')->name('admin.backups.restore');
         Route::get('/{name}', [BackupController::class, 'download'])->where('name', '[A-Za-z0-9_.-]+')->name('admin.backups.download');
     });
     Route::get('/admin/invoice-archive/{archived}/pdf', [InvoicePdfController::class, 'archived'])->middleware([RequireSecondFactor::class, RequireFullLogin::class])->whereNumber('archived')->name('admin.invoice-archive.pdf');

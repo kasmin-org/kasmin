@@ -61,6 +61,15 @@ shown again.
 
 ### Restore a backup
 
+**In the browser** (administrators, MySQL and MariaDB): *System → System status → Backups → Restore a backup*. Choose a backup of the
+server or upload a file (`.sql.gz`, or an encrypted `.enc` with its passphrase), type the word shown and confirm. Kasmin checks that the
+file is a complete backup of the same kind of database, saves the current state as a backup named `before-restore`, replaces everything in
+the database and asks everybody to log in again. If the backup is older than the installed version, the upgrade notice appears and an
+administrator starts the upgrade as usual. Uploaded files and the `.env` file with the `APP_KEY` are not part of a backup: restoring on
+another server needs the same key, otherwise encrypted data such as safety sheets cannot be read.
+
+**Without Kasmin** (e.g. when the installation does not start):
+
 Restoring replaces **all** data of the target database. Stop Kasmin first (maintenance mode or stop the container), and keep a copy of the
 current state. A complete backup ends with the line `-- End of backup`.
 

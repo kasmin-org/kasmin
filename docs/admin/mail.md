@@ -1,21 +1,39 @@
 # Mail
 
-## Accounts and sender profiles
+## Sending: mail account and sender
 
-*Communication → Mail accounts*: SMTP for sending (SSL/TLS on port 465 or STARTTLS on 587, certificate always
-checked), optionally IMAP. Only accounts with IMAP ("send and receive") can store a copy of every sent mail in a
-folder (e.g. `Sent`) and assign replies and bounces to people and families. Rate limits (per minute, hour, day)
-follow the limits of your provider – mails above the limit go out in the next run. The *test mail* action checks
-the connection.
+*Communication → E-mail sending* is one page for the whole installation:
 
-*Sender profiles* (from name, address, reply-to, account) are chosen per template, so different teams can use
-different addresses at the same time. Mails without a profile use the default account (or the server's mail
-settings in `.env`).
+- **Sender**: the name and the address every mail goes out with, and optionally a reply-to address for the answers.
+  There is one sender. Templates and mailings do not choose one.
+- **Mail account**: how the mails are sent – SMTP (SSL/TLS on port 465 or STARTTLS on 587, certificate always
+  checked) or direct delivery – and optionally IMAP. Only with IMAP ("send and receive") Kasmin can store a copy
+  of every sent mail in a folder (e.g. `Sent`) and assign replies and bounces to people and families. Rate limits
+  (per minute, hour, day) follow the limits of your provider – mails above the limit go out in the next run.
+- *Send test mail* checks the connection; *Generate DKIM key* is for direct delivery.
+
+Why two parts on one page: the account is the technical connection (server, user, password), the sender is what
+recipients see. Up to version 0.27 there were lists of several accounts and several "sender profiles" to choose from
+per template. One of each is enough for an organisation and far easier to keep right, so the lists are gone; an
+installation that had several keeps using its standard account and the first sender of it.
 
 ## Templates
 
-*Communication → Mail templates*: one text per language, edited in a formatted editor; every save is a new
-version. Placeholders (sandboxed, no code can be executed; confidential fields such as health data are not
+*Communication → Mail templates*: one text per template, edited in a formatted editor; every save is a new
+version. A template has no versions per language – an installation works in one language (see
+[System](system.md#language)), and the text is simply what you wrote.
+
+Nobody has to know the placeholders or their syntax by heart:
+
+- **Insert placeholder** (button of the editor, also next to the subject and the HTML source) lists every
+  placeholder with a name and an example and puts the chosen one at the cursor.
+- **Insert condition** builds an "if": choose the field (for example *Event: Place*), the comparison (filled in,
+  empty, equal to, not equal to, greater than, less than), a value if needed, the text for "then" and optionally
+  the text for "otherwise". Kasmin writes it into the template in the right syntax.
+- **Mistakes block saving** and are named in red at the field, in plain words: a placeholder that is not closed,
+  a bracket without its partner, an `if` without `endif`, an unknown placeholder. All mistakes are listed at once.
+
+The placeholders (sandboxed, no code can be executed; confidential fields such as health data are not
 available):
 
 | Placeholder | Content |
@@ -31,13 +49,14 @@ available):
 | `{{ links.login }}`, `{{ links.portal }}` | personal login link (limited, valid 30 days) and portal |
 
 Allowed: `{% if %}`, `{% for %}`, `{% set %}` and the filters `upper`, `lower`, `capitalize`, `title`, `default`,
-`join`, `length`, `first`, `last`, `trim`, `nl2br`. Unknown placeholders block saving.
+`join`, `length`, `first`, `last`, `trim`, `nl2br`.
 
 - **Buttons**: a link alone in a paragraph becomes a button in the colour of the organisation. `{{ links.login }}` can be
   entered as the target of a link.
 - **Images** (PNG, JPG, GIF, 2 MB) are added in the editor and embedded in the mail when it is sent.
-- **HTML source**: switch per language, for everything the editor cannot do.
-- **Preview**: all languages with the data of a real person and event, for computer and phone, and a *test mail to me*. Personal
+- **HTML source**: a switch below the editor, for everything the editor cannot do.
+- **Preview**: choose a person from the list (typing narrows it down) and an event; the preview shows the mail as this
+  person would get it, for computer and phone. *Test mail to me* sends it to yourself. Personal
   links of others are never shown or sent. Mail HTML is always shown in a sandboxed frame.
 - **Versions** (in the template): view and restore earlier texts, including the first.
 - **Compare with standard**: shows the difference to the shipped text. *New standard* appears if an update brought a new text;

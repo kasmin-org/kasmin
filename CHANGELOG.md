@@ -11,7 +11,8 @@ All notable changes to Kasmin are documented in this file. The format is based o
 - System status: *Show every item* lists each PHP extension, function and folder with what it is needed for and whether it is there; the documentation has the same list. The database line names product and version of the server.
 - System status: check of the memory PHP may use. Kasmin needs 128 MB; only large PDFs ask for 256 MB for their one request.
 - System status: *PHP configuration (phpinfo)* for administrators, without the keys and passwords of the installation; every view is logged.
-- An optional note per gender below the choice of the gender of a child (*Settings → Organisation → Families*), with a standard text for "diverse" about the rooms.
+- An optional note per gender below the choice of the gender of a child (*Settings → Organisation and invoices → Families*), with a standard text for "diverse" about the rooms.
+- The documentation for administrators is available in German (`docs/de/admin`), page by page like the English one; a test keeps the two in step.
 
 ### Changed
 

@@ -71,7 +71,7 @@ instead of asking for a family.
 ### Gender of a child
 
 When legal guardians add a child, they must choose the gender: female, male or diverse – rooms are planned with it, so "not specified" is
-not offered there. *Settings → Organisation → Families* holds an optional note per gender that appears below the choice as soon as this
+not offered there. *Settings → Organisation and invoices → Families* holds an optional note per gender that appears below the choice as soon as this
 gender is picked. Female and male have none by default; diverse has this one, which you can change or empty:
 
 > We separate the children by gender per room. Please contact us directly and tell us in which room the child wants to sleep, so that we

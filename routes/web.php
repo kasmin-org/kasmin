@@ -26,11 +26,22 @@ use App\Http\Controllers\ViewAsController;
 use App\Http\Middleware\ReadOnlyPortalPreview;
 use App\Http\Middleware\RequireFullLogin;
 use App\Http\Middleware\RequireSecondFactor;
+use App\Models\Event;
+use App\Support\Mail\Placeholders;
 use Illuminate\Support\Facades\Route;
 
+// The start page: who is logged in goes on to the portal; everybody else sees the organisation, the way to log in and
+// to sign up, and the events that are public.
 Route::get('/', function () {
-    return auth()->check() ? redirect()->route('portal') : view('welcome');
-});
+    if (auth()->check()) {
+        return redirect()->route('portal');
+    }
+
+    return view('welcome', [
+        'organisation' => Placeholders::organisationName(),
+        'events' => Event::query()->where('public_page', true)->where('is_template', false)->whereNotIn('status', ['draft', 'archived', 'cancelled'])->where('ends_at', '>=', now())->orderBy('starts_at')->limit(12)->get(),
+    ]);
+})->name('start');
 
 Route::post('/language', [LanguageController::class, 'update'])->middleware('throttle:language')->name('language');
 

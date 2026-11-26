@@ -6,6 +6,10 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ## [Unreleased]
 
+### Fixed
+
+- The start page still showed the text of the very first version and no way to log in. It now shows the organisation, the buttons to log in and to sign up, and the public events.
+
 ## [0.26.0] - 2026-11-26
 
 ### Changed

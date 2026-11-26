@@ -6,6 +6,16 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ## [Unreleased]
 
+## [0.26.0] - 2026-11-26
+
+### Changed
+
+- Approvers get one e-mail with all approvals that came in since the last summary, at a time that can be set (default 07:00, several times possible), instead of one e-mail per request. Leave the time empty for the old behaviour.
+
+### Security
+
+- Symfony components updated to 7.4.24 (six advisories of 25 November 2026, among them two about mail delivery where an attacker in the network could get around the required encryption).
+
 ## [0.25.0] - 2026-11-26
 
 ### Added
@@ -579,7 +589,8 @@ First public pre-release for testing. Not ready for production use.
 - Docker image: system packages updated and build packages removed after compiling the PHP extensions – the
   container scan reports no high or critical findings any more (previously 75 in Debian packages).
 
-[Unreleased]: https://github.com/kasmin-org/kasmin/compare/v0.25.0...develop
+[Unreleased]: https://github.com/kasmin-org/kasmin/compare/v0.26.0...develop
+[0.26.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.26.0
 [0.25.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.25.0
 [0.24.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.24.0
 [0.23.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.23.0

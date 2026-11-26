@@ -22,6 +22,7 @@ class SettingsController extends ApiController
         'invoice_overdue_days' => ['required', 'regex:/^\d+(\s*,\s*\d+)*$/'], 'invoice_attach_paid' => ['required', 'boolean'],
         'max_guardians' => ['required', 'integer', 'min:1', 'max:20'], 'mailing_approval_above' => ['required', 'integer', 'min:0', 'max:100000'],
         'digest_time' => ['nullable', 'regex:/^([01]\d|2[0-3]):[0-5]\d$/'], 'approval_days' => ['nullable', 'integer', 'min:1', 'max:60'],
+        'approval_summary_time' => ['nullable', 'regex:/^\s*(([01]\d|2[0-3]):[0-5]\d(\s*,\s*([01]\d|2[0-3]):[0-5]\d)*)?\s*$/'],
     ];
 
     /** Settings that decide whether an approval is needed; via MCP they also need approvals:decide. */

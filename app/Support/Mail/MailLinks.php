@@ -40,6 +40,14 @@ class MailLinks
             $link = self::link($mail);
             [$html, $text] = [self::replace($html, $link), self::replace($text, $link)];
         }
+        // A summary holds several requests: each one has its own placeholder with the number of the run.
+        if (preg_match_all('#/approvals/'.preg_quote(self::PLACEHOLDER, '#').'-(\d+)#', $html.$text, $m) > 0) {
+            foreach (array_unique($m[1]) as $runId) {
+                $link = self::approvalLink($mail, (int) $runId);
+                $pattern = '#https?://[^\s"\'<>]*?/approvals/'.preg_quote(self::PLACEHOLDER, '#').'-'.$runId.'(?!\d)#';
+                [$html, $text] = [(string) preg_replace($pattern, $link, $html), (string) preg_replace($pattern, $link, $text)];
+            }
+        }
         if (str_contains($html.$text, '/approvals/'.self::PLACEHOLDER)) {
             $link = self::approvalLink($mail);
             [$html, $text] = [self::replace($html, $link, 'approvals'), self::replace($text, $link, 'approvals')];
@@ -55,9 +63,10 @@ class MailLinks
     }
 
     /** Link to decide about a run; without the right receiver only the page in the admin interface, which needs a login. */
-    private static function approvalLink(OutgoingMail $mail): string
+    private static function approvalLink(OutgoingMail $mail, ?int $runId = null): string
     {
-        $id = (int) (collect($mail->attachments ?? [])->pluck('approval_run_id')->filter()->first() ?? 0);
+        $ids = collect($mail->attachments ?? [])->pluck('approval_run_id')->filter()->map(fn ($id) => (int) $id);
+        $id = $runId !== null ? ($ids->contains($runId) ? $runId : 0) : (int) ($ids->first() ?? 0);
         $run = $id > 0 ? AutomationRun::query()->with('automation')->find($id) : null;
         $user = $mail->person_id !== null ? User::query()->where('person_id', $mail->person_id)->first() : null;
         $approvals = app(Approvals::class);

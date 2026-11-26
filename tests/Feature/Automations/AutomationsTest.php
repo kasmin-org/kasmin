@@ -49,6 +49,7 @@ class AutomationsTest extends TestCase
         app(AutomationDefaults::class)->install();
         app()->setLocale('en');
         Settings::set('organisation_name', 'Example Camp');
+        Settings::set('approval_summary_time', ''); // these tests are about single requests; the summary has its own tests
 
         $this->event = Event::query()->create(['title' => 'Summer camp 2027', 'starts_at' => now()->addMonths(3), 'ends_at' => now()->addMonths(3)->addWeek(), 'status' => 'open']);
         $this->event->roles()->create(['role_key' => 'child', 'capacity' => 2, 'price_cents' => 40000, 'counts_as_sibling' => true]);

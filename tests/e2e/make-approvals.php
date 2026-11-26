@@ -5,12 +5,13 @@ use App\Models\Event;
 use App\Models\OutgoingMail;
 use App\Support\Automations\Engine;
 use App\Support\Mail\MailLinks;
+use App\Support\Settings;
 
 // Used by the CI GUI job (php artisan tinker): creates two pending approval requests (copies of the standard
 // automation "event information" for the demo camp, so the demo data stays untouched) and prints the
 // administrator's approval link paths, one per line.
 // Single requests at once, so the links exist now (the default is one summary per day).
-\App\Support\Settings::set('approval_summary_time', '');
+Settings::set('approval_summary_time', '');
 $event = Event::query()->whereHas('installments')->orderBy('starts_at')->firstOrFail();
 $template = Automation::query()->where('key', 'event_information')->firstOrFail();
 $links = [];

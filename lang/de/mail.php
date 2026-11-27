@@ -35,7 +35,7 @@ return [
     'frequencies' => ['immediate' => 'sofort', 'daily' => 'tägliche Zusammenfassung', 'weekly' => 'wöchentliche Zusammenfassung', 'off' => 'aus'],
     'placeholders' => [
         'and' => 'und', 'example' => 'z. B. :value', 'first_child' => 'Erstes Kind', 'children_names' => 'Vornamen aller Kinder („Kim, Robin und Sam“)', 'children_count' => 'Anzahl der Kinder', 'present' => ':what ist vorhanden',
-        'insert' => 'Platzhalter einfügen', 'placeholder' => 'Platzhalter', 'insert_condition' => 'Bedingung einfügen', 'condition' => 'Bedingung', 'field' => 'Wenn', 'operator' => 'ist', 'value' => 'Wert', 'then' => 'dann dieser Text', 'otherwise' => 'sonst dieser Text (optional)',
+        'of_group' => 'Angeboten werden nur die Platzhalter der Gruppe „:group“.', 'insert' => 'Platzhalter einfügen', 'placeholder' => 'Platzhalter', 'insert_condition' => 'Bedingung einfügen', 'condition' => 'Bedingung', 'field' => 'Wenn', 'operator' => 'ist', 'value' => 'Wert', 'then' => 'dann dieser Text', 'otherwise' => 'sonst dieser Text (optional)',
         'condition_hint' => 'Der Text darf Platzhalter enthalten. Kasmin schreibt die Bedingung in der richtigen Schreibweise in die Vorlage.',
         'operators' => ['filled' => 'ausgefüllt / ja', 'empty' => 'leer / nein', 'equals' => 'gleich', 'not_equals' => 'ungleich', 'greater' => 'größer als', 'less' => 'kleiner als'],
         'fields' => [
@@ -57,6 +57,7 @@ return [
         'empty' => 'Leerer Platzhalter: :near.',
         'start_without_end' => ':near wird nicht beendet – {% :end %} fehlt.',
         'end_without_start' => '{% :end %} ohne {% :start %} davor.',
+        'not_in_group' => '„:what“ gibt es in Vorlagen der Gruppe „:group“ nicht – eine solche Mail kennt keine. Wählen Sie eine andere Gruppe für die Vorlage oder entfernen Sie den Platzhalter.',
         'unknown' => 'Unbekannter Platzhalter: :name. Mit „Platzhalter einfügen“ sehen Sie alle, die es gibt.',
         'unknown_field' => 'Unbekanntes Feld „:name“. Möglich sind hier: :known.',
         'not_allowed' => '„:name“ steht in Vorlagen nicht zur Verfügung.',

@@ -30,8 +30,13 @@ kann nichts geändert werden. Ein Balken zeigt die Vorschau an und beendet sie. 
 
 - **Altersverteilung** zu Beginn der Veranstaltung (oder zum Stichtag der Veranstaltung).
 - **Altersgruppen für Aktivitäten**: teilt die Teilnehmenden in 2–5 etwa gleich große Gruppen, die Jüngsten zuerst,
-  mit Altersspanne, Geburtsdaten und den Namen (Kinder, die am selben Tag geboren sind, bleiben zusammen).
+  mit Altersspanne, Geburtsdaten und den Namen (Kinder, die am selben Tag geboren sind, bleiben zusammen). **Export** neben der
+  Anzahl der Gruppen öffnet ein Menü: Felder je Person ankreuzen (Gruppe, Vorname, Nachname, Alter bei Beginn,
+  Geburtsdatum, Geschlecht, Rolle) und Excel, CSV oder PDF wählen. Dafür braucht es das Recht, Personen zu sehen, und der Export wird protokolliert;
+  vertrauliche Daten wie Gesundheitsangaben lassen sich hier nicht exportieren.
 - **Kosten und Einnahmen** (Finanzrollen): verrechnete Beträge, davon noch offen, gewährte Ermäßigungen, Kostenpositionen nach Kategorie,
   Ergebnis und Kosten pro teilnehmender Person. Tragen Sie die Kostenpositionen auf der Seite der Veranstaltung ein (*Kosten*).
 - **Ermäßigungen** (Finanzrollen): Geschwisterermäßigungen nach Stufe des Kindes und Rollen-Ermäßigungen, mit Summen.
-- **Teilnehmende pro Veranstaltung** jeder Reihe: wiederkehrende und neue Teilnehmende.
+- **Teilnehmende pro Veranstaltung** jeder Reihe: wiederkehrende und neue Teilnehmende. *Wiederkehrend* heißt: war schon bei einer
+  früheren Veranstaltung derselben Reihe dabei, egal in welchem Jahr – nicht nur im Vorjahr. Das Fragezeichen neben dem Wort zeigt
+  das, wenn die Maus darüber steht (am Telefon: antippen).

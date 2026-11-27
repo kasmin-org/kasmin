@@ -75,6 +75,8 @@ class StatisticsPage extends Page
             'costs' => $event && $user instanceof User && $user->canViewFinance() ? $stats->costs($event) : null,
             'discounts' => $event && $user instanceof User && $user->canViewFinance() ? $stats->discounts($event) : null,
             'years' => $stats->years(),
+            'mayExport' => Permissions::current('events') && Permissions::current('people'),
+            'exportFields' => Statistics::AGE_GROUP_FIELDS,
         ];
     }
 }

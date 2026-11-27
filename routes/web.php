@@ -19,6 +19,7 @@ use App\Http\Controllers\PortalTeamController;
 use App\Http\Controllers\PublicEventController;
 use App\Http\Controllers\PublicFormController;
 use App\Http\Controllers\PublicRegistrationController;
+use App\Http\Controllers\StatisticsExportController;
 use App\Http\Controllers\System\BackupController;
 use App\Http\Controllers\System\UpgradeController;
 use App\Http\Controllers\ViewAsController;
@@ -108,6 +109,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/admin/invoices/{invoice}/pdf', [InvoicePdfController::class, 'admin'])->middleware([RequireSecondFactor::class, RequireFullLogin::class])->name('admin.invoices.pdf');
     Route::middleware([RequireSecondFactor::class, RequireFullLogin::class])->group(function () {
         Route::get('/admin/events/{event}/lists/{key}.{format}', [EventListController::class, 'list'])->whereNumber('event')->where('key', '[a-z_]+')->where('format', 'pdf|xlsx|csv')->name('admin.lists.export');
+        Route::get('/admin/reports/events/{event}/age-groups.{format}', [StatisticsExportController::class, 'ageGroups'])->whereNumber('event')->where('format', 'pdf|xlsx|csv')->name('admin.reports.age-groups');
         Route::get('/admin/events/{event}/camp-folder/{person?}', [EventListController::class, 'folder'])->whereNumber(['event', 'person'])->name('admin.lists.folder');
     });
     Route::post('/portal/view-as/end', [ViewAsController::class, 'end'])->name('portal.view-as.end');

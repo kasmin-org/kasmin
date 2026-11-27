@@ -56,7 +56,8 @@ class MailController extends ApiController
             'html' => ['required', 'string', 'max:200000'],
             'text' => ['nullable', 'string', 'max:200000'],
         ]);
-        $errors = app(TemplateRenderer::class)->validate($data['subject'], $data['html'], $data['text'] ?? null);
+        // Checked against the placeholders of the group of the template.
+        $errors = app(TemplateRenderer::class)->validate($data['subject'], $data['html'], $data['text'] ?? null, $model->groupKey());
         if ($errors !== []) {
             throw ValidationException::withMessages(['html' => $errors]);
         }
@@ -163,7 +164,7 @@ class MailController extends ApiController
     /** @return array<string, mixed> */
     private function presentTemplate(MailTemplate $t, bool $contents = false): array
     {
-        $data = ['key' => $t->key, 'name' => $t->name, 'category' => $t->category, 'audience' => $t->audience, 'version' => $t->version, 'active' => (bool) $t->getAttribute('active')];
+        $data = ['key' => $t->key, 'name' => $t->name, 'group' => $t->groupKey(), 'category' => $t->category, 'audience' => $t->audience, 'version' => $t->version, 'active' => (bool) $t->getAttribute('active')];
 
         $content = $contents ? $t->contents()->first() : null;
 

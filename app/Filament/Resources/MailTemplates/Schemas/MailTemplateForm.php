@@ -34,6 +34,10 @@ class MailTemplateForm
                 TextInput::make('key')->label(__('admin.form.key'))->required()->alphaDash()->unique(ignoreRecord: true),
                 Select::make('category')->label(__('admin.mail.category'))->options(array_combine(MailTemplate::CATEGORIES, array_map(fn ($c) => __('admin.mail.categories.'.$c), MailTemplate::CATEGORIES)))->required(),
                 TextInput::make('name')->label(__('admin.form.name'))->required(),
+                Select::make('group')->label(__('admin.mail.group'))->options(fn () => array_combine(MailTemplate::GROUPS, array_map(fn (string $g) => __('admin.mail.groups.'.$g), MailTemplate::GROUPS)))
+                    ->default('general')->required()->live()->selectablePlaceholder(false)
+                    ->disabled(fn (?MailTemplate $record) => (bool) $record?->is_standard)->dehydrated(fn (?MailTemplate $record) => ! $record?->is_standard)
+                    ->helperText(fn ($get, ?MailTemplate $record) => __('admin.mail.group_fields.'.($get('group') ?: 'general')).($record?->is_standard ? ' '.__('admin.mail.group_fixed') : '')),
                 Select::make('audience')->label(__('admin.mail.audience'))->options(__('admin.mail.audiences'))->default('guardians')->required(),
                 Toggle::make('active')->label(__('admin.form.active'))->default(true),
                 TextInput::make('version')->label(__('admin.form.version'))->disabled()->dehydrated(false),
@@ -47,20 +51,20 @@ class MailTemplateForm
                     ->schema([
                         Hidden::make('locale')->default(fn () => Language::current()), // a template has one text
                         TextInput::make('subject')->label(__('admin.mail.subject'))->required()->maxLength(250)->hintActions(TemplateInserts::fieldActions('subject', withCondition: false))
-                            ->rule(fn () => self::templateRule('subject')),
+                            ->rule(fn ($livewire) => self::templateRule('subject', $livewire)),
                         RichEditor::make('html')->label(__('admin.mail.body'))->required()->visible(fn ($get) => ! $get('source'))->helperText(__('admin.mail.button_hint'))
                             ->tools(TemplateInserts::tools())->registerActions(TemplateInserts::editorActions())
                             ->toolbarButtons([[TemplateInserts::PLACEHOLDER, TemplateInserts::CONDITION], ['bold', 'italic', 'underline', 'link'], ['h2', 'h3'], ['bulletList', 'orderedList'], ['table', 'attachFiles'], ['undo', 'redo']])
                             ->fileAttachmentsAcceptedFileTypes(MailImages::TYPES)->fileAttachmentsMaxSize(2048)
                             ->saveUploadedFileAttachmentUsing(fn (TemporaryUploadedFile $file) => MailImages::store($file))
                             ->getFileAttachmentUrlUsing(fn (mixed $file) => is_string($file) ? MailImages::url($file) : null)
-                            ->rule(fn () => self::templateRule('html')),
+                            ->rule(fn ($livewire) => self::templateRule('html', $livewire)),
                         Textarea::make('html_source')->label(__('admin.mail.source'))->rows(16)->required()->visible(fn ($get) => (bool) $get('source'))->extraInputAttributes(['style' => 'font-family:monospace', 'spellcheck' => 'false'])->hintActions(TemplateInserts::fieldActions('html_source'))
-                            ->rule(fn () => self::templateRule('html')),
+                            ->rule(fn ($livewire) => self::templateRule('html', $livewire)),
                         Toggle::make('source')->label(__('admin.mail.source_view'))->live()->afterStateUpdated(function ($state, $get, $set) {
                             $state ? $set('html_source', TemplateHtml::fromEditor($get('html'))) : $set('html', TemplateHtml::toEditor((string) $get('html_source')));
                         }),
-                        Textarea::make('text')->label(__('admin.mail.text'))->rows(4)->helperText(__('admin.mail.text_hint'))->rule(fn () => self::templateRule('text')),
+                        Textarea::make('text')->label(__('admin.mail.text'))->rows(4)->helperText(__('admin.mail.text_hint'))->rule(fn ($livewire) => self::templateRule('text', $livewire)),
                     ]),
             ]),
         ]);
@@ -82,11 +86,13 @@ class MailTemplateForm
         return $data;
     }
 
-    private static function templateRule(string $part): Closure
+    private static function templateRule(string $part, mixed $livewire = null): Closure
     {
-        return function (string $attribute, mixed $value, Closure $fail) use ($part) {
+        $group = TemplateInserts::group($livewire); // the placeholders of the chosen group count
+
+        return function (string $attribute, mixed $value, Closure $fail) use ($part, $group) {
             $value = $part === 'html' ? TemplateHtml::fromEditor(is_array($value) ? $value : (string) $value) : $value;
-            $errors = app(TemplateRenderer::class)->validate($part === 'subject' ? (string) $value : 'x', $part === 'html' ? (string) $value : 'x', $part === 'text' ? (string) $value : null);
+            $errors = app(TemplateRenderer::class)->validate($part === 'subject' ? (string) $value : 'x', $part === 'html' ? (string) $value : 'x', $part === 'text' ? (string) $value : null, $group);
             if ($errors !== []) {
                 // Everything that was found, so one round of corrections is enough. Saving stays blocked until then.
                 $fail(__('admin.mail.template_error', ['error' => implode(' ', $errors)]));

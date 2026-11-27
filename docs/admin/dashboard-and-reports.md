@@ -30,8 +30,13 @@ can be changed in the preview. A banner shows the preview and ends it. Start and
 
 - **Age distribution** at the start of the event (or the reference date of the event).
 - **Age groups for activities**: splits the participants into 2–5 groups of about the same size, youngest first,
-  with age range, birth dates and the names (children born on the same day stay together).
+  with age range, birth dates and the names (children born on the same day stay together). **Export** next to the
+  number of groups opens a menu: tick the fields per person (group, first name, last name, age at the start, date of
+  birth, gender, role) and choose Excel, CSV or PDF. It needs the right to see people and is recorded in the log;
+  confidential data such as health information cannot be exported here.
 - **Costs and income** (finance roles): invoiced amounts, still open, discounts given, cost items by category,
   result and costs per participant. Enter the cost items on the event page (*Costs*).
 - **Discounts** (finance roles): sibling discounts by child position and role discounts, with sums.
-- **Participants per event** of every series: returning and new participants.
+- **Participants per event** of every series: returning and new participants. *Returning* means: was already at an
+  earlier event of the same series, in any year – not only the year before. The question mark next to the word shows
+  this when the mouse is over it (on a phone: tap it).

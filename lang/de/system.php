@@ -42,7 +42,7 @@ return [
             'upgrade_required' => 'Diese Kasmin-Version ist neuer als die Datenbank. Jemand mit Administrationsrechten muss die Aktualisierung ausführen, bevor Kasmin wieder genutzt werden kann.',
             'database_newer' => 'Die Datenbank wurde von einer neueren Kasmin-Version aktualisiert. Ein Zurückwechseln auf ältere Versionen ist nicht möglich. Bitte installieren Sie wieder die neuere Version.',
         ],
-        'versions' => 'Installierte Version: :code · Datenbank: :database',
+        'versions' => 'Installierte Kasmin-Version: :code · Kasmin-Datenbankstand: :database',
     ],
     'upgrade' => [
         'banner' => 'Eine neue Version wurde installiert. Bis das Upgrade abgeschlossen ist, können sich nur Administratorinnen und Administratoren anmelden.',

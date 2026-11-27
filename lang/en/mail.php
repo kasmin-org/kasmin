@@ -35,7 +35,7 @@ return [
     'frequencies' => ['immediate' => 'immediately', 'daily' => 'daily digest', 'weekly' => 'weekly digest', 'off' => 'off'],
     'placeholders' => [
         'and' => 'and', 'example' => 'e.g. :value', 'first_child' => 'First child', 'children_names' => 'First names of all children ("Kim, Robin and Sam")', 'children_count' => 'Number of children', 'present' => ':what is there',
-        'insert' => 'Insert placeholder', 'placeholder' => 'Placeholder', 'insert_condition' => 'Insert condition', 'condition' => 'Condition', 'field' => 'If', 'operator' => 'is', 'value' => 'Value', 'then' => 'then this text', 'otherwise' => 'otherwise this text (optional)',
+        'of_group' => 'Only the placeholders of the group ":group" are offered.', 'insert' => 'Insert placeholder', 'placeholder' => 'Placeholder', 'insert_condition' => 'Insert condition', 'condition' => 'Condition', 'field' => 'If', 'operator' => 'is', 'value' => 'Value', 'then' => 'then this text', 'otherwise' => 'otherwise this text (optional)',
         'condition_hint' => 'The text may contain placeholders. Kasmin writes the condition into the template in the right syntax.',
         'operators' => ['filled' => 'filled in / yes', 'empty' => 'empty / no', 'equals' => 'equal to', 'not_equals' => 'not equal to', 'greater' => 'greater than', 'less' => 'less than'],
         'fields' => [
@@ -57,6 +57,7 @@ return [
         'empty' => 'Empty placeholder: :near.',
         'start_without_end' => ':near is not ended – {% :end %} is missing.',
         'end_without_start' => '{% :end %} without a {% :start %} before it.',
+        'not_in_group' => '":what" does not exist in templates of the group ":group" – such a mail knows none. Choose another group for the template or remove the placeholder.',
         'unknown' => 'Unknown placeholder: :name. Use "Insert placeholder" to see all that exist.',
         'unknown_field' => 'Unknown field ":name". Possible here: :known.',
         'not_allowed' => '":name" is not available in templates.',

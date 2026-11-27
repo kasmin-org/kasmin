@@ -237,4 +237,73 @@ class TemplateEditorTest extends TestCase
         $this->assertSame($before, $this->html($template), 'nothing is saved while there is a mistake');
         $page->assertSee('data-rich-editor-tool="insertPlaceholder"', false)->assertSee('data-rich-editor-tool="insertCondition"', false)->assertSee('Insert placeholder')->assertSee('Insert condition');
     }
+
+    public function test_every_standard_template_has_its_fixed_group_and_fits_into_it(): void
+    {
+        $renderer = app(TemplateRenderer::class);
+        foreach (MailTemplate::query()->where('is_standard', true)->get() as $template) {
+            $this->assertSame(MailTemplate::STANDARD_GROUPS[$template->key] ?? null, $template->groupKey(), $template->key);
+            $content = $template->content();
+            $this->assertSame([], $renderer->validate((string) $content?->subject, (string) $content?->html, $content?->text, $template->groupKey()), $template->key);
+            $template->update(['group' => 'general']);
+            $this->assertSame(MailTemplate::STANDARD_GROUPS[$template->key], $template->fresh()?->groupKey(), 'the group of a standard template cannot be changed');
+        }
+        $this->assertSame(['general', 'event', 'registration', 'invoice', 'membership'], MailTemplate::GROUPS);
+    }
+
+    public function test_a_group_offers_and_accepts_only_its_placeholders(): void
+    {
+        $keys = fn (?string $group) => array_keys(array_merge(...array_values(TemplateCatalogue::placeholders($group))));
+        $this->assertContains('{{ invoice.number }}', $keys('invoice'));
+        $this->assertContains('{{ event.title }}', $keys('invoice'));
+        foreach (['general', 'event', 'registration', 'membership'] as $group) {
+            $this->assertNotContains('{{ invoice.number }}', $keys($group), $group);
+            $this->assertContains('{{ salutation }}', $keys($group));
+            $this->assertContains('{{ children[0].first_name }}', $keys($group), 'children exist in every group');
+        }
+        $this->assertNotContains('{{ event.title }}', $keys('general'));
+        $this->assertContains('{{ group.name }}', $keys('membership'));
+        $this->assertNotContains('{{ registration.status }}', $keys('event'));
+        $this->assertArrayNotHasKey('invoice.number', array_merge(...array_values(TemplateCatalogue::fields('general'))));
+
+        $renderer = app(TemplateRenderer::class);
+        $this->assertSame([], $renderer->validate('x', '<p>{{ invoice.number }}</p>', null, 'invoice'));
+        $error = implode(' ', $renderer->validate('x', '<p>Invoice {{ invoice.number }}</p>', null, 'general'));
+        $this->assertStringContainsString('"Invoice" does not exist in templates of the group "General"', $error);
+        $this->assertSame([], $renderer->validate('x', '<p>{% if event %}{{ event.title }}{% endif %}</p>', null, 'general'), 'asking whether something is there is harmless');
+        $this->assertSame([], $renderer->validate('{{ event.title }}', '<p>{{ children[0].first_name }}</p>', null, 'event'));
+        try {
+            TemplateCatalogue::condition('invoice.overdue', 'filled', null, 'x', null, 'general');
+            $this->fail('a condition about the invoice cannot be built for a general template');
+        } catch (MailException) {
+        }
+
+        // In the editor: the group can be chosen for own templates, and saving checks against it.
+        $this->login();
+        $own = MailTemplate::query()->create(['key' => 'own_note', 'category' => 'newsletter', 'audience' => 'guardians', 'name' => 'Own note', 'is_standard' => false]);
+        $own->setContent('Note', '<p>{{ salutation }}</p>');
+        $this->assertSame('general', $own->refresh()->groupKey());
+        $page = Livewire::test(EditMailTemplate::class, ['record' => $own->id])->assertFormFieldIsEnabled('group');
+        $key = (string) array_key_first((array) $page->get('data.contents'));
+        $page->set("data.contents.{$key}.subject", 'Invoice {{ invoice.number }}')->call('save')->assertHasFormErrors(["contents.{$key}.subject"])->assertSee('does not exist in templates of the group');
+        $page->set('data.group', 'invoice')->call('save')->assertHasNoFormErrors();
+        $own->refresh();
+        $this->assertSame(['invoice', 'Invoice {{ invoice.number }}'], [$own->groupKey(), $own->content()?->subject]);
+        Livewire::test(EditMailTemplate::class, ['record' => $this->template('invoice')->id])->assertFormFieldIsDisabled('group')->assertSee('The group of a standard template is fixed.');
+        Livewire::test(ListMailTemplates::class)->assertOk()->assertSee('Invoice and payment')->assertSee('Registration and waitlist');
+    }
+
+    public function test_mailings_offer_only_templates_they_can_fill(): void
+    {
+        $general = MailTemplate::forMailings(false)->pluck('key')->all();
+        $this->assertContains('newsletter', $general);
+        foreach (['invoice', 'registration_confirmation', 'event_information', 'group_place_offer', 'guardianship_ended'] as $key) {
+            $this->assertNotContains($key, $general, $key);
+        }
+        $withEvent = MailTemplate::forMailings(true)->pluck('key')->all();
+        $this->assertContains('event_information', $withEvent);
+        $this->assertContains('newsletter', $withEvent);
+        $this->assertNotContains('invoice', $withEvent);
+        $this->assertNotContains('guardianship_ended', $withEvent, 'mails of the system are never a mailing');
+    }
 }

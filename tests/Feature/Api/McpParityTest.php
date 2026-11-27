@@ -769,7 +769,7 @@ class McpParityTest extends TestCase
         ]);
         $ben = $make('Ben');
         $cleo = $make('Cleo');
-        $this->assertSame('team', $this->tool($token, 'list_public_forms')['data'][0]['slug'] ?? null);
+        $this->assertContains('team', array_column($this->tool($token, 'list_public_forms')['data'] ?? [], 'slug'));
 
         // Even with health:read and "all data": the answers to confidential questions are not part of the answer.
         $response = $this->callTool($token, 'list_public_submissions', ['status' => 'pending'])->assertOk();

@@ -18,7 +18,10 @@ class GetAgeGroupMembers extends ApiTool
 {
     public const ENDPOINT = ['GET', '/statistics/age-groups'];
 
-    protected string $scope = 'events:read,people:read';
+    protected string $scope = 'events:read';
+
+    /** @var list<string> */
+    protected array $alsoNeeds = ['people:read'];
 
     public function handle(Request $request): Response
     {

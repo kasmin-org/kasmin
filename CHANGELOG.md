@@ -6,6 +6,15 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ## [Unreleased]
 
+### Added
+
+- Statistics: **Export** of the age groups for activities – choose the fields per person (group, name, age at the start, date of birth, gender, role) and download as Excel, CSV or PDF. Needs the right to see people; every export is logged. Also via REST (`GET /statistics/age-groups`) and MCP (`get_age_group_members`).
+- Statistics: a question mark next to "returning" explains the word on hover (on a phone: on tap): at an earlier event of the same series, in any year.
+
+### Changed
+
+- System status: the database line says "Installed Kasmin version … · Kasmin database level …", so it cannot be mistaken for the version of the database server.
+
 ## [0.29.0] - 2026-11-27
 
 ### Added

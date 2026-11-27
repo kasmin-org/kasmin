@@ -4,7 +4,7 @@ Automatisierungen erledigen wiederkehrende Arbeit: freie Plätze der Warteliste 
 vor einer Veranstaltung, eine Veranstaltung abschließen. Jede Automatisierung hat einen **Auslöser**, eine **Aktion** mit Einstellungen und einen
 **Modus**. Alles wird festgehalten: was geplant war, wer entschieden hat, was passiert ist.
 
-*Automatisierungen → Automatisierungen* (Administration und Vorstand können bearbeiten; die Liste sehen alle Verwaltungsrollen).
+*Veranstaltungen → Automatisierungen → Automatisierungen* (Administration und Vorstand können bearbeiten; die Liste sehen alle Verwaltungsrollen).
 
 ## Modus der Ausführung
 
@@ -29,7 +29,7 @@ Freigebenden erfahren, wer entschieden hat.
   Freigebenden werden informiert (Benachrichtigungsthema *Freigaben*).
 - Solange eine Anfrage offen ist, legt der Scheduler für dieselbe Automatisierung und Veranstaltung keine zweite an.
 
-Dieselben Entscheidungen sind unter *Automatisierungen → Läufe und Freigaben* möglich (das Menü zeigt die Zahl der offenen Anfragen).
+Dieselben Entscheidungen sind unter *Veranstaltungen → Automatisierungen → Läufe und Freigaben* möglich (das Menü zeigt die Zahl der offenen Anfragen).
 Jeder Lauf zeigt seinen Plan und nach der Ausführung das Ergebnis pro Aktion.
 
 ## Probelauf und „Jetzt ausführen“
@@ -56,7 +56,7 @@ Der Scheduler (Cronjob, siehe [Hosting](hosting.md)) prüft die Automatisierunge
 
 ## Eigene Automatisierungen
 
-*Automatisierungen → Eigene Automatisierung*. Sie werden immer ausgeschaltet angelegt; prüfen Sie sie zuerst mit dem Probelauf.
+*Veranstaltungen → Automatisierungen → Eigene Automatisierung*. Sie werden immer ausgeschaltet angelegt; prüfen Sie sie zuerst mit dem Probelauf.
 
 1. **Auslöser** (siehe oben).
 2. **Für wen**: die Person des Auslösers (bei Änderungen), Teilnehmende der Veranstaltung, Mitglieder einer Gruppe oder alle Personen, auf die
@@ -85,9 +85,9 @@ Freigebende bekommen **eine E-Mail mit allem, was auf sie wartet**, statt einer 
 Zusammenfassung gekommen sind, jede mit dem, was passieren würde, und eigenen Schaltflächen *Ja, ausführen* / *Nein, abbrechen*. Eine Anfrage, die nach der halben Zeit noch offen ist,
 wird in der nächsten Zusammenfassung noch einmal genannt.
 
-*Einstellungen → Organisation und Rechnungen → Freigaben: Zusammenfassung per E-Mail um*: die Uhrzeit (Voreinstellung 07:00). Mehrere Uhrzeiten sind möglich
+*Administration → Globale Einstellungen → Freigaben: Zusammenfassung per E-Mail um*: die Uhrzeit (Voreinstellung 07:00). Mehrere Uhrzeiten sind möglich
 (`07:00, 17:00`). Lassen Sie das Feld leer, um jede Anfrage sofort in einer eigenen E-Mail zu bekommen, wie bisher. Offene Freigaben sind immer
-auf dem Dashboard und unter *Automatisierungen → Läufe und Freigaben* sichtbar, auch bevor die Zusammenfassung gesendet wird.
+auf dem Dashboard und unter *Veranstaltungen → Automatisierungen → Läufe und Freigaben* sichtbar, auch bevor die Zusammenfassung gesendet wird.
 
 ## Standard-Automatisierungen
 
@@ -102,7 +102,7 @@ Sie werden mit den Standardinhalten angelegt und sind **ausgeschaltet**, außer 
 | Saison starten | Kinder der vorigen Veranstaltung derselben Reihe werden angemeldet, wenn ihr Alter noch passt; wer zu alt ist, wird für die nächste Rolle (z. B. Nachwuchs-Betreuung) oder zum Ausscheiden vorgeschlagen – als Hinweis an das Team. Kinder auf der Warteliste der vorigen Veranstaltung bleiben auf der Warteliste der neuen, mit dem Datum ihrer ersten Anmeldung. So verliert niemand den Platz | per Schaltfläche · manuell |
 | Anzahlungsrechnungen / Restzahlungsrechnungen | Rechnungen der Rate `deposit` / `balance` pro Familie, ausgestellt und gesendet ([Rechnungen](invoices.md)) | per Schaltfläche / 90 Tage davor · Freigabe |
 | Anmelderunden | Angebote in den Runden einer Veranstaltung ([Veranstaltungen planen](event-planning.md)); **aktiv** | täglich · Freigabe |
-| Zahlungserinnerungen | Erinnerungen vor und Mahnungen nach der Fälligkeit, wie unter *Organisation und Rechnungen* eingestellt ([Rechnungen](invoices.md)); **aktiv** | täglich · Freigabe |
+| Zahlungserinnerungen | Erinnerungen vor und Mahnungen nach der Fälligkeit, wie unter *Rechnungseinstellungen* eingestellt ([Rechnungen](invoices.md)); **aktiv** | täglich · Freigabe |
 | Rechnungen korrigieren | Gutschrift und neue Rechnung, wo eine ausgestellte Rechnung nicht mehr passt; **aktiv** | täglich · Freigabe |
 | Plätze unbezahlter Rechnungen freigeben | storniert Plätze, die einige Tage (Voreinstellung 14) nach der letzten Mahnung noch unbezahlt sind | täglich · Freigabe |
 | Mitgliedsbeiträge | jährliche Mitgliedsbeiträge pro Familie | per Schaltfläche · Freigabe |

@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'nav' => ['people' => 'People', 'events' => 'Events', 'forms' => 'Forms', 'finance' => 'Finance', 'settings' => 'Settings', 'automations' => 'Automations', 'privacy' => 'Data protection', 'reports' => 'Reports', 'communication' => 'Communication', 'system' => 'System'],
+    'nav' => ['people_care' => 'Maintenance', 'event_templates' => 'Templates', 'finance_settings' => 'Settings', 'people' => 'People', 'events' => 'Events', 'forms' => 'Forms', 'finance' => 'Finance', 'settings' => 'Settings', 'automations' => 'Automations', 'privacy' => 'Data protection', 'reports' => 'Reports', 'communication' => 'Communication', 'system' => 'System'],
     'finance' => [
         'single_invoice' => 'Single invoice',
         'proposed_on' => 'Proposed on',
@@ -35,7 +35,7 @@ return [
     ],
     'settings' => [
         'mail_layout' => 'Look of the e-mails', 'mail_logo' => 'Logo (PNG, JPG, GIF)', 'mail_color' => 'Colour', 'mail_footer' => 'Footer of the e-mails', 'mail_footer_hint' => 'Shown in every e-mail, e.g. name, address, registration number.', 'audit_ip_days' => 'Audit log: shorten IP address and browser after (days)', 'audit_ip_days_hint' => '0 = never. Afterwards only the network part of the address and the kind of browser are kept.', 'retention_audit_years' => 'Audit log: years', 'retention_audit_years_hint' => '0 = entries are kept for good.', 'search' => 'Search in the settings …', 'own_event_days' => 'Own events: days of access after the end', 'own_event_days_hint' => 'Camp leaders and counsellors with a role for their own events keep access to an event (participants, lists) this many days after it ended, e.g. for closing work. Then it disappears from their view.', 'approval_summary_time' => 'Approvals: summary by e-mail at', 'approval_summary_time_hint' => 'Approvers get one e-mail with everything that came in since the last summary, at this time of day. Several times with commas (07:00, 17:00). Empty: every request is sent at once in an e-mail of its own.', 'retention_mail_years' => 'Mail log: years', 'retention_mail_years_hint' => '0 = as long as the person exists. Mails with invoices stay at least as long as the invoices.',
-        'organisation' => 'Organisation and invoices', 'name' => 'Name of the organisation', 'email' => 'E-mail address', 'address' => 'Postal address', 'website' => 'Website',
+        'organisation_page' => 'Organisation', 'invoices_page' => 'Invoice settings', 'global_page' => 'Global settings', 'organisation' => 'Organisation and invoices', 'name' => 'Name of the organisation', 'email' => 'E-mail address', 'address' => 'Postal address', 'website' => 'Website',
         'legal_footer' => 'Footer (legal notice)', 'legal_footer_hint' => 'Shown on every invoice, e.g. register number, seat, contact.',
         'bank' => 'Bank account', 'bank_name' => 'Bank', 'bic_hint' => 'Optional; included in the QR code.', 'iban_invalid' => 'The IBAN is not valid.',
         'invoices' => 'Invoices', 'number_format' => 'Number format', 'number_format_hint' => '{number} = sequential number, {year} = year, e.g. R{number} or {year}-{number}.',
@@ -171,4 +171,5 @@ return [
     'help' => ['title' => 'Opens the documentation of this version in a new tab', 'link' => 'Help for this page'],
     'overview' => ['title' => 'Overview', 'roles' => 'Roles', 'memberships' => 'Memberships', 'login' => 'Login', 'last_login' => 'last login', 'never' => 'never', 'second_factor' => 'second factor', 'yes' => 'yes', 'no' => 'no', 'no_login' => 'No login yet', 'mails' => 'Mails to the family', 'invoice_recipient' => 'Invoices go to', 'invoice_recipient_auto' => 'first legal guardian'],
     'bulk' => ['add_to_group' => 'Add to a group', 'remove_from_group' => 'Remove from a group', 'manual_only' => 'Only groups that are filled by hand. Groups by rules and of events fill themselves.', 'added' => '{0} Everybody was in the group already.|{1} One person added.|[2,*] :count people added.', 'removed' => '{0} Nobody was in the group.|{1} One person removed.|[2,*] :count people removed.', 'mailing' => 'Write to the selected', 'mailing_hint' => 'Creates a mailing as a draft for the selected people. You see the preview and send it there; rules for approvals apply.', 'selection' => 'Selection of :date', 'status' => 'Change the status', 'status_hint' => 'Cancellations are not done here: they need a reason and inform the family.', 'status_done' => '{0} Nothing changed.|{1} One registration changed.|[2,*] :count registrations changed.'],
+    'areas' => ['label' => 'Areas', 'dashboard' => 'Dashboard', 'people' => 'People', 'events' => 'Events', 'communication' => 'Communication', 'finance' => 'Accounting', 'administration' => 'Administration'],
 ];

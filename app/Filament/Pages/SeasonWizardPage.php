@@ -4,6 +4,7 @@ namespace App\Filament\Pages;
 
 use App\Filament\Resources\AutomationRuns\AutomationRunResource;
 use App\Filament\Resources\Events\EventResource;
+use App\Filament\Support\InArea;
 use App\Models\Event;
 use App\Models\User;
 use App\Support\Auth\Permissions;
@@ -20,11 +21,11 @@ use Livewire\Attributes\Url;
  */
 class SeasonWizardPage extends Page
 {
+    use InArea;
+
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedSparkles;
 
     protected static ?string $slug = 'season';
-
-    protected static ?int $navigationSort = 40;
 
     protected string $view = 'filament.pages.season-wizard';
 
@@ -38,11 +39,6 @@ class SeasonWizardPage extends Page
     public bool $season = false;
 
     public bool $checked = false;
-
-    public static function getNavigationGroup(): ?string
-    {
-        return __('admin.nav.events');
-    }
 
     public static function getNavigationLabel(): string
     {

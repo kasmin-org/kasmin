@@ -11,6 +11,7 @@ use App\Filament\Resources\People\Schemas\PersonForm;
 use App\Filament\Resources\People\Schemas\PersonInfolist;
 use App\Filament\Resources\People\Tables\PeopleTable;
 use App\Filament\Support\AreaAccess;
+use App\Filament\Support\InArea;
 use App\Models\Participation;
 use App\Models\Person;
 use App\Support\Auth\Permissions;
@@ -25,6 +26,7 @@ use Illuminate\Database\Eloquent\Model;
 class PersonResource extends Resource
 {
     use AreaAccess;
+    use InArea;
 
     public static function area(): string
     {
@@ -84,11 +86,6 @@ class PersonResource extends Resource
     public static function getPluralModelLabel(): string
     {
         return __('admin.person.plural');
-    }
-
-    public static function getNavigationGroup(): ?string
-    {
-        return __('admin.nav.people');
     }
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUser;

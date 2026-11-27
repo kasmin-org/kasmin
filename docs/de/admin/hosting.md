@@ -31,7 +31,7 @@ erst nach 15 Minuten ohne Aufruf.
 
 ## Was der Server bieten muss
 
-*System → Systemstatus* führt jeden Punkt unten mit einem Haken oder einem Kreuz an (*Jeden Punkt anzeigen*). So können Sie Ihr Hosting damit vergleichen.
+*Administration → System → Systemstatus* führt jeden Punkt unten mit einem Haken oder einem Kreuz an (*Jeden Punkt anzeigen*). So können Sie Ihr Hosting damit vergleichen.
 
 | Was | Wofür |
 |---|---|
@@ -69,7 +69,7 @@ Empfohlen (Kasmin funktioniert ohne sie, mit den genannten Einschränkungen):
 
 Ordner, in die Kasmin schreiben können muss: `storage/` (hochgeladene Dateien, Datensicherungen, Protokolle, Sitzungen) und `bootstrap/cache/`.
 
-Wenn Ihr Hoster fragt, was installiert ist: *System → Systemstatus → PHP-Konfiguration (phpinfo)* zeigt die Versionen, Erweiterungen und Grenzen des
+Wenn Ihr Hoster fragt, was installiert ist: *Administration → System → Systemstatus → PHP-Konfiguration (phpinfo)* zeigt die Versionen, Erweiterungen und Grenzen des
 Servers. Nur Administratorinnen und Administratoren sehen sie, jede Ansicht wird protokolliert, und die Schlüssel und Passwörter der Installation werden weggelassen.
 
 # Hosting ohne Kommandozeile

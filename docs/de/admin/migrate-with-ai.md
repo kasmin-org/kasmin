@@ -23,7 +23,7 @@ Ein Umstieg gibt personenbezogene Daten an den KI-Dienst weiter. Prüfen Sie, be
 
 ## Schritte
 
-1. Erstellen Sie das Token (*Einstellungen → API-Tokens*) und verbinden Sie den Assistenten mit `https://your-kasmin.example/mcp`
+1. Erstellen Sie das Token (*Administration → API-Tokens*) und verbinden Sie den Assistenten mit `https://your-kasmin.example/mcp`
    (siehe [API und MCP](api.md)).
 2. Geben Sie dem Assistenten den Export (oder lassen Sie stattdessen Webling über den Import-Assistenten einlesen).
 3. Lassen Sie ihn die Spalten den [Importfeldern](import.md#felder) **zuordnen** und **`import_preview`** mit einem gleichbleibenden

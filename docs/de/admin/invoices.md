@@ -9,7 +9,7 @@ nichts ändern. Erziehungsberechtigte sehen die Rechnungen ihrer Familie im Port
 
 ## 1. Daten der Organisation
 
-*Einstellungen → Organisation und Rechnungen*:
+*Buchhaltung → Rechnungseinstellungen*:
 
 | Einstellung | Bedeutung |
 |---|---|
@@ -74,7 +74,7 @@ pro Familie; Beiträge, die schon als Rate einer Veranstaltung desselben Jahres 
 
 ## 3. Rechnungslauf
 
-*Finanzen → Rechnungen → Rechnungslauf*: Wählen Sie die Veranstaltung und die Rate. Kasmin erstellt einen **Entwurf** pro Familie
+*Buchhaltung → Rechnungen → Rechnungslauf*: Wählen Sie die Veranstaltung und die Rate. Kasmin erstellt einen **Entwurf** pro Familie
 (alle Teilnehmenden, die angemeldet oder bestätigt sind oder ein Platzangebot haben; Einträge auf der Warteliste werden nicht verrechnet).
 Die Rechnung geht an die Person, die in der Familie die Rechnungen bekommt, sonst an die erste erziehungsberechtigte Person. Ein weiterer Lauf
 ergänzt nur Familien, die für diese Rate noch keine Rechnung haben.
@@ -89,7 +89,7 @@ IBAN, Betrag und Referenz automatisch aus.
 ## 4. Zahlungen und Bankimport
 
 - **Zahlung erfassen** bei einer Rechnung für Barzahlungen oder einzelne Überweisungen (Teilzahlungen sind möglich).
-- **Bankimport** (*Finanzen → Zahlungen → Bankimport*): Laden Sie den CSV- oder Excel-Export (XLSX) Ihres Bankkontos hoch
+- **Bankimport** (*Buchhaltung → Zahlungen → Bankimport*): Laden Sie den CSV- oder Excel-Export (XLSX) Ihres Bankkontos hoch
   und geben Sie an, in welcher Spalte Datum, Betrag, Verwendungszweck und (optional) Name und IBAN stehen. Die Zuordnung der Spalten wird gemerkt.
   Nur Eingänge werden importiert; dieselbe Zeile wird beim zweiten Import erkannt. Die Datei wird danach gelöscht.
 - Zuordnung:
@@ -102,7 +102,7 @@ IBAN, Betrag und Referenz automatisch aus.
   sonst verwenden Sie *Aufteilen*. Der Rest bleibt nicht zugeordnet.
 - **Zu viel bezahlt**: Der Rest wird ein **Guthaben** der Familie mit einem Vorschlag zur Rückzahlung. Verwenden Sie es für eine andere
   Rechnung oder zahlen Sie es zurück.
-- **Rückzahlungen** (*Finanzen → Rückzahlungen*): Betrag, zahlungspflichtige Person, IBAN und Grund. Überweisen Sie bei der Bank und markieren Sie die Rückzahlung dann als
+- **Rückzahlungen** (*Buchhaltung → Rückzahlungen*): Betrag, zahlungspflichtige Person, IBAN und Grund. Überweisen Sie bei der Bank und markieren Sie die Rückzahlung dann als
   *Zurückgezahlt* – oder *Als Guthaben behalten*. Kasmin überweist nie selbst Geld.
 - Ist eine Rechnung vollständig bezahlt, bekommt die zahlende Person die **Zahlungsbestätigung** (Vorlage *Zahlungsbestätigung*,
   auf Wunsch mit der bezahlten Rechnung im Anhang), und wer das Benachrichtigungsthema *Zahlungen* abonniert hat, wird informiert.

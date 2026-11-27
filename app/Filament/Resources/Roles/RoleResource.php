@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Roles;
 
 use App\Filament\Resources\Roles\Pages\ManageRoles;
+use App\Filament\Support\InArea;
 use App\Models\Role;
 use App\Support\Auth\Permissions;
 use BackedEnum;
@@ -25,11 +26,11 @@ use Illuminate\Database\Eloquent\Model;
  */
 class RoleResource extends Resource
 {
+    use InArea;
+
     protected static ?string $model = Role::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedShieldCheck;
-
-    protected static ?int $navigationSort = 15;
 
     public static function getModelLabel(): string
     {
@@ -39,11 +40,6 @@ class RoleResource extends Resource
     public static function getPluralModelLabel(): string
     {
         return __('roles.roles');
-    }
-
-    public static function getNavigationGroup(): ?string
-    {
-        return __('admin.nav.settings');
     }
 
     public static function canViewAny(): bool

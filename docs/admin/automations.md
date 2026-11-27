@@ -4,7 +4,7 @@ Automations do recurring work: offering free places to the waitlist, sending inv
 before an event, closing an event. Each automation has a **trigger**, an **action** with settings and an
 **execution mode**. Everything is recorded: what was planned, who decided, what happened.
 
-*Automations → Automations* (administrators and board can edit; the list is visible to all administrative roles).
+*Events → Automations → Automations* (administrators and board can edit; the list is visible to all administrative roles).
 
 ## Execution modes
 
@@ -29,7 +29,7 @@ approvers are told who decided.
   approvers are informed (notification topic *Approvals*).
 - While a request is open, the scheduler does not create a second one for the same automation and event.
 
-The same decisions are possible in *Automations → Runs and approvals* (the menu shows the number of open requests).
+The same decisions are possible in *Events → Automations → Runs and approvals* (the menu shows the number of open requests).
 Every run shows its plan and, after execution, the result per action.
 
 ## Dry run and "Run now"
@@ -56,7 +56,7 @@ The scheduler (cron job, see [Hosting](hosting.md)) checks the automations every
 
 ## Own automations
 
-*Automations → Own automation*. They are always created switched off; check them with the dry run first.
+*Events → Automations → Own automation*. They are always created switched off; check them with the dry run first.
 
 1. **Trigger** (see above).
 2. **For whom**: the person of the trigger (for changes), participants of the event, members of a group, or all people that fit
@@ -85,9 +85,9 @@ Approvers get **one e-mail with everything that waits for them** instead of one 
 summary, each with what would happen and its own buttons *Yes, run it* / *No, cancel*. A request that is still open half-way to its end is
 named once more in the next summary.
 
-*Settings → Organisation and invoices → Approvals: summary by e-mail at*: the time of day (default 07:00). Several times are possible
+*Administration → Global settings → Approvals: summary by e-mail at*: the time of day (default 07:00). Several times are possible
 (`07:00, 17:00`). Leave the field empty to get every request at once in an e-mail of its own, as before. Open approvals are always
-visible on the dashboard and under *Automations → Runs and approvals*, also before the summary is sent.
+visible on the dashboard and under *Events → Automations → Runs and approvals*, also before the summary is sent.
 
 ## Standard automations
 
@@ -102,7 +102,7 @@ Installed with the standard content, **switched off** except *Payment reminders*
 | Start season | children of the previous event of the same series are registered if their age still fits; those too old are proposed for the next role (e.g. junior counsellor) or for leaving – as a notice to the team. Children on the waitlist of the previous event stay on the waitlist of the new one, with the date of their first registration, so nobody loses the position | by button · manual |
 | Deposit invoices / Balance invoices | invoices of the instalment `deposit` / `balance` per family, issued and sent ([Invoices](invoices.md)) | by button / 90 days before · approval |
 | Registration rounds | offers in the rounds of an event ([Event planning](event-planning.md)); **active** | daily · approval |
-| Payment reminders | reminders before and after the due date as set under *Organisation and invoices* ([Invoices](invoices.md)); **active** | daily · approval |
+| Payment reminders | reminders before and after the due date as set under *Invoice settings* ([Invoices](invoices.md)); **active** | daily · approval |
 | Correct invoices | credit note and new invoice where an issued invoice no longer fits; **active** | daily · approval |
 | Release places of unpaid invoices | cancels places still unpaid some days (default 14) after the last reminder | daily · approval |
 | Membership fees | yearly membership fees per family | by button · approval |

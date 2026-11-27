@@ -9,6 +9,7 @@ use App\Models\Person;
 use App\Models\User;
 use App\Support\Auth\LoginLinks;
 use App\Support\Automations\Approvals;
+use Illuminate\Support\Carbon;
 
 /**
  * Personal login and approval links of mails (L02–L04, AT04). Stored mails only contain a placeholder; the link is made when the mail is
@@ -106,7 +107,7 @@ class MailLinks
         return $approvals->link($run, $user);
     }
 
-    /** @return array{0: string, 1: \Illuminate\Support\Carbon|null} the link and until when it is valid */
+    /** @return array{0: string, 1: Carbon|null} the link and until when it is valid */
     private static function link(OutgoingMail $mail): array
     {
         $person = $mail->person_id !== null ? Person::query()->find($mail->person_id) : null;

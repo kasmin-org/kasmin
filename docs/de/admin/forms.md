@@ -34,7 +34,7 @@ weniger vertraulich machen oder das Sicherheitsblatt löschen. Das Recht für Fo
 
 ## Export und Import
 
-*Formulare → Exportieren* speichert die Definition eines Formulars als JSON-Datei (ohne Antworten), *Importieren* liest sie ein. Ein Formular mit demselben
+*Veranstaltungen → Formulare → Exportieren* speichert die Definition eines Formulars als JSON-Datei (ohne Antworten), *Importieren* liest sie ein. Ein Formular mit demselben
 Schlüssel bekommt eine neue Version; Felder, die nicht in der Datei stehen, werden entfernt, Antworten bleiben. Dasselbe Format gilt für die API
 (`GET`/`PUT /api/v1/forms/{key}/definition`) und MCP (`get_form_definition`, `save_form_definition`).
 

@@ -4,6 +4,7 @@ namespace App\Filament\Resources\ImportBatches;
 
 use App\Filament\Resources\ImportBatches\Pages\ListImportBatches;
 use App\Filament\Support\AreaAccess;
+use App\Filament\Support\InArea;
 use App\Models\ImportBatch;
 use App\Support\Auth\Permissions;
 use App\Support\Import\PeopleImporter;
@@ -21,6 +22,7 @@ use Filament\Tables\Table;
 class ImportBatchResource extends Resource
 {
     use AreaAccess;
+    use InArea;
 
     public static function area(): string
     {
@@ -39,11 +41,6 @@ class ImportBatchResource extends Resource
     public static function getPluralModelLabel(): string
     {
         return __('import.batches');
-    }
-
-    public static function getNavigationGroup(): ?string
-    {
-        return __('admin.nav.people');
     }
 
     public static function canCreate(): bool

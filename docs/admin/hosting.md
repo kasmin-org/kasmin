@@ -31,7 +31,7 @@ only after 15 minutes without a call.
 
 ## What the server must offer
 
-*System → System status* lists every item below with a tick or a cross (*Show every item*), so you can compare your hosting with it.
+*Administration → System → System status* lists every item below with a tick or a cross (*Show every item*), so you can compare your hosting with it.
 
 | What | Needed for |
 |---|---|
@@ -69,7 +69,7 @@ Recommended (Kasmin works without them, with the limits named):
 
 Folders Kasmin must be able to write to: `storage/` (uploads, backups, logs, sessions) and `bootstrap/cache/`.
 
-If your hoster asks what is installed: *System → System status → PHP configuration (phpinfo)* shows the versions, extensions and limits of
+If your hoster asks what is installed: *Administration → System → System status → PHP configuration (phpinfo)* shows the versions, extensions and limits of
 the server. Only administrators see it, every view is recorded in the log, and the keys and passwords of the installation are left out.
 
 # Hosting without a command line

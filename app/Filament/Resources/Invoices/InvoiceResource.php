@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Invoices;
 use App\Filament\Resources\Invoices\Pages\ListInvoices;
 use App\Filament\Resources\Invoices\Pages\ViewInvoice;
 use App\Filament\Resources\Invoices\Tables\InvoicesTable;
+use App\Filament\Support\InArea;
 use App\Filament\Support\Money;
 use App\Models\Invoice;
 use App\Models\InvoiceLine;
@@ -24,6 +25,8 @@ use Illuminate\Support\HtmlString;
  */
 class InvoiceResource extends Resource
 {
+    use InArea;
+
     protected static ?string $recordTitleAttribute = 'number';
 
     /** Global search (AD10). */
@@ -36,8 +39,6 @@ class InvoiceResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedDocumentCurrencyEuro;
 
-    protected static ?int $navigationSort = 10;
-
     public static function getModelLabel(): string
     {
         return __('finance.invoice');
@@ -46,11 +47,6 @@ class InvoiceResource extends Resource
     public static function getPluralModelLabel(): string
     {
         return __('finance.invoices');
-    }
-
-    public static function getNavigationGroup(): ?string
-    {
-        return __('admin.nav.finance');
     }
 
     public static function canViewAny(): bool

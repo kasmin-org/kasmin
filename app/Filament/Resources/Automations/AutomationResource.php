@@ -8,6 +8,7 @@ use App\Filament\Resources\Automations\Pages\EditAutomation;
 use App\Filament\Resources\Automations\Pages\ListAutomations;
 use App\Filament\Resources\Groups\Schemas\GroupForm;
 use App\Filament\Support\AreaAccess;
+use App\Filament\Support\InArea;
 use App\Models\Automation;
 use App\Models\Event;
 use App\Models\EventSeries;
@@ -48,6 +49,7 @@ use Illuminate\Support\HtmlString;
 class AutomationResource extends Resource
 {
     use AreaAccess;
+    use InArea;
 
     public static function area(): string
     {
@@ -58,8 +60,6 @@ class AutomationResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBolt;
 
-    protected static ?int $navigationSort = 10;
-
     public static function getModelLabel(): string
     {
         return __('automations.singular');
@@ -68,11 +68,6 @@ class AutomationResource extends Resource
     public static function getPluralModelLabel(): string
     {
         return __('automations.plural');
-    }
-
-    public static function getNavigationGroup(): ?string
-    {
-        return __('admin.nav.automations');
     }
 
     /** Shipped automations can be switched off, but not deleted. */

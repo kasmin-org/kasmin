@@ -10,6 +10,7 @@ use App\Filament\Resources\Events\Pages\ListEvents;
 use App\Filament\Resources\Events\Schemas\EventForm;
 use App\Filament\Resources\Events\Tables\EventsTable;
 use App\Filament\Support\AreaAccess;
+use App\Filament\Support\InArea;
 use App\Models\Event;
 use App\Support\Auth\Permissions;
 use BackedEnum;
@@ -23,6 +24,7 @@ use Illuminate\Database\Eloquent\Model;
 class EventResource extends Resource
 {
     use AreaAccess;
+    use InArea;
 
     public static function area(): string
     {
@@ -76,11 +78,6 @@ class EventResource extends Resource
     public static function getPluralModelLabel(): string
     {
         return __('admin.event.plural');
-    }
-
-    public static function getNavigationGroup(): ?string
-    {
-        return __('admin.nav.events');
     }
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCalendarDays;

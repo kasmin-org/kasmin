@@ -4,6 +4,7 @@ namespace App\Filament\Resources\AuditEvents;
 
 use App\Filament\Resources\AuditEvents\Pages\ListAuditEvents;
 use App\Filament\Support\AreaAccess;
+use App\Filament\Support\InArea;
 use App\Models\AuditEvent;
 use BackedEnum;
 use Filament\Actions\ViewAction;
@@ -26,6 +27,7 @@ use Illuminate\Database\Eloquent\Model;
 class AuditEventResource extends Resource
 {
     use AreaAccess;
+    use InArea;
 
     public static function area(): string
     {
@@ -44,11 +46,6 @@ class AuditEventResource extends Resource
     public static function getPluralModelLabel(): string
     {
         return __('privacy.audit');
-    }
-
-    public static function getNavigationGroup(): ?string
-    {
-        return __('admin.nav.privacy');
     }
 
     public static function canCreate(): bool

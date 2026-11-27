@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\ArchivedInvoices;
 
 use App\Filament\Resources\ArchivedInvoices\Pages\ListArchivedInvoices;
+use App\Filament\Support\InArea;
 use App\Filament\Support\Money;
 use App\Models\ArchivedInvoice;
 use App\Models\Invoice;
@@ -20,11 +21,11 @@ use Illuminate\Database\Eloquent\Model;
  */
 class ArchivedInvoiceResource extends Resource
 {
+    use InArea;
+
     protected static ?string $model = ArchivedInvoice::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedArchiveBox;
-
-    protected static ?int $navigationSort = 40;
 
     public static function getModelLabel(): string
     {
@@ -34,11 +35,6 @@ class ArchivedInvoiceResource extends Resource
     public static function getPluralModelLabel(): string
     {
         return __('finance.archive.title');
-    }
-
-    public static function getNavigationGroup(): ?string
-    {
-        return __('admin.nav.finance');
     }
 
     public static function canViewAny(): bool

@@ -3,8 +3,8 @@
 ## Sprache
 
 Eine Installation arbeitet in **einer Sprache** – Deutsch oder Englisch – für alle: Verwaltung, Portal, öffentliche
-Seiten, Mails und Dokumente. Sie wird bei der Installation gewählt; Administratorinnen und Administratoren ändern sie unter *Einstellungen → Organisation
-und Rechnungen → System → Sprache*. Es gibt keine Umschaltung pro Person oder pro Besuch.
+Seiten, Mails und Dokumente. Sie wird bei der Installation gewählt; Administratorinnen und Administratoren ändern sie unter *Administration → Globale Einstellungen →
+System → Sprache*. Es gibt keine Umschaltung pro Person oder pro Besuch.
 
 Die Sprache bestimmt die Texte der Software. Alles, was **eingegeben** wurde – Formulare und ihre Felder, Mailvorlagen,
 Namen von Rollen und Mitgliedsarten, Automatisierungen, Texte von Veranstaltungen –, gibt es einmal, und es wird nicht übersetzt:
@@ -16,13 +16,13 @@ in den Versionen der Vorlage erhalten.
 
 ## Zeitzone
 
-*Einstellungen → Organisation und Rechnungen → Zeitzone*: alle Uhrzeiten und täglichen Läufe. Installationen vor 0.13 laufen in UTC, bis eine
+*Administration → Globale Einstellungen → Zeitzone*: alle Uhrzeiten und täglichen Läufe. Installationen vor 0.13 laufen in UTC, bis eine
 Zeitzone gewählt wird. Schon gespeicherte Zeiten werden nicht umgerechnet. Links und Angebote, die in diesem Moment offen sind, können daher bis
 zu zwei Stunden früher oder später ablaufen.
 
 ## Systemstatus
 
-*System → Systemstatus* (nur Administratorinnen und Administratoren) zeigt:
+*Administration → System → Systemstatus* (nur Administratorinnen und Administratoren) zeigt:
 
 - die PHP-Version und das Datum, bis zu dem sie Sicherheitsupdates bekommt
 - PHP-Erweiterungen, Funktionen und Schreibrechte: *Jeden Punkt anzeigen* führt jeden einzeln an, mit seinem Zweck und
@@ -65,7 +65,7 @@ erstellen Sie den Container neu; das Upgrade der Datenbank läuft mit `php artis
 
 ## Eine Einstellung finden
 
-*Einstellungen → Organisation und Rechnungen* hat oben ein Suchfeld: Tippen Sie ein Wort (z. B. *IBAN* oder *Aufbewahrung*), und nur die passenden
+*Administration → Organisation*, *Administration → Globale Einstellungen* und *Buchhaltung → Rechnungseinstellungen* haben oben ein Suchfeld: Tippen Sie ein Wort (z. B. *IBAN* oder *Aufbewahrung*), und nur die passenden
 Einstellungen bleiben sichtbar.
 
 ## Hilfe

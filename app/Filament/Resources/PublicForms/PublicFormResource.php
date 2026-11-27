@@ -4,6 +4,7 @@ namespace App\Filament\Resources\PublicForms;
 
 use App\Filament\Resources\PublicForms\Pages\ListPublicForms;
 use App\Filament\Support\AreaAccess;
+use App\Filament\Support\InArea;
 use App\Models\Event;
 use App\Models\Form;
 use App\Models\Group;
@@ -31,6 +32,7 @@ use Illuminate\Support\HtmlString;
 class PublicFormResource extends Resource
 {
     use AreaAccess;
+    use InArea;
 
     public static function area(): string
     {
@@ -41,8 +43,6 @@ class PublicFormResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedGlobeAlt;
 
-    protected static ?int $navigationSort = 20;
-
     public static function getModelLabel(): string
     {
         return __('public.form');
@@ -51,11 +51,6 @@ class PublicFormResource extends Resource
     public static function getPluralModelLabel(): string
     {
         return __('public.forms');
-    }
-
-    public static function getNavigationGroup(): ?string
-    {
-        return __('admin.nav.forms');
     }
 
     public static function form(Schema $schema): Schema

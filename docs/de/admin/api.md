@@ -6,7 +6,7 @@ Es funktioniert nicht mehr, sobald diese Person die Rolle Administration verlier
 
 ## API-Tokens
 
-*Einstellungen → API-Tokens* (Administratorinnen und Administratoren): **Token erstellen**, dann einen Namen, die Scopes und ein Ablaufdatum wählen. Das Token
+*Administration → API-Tokens* (Administratorinnen und Administratoren): **Token erstellen**, dann einen Namen, die Scopes und ein Ablaufdatum wählen. Das Token
 (`kas_…`) wird **einmal** angezeigt – kopieren Sie es in das andere System. Widerrufen Sie Tokens, die Sie nicht mehr brauchen; die Liste zeigt, wann
 jedes Token zuletzt verwendet wurde. Jeder schreibende Zugriff über die API steht im Audit-Protokoll, mit dem Token als Akteur.
 
@@ -411,7 +411,7 @@ löschen.
 
 Voraussetzungen:
 
-1. *Einstellungen → Organisation und Rechnungen → KI-Assistenten*: **KI-Verarbeitung erlaubt** darf nicht auf „Keine“ stehen. Mit
+1. *Administration → Globale Einstellungen → KI-Assistenten*: **KI-Verarbeitung erlaubt** darf nicht auf „Keine“ stehen. Mit
    „Nicht vertrauliche Daten“ bleiben Gesundheits- und Sicherheitsdaten über MCP gesperrt, auch mit dem Scope `health:read`.
    Erlauben Sie nur, was Ihre Datenschutzerklärung und ein Vertrag zur Auftragsverarbeitung mit dem KI-Anbieter abdecken.
 2. Ein Token, bei dem **Darf von KI-Assistenten (MCP) verwendet werden** eingeschaltet ist, und nur mit den Scopes, die der Assistent braucht.
@@ -439,7 +439,7 @@ ausstellen und stornieren, Personen anonymisieren und Einstellungen ändern.
 
 ## Webhooks
 
-*Einstellungen → Webhooks* (Administratorinnen und Administratoren): Kasmin ruft Ihre HTTPS-Adresse auf, wenn etwas passiert. Ereignisse:
+*Administration → Webhooks* (Administratorinnen und Administratoren): Kasmin ruft Ihre HTTPS-Adresse auf, wenn etwas passiert. Ereignisse:
 `participation.created`, `participation.status_changed`, `person.created`, `invoice.issued`, `invoice.paid`,
 `payment.received`, `form.confirmed`, `automation.approval_requested`, `automation.run_finished`, `import.finished`.
 

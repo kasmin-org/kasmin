@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Refunds;
 
 use App\Filament\Resources\Refunds\Pages\ListRefunds;
+use App\Filament\Support\InArea;
 use App\Filament\Support\Money;
 use App\Models\Invoice;
 use App\Models\Refund;
@@ -25,11 +26,11 @@ use Illuminate\Support\Carbon;
  */
 class RefundResource extends Resource
 {
+    use InArea;
+
     protected static ?string $model = Refund::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedArrowUturnLeft;
-
-    protected static ?int $navigationSort = 30;
 
     public static function getModelLabel(): string
     {
@@ -39,11 +40,6 @@ class RefundResource extends Resource
     public static function getPluralModelLabel(): string
     {
         return __('finance.refunds');
-    }
-
-    public static function getNavigationGroup(): ?string
-    {
-        return __('admin.nav.finance');
     }
 
     public static function getNavigationBadge(): ?string

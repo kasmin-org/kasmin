@@ -6,7 +6,7 @@ administrator role.
 
 ## API tokens
 
-*Settings → API tokens* (administrators): **Create token**, choose a name, the scopes and an expiry. The token
+*Administration → API tokens* (administrators): **Create token**, choose a name, the scopes and an expiry. The token
 (`kas_…`) is shown **once** – copy it into the other system. Revoke tokens you no longer need; the list shows when
 each token was last used. Every write via the API is recorded in the audit log with the token as actor.
 
@@ -411,7 +411,7 @@ delete.
 
 Requirements:
 
-1. *Settings → Organisation and invoices → AI assistants*: **AI processing allowed** must not be "None". With
+1. *Administration → Global settings → AI assistants*: **AI processing allowed** must not be "None". With
    "Non-confidential data", health and safety data stay unavailable via MCP even with the scope `health:read`.
    Only allow what your privacy policy and a data processing agreement with the AI provider cover.
 2. A token with **May be used by AI assistants (MCP)** switched on, and only the scopes the assistant needs.
@@ -439,7 +439,7 @@ invoices, anonymise people and change settings without a second person.
 
 ## Webhooks
 
-*Settings → Webhooks* (administrators): Kasmin calls your HTTPS address when something happens. Events:
+*Administration → Webhooks* (administrators): Kasmin calls your HTTPS address when something happens. Events:
 `participation.created`, `participation.status_changed`, `person.created`, `invoice.issued`, `invoice.paid`,
 `payment.received`, `form.confirmed`, `automation.approval_requested`, `automation.run_finished`, `import.finished`.
 

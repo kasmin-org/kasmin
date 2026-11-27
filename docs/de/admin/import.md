@@ -64,7 +64,7 @@ Siehe auch [Mit einem KI-Assistenten umsteigen](migrate-with-ai.md).
 
 ## Rechnungen aus dem bisherigen System
 
-*Finanzen → Rechnungsarchiv* bewahrt alte Rechnungen zum Nachschlagen auf. Sie können **nur gelesen** werden: Für sie wird nichts gesendet, gemahnt oder gebucht.
+*Buchhaltung → Rechnungsarchiv* bewahrt alte Rechnungen zum Nachschlagen auf. Sie können **nur gelesen** werden: Für sie wird nichts gesendet, gemahnt oder gebucht.
 
 **Rechnungen importieren** (Finanzen und Administration) nimmt
 

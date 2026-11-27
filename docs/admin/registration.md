@@ -2,7 +2,7 @@
 
 ## Questions of an event
 
-1. *Forms → New*: kind **Questions of an event**. Each question is asked *per participant* or *once per family*; consents that
+1. *Events → Forms → New*: kind **Questions of an event**. Each question is asked *per participant* or *once per family*; consents that
    are marked required must be given.
 2. *Events → edit → Roles*: choose the form under **Questions when registering**. Every role can have its own form.
 
@@ -15,7 +15,7 @@ Before registering, legal guardians see places, price, instalments and cancellat
 
 ## Public forms
 
-*Forms → Public forms*: address `/f/<name>`, title and text, opening and closing time.
+*Events → Forms → Public forms*: address `/f/<name>`, title and text, opening and closing time.
 
 **Address.** The field *Address* is the last part of the web address. Below it, the full address appears while you type
 (with a button to copy it), exactly as it will be saved: Kasmin suggests it from the title, writes everything in lower case,
@@ -26,7 +26,7 @@ published form, the old one keeps forwarding to it; still change the links on yo
 | Kind | After the confirmation |
 |---|---|
 | Register for an event | the person is registered in the chosen role (age rule, places and waitlist apply) |
-| Application | waits under *Forms → Submissions*; after approval: membership, group and welcome mail. Without approval it is done at once |
+| Application | waits under *Events → Forms → Submissions*; after approval: membership, group and welcome mail. Without approval it is done at once |
 | Stay informed | newsletter consent, optionally a group |
 | Sign-up (family account) | a legal guardian creates the family account (name, e-mail, consent); after the confirmation the family exists and the person is logged in, optionally in a group. Children are added in the portal |
 
@@ -49,7 +49,7 @@ participant can invite that many guests: each gets a personal link, registers pe
 
 ## Families
 
-*Settings → Organisation and invoices → Families*:
+*Administration → Organisation → Families*:
 
 | Setting | Default |
 |---|---|
@@ -86,7 +86,7 @@ instead of asking for a family.
 ### Gender of a child
 
 When legal guardians add a child, they must choose the gender: female, male or diverse – rooms are planned with it, so "not specified" is
-not offered there. *Settings → Organisation and invoices → Families* holds an optional note per gender that appears below the choice as soon as this
+not offered there. *Administration → Organisation → Families* holds an optional note per gender that appears below the choice as soon as this
 gender is picked. Female and male have none by default; diverse has this one, which you can change or empty:
 
 > We separate the children by gender per room. Please contact us directly and tell us in which room the child wants to sleep, so that we

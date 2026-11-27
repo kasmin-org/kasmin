@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\MembershipTypes;
 
 use App\Filament\Resources\MembershipTypes\Pages\ManageMembershipTypes;
+use App\Filament\Support\InArea;
 use App\Filament\Support\Money;
 use App\Models\Invoice;
 use App\Models\MembershipType;
@@ -24,11 +25,11 @@ use Filament\Tables\Table;
  */
 class MembershipTypeResource extends Resource
 {
+    use InArea;
+
     protected static ?string $model = MembershipType::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedIdentification;
-
-    protected static ?int $navigationSort = 60;
 
     public static function getModelLabel(): string
     {
@@ -38,11 +39,6 @@ class MembershipTypeResource extends Resource
     public static function getPluralModelLabel(): string
     {
         return __('admin.finance.membership_types');
-    }
-
-    public static function getNavigationGroup(): ?string
-    {
-        return __('admin.nav.people');
     }
 
     public static function canViewAny(): bool

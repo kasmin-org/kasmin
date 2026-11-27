@@ -131,8 +131,8 @@ aus dem Internet erreichbar sein**. Bis das erste Zertifikat da ist, wird ein se
 `/var/lib/kasmin`, weil Let's Encrypt die Zahl der Zertifikate pro Woche begrenzt. Für Tests:
 `KASMIN_ACME_SERVER=https://acme-staging-v02.api.letsencrypt.org/directory`.
 
-Der Name kommt aus der öffentlichen Adresse **in der Datenbank**; wenn Sie auf eine andere Adresse umziehen, ändern Sie sie unter *Einstellungen → Organisation
-und Rechnungen → System* und starten Sie den Container neu.
+Der Name kommt aus der öffentlichen Adresse **in der Datenbank**; wenn Sie auf eine andere Adresse umziehen, ändern Sie sie unter *Administration → Globale Einstellungen →
+System* und starten Sie den Container neu.
 
 ### Hinter einem Reverse Proxy
 

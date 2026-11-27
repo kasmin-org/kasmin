@@ -6,6 +6,7 @@ use App\Filament\Resources\OutgoingMails\Pages\ListOutgoingMails;
 use App\Filament\Resources\OutgoingMails\Schemas\OutgoingMailForm;
 use App\Filament\Resources\OutgoingMails\Tables\OutgoingMailsTable;
 use App\Filament\Support\AreaAccess;
+use App\Filament\Support\InArea;
 use App\Models\OutgoingMail;
 use BackedEnum;
 use Filament\Infolists\Components\TextEntry;
@@ -17,6 +18,7 @@ use Filament\Tables\Table;
 class OutgoingMailResource extends Resource
 {
     use AreaAccess;
+    use InArea;
 
     public static function area(): string
     {
@@ -38,11 +40,6 @@ class OutgoingMailResource extends Resource
     public static function canCreate(): bool
     {
         return false;
-    }
-
-    public static function getNavigationGroup(): ?string
-    {
-        return __('admin.nav.communication');
     }
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedInboxStack;

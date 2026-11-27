@@ -2,7 +2,7 @@
 
 Kasmin only upgrades; there are no downgrades.
 
-1. Install the new version (*System → System status → Update*, the release ZIP via the installer, or a new Docker image tag).
+1. Install the new version (*Administration → System → Update*, the release ZIP via the installer, or a new Docker image tag).
 2. Until the database is upgraded, the login page shows a notice, and **only administrators can log in**. Everything else waits.
 3. Log in as administrator with a new login link and press **Upgrade now**. Kasmin writes a compressed backup of the database to
    `storage/app/private/backups` first, then upgrades the database and records the new version. This can take a few minutes; only one
@@ -16,7 +16,7 @@ versions, and deployment scripts can call `POST /system/hooks/upgrade` (see [Hos
 
 ## Automatic updates
 
-*Settings → Organisation and invoices → Automatic updates* (administrators, not in Docker; **on by default**, can be switched off): a new version is installed by
+*Administration → Global settings → Automatic updates* (administrators, not in Docker; **on by default**, can be switched off): a new version is installed by
 the cron job once it has been out for the configured number of days (default 10), at the configured time of day (default 04:00, in the time
 zone of the settings). A backup of the database and the program files is made first.
 
@@ -36,18 +36,18 @@ version". Install the newer version again. Commands that would take the schema b
 ## Backups
 
 Kasmin writes a database backup every night (02:30, needs the cron job) to `storage/app/private/backups` and keeps the last 7 daily ones
-(*Settings → Keep daily backups*); backups before upgrades are kept. *System → System status* shows the last one. `php artisan kasmin:backup`
+(*Administration → Global settings → Keep daily backups*); backups before upgrades are kept. *Administration → System → System status* shows the last one. `php artisan kasmin:backup`
 makes one at once. **Copy the backups to another place too**: they are on the same server, and they contain personal data. Uploaded files
 and the `.env` file with the `APP_KEY` are not included; without this key, encrypted data such as safety sheets cannot be read.
 
 ### Backups in the browser
 
-*System → System status → Backups* (administrators): **Back up now**, **Download** a backup, and – once a passphrase is set –
+*Administration → System → Backups* (administrators): **Back up now**, **Download** a backup, and – once a passphrase is set –
 **Download encrypted**. Every download is recorded in the audit log.
 
 ### A copy outside the server
 
-A backup on the same server does not help if the server is lost. *Settings → Organisation and invoices → Backup outside the server*:
+A backup on the same server does not help if the server is lost. *Administration → Global settings → Backup outside the server*:
 
 | Setting | Meaning |
 |---|---|
@@ -64,7 +64,7 @@ shown again.
 
 ### Restore a backup
 
-**In the browser** (administrators, MySQL and MariaDB): *System → System status → Backups → Restore a backup*. Choose a backup of the
+**In the browser** (administrators, MySQL and MariaDB): *Administration → System → Backups → Restore a backup*. Choose a backup of the
 server or upload a file (`.sql.gz`, or an encrypted `.enc` with its passphrase), type the word shown and confirm. Kasmin checks that the
 file is a complete backup of the same kind of database, saves the current state as a backup named `before-restore`, replaces everything in
 the database and asks everybody to log in again. If the backup is older than the installed version, the upgrade notice appears and an

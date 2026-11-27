@@ -2,6 +2,9 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Pages\Dashboard;
+use App\Filament\Pages\NotificationsPage;
+use App\Filament\Support\Areas;
 use App\Filament\Support\InitialsAvatar;
 use App\Http\Middleware\RequireFullLogin;
 use App\Http\Middleware\RequireSecondFactor;
@@ -9,12 +12,12 @@ use App\Http\Middleware\SetLocale;
 use App\Livewire\SystemNotificationsPopup;
 use App\Support\Mail\Sender;
 use App\Support\System\Docs;
+use Filament\Actions\Action;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Navigation\NavigationGroup;
-use Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
@@ -43,11 +46,17 @@ class AdminPanelProvider extends PanelProvider
             ->defaultAvatarProvider(InitialsAvatar::class)
             ->globalSearchKeyBindings(['mod+k'])
             ->viteTheme('resources/css/filament/admin/theme.css')
-            // Menu order as specified (AD, section 1).
+            // Five areas at the top, the navigation on the left only of the open area (B11, Areas).
             ->navigationGroups(array_map(
                 fn (string $key) => NavigationGroup::make()->label(fn (): string => (string) __('admin.nav.'.$key)),
-                ['people', 'events', 'forms', 'finance', 'communication', 'automations', 'reports', 'privacy', 'settings', 'system'],
+                Areas::GROUPS,
             ))
+            ->renderHook(PanelsRenderHook::TOPBAR_LOGO_AFTER, fn () => view('filament.areas.top'))
+            ->renderHook(PanelsRenderHook::SIDEBAR_NAV_START, fn () => view('filament.areas.side'))
+            ->userMenuItems([
+                Action::make('notifications')->label(fn () => __('mail.notifications'))->icon('heroicon-o-bell')->url(fn () => NotificationsPage::getUrl())
+                    ->visible(fn () => NotificationsPage::canAccess()),
+            ])
             ->renderHook(PanelsRenderHook::CONTENT_START, fn () => Sender::testAddress() !== null ? view('filament.test-mode', ['address' => Sender::testAddress()]) : '')
             ->renderHook(PanelsRenderHook::CONTENT_START, fn () => Livewire::mount(SystemNotificationsPopup::class))
             ->renderHook(PanelsRenderHook::PAGE_HEADER_HEADING_AFTER, fn () => view('filament.help-link', ['url' => Docs::forRoute(request()->route()?->getName())]))

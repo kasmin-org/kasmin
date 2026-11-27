@@ -34,7 +34,7 @@ them less confidential, or delete the safety sheet. Form rights alone never open
 
 ## Export and import
 
-*Forms → Export* saves the definition of a form as a JSON file (no answers), *Import* reads it. A form with the same
+*Events → Forms → Export* saves the definition of a form as a JSON file (no answers), *Import* reads it. A form with the same
 key gets a new version; fields that are not in the file are removed, answers stay. The same format works with the API
 (`GET`/`PUT /api/v1/forms/{key}/definition`) and MCP (`get_form_definition`, `save_form_definition`).
 

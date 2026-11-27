@@ -102,7 +102,7 @@ class DatabaseRestoreTest extends TestCase
         $name = app(Backups::class)->all()[0]['name'];
         Person::factory()->create(['first_name' => 'Later']);
 
-        $this->actingAs($admin)->withSession($session)->get('/admin/system')->assertOk()->assertSee('Restore a backup')->assertSee('data-restore', false);
+        $this->actingAs($admin)->withSession($session)->get('/admin/backups')->assertOk()->assertSee('Restore a backup')->assertSee('data-restore', false);
         $this->actingAs($admin)->withSession($session)->post(route('admin.backups.restore'), ['name' => $name, 'confirm' => 'yes'])->assertSessionHasErrors('confirm');
         $this->assertTrue(Person::query()->where('first_name', 'Later')->exists());
 

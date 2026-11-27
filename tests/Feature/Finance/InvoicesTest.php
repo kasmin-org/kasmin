@@ -2,7 +2,7 @@
 
 namespace Tests\Feature\Finance;
 
-use App\Filament\Pages\OrganisationSettingsPage;
+use App\Filament\Pages\InvoiceSettingsPage;
 use App\Filament\Resources\Invoices\Pages\ListInvoices;
 use App\Filament\Resources\Invoices\Pages\ViewInvoice;
 use App\Models\Event;
@@ -13,6 +13,7 @@ use App\Models\Participation;
 use App\Models\Person;
 use App\Models\Role;
 use App\Models\User;
+use App\Support\Events\ParticipationConfirmation;
 use App\Support\Finance\InvoicePdf;
 use App\Support\Finance\Invoices;
 use App\Support\Finance\Payments;
@@ -25,7 +26,6 @@ use Filament\Http\Middleware\AuthenticateSession;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Livewire\Livewire;
-use App\Support\Events\ParticipationConfirmation;
 use Tests\TestCase;
 
 class InvoicesTest extends TestCase
@@ -298,7 +298,7 @@ class InvoicesTest extends TestCase
         $treasurer = $make('treasurer');
         $leader = $make('camp_leader');
 
-        foreach (['/admin/invoices', '/admin/invoices/'.$invoice->id, '/admin/payments', '/admin/settings/organisation', '/admin/events/'.$this->event->id.'/edit'] as $page) {
+        foreach (['/admin/invoices', '/admin/invoices/'.$invoice->id, '/admin/payments', '/admin/settings/invoices', '/admin/events/'.$this->event->id.'/edit'] as $page) {
             $this->actingAs($treasurer)->withSession(['two_factor_passed' => true])->get($page)->assertOk();
         }
         $this->actingAs($treasurer)->withSession(['two_factor_passed' => true])->get('/admin/invoices/'.$invoice->id.'/pdf')
@@ -326,8 +326,8 @@ class InvoicesTest extends TestCase
         Livewire::test(ViewInvoice::class, ['record' => $invoice->id])->callAction('payment', data: ['amount' => '100.00', 'paid_on' => now()->toDateString(), 'method' => 'cash'])->assertHasNoActionErrors();
         $this->assertSame('paid', Invoice::query()->findOrFail($invoice->id)->status);
 
-        Livewire::test(OrganisationSettingsPage::class)->fillForm(['organisation_iban' => 'AT00 1234'])->call('save')->assertHasFormErrors(['organisation_iban']);
-        Livewire::test(OrganisationSettingsPage::class)->fillForm(['organisation_iban' => 'de89 3704 0044 0532 0130 00', 'invoice_number_format' => '{year}-{number}'])->call('save')->assertHasNoFormErrors();
+        Livewire::test(InvoiceSettingsPage::class)->fillForm(['organisation_iban' => 'AT00 1234'])->call('save')->assertHasFormErrors(['organisation_iban']);
+        Livewire::test(InvoiceSettingsPage::class)->fillForm(['organisation_iban' => 'de89 3704 0044 0532 0130 00', 'invoice_number_format' => '{year}-{number}'])->call('save')->assertHasNoFormErrors();
         $this->assertSame('DE89370400440532013000', Settings::get('organisation_iban'));
     }
 

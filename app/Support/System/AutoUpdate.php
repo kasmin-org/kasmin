@@ -168,7 +168,7 @@ class AutoUpdate
     {
         foreach ($this->notifications->administrators() as $admin) {
             $locale = $admin->person->locale ?? 'en';
-            $body = '<p>'.e(__('system.auto_update.'.$kind, $values, $locale)).'</p>'.$html.'<p><a href="'.e(url('/admin/system')).'">'.e(__('system.update.back', [], $locale)).'</a></p>';
+            $body = '<p>'.e(__('system.auto_update.'.$kind, $values, $locale)).'</p>'.$html.'<p><a href="'.e(url('/admin/updates')).'">'.e(__('system.update.back', [], $locale)).'</a></p>';
             app(Composer::class)->queueRaw($admin->email, $admin->name, 'Kasmin: '.__('system.auto_update.'.$kind.'_subject', $values, $locale), $body, $locale);
         }
     }

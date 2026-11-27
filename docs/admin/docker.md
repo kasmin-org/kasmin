@@ -131,8 +131,8 @@ reachable from the internet**. Until the first certificate is there, a self-sign
 `/var/lib/kasmin`, because Let's Encrypt limits the number of certificates per week. For tests:
 `KASMIN_ACME_SERVER=https://acme-staging-v02.api.letsencrypt.org/directory`.
 
-The name comes from the public URL **in the database**; if you move to another address, change it in *Settings → Organisation
-and invoices → System* and restart the container.
+The name comes from the public URL **in the database**; if you move to another address, change it in *Administration → Global settings →
+System* and restart the container.
 
 ### Behind a reverse proxy
 

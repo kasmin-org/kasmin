@@ -9,7 +9,7 @@ nothing. Legal guardians see their family's invoices in the portal.
 
 ## 1. Organisation data
 
-*Settings → Organisation and invoices*:
+*Accounting → Invoice settings*:
 
 | Setting | Meaning |
 |---|---|
@@ -74,7 +74,7 @@ per family; fees already invoiced as an instalment of an event of the same year 
 
 ## 3. Invoice run
 
-*Finance → Invoices → Invoice run*: choose the event and the instalment. Kasmin creates one **draft** per family
+*Accounting → Invoices → Invoice run*: choose the event and the instalment. Kasmin creates one **draft** per family
 (all registered, confirmed or offered participants; waitlist entries are not invoiced). The payer is the family's
 invoice recipient, otherwise the first legal guardian. Running it again only adds families that have no invoice
 for this instalment yet.
@@ -89,7 +89,7 @@ IBAN, amount and reference automatically.
 ## 4. Payments and bank import
 
 - **Record payment** on an invoice for cash or single transfers (partial payments possible).
-- **Bank import** (*Finance → Payments → Bank import*): upload the CSV or Excel (XLSX) export of your bank account
+- **Bank import** (*Accounting → Payments → Bank import*): upload the CSV or Excel (XLSX) export of your bank account
   and enter which column holds date, amount, reference and (optional) name and IBAN. The mapping is remembered.
   Only incoming payments are imported; the same row imported twice is detected. The file is deleted afterwards.
 - Matching:
@@ -102,7 +102,7 @@ IBAN, amount and reference automatically.
   otherwise use *Split*. What is left stays unassigned.
 - **Too much paid**: the rest becomes a **credit** of the family with a refund proposal. Use it for another
   invoice or pay it back.
-- **Refunds** (*Finance → Refunds*): amount, payer, IBAN and reason. Make the bank transfer, then mark it as
+- **Refunds** (*Accounting → Refunds*): amount, payer, IBAN and reason. Make the bank transfer, then mark it as
   *Paid back* – or *Keep as credit*. Kasmin never transfers money itself.
 - When an invoice is paid in full, the payer gets the **payment confirmation** (template *Payment confirmation*,
   optionally with the paid invoice attached), and subscribers of the notification topic *payments* are informed.

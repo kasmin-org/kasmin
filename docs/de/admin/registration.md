@@ -2,7 +2,7 @@
 
 ## Fragen einer Veranstaltung
 
-1. *Formulare → Neu*: Art **Fragen einer Veranstaltung**. Jede Frage wird *pro teilnehmender Person* oder *einmal pro Familie*
+1. *Veranstaltungen → Formulare → Neu*: Art **Fragen einer Veranstaltung**. Jede Frage wird *pro teilnehmender Person* oder *einmal pro Familie*
    gestellt; Einwilligungen, die als Pflicht markiert sind, müssen gegeben werden.
 2. *Veranstaltungen → Bearbeiten → Rollen, Plätze und Altersgrenzen*: Wählen Sie das Formular unter **Fragen bei der Anmeldung**.
    Jede Rolle kann ihr eigenes Formular haben.
@@ -16,7 +16,7 @@ Vor der Anmeldung sehen Erziehungsberechtigte Plätze, Preis, Raten und Stornobe
 
 ## Öffentliche Formulare
 
-*Formulare → Öffentliche Formulare*: Adresse `/f/<name>`, Titel und Text, Beginn und Ende.
+*Veranstaltungen → Formulare → Öffentliche Formulare*: Adresse `/f/<name>`, Titel und Text, Beginn und Ende.
 
 **Adresse.** Das Feld *Adresse* ist der letzte Teil der Webadresse. Darunter erscheint beim Tippen die vollständige Adresse (mit
 einem Knopf zum Kopieren), genau so, wie sie gespeichert wird: Kasmin schlägt sie aus dem Titel vor, schreibt alles klein, schreibt
@@ -27,7 +27,7 @@ Formulars, leitet die alte weiterhin dorthin weiter; ändern Sie die Links auf I
 | Art | Nach der Bestätigung |
 |---|---|
 | Anmeldung zu einer Veranstaltung | die Person wird in der gewählten Rolle angemeldet (Altersgrenzen, Plätze und Warteliste gelten) |
-| Bewerbung | wartet unter *Formulare → Einsendungen*; nach der Freigabe: Mitgliedschaft, Gruppe und Willkommensmail. Ohne Freigabe geschieht das sofort |
+| Bewerbung | wartet unter *Veranstaltungen → Formulare → Einsendungen*; nach der Freigabe: Mitgliedschaft, Gruppe und Willkommensmail. Ohne Freigabe geschieht das sofort |
 | Informiert bleiben | Einwilligung zum Newsletter, auf Wunsch eine Gruppe |
 | Registrierung (Familienkonto) | eine erziehungsberechtigte Person legt das Familienkonto an (Name, E-Mail, Einwilligung); nach der Bestätigung gibt es die Familie und die Person ist angemeldet, auf Wunsch in einer Gruppe. Kinder kommen im Portal dazu |
 
@@ -52,7 +52,7 @@ eine eigene Rechnung.
 
 ## Familien
 
-*Einstellungen → Organisation und Rechnungen → Familien*:
+*Administration → Organisation → Familien*:
 
 | Einstellung | Voreinstellung |
 |---|---|
@@ -91,7 +91,7 @@ statt nach einer Familie zu fragen.
 ### Geschlecht eines Kindes
 
 Wenn Erziehungsberechtigte ein Kind anlegen, müssen sie das Geschlecht wählen: weiblich, männlich oder divers – damit werden die Zimmer geplant, deshalb wird „keine Angabe“
-dort nicht angeboten. *Einstellungen → Organisation und Rechnungen → Familien* enthält pro Geschlecht einen optionalen Hinweis, der unter der Auswahl erscheint, sobald dieses
+dort nicht angeboten. *Administration → Organisation → Familien* enthält pro Geschlecht einen optionalen Hinweis, der unter der Auswahl erscheint, sobald dieses
 Geschlecht gewählt wird. Weiblich und männlich haben standardmäßig keinen; divers hat diesen, den Sie ändern oder leeren können:
 
 > Wir trennen die Kinder in den Zimmern nach Geschlecht. Bitte melden Sie sich direkt bei uns und sagen Sie uns, in welchem Zimmer das Kind schlafen möchte, damit wir

@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Consents;
 
 use App\Filament\Resources\Consents\Pages\ListConsents;
 use App\Filament\Support\AreaAccess;
+use App\Filament\Support\InArea;
 use App\Models\Consent;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -19,6 +20,7 @@ use Filament\Tables\Table;
 class ConsentResource extends Resource
 {
     use AreaAccess;
+    use InArea;
 
     public static function area(): string
     {
@@ -37,11 +39,6 @@ class ConsentResource extends Resource
     public static function getPluralModelLabel(): string
     {
         return __('privacy.consents');
-    }
-
-    public static function getNavigationGroup(): ?string
-    {
-        return __('admin.nav.privacy');
     }
 
     public static function canCreate(): bool

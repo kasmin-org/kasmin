@@ -2,7 +2,7 @@
 
 namespace Tests\Feature\Finance;
 
-use App\Filament\Pages\OrganisationSettingsPage;
+use App\Filament\Pages\InvoiceSettingsPage;
 use App\Filament\Resources\Events\Pages\EditEvent;
 use App\Filament\Resources\Events\RelationManagers\ParticipationsRelationManager;
 use App\Filament\Resources\MembershipTypes\Pages\ManageMembershipTypes;
@@ -173,8 +173,8 @@ class FinanceAdminTest extends TestCase
     public function test_numbers_per_year_need_the_year_in_the_format(): void
     {
         $this->actAs('treasurer');
-        Livewire::test(OrganisationSettingsPage::class)->fillForm(['invoice_number_per_year' => true, 'invoice_number_format' => 'R{number}'])->call('save')->assertHasFormErrors(['invoice_number_format']);
-        Livewire::test(OrganisationSettingsPage::class)->fillForm(['invoice_number_per_year' => true, 'invoice_number_format' => '{year}-{number}'])->call('save')->assertHasNoFormErrors();
+        Livewire::test(InvoiceSettingsPage::class)->fillForm(['invoice_number_per_year' => true, 'invoice_number_format' => 'R{number}'])->call('save')->assertHasFormErrors(['invoice_number_format']);
+        Livewire::test(InvoiceSettingsPage::class)->fillForm(['invoice_number_per_year' => true, 'invoice_number_format' => '{year}-{number}'])->call('save')->assertHasNoFormErrors();
         $this->assertSame('2027-1', $this->issued('deposit')->number);
     }
 

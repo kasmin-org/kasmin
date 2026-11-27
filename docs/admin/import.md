@@ -64,7 +64,7 @@ See also [Migrate with an AI assistant](migrate-with-ai.md).
 
 ## Invoices from the system used before
 
-*Finance → Invoice archive* keeps old invoices to look them up. They are **read-only**: nothing is sent, reminded or booked for them.
+*Accounting → Invoice archive* keeps old invoices to look them up. They are **read-only**: nothing is sent, reminded or booked for them.
 
 **Import invoices** (treasurers and administrators) takes
 

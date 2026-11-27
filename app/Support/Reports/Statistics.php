@@ -2,13 +2,13 @@
 
 namespace App\Support\Reports;
 
-use App\Support\Lists\ListTable;
 use App\Models\Event;
 use App\Models\EventSeries;
 use App\Models\Invoice;
 use App\Models\InvoiceLine;
 use App\Models\Participation;
 use App\Models\Person;
+use App\Support\Lists\ListTable;
 use Illuminate\Support\Collection;
 
 /**

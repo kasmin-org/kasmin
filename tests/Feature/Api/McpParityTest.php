@@ -92,6 +92,7 @@ class McpParityTest extends TestCase
         'settings:write' => ['create_sender_profile', 'update_sender_profile', 'get_settings', 'update_settings', 'list_webhooks', 'update_webhook', 'delete_webhook'],
         'audit:read' => ['list_consents', 'list_deletion_requests'],
         'audit:read,people:read' => ['export_person_data'],
+        'events:read,people:read' => ['get_age_group_members'],
         'privacy:write' => ['anonymise_person'],
     ];
 

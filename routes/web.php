@@ -122,6 +122,7 @@ Route::middleware('auth')->group(function () {
             Route::post('/email/{point}/remove', [PortalProfileController::class, 'removeEmail'])->whereNumber('point')->name('portal.profile.email.remove');
             Route::post('/families/{household}', [PortalProfileController::class, 'saveFamily'])->name('portal.profile.family');
             Route::post('/sessions', [PortalProfileController::class, 'logoutOthers'])->name('portal.profile.sessions');
+            Route::post('/links', [PortalProfileController::class, 'revokeLinks'])->name('portal.profile.links');
             Route::get('/export', [PortalProfileController::class, 'export'])->middleware('throttle:login-send')->name('portal.profile.export');
         });
         Route::get('/team/{event}/{list?}', [PortalTeamController::class, 'show'])->middleware(RequireFullLogin::class)->name('portal.team');

@@ -17,7 +17,12 @@ Kasmin hat **keine Passwörter**.
 - **Jede Anmeldung einer Person mit Verwaltungsrolle wird allen Administratorinnen und Administratoren per E-Mail gemeldet**
   (Person, Zeit, Art der Anmeldung, IP-Adresse, Browser). Das lässt sich nicht abschalten. Verwaltungsrollen werden auf einem Gerät
   nicht gemerkt. Diese Personen melden sich also jedes Mal mit einem neuen Link an.
-- **Links in anderen Mails** (Rechnung, Erinnerung, Newsletter) gelten 30 Tage und geben nur eine **eingeschränkte Sitzung**:
+- **Links in anderen Mails** (Rechnung, Erinnerung, Platzangebot, Newsletter) gelten 30 Tage – in einer Mail **zu einer
+  Veranstaltung** bis zu deren Ende, wenn die Person oder eines ihrer Kinder dafür angemeldet, auf der Warteliste oder mit einem offenen
+  Angebot eingetragen ist; nie kürzer als 30 Tage und nie länger als ein Jahr. Eine Abmeldung, eine abgesagte Veranstaltung oder das Ende
+  der Obsorge verkürzt so einen Link sofort auf die üblichen 30 Tage. Die Mail sagt, bis wann ihr Link gilt. *Alle Links in älteren
+  E-Mails ungültig machen* (Portal, *Meine Daten*) und *Links in Mails ungültig machen* (Seite der Person) beenden sie alle, z. B. nachdem
+  eine Mail weitergeleitet wurde. Diese Links geben nur eine **eingeschränkte Sitzung**:
   Startseite des Portals, Rechnungen und angebotene Plätze. Die Verwaltung, Sicherheitsblätter, Notfallkontakte und
   Anmeldungen brauchen einen neuen Link oder Code („Anmeldung bestätigen“).
 - Das Postfach ist der Schlüssel: Wer die E-Mails einer Administratorin oder eines Administrators lesen kann, kann sich als diese

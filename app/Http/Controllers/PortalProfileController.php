@@ -8,6 +8,7 @@ use App\Models\Person;
 use App\Models\User;
 use App\Support\Audit\Audit;
 use App\Support\Auth\PortalPerson;
+use App\Support\Auth\LoginLinks;
 use App\Support\Auth\Sessions;
 use App\Support\Mail\Notifier;
 use App\Support\People\Addresses;
@@ -42,6 +43,15 @@ class PortalProfileController extends Controller
         $ended = Sessions::logoutOthers($request->user(), $request);
 
         return back()->with('status', trans_choice('portal.sessions_ended', $ended, ['count' => $ended]));
+    }
+
+    /** Ends the links in all older mails of the person (B14). */
+    public function revokeLinks(Request $request): RedirectResponse
+    {
+        abort_unless($request->user() instanceof User && ! PortalPerson::previewing($request), 403);
+        $count = app(LoginLinks::class)->revokeMailLinks($request->user());
+
+        return back()->with('status', trans_choice('portal.mail_links_ended', $count, ['count' => $count]));
     }
 
     public function savePhones(Request $request): RedirectResponse

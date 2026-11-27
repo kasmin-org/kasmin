@@ -18,7 +18,12 @@ Kasmin has **no passwords**.
 - **Every login of a person with an administrative role is reported to all administrators by e-mail** (person, time, kind
   of login, IP address, browser). This cannot be switched off. Administrative roles are not remembered on a device, so
   they log in with a fresh link every time.
-- **Links in other mails** (invoice, reminder, newsletter) are valid for 30 days and only give a **limited session**:
+- **Links in other mails** (invoice, reminder, offer, newsletter) are valid for 30 days – in a mail **about an event**
+  until the event has ended, if the person or one of their children is registered, on the waitlist or has an open
+  offer for it; never shorter than 30 days and never longer than a year. A cancellation, a cancelled event or the end
+  of the guardianship shortens such a link to the usual 30 days at once. The mail says until when its link is valid.
+  *Make all links in older e-mails invalid* (portal, *My data*) and *Make links in mails invalid* (person page) end
+  them all, e.g. after a mail was forwarded. These links only give a **limited session**:
   start page of the portal, invoices and offered places. The admin interface, safety sheets, emergency contacts and
   registrations need a fresh link or code ("confirm your login").
 - The mailbox is the key: whoever can read an administrator's e-mails can log in as this person. Protect these mailboxes

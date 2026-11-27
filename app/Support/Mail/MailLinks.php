@@ -3,6 +3,7 @@
 namespace App\Support\Mail;
 
 use App\Models\AutomationRun;
+use App\Models\Event;
 use App\Models\OutgoingMail;
 use App\Models\Person;
 use App\Models\User;
@@ -16,6 +17,9 @@ use App\Support\Automations\Approvals;
 class MailLinks
 {
     public const PLACEHOLDER = 'made-when-sending';
+
+    /** Where the mail says until when its link is valid; replaced when the mail is sent. */
+    public const UNTIL_PLACEHOLDER = '[[link-valid-until]]';
 
     public static function placeholder(): string
     {
@@ -37,8 +41,10 @@ class MailLinks
         $html = $mail->html;
         $text = $mail->text;
         if (self::has($html.$text)) {
-            $link = self::link($mail);
+            [$link, $until] = self::link($mail);
             [$html, $text] = [self::replace($html, $link), self::replace($text, $link)];
+            $date = $until !== null ? $until->copy()->locale(self::locale($mail))->isoFormat('LL') : null;
+            [$html, $text] = [self::until($html, $date), self::until($text, $date)];
         }
         // A summary holds several requests: each one has its own placeholder with the number of the run.
         if (preg_match_all('#/approvals/'.preg_quote(self::PLACEHOLDER, '#').'-(\d+)#', $html.$text, $m) > 0) {
@@ -54,6 +60,29 @@ class MailLinks
         }
 
         return ['html' => $html, 'text' => $text];
+    }
+
+    /** Puts in the date the link is valid until; without a personal link the sentence is left out. */
+    public static function until(string $content, ?string $date): string
+    {
+        if ($date !== null) {
+            return str_replace(self::UNTIL_PLACEHOLDER, $date, $content);
+        }
+
+        return (string) preg_replace(['#<p[^>]*>[^<]*'.preg_quote(e(self::UNTIL_PLACEHOLDER), '#').'[^<]*</p>#', '#\n\n[^\n]*'.preg_quote(self::UNTIL_PLACEHOLDER, '#').'[^\n]*#'], '', $content);
+    }
+
+    /** For previews and the log: the link becomes the given address, the date a hint that it is set when sending. */
+    public static function preview(string $content, string $link = '#'): string
+    {
+        return str_replace([self::UNTIL_PLACEHOLDER, e(self::UNTIL_PLACEHOLDER)], __('mail.link_valid_until_preview'), self::replace($content, $link));
+    }
+
+    private static function locale(OutgoingMail $mail): string
+    {
+        $locale = $mail->person_id !== null ? (string) Person::query()->whereKey($mail->person_id)->value('locale') : '';
+
+        return $locale !== '' ? $locale : app()->getLocale();
     }
 
     /** Replaces the placeholder, e.g. by the address of the portal where the mail is only shown. */
@@ -77,16 +106,20 @@ class MailLinks
         return $approvals->link($run, $user);
     }
 
-    private static function link(OutgoingMail $mail): string
+    /** @return array{0: string, 1: \Illuminate\Support\Carbon|null} the link and until when it is valid */
+    private static function link(OutgoingMail $mail): array
     {
         $person = $mail->person_id !== null ? Person::query()->find($mail->person_id) : null;
         $user = $person?->user;
         // In the test mode all mails go to somebody else, and an address may have been removed since the mail was made.
         if ($person === null || $user === null || Sender::testAddress() !== null
             || ! $person->contactPoints()->where('type', 'email')->where('value', mb_strtolower($mail->to_address))->exists()) {
-            return route('login');
+            return [route('login'), null];
         }
+        $links = app(LoginLinks::class);
+        $event = $mail->event_id !== null ? Event::query()->find($mail->event_id) : null;
+        ['token' => $token, 'model' => $model] = $links->issue($user, 'mail_link', 'limited', $links->mailLinkMinutes($person, $event), $event?->id);
 
-        return route('login.link', app(LoginLinks::class)->issue($user, 'mail_link', 'limited')['token']);
+        return [route('login.link', $token), $model->expires_at];
     }
 }

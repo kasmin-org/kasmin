@@ -37,12 +37,19 @@ class Composer
         $locale = $recipient->locale;
         $context = $this->placeholders->for($recipient, $locale, $about);
         $rendered = $this->renderer->render($template, $locale, $context);
+        // A personal link says how long it is valid; the date is set when the mail is sent (B14).
+        if (MailLinks::has($rendered['html'].$rendered['text'])) {
+            $until = __('mail.link_valid_until', ['date' => MailLinks::UNTIL_PLACEHOLDER], $locale);
+            $rendered['html'] .= '<p style="font-size:13px;color:#57534e;">'.e($until).'</p>';
+            $rendered['text'] .= "\n\n".$until;
+        }
 
         return OutgoingMail::query()->create([
             'sender_profile_id' => $template->sender_profile_id,
             'mail_template_id' => $template->id,
             'template_version' => $template->version,
             'mailing_id' => $mailingId,
+            'event_id' => $about['event']->id ?? $about['participation']->event_id ?? $about['invoice']->event_id ?? null,
             'person_id' => $recipient->id,
             'household_id' => $about['household']->id ?? null,
             'to_address' => $address,

@@ -48,7 +48,7 @@ class MailsRelationManager extends RelationManager
             TextColumn::make('status')->label(__('admin.event.status'))->formatStateUsing(fn ($state) => __('admin.mail.statuses.'.$state))->badge(),
             IconColumn::make('edited')->label(__('admin.mail.edited'))->boolean(),
         ])->recordActions([
-            ViewAction::make()->schema([])->modalContent(fn (OutgoingMail $r) => PreviewFrame::make(MailLinks::replace($r->html, '#'), $r->subject, 520)),
+            ViewAction::make()->schema([])->modalContent(fn (OutgoingMail $r) => PreviewFrame::make(MailLinks::preview($r->html, '#'), $r->subject, 520)),
             EditAction::make()->visible(fn (OutgoingMail $r) => $r->status === 'held')
                 ->mutateRecordDataUsing(fn (array $data) => ['html' => TemplateHtml::toEditor(MailBody::get((string) $data['html']))] + $data)
                 ->mutateDataUsing(function (array $data, OutgoingMail $record): array {

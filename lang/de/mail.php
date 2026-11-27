@@ -62,4 +62,6 @@ return [
         'unknown_field' => 'Unbekanntes Feld „:name“. Möglich sind hier: :known.',
         'not_allowed' => '„:name“ steht in Vorlagen nicht zur Verfügung.',
     ],
+    'link_valid_until' => 'Der persönliche Link in dieser E-Mail gilt bis :date.',
+    'link_valid_until_preview' => '(Datum wird beim Versand eingesetzt)',
 ];

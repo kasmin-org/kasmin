@@ -2,7 +2,9 @@
 
 namespace App\Support\Auth;
 
+use App\Models\Event;
 use App\Models\LoginToken;
+use App\Models\Person;
 use App\Models\User;
 use App\Support\Audit\Audit;
 use Illuminate\Support\Facades\RateLimiter;
@@ -22,6 +24,12 @@ class LoginLinks
 
     public const MAIL_LINK_DAYS = 30;
 
+    /** A link in a mail about an event is valid until the event has ended, but never longer than this (B14). */
+    public const MAIL_LINK_MAX_DAYS = 365;
+
+    /** Statuses in which somebody counts as signed up for an event: registered, on the waitlist or with an open offer. */
+    public const SIGNED_UP = ['requested', 'registered', 'confirmed', 'waitlist', 'offered'];
+
     public const CODE_LENGTH = 6;
 
     /** Failed codes per person before the code entry closes, and for how long. */
@@ -37,7 +45,7 @@ class LoginLinks
     /**
      * @return array{token: string, code: string, model: LoginToken}
      */
-    public function issue(User $user, string $purpose = 'login', string $scope = 'full', ?int $minutes = null): array
+    public function issue(User $user, string $purpose = 'login', string $scope = 'full', ?int $minutes = null, ?int $eventId = null): array
     {
         $token = Str::random(48);
         $code = Base32H::random(self::CODE_LENGTH);
@@ -53,6 +61,7 @@ class LoginLinks
             'purpose' => $purpose,
             'scope' => $scope,
             'expires_at' => now()->addMinutes($minutes),
+            'event_id' => $eventId,
             'created_ip' => app()->runningInConsole() ? null : request()->ip(),
         ]);
 
@@ -79,8 +88,55 @@ class LoginLinks
     public function findByToken(string $token): ?LoginToken
     {
         $model = LoginToken::query()->where('token_hash', hash('sha256', $token))->first();
+        if ($model === null || ! $model->isUsable()) {
+            return null;
+        }
+        // Beyond the usual 30 days a link about an event counts only while the person is still signed up for it: a
+        // cancellation, a cancelled event or the end of the guardianship shortens it at once (B14).
+        if ($model->purpose === 'mail_link' && $model->event_id !== null && now()->gt($model->created_at->copy()->addDays(self::MAIL_LINK_DAYS))) {
+            $person = $model->user?->person;
+            $event = Event::query()->find($model->event_id);
+            if ($person === null || $event === null || ! $this->signedUp($person, $event)) {
+                return null;
+            }
+        }
 
-        return $model?->isUsable() ? $model : null;
+        return $model;
+    }
+
+    /**
+     * How long a link in a mail is valid (B14): until the end of the event the mail is about, if the person or one of
+     * their children is signed up for it – never shorter than 30 days and never longer than a year; otherwise 30 days.
+     */
+    public function mailLinkMinutes(Person $person, ?Event $event): int
+    {
+        $minutes = self::MAIL_LINK_DAYS * 24 * 60;
+        if ($event === null || ! $this->signedUp($person, $event)) {
+            return $minutes;
+        }
+        $until = (int) ceil(now()->diffInMinutes($event->ends_at, false));
+
+        return max($minutes, min($until, self::MAIL_LINK_MAX_DAYS * 24 * 60));
+    }
+
+    /** The person or a child they are the legal guardian of is registered, on the waitlist or has an open offer. */
+    public function signedUp(Person $person, Event $event): bool
+    {
+        if ($event->status === 'cancelled' || $event->ends_at->isPast()) {
+            return false;
+        }
+        $people = [$person->id, ...$person->wards()->pluck('people.id')->all()];
+
+        return $event->participations()->whereIn('person_id', $people)->whereIn('status', self::SIGNED_UP)->exists();
+    }
+
+    /** Ends all links in older mails of this person (B14); login links of the last 30 minutes stay. */
+    public function revokeMailLinks(User $user): int
+    {
+        $count = $user->loginTokens()->where('purpose', 'mail_link')->where('expires_at', '>', now())->update(['expires_at' => now()]);
+        Audit::record('login.mail_links_revoked', $user, null, ['count' => $count]);
+
+        return $count;
     }
 
     public function redeemCode(User $user, string $code): ?LoginToken

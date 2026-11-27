@@ -62,4 +62,6 @@ return [
         'unknown_field' => 'Unknown field ":name". Possible here: :known.',
         'not_allowed' => '":name" is not available in templates.',
     ],
+    'link_valid_until' => 'The personal link in this e-mail is valid until :date.',
+    'link_valid_until_preview' => '(date set when sending)',
 ];

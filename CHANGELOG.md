@@ -6,6 +6,14 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ## [Unreleased]
 
+### Changed
+
+- The **login code** has six characters in [Base32H](https://base32h.github.io) instead of six digits, shown as `K7M-2QX`: about a billion possibilities instead of 900,000. Typing is forgiving (lower case, with or without hyphen, O for 0, I for 1, S for 5, U for V). Codes in mails sent before the update keep working until they expire.
+
+### Security
+
+- **Guessing a login code with many requested mails is no longer easier.** Wrong codes were counted only on the newest of all open codes of a person, while a typed code was compared with all of them, and login mails were limited only per IP address. Now wrong codes are counted per person (five within 30 minutes close the code entry for 30 minutes; the link in the mail keeps working), a new code ends the codes of older mails (their links keep working), and an address gets at most three login or sign-up mails within 15 minutes, whatever the IP address.
+
 ### Removed
 
 - Event series no longer have a **type** (camp, alumni, meeting, other). It was stored and shown but never used; what kind of event it is comes from the event template. **Breaking (API):** `type` is gone from `GET|POST|PATCH /event-series` and the MCP tools `create_event_series`, `update_event_series`, `list_event_series`.

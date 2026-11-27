@@ -48,7 +48,7 @@ class LoginController extends Controller
     {
         $user = $this->findUser($email);
 
-        if ($user !== null && (! $this->upgradePending() || $user->hasAnyRole(['administrator']))) {
+        if ($user !== null && (! $this->upgradePending() || $user->hasAnyRole(['administrator'])) && $this->links->mayMail($email)) {
             ['token' => $token, 'code' => $code] = $this->links->issue($user);
             $name = $user->person->first_name ?? $user->name;
             Mail::to($email)->locale($user->person->locale ?? app()->getLocale())
@@ -90,14 +90,14 @@ class LoginController extends Controller
 
     public function consumeCode(Request $request): RedirectResponse
     {
-        $data = $request->validate(['email' => ['required', 'email'], 'code' => ['required', 'digits:6']]);
+        $data = $request->validate(['email' => ['required', 'email'], 'code' => ['required', 'string', 'max:20']]);
         $user = $this->findUser(mb_strtolower(trim($data['email'])));
         $model = $user !== null ? $this->links->redeemCode($user, $data['code']) : null;
 
         if ($model === null) {
             Audit::record('login.failed', $user, null, ['method' => 'code', 'reason' => 'wrong_code'], 'system');
 
-            return back()->withInput()->withErrors(['code' => __('auth_link.wrong_code')]);
+            return back()->withInput()->withErrors(['code' => __('auth_link.code_refused')]);
         }
 
         return $this->login($request, $model, 'code');

@@ -15,6 +15,8 @@ return [
     'link_intro' => 'Tap "Continue" to log in.',
     'invalid_title' => 'Link no longer valid',
     'invalid' => 'This login link has expired or was already used.',
+    'code_hint' => 'Click the link in the e-mail or enter the code from the e-mail here (six characters, e.g. K7M-2QX).',
+    'code_refused' => 'The code is wrong or has expired. After five wrong attempts, entering a code is blocked for 30 minutes – the link in the e-mail still works.',
     'wrong_code' => 'The code is wrong or has expired.',
     'mail_subject' => 'Your login link for :app',
     'mail_greeting' => 'Hello :name,',

@@ -104,18 +104,79 @@ class LoginTest extends TestCase
     {
         $user = $this->guardian();
         ['code' => $code] = app(LoginLinks::class)->issue($user);
-        $wrong = $code === '111111' ? '222222' : '111111';
+        $this->assertMatchesRegularExpression('/^[0-9A-HJ-NP-RTV-Z]{3}-[0-9A-HJ-NP-RTV-Z]{3}$/', $code);
+        $wrong = $code === '111-111' ? '222-222' : '111-111';
 
         for ($i = 0; $i < 5; $i++) {
             $this->post('/login/code', ['email' => $user->email, 'code' => $wrong])->assertSessionHasErrors('code');
         }
-        // After five wrong attempts even the right code no longer works.
+        // After five wrong attempts the code entry is closed for this person – also for a fresh code …
         $this->post('/login/code', ['email' => $user->email, 'code' => $code])->assertSessionHasErrors('code');
+        ['code' => $fresh, 'token' => $link] = app(LoginLinks::class)->issue($user);
+        $this->post('/login/code', ['email' => $user->email, 'code' => $fresh])->assertSessionHasErrors('code');
         $this->assertGuest();
+        $this->assertDatabaseHas('audit_events', ['action' => 'login.code_locked']);
 
-        ['code' => $fresh] = app(LoginLinks::class)->issue($user);
-        $this->post('/login/code', ['email' => $user->email, 'code' => $fresh])->assertRedirect('/portal');
+        // … while the link in the mail still works, and after 30 minutes codes work again.
+        $this->post('/login/link/'.$link)->assertRedirect('/portal');
         $this->assertAuthenticatedAs($user);
+        auth()->logout();
+        $this->travel(31)->minutes();
+        ['code' => $later] = app(LoginLinks::class)->issue($user);
+        $this->post('/login/code', ['email' => $user->email, 'code' => $later])->assertRedirect('/portal');
+        $this->assertAuthenticatedAs($user);
+    }
+
+    public function test_codes_may_be_typed_in_lower_case_without_hyphen_and_with_look_alikes(): void
+    {
+        $user = $this->guardian();
+        ['code' => $code] = app(LoginLinks::class)->issue($user);
+        $typed = strtr(strtolower(str_replace('-', ' ', $code)), ['0' => 'o', '1' => 'i', '5' => 's', 'v' => 'u']);
+        $this->post('/login/code', ['email' => $user->email, 'code' => $typed])->assertRedirect('/portal');
+        $this->assertAuthenticatedAs($user);
+    }
+
+    public function test_only_the_code_of_the_newest_mail_counts_but_older_links_work(): void
+    {
+        $user = $this->guardian();
+        ['code' => $old, 'token' => $oldLink] = app(LoginLinks::class)->issue($user);
+        ['code' => $new] = app(LoginLinks::class)->issue($user);
+        if ($old !== $new) {
+            $this->post('/login/code', ['email' => $user->email, 'code' => $old])->assertSessionHasErrors('code');
+        }
+        $this->post('/login/link/'.$oldLink)->assertRedirect('/portal');
+        $this->assertAuthenticatedAs($user);
+    }
+
+    public function test_many_requested_mails_give_no_more_guesses(): void
+    {
+        $user = $this->guardian();
+        $codes = [];
+        for ($i = 0; $i < 10; $i++) {
+            $codes[] = app(LoginLinks::class)->issue($user)['code'];
+        }
+        // Wrong guesses are counted per person, not per open code.
+        // From many IP addresses, so the limit per address of the requests does not hide it.
+        for ($i = 0; $i < 5; $i++) {
+            $this->withServerVariables(['REMOTE_ADDR' => '10.1.0.'.$i])->post('/login/code', ['email' => $user->email, 'code' => 'ZZZ-ZZ'.$i])->assertSessionHasErrors('code');
+        }
+        foreach ($codes as $n => $code) {
+            $this->withServerVariables(['REMOTE_ADDR' => '10.2.0.'.$n])->post('/login/code', ['email' => $user->email, 'code' => $code])->assertSessionHasErrors('code');
+        }
+        $this->assertGuest();
+    }
+
+    public function test_login_mails_to_one_address_are_limited_whatever_the_ip(): void
+    {
+        Mail::fake();
+        $user = $this->guardian();
+        foreach (['10.0.0.1', '10.0.0.2', '10.0.0.3', '10.0.0.4', '10.0.0.5'] as $ip) {
+            $this->withServerVariables(['REMOTE_ADDR' => $ip])->post('/login', ['email' => $user->email])->assertRedirect('/login/code');
+        }
+        Mail::assertSent(LoginLinkMail::class, 3);
+        $this->travel(16)->minutes();
+        $this->withServerVariables(['REMOTE_ADDR' => '10.0.0.9'])->post('/login', ['email' => $user->email]);
+        Mail::assertSent(LoginLinkMail::class, 4);
     }
 
     public function test_administrators_need_a_second_factor_if_it_is_switched_on(): void

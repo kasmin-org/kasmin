@@ -31,6 +31,9 @@ class SignUps
     public function request(array $data): void
     {
         $email = Str::lower(trim($data['email']));
+        if (! $this->links->mayMail($email)) {
+            return; // Same answer as always; the address gets no further mail for a while.
+        }
         $personId = ContactPoint::query()->where('type', 'email')->where('value', $email)->value('person_id');
         $user = User::query()->where('email', $email)->first() ?? ($personId !== null ? User::query()->where('person_id', $personId)->first() : null);
         if ($user !== null) {

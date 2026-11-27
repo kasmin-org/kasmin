@@ -146,6 +146,9 @@ jobs:
           FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
         run: |
           sudo apt-get install -y -qq lftp >/dev/null
+          # An upload alone leaves files behind that a newer version no longer has (a removed admin page stayed
+          # visible that way). So the program folders – and only those – are made equal to the release afterwards:
+          # what is not in the package is deleted there. storage/, .env, public/ and bootstrap/cache are never cleaned.
           # While the files are uploaded (many minutes) visitors see "Kasmin is being updated" instead of errors from
           # half-replaced files: the page is put in place first and taken away last.
           cp /tmp/app/resources/maintenance/updating.php /tmp/maintenance.php
@@ -156,6 +159,14 @@ jobs:
             mirror -R --parallel=4 --only-newer --no-perms \
               --exclude-glob .git* --exclude storage/logs/ --exclude storage/framework/sessions/ \
               --exclude storage/framework/cache/data/ --exclude storage/app/backups/ /tmp/app/ ./;
+            mirror -R --delete --parallel=4 --only-newer --no-perms /tmp/app/app/ ./app/;
+            mirror -R --delete --parallel=4 --only-newer --no-perms /tmp/app/config/ ./config/;
+            mirror -R --delete --parallel=4 --only-newer --no-perms /tmp/app/database/ ./database/;
+            mirror -R --delete --parallel=4 --only-newer --no-perms /tmp/app/lang/ ./lang/;
+            mirror -R --delete --parallel=4 --only-newer --no-perms /tmp/app/resources/ ./resources/;
+            mirror -R --delete --parallel=4 --only-newer --no-perms /tmp/app/routes/ ./routes/;
+            mirror -R --delete --parallel=4 --only-newer --no-perms /tmp/app/vendor/ ./vendor/;
+            rm -f bootstrap/cache/packages.php bootstrap/cache/services.php;
             rm -f storage/framework/maintenance.php;
             quit"
       - name: Wait for valid HTTPS
@@ -177,5 +188,14 @@ jobs:
           echo "API document: ${doc}"
           case "$doc" in *"Kasmin ${TAG#v})"*) ;; *) echo "::error::${HOST} does not run ${TAG}"; exit 1;; esac
           curl -sf -o /dev/null "https://${HOST}/js/filament/filament/app.js" || { echo "::error::assets of the admin interface are missing"; exit 1; }
+          # The help links of this version must lead somewhere: the documentation of the version, or – until the
+          # website has built it – the latest one (the website redirects). A 404 here is what users would get.
+          minor=$(echo "${TAG#v}" | cut -d. -f1,2)
+          for prefix in "" "de/"; do
+            help="https://www.kasmin.org/${prefix}docs/${minor}/admin/system/"
+            hcode=$(curl -s -L -o /dev/null -w '%{http_code}' --max-time 30 "$help" || true)
+            echo "help link ${help}: ${hcode}"
+            [ "$hcode" = 200 ] || { echo "::error::The help link ${help} answers ${hcode}."; exit 1; }
+          done
           code=$(curl -s -o /dev/null -w '%{http_code}' -X POST -H 'Content-Type: application/json' -d '{}' "https://${HOST}/mcp")
           [ "$code" = 401 ] || { echo "::error::MCP endpoint answered ${code} instead of 401"; exit 1; }

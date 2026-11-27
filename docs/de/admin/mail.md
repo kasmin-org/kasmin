@@ -23,6 +23,22 @@ Installation, die mehrere hatte, verwendet weiter ihr Standardkonto und dessen e
 Version. Eine Vorlage hat keine Fassungen pro Sprache – eine Installation arbeitet in einer Sprache (siehe
 [System](system.md#sprache)), und der Text ist einfach das, was Sie geschrieben haben.
 
+Jede Vorlage gehört zu einer **Gruppe**, die sagt, worum es in der Mail geht – denn davon hängt ab, welche Platzhalter
+es gibt. Eine Mail an alle kennt keine Rechnungsnummer:
+
+| Gruppe | Wofür | Platzhalter zusätzlich zu den allgemeinen |
+|---|---|---|
+| Allgemein | Mail an alle oder an eine Gruppe, Newsletter, Mails zum Konto | keine |
+| Veranstaltung und Formulare | Infos zu einer Veranstaltung, Sicherheitsblatt (Bitte, Erinnerung, Dank) | Veranstaltung |
+| Anmeldung und Warteliste | Bestätigung, Wartelistenplatz, Platzangebot, Abmeldung | Veranstaltung, Anmeldung |
+| Rechnung und Zahlung | Rechnung, Zahlungserinnerung, Mahnung, Zahlungsbestätigung | Rechnung, Veranstaltung |
+| Mitgliedschaft und Gruppen | Platzangebot einer Gruppe | Gruppe |
+
+Die allgemeinen gibt es in jeder Gruppe: Anrede, Empfänger:in, Familie, Kinder, Organisation, Links. Die Liste der
+Vorlagen ist nach Gruppe gegliedert. *Platzhalter einfügen* und *Bedingung einfügen* bieten nur die Platzhalter der Gruppe
+der Vorlage an, und das Speichern lehnt einen Platzhalter einer anderen Gruppe mit einer Meldung ab, die ihn nennt. Die Gruppe einer
+Standardvorlage ist fest; bei eigenen Vorlagen wählen Sie sie.
+
 Niemand muss die Platzhalter oder ihre Schreibweise auswendig kennen:
 
 - **Platzhalter einfügen** (Schaltfläche des Editors, auch neben dem Betreff und dem HTML-Quelltext) führt jeden
@@ -68,7 +84,8 @@ Erlaubt sind `{% if %}`, `{% for %}`, `{% set %}` und die Filter `upper`, `lower
 
 ## Aussendungen
 
-*Kommunikation → Aussendungen*: Vorlage, Empfängerkreis (Gruppen, Teilnehmende einer Veranstaltung mit Status), senden an
+*Kommunikation → Aussendungen*: Vorlage (jene der Gruppe *Allgemein*; mit den Teilnehmenden einer Veranstaltung als Empfängerkreis
+auch *Veranstaltung und Formulare* – andere Gruppen brauchen Daten, die eine Aussendung nicht hat, und Mails des Systems werden nie angeboten), Empfängerkreis (Gruppen, Teilnehmende einer Veranstaltung mit Status), senden an
 Erziehungsberechtigte / die Person selbst / beide, eine Mail pro Familie. *Vorbereiten* erstellt alle Mails und hält sie zurück: Blättern Sie sie durch,
 bearbeiten Sie auf Wunsch einzelne Mails, dann *Senden*. Wer sich abgemeldet hat, keine Adresse oder eine unzustellbare Adresse hat, wird ausgenommen und angeführt.
 

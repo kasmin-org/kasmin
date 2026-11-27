@@ -2,10 +2,10 @@
 
 namespace App\Filament\Resources\Mailings\Schemas;
 
-use App\Models\MailTemplate;
 use App\Models\Event;
 use App\Models\EventDocument;
 use App\Models\Group;
+use App\Models\MailTemplate;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
@@ -35,7 +35,7 @@ class MailingForm
             ]),
             Section::make(__('admin.mail.recipients'))->columns(2)->schema([
                 Select::make('recipients.group_ids')->label(__('admin.group.plural'))->multiple()->options(fn () => Group::query()->pluck('name', 'id')),
-                Select::make('recipients.event_id')->label(__('admin.event.singular'))->options(fn () => Event::query()->orderByDesc('starts_at')->pluck('title', 'id')),
+                Select::make('recipients.event_id')->label(__('admin.event.singular'))->live()->options(fn () => Event::query()->orderByDesc('starts_at')->pluck('title', 'id')),
                 Select::make('recipients.statuses')->label(__('admin.event.status'))->multiple()->options(__('events.status')),
                 Select::make('routing')->label(__('admin.mail.routing'))->options(__('admin.mail.audiences'))->default('guardians')->required(),
                 Toggle::make('one_per_family')->label(__('admin.mail.one_per_family'))->default(true),

@@ -2,12 +2,12 @@
 
 namespace App\Support\Mail;
 
-use App\Models\MailTemplate;
 use App\Models\Event;
 use App\Models\FormField;
 use App\Models\Group;
 use App\Models\Household;
 use App\Models\Invoice;
+use App\Models\MailTemplate;
 use App\Models\Participation;
 use App\Models\Person;
 use App\Support\Forms\FormValue;

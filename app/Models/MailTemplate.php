@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Schema;
 
 /**
  * @property int $id
@@ -52,9 +53,17 @@ class MailTemplate extends Model
 
     protected $guarded = ['id'];
 
+    private static ?bool $hasGroup = null;
+
     protected static function booted(): void
     {
         static::saving(function (MailTemplate $template): void {
+            // Older migrations install templates before the column exists.
+            if (! (self::$hasGroup ??= Schema::hasColumn('mail_templates', 'group'))) {
+                self::$hasGroup = null;
+
+                return;
+            }
             $fixed = $template->is_standard ? (self::STANDARD_GROUPS[$template->key] ?? null) : null;
             $group = $fixed ?? $template->getAttribute('group') ?? self::CATEGORY_GROUPS[$template->category] ?? 'general';
             $template->setAttribute('group', in_array($group, self::GROUPS, true) ? $group : 'general');

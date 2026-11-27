@@ -71,7 +71,7 @@ class TemplateRenderer
 
             return [];
         } catch (MailException $e) {
-            return [TemplateProblems::translate($e->getMessage(), $group)];
+            return [TemplateProblems::translate($e->getMessage(), $group, $subject.' '.$html.' '.$text)];
         }
     }
 

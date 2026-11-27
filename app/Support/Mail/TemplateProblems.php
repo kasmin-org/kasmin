@@ -2,6 +2,8 @@
 
 namespace App\Support\Mail;
 
+use App\Models\MailTemplate;
+
 /**
  * Finds the usual slips in a template before Twig does and says in plain words what is wrong: a bracket that is not
  * closed, an "if" without "endif". Twig's own message stays the fallback for everything else.
@@ -58,12 +60,18 @@ class TemplateProblems
     }
 
     /** Twig's messages for the two most common mistakes, in plain words. */
-    public static function translate(string $message, ?string $group = null): string
+    public static function translate(string $message, ?string $group = null, string $template = ''): string
     {
         // A placeholder that exists, but not in mails of this group (an invoice number in a mail to everybody).
-        if ($group !== null && preg_match('/on a null variable(?: \("([^"]+)"\))?/', $message, $m) === 1) {
+        if ($group !== null && str_contains($message, 'on a null variable')) {
             $names = __('mail.placeholders.fields');
-            $topic = (string) ($m[1] ?? '');
+            $topic = '';
+            foreach (array_diff(Placeholders::TOPICS, MailTemplate::GROUP_FIELDS[$group] ?? []) as $absent) {
+                if (preg_match('/(\{\{|\{%)[^}%]*\b'.$absent.'\.\w/', $template) === 1) {
+                    $topic = $absent;
+                    break;
+                }
+            }
 
             return (string) __('mail.problems.not_in_group', ['what' => is_array($names) && isset($names[$topic]) ? $names[$topic] : $topic, 'group' => __('admin.mail.groups.'.$group)]);
         }

@@ -1,0 +1,51 @@
+<?php
+
+return [
+    'defaults' => [
+        'fund' => 'Allgemeiner Fonds', 'cost_center' => 'Allgemein',
+        'accounts' => [
+            'bank' => 'Bank', 'cash' => 'Kasse', 'receivables' => 'Forderungen', 'advances' => 'Vorschüsse',
+            'open_expenses' => 'Offene Auslagen', 'credits' => 'Guthaben von Familien', 'payables' => 'Verbindlichkeiten',
+            'funds' => 'Fonds (Eigenkapital)',
+            'membership_fees' => 'Mitgliedsbeiträge', 'event_income' => 'Einnahmen aus Veranstaltungen', 'donations' => 'Spenden',
+            'reminder_fees' => 'Mahngebühren', 'cancellation_fees' => 'Stornogebühren', 'interest' => 'Zinsen',
+            'other_income' => 'Sonstige Einnahmen', 'discounts' => 'Gewährte Ermäßigungen',
+            'accommodation' => 'Unterkunft', 'food' => 'Verpflegung', 'travel' => 'Fahrtkosten', 'material' => 'Material',
+            'activities' => 'Programm und Aktivitäten', 'team' => 'Team', 'advertising' => 'Werbung', 'insurance' => 'Versicherungen',
+            'software' => 'Software und Website', 'postage' => 'Porto', 'bank_fees' => 'Bankspesen', 'other_expenses' => 'Sonstige Ausgaben',
+            'allocations' => 'Interne Umlagen',
+        ],
+    ],
+    'allocation' => [
+        'twice' => 'Eine Kostenstelle kommt im Schlüssel zweimal vor.',
+        'invalid' => 'Der Schlüssel enthält eine unbekannte Art oder einen negativen Wert.',
+        'over_100' => 'Die Prozente ergeben zusammen mehr als 100 %.',
+        'one_rest' => 'Nur eine Kostenstelle kann den Rest bekommen.',
+        'rest_or_share' => 'Was übrig bleibt, geht entweder an eine Kostenstelle (Rest) oder anteilig am Ertrag – nicht beides.',
+        'unassigned' => 'Die Prozente ergeben weniger als 100 % und niemand bekommt den Rest: Ein Teil der Kosten bliebe hängen.',
+        'no_income' => 'Die Kostenstellen, die sich anteilig am Ertrag teilen, hatten in dieser Periode keinen Ertrag.',
+        'no_key' => 'Diese Kostenstelle wird umgelegt, aber die Periode hat keinen Schlüssel für sie.',
+    ],
+    'reversal_of' => 'Storno von Nr. :number: :text',
+    'errors' => [
+        'no_period' => 'Für den :date gibt es keine offene Periode. Legen Sie die Periode zuerst an (Buchhaltung → Einstellungen → Perioden).',
+        'closed' => 'Die Periode :period ist abgeschlossen. Öffnen Sie sie zuerst wieder, um darin etwas zu ändern.',
+        'unbalanced' => 'Soll (:debit) und Haben (:credit) müssen gleich und größer als 0 sein.',
+        'account' => 'Wählen Sie für jede Zeile ein aktives Konto.',
+        'both_sides' => 'Eine Zeile hat entweder einen Soll- oder einen Haben-Betrag, nicht beides.',
+        'inactive_cost_center' => 'Die Kostenstelle :name ist in :period nicht aktiv.',
+        'reversed' => 'Diese Buchung wurde schon storniert oder ist selbst ein Storno.',
+        'period_dates' => 'Die Daten passen nicht: Das Ende muss nach dem Beginn liegen, und eine Periode darf eine Nachbarperiode nicht ganz überdecken.',
+        'period_gap' => 'Perioden folgen lückenlos aufeinander: Die nächste beginnt am :date.',
+        'already_closed' => 'Die Periode ist schon abgeschlossen.',
+        'close_in_order' => 'Schließen Sie zuerst die früheren Perioden ab.',
+        'chain' => ':name wird selbst umgelegt – Umlagen gehen nur an Kostenstellen, die ihr Ergebnis tragen.',
+    ],
+    'closing' => [
+        'cut' => ':source: Der Fixbetrag von :target wurde von :configured auf :used gekürzt, weil :source nur :cost gekostet hat.',
+        'not_in_key' => ':name hat Erträge, kommt aber in keinem Umlageschlüssel vor.',
+        'negative_fund' => 'Der Fonds :name wird negativ: :amount.',
+        'allocation_text' => 'Umlage von :name, :period',
+        'closing_text' => 'Abschluss :period: Ergebnisse in die Fonds',
+    ],
+];

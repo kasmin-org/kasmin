@@ -1,0 +1,51 @@
+<?php
+
+return [
+    'defaults' => [
+        'fund' => 'General fund', 'cost_center' => 'General',
+        'accounts' => [
+            'bank' => 'Bank', 'cash' => 'Cash', 'receivables' => 'Receivables', 'advances' => 'Advances',
+            'open_expenses' => 'Expenses to pay back', 'credits' => 'Credits of families', 'payables' => 'Liabilities',
+            'funds' => 'Funds (equity)',
+            'membership_fees' => 'Membership fees', 'event_income' => 'Income from events', 'donations' => 'Donations',
+            'reminder_fees' => 'Reminder fees', 'cancellation_fees' => 'Cancellation fees', 'interest' => 'Interest',
+            'other_income' => 'Other income', 'discounts' => 'Discounts given',
+            'accommodation' => 'Accommodation', 'food' => 'Food', 'travel' => 'Travel', 'material' => 'Material',
+            'activities' => 'Activities', 'team' => 'Team', 'advertising' => 'Advertising', 'insurance' => 'Insurance',
+            'software' => 'Software and website', 'postage' => 'Postage', 'bank_fees' => 'Bank fees', 'other_expenses' => 'Other expenses',
+            'allocations' => 'Internal allocations',
+        ],
+    ],
+    'allocation' => [
+        'twice' => 'A cost centre appears twice in the key.',
+        'invalid' => 'The key holds an unknown kind or a negative value.',
+        'over_100' => 'The percentages add up to more than 100 %.',
+        'one_rest' => 'Only one cost centre can get the rest.',
+        'rest_or_share' => 'What is left goes either to one cost centre (rest) or in proportion to the income – not both.',
+        'unassigned' => 'The percentages add up to less than 100 % and nobody gets the rest: part of the costs would stay unallocated.',
+        'no_income' => 'The cost centres that share in proportion to their income had no income in this period.',
+        'no_key' => 'This cost centre is allocated, but the period has no key for it.',
+    ],
+    'reversal_of' => 'Reversal of no. :number: :text',
+    'errors' => [
+        'no_period' => 'There is no open period for :date. Create the period first (Accounting → Settings → Periods).',
+        'closed' => 'The period :period is closed. Reopen it first to change anything in it.',
+        'unbalanced' => 'Debit (:debit) and credit (:credit) must be equal and more than 0.',
+        'account' => 'Choose an active account for every line.',
+        'both_sides' => 'A line has either a debit or a credit amount, not both.',
+        'inactive_cost_center' => 'The cost centre :name is not active in :period.',
+        'reversed' => 'This booking has already been reversed or is itself a reversal.',
+        'period_dates' => 'The dates do not fit: the end must be after the start, and a period cannot cover a neighbouring one completely.',
+        'period_gap' => 'Periods follow each other without gaps: the next one starts on :date.',
+        'already_closed' => 'The period is already closed.',
+        'close_in_order' => 'Close the earlier periods first.',
+        'chain' => ':name is itself allocated – allocations go only to cost centres that carry their result.',
+    ],
+    'closing' => [
+        'cut' => ':source: the fixed amount of :target was cut from :configured to :used, because :source cost only :cost.',
+        'not_in_key' => ':name has income but appears in no allocation key.',
+        'negative_fund' => 'The fund :name will be negative: :amount.',
+        'allocation_text' => 'Allocation of :name, :period',
+        'closing_text' => 'Closing :period: results into the funds',
+    ],
+];

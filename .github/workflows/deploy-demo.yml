@@ -1,8 +1,15 @@
 name: Deploy demo instances
 
-# Deploys the latest release (no pre-releases) to the demo instances demo-de.kasmin.org and demo-en.kasmin.org
-# (shared hosting): download the release ZIP, verify the checksum, write .env from the environment secrets, upload
-# via FTPS, then run the demo set-up (only if the database is empty) and the upgrade through the HTTP hooks.
+# Brings the latest release (no pre-releases) to the demo instances demo-de.kasmin.org and demo-en.kasmin.org
+# (shared hosting). The demos update THEMSELVES, the way every installation does: this job only asks them to
+# (POST /system/hooks/update), calls the address that finishes the update and then checks that the new version
+# really runs. That takes a few minutes and tests the real update path with every release.
+#
+# The upload via FTPS (release ZIP, checksum, .env from the environment secrets) is the fallback: for an instance
+# that is empty or older than 0.29 (it has no update hook yet), and on demand with "method: ftp" – also to repair
+# an instance or to change its .env.
+#
+# If this job fails, the demos still follow by themselves: their automatic update is set to one day after a release.
 # Runs after every release build and on demand. Requires valid HTTPS on the target – no unencrypted fallback.
 
 on:
@@ -10,6 +17,12 @@ on:
     workflows: ["Release packages"]
     types: [completed]
   workflow_dispatch:
+    inputs:
+      method:
+        description: "self = the demos update themselves (FTP only where that is not possible); ftp = upload the files"
+        type: choice
+        options: [self, ftp]
+        default: self
 
 permissions:
   contents: read
@@ -50,13 +63,46 @@ jobs:
       TAG: ${{ needs.release.outputs.tag }}
       HOST: demo-${{ matrix.lang }}.kasmin.org
     steps:
+      - name: Let the demo update itself
+        id: self
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.method != 'ftp' }}
+        env:
+          HOOK_TOKEN: ${{ secrets.HOOK_TOKEN }}
+        run: |
+          # The demo downloads the release, verifies the checksum, backs up database and files and swaps the files.
+          code=$(curl -s -o /tmp/update.json -w '%{http_code}' --max-time 900 -X POST \
+            -H "Authorization: Bearer ${HOOK_TOKEN}" -H 'Accept: application/json' \
+            --data-urlencode "version=${TAG#v}" "https://${HOST}/system/hooks/update" || true)
+          echo "update hook: HTTP ${code}"
+          jq 'del(.finish)' /tmp/update.json 2>/dev/null || true
+          if [ "$code" = "404" ]; then
+            echo "No update hook on ${HOST} (empty, or older than 0.29): uploading the files instead."
+            echo "method=ftp" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          if [ "$code" != "200" ] || [ "$(jq -r '.ok' /tmp/update.json)" != "true" ]; then
+            echo "::error::${HOST} could not update itself to ${TAG} (HTTP ${code}): $(jq -r '.message // empty' /tmp/update.json 2>/dev/null). Its automatic update tries again within a day; 'method: ftp' uploads the files."
+            exit 1
+          fi
+          echo "method=self" >> "$GITHUB_OUTPUT"
+          if [ "$(jq -r '.updated' /tmp/update.json)" = "true" ]; then
+            # Second step with the new program files: the database.
+            finish=$(jq -r '.finish' /tmp/update.json)
+            echo "::add-mask::${finish}"
+            fcode=$(curl -s -o /dev/null -w '%{http_code}' --max-time 600 "$finish")
+            echo "finish: HTTP ${fcode}"
+            [ "$fcode" = "200" ] || { echo "::error::The files of ${TAG} are in place on ${HOST}, but finishing the update answered ${fcode}. An administrator can finish it on the login page (Upgrade)."; exit 1; }
+          else
+            echo "${HOST} already runs $(jq -r '.installed' /tmp/update.json)."
+          fi
       - name: Download and verify the release package
+        if: ${{ steps.self.outputs.method != 'self' }}
         env: { GH_TOKEN: "${{ github.token }}" }
         run: |
           gh release download "$TAG" -R "$GITHUB_REPOSITORY" --pattern "kasmin-${TAG}.zip*" --dir /tmp/pkg
           cd /tmp/pkg && sha256sum -c "kasmin-${TAG}.zip.sha256"
           mkdir -p /tmp/app && unzip -q "kasmin-${TAG}.zip" -d /tmp/app
       - name: Write configuration
+        if: ${{ steps.self.outputs.method != 'self' }}
         run: |
           cat > /tmp/app/.env <<ENV
           APP_NAME="Kasmin Demo"
@@ -93,6 +139,7 @@ jobs:
           ENV
           sed -i 's/^ *//' /tmp/app/.env
       - name: Upload via FTPS (lftp mirror, TLS enforced, certificate checked)
+        if: ${{ steps.self.outputs.method != 'self' }}
         env:
           LFTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
           FTP_SERVER: ${{ secrets.FTP_SERVER }}
@@ -119,8 +166,9 @@ jobs:
           done
           echo "::error::https://${HOST} is not reachable with a valid certificate. Activate Let's Encrypt for ${HOST} in the hosting panel."
           exit 1
-      - name: Demo set-up (only if empty) and upgrade
+      - name: Demo set-up (only if empty), upgrade and check that the release runs
         run: |
+          echo "Updated by: ${{ steps.self.outputs.method == 'self' && 'the demo itself' || 'upload via FTPS' }}" >> "$GITHUB_STEP_SUMMARY"
           curl -sf -X POST -H "Authorization: Bearer ${{ secrets.HOOK_TOKEN }}" "https://${HOST}/system/hooks/demo"; echo
           curl -sf -X POST -H "Authorization: Bearer ${{ secrets.HOOK_TOKEN }}" "https://${HOST}/system/hooks/upgrade"; echo
           curl -sf -o /dev/null -w "start page: %{http_code}\n" "https://${HOST}/"

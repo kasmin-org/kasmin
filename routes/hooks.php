@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Route;
 // no cache-based rate limit (works before installation); protected by a constant-time token comparison.
 Route::prefix('system')->group(function () {
     Route::post('/hooks/upgrade', [HookController::class, 'upgrade']);
+    Route::post('/hooks/update', [HookController::class, 'update']);
     Route::post('/hooks/demo', [HookController::class, 'demo']);
     Route::match(['get', 'post'], '/cron', [HookController::class, 'cron']);
     // Second step of the self-update (one-time token, valid 30 minutes).

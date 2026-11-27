@@ -6,6 +6,20 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ## [Unreleased]
 
+### Added
+
+- Update: if several newer versions exist, the version to update to can be chosen (any newer one; versions in between need not be installed first).
+- Update: everything that changes between the installed and the chosen version is shown on the page, taken from the changelog.
+- `POST /system/hooks/update` lets an installation update itself from a deployment pipeline (latest or a named version) and names the address that finishes the update.
+
+### Fixed
+
+- Update: with PHP's memory limit of 128 MB the update ran out of memory (the package was held in memory and the list of all program files was built at once). The package is now written to disk while it arrives and the files are saved one by one; tested at 128 MB.
+
+### Changed
+
+- The demo instances update themselves: the release pipeline asks them to, finishes the update and checks that the release runs. The upload via FTPS remains as fallback (empty or old instance, or on demand). Their automatic update is set to one day after a release.
+
 ## [0.28.0] - 2026-11-26
 
 ### Changed

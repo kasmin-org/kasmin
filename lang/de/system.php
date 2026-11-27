@@ -28,6 +28,8 @@ return [
         'checksum' => 'Prüfsumme falsch – das Paket wurde nicht installiert.', 'rolled_back' => 'Fehler beim Ersetzen der Dateien, alter Stand wiederhergestellt: :error',
         'docker' => 'Diese Installation läuft in Docker. Bitte aktualisieren Sie das Container-Image (z. B. ghcr.io/kasmin-org/kasmin:latest) statt einer Aktualisierung im laufenden Container.',
         'done' => 'Kasmin :version ist installiert.', 'back' => 'Zurück zum Systemstatus',
+        'newest' => 'neueste', 'choose' => 'Eine neuere Version ist verfügbar|:count neuere Versionen sind verfügbar – aktualisieren auf', 'choose_hint' => 'Sie können direkt auf jede davon gehen; die Versionen dazwischen müssen nicht zuerst installiert werden. Kasmin geht nur vorwärts – eine ältere Version lässt sich nicht wieder installieren.',
+        'changes' => 'Was sich von :from bis :to ändert', 'changes_missing' => 'Die Liste der Änderungen konnte nicht geladen werden.', 'requirements' => 'Voraussetzungen von :version', 'requirements_ok' => 'alle erfüllt', 'requirements_failed' => 'nicht erfüllt',
     ],
     'schema' => [
         'title' => [

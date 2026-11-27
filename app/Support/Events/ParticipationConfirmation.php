@@ -52,7 +52,7 @@ class ParticipationConfirmation
     {
         return (int) InvoiceLine::query()->where('participation_id', $participation->id)
             ->whereHas('invoice', fn ($q) => $q->where('status', 'paid')->where('type', 'invoice'))
-            ->get()->sum(fn (InvoiceLine $line) => $line->amount_cents - $line->discount_cents);
+            ->sum('amount_cents'); // the amount of a line is what is charged after its discount
     }
 
     private static function currency(Participation $participation): string

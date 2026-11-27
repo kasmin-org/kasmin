@@ -120,7 +120,8 @@ class Presenter
             'payer' => $i->payer_name, 'event' => $i->event?->public_id, 'installment' => $i->installment_key,
         ];
         if ($details) {
-            $data['lines'] = $i->lines->map(fn ($l) => ['description' => $l->description, 'amount' => $l->amount_cents / 100, 'discount' => $l->discount_cents / 100])->values()->all();
+            $data['lines'] = $i->lines->map(fn ($l) => ['description' => $l->description, 'amount' => $l->amount_cents / 100, 'gross' => ($l->amount_cents + $l->discount_cents) / 100,
+                'discount' => $l->discount_cents / 100, 'discount_kind' => $l->discount_kind, 'discount_label' => $l->discount_label])->values()->all();
             $data['payments'] = $i->payments->map(fn ($p) => ['amount' => $p->amount_cents / 100, 'paid_on' => $p->paid_on->toDateString(), 'method' => $p->method])->values()->all();
         }
 

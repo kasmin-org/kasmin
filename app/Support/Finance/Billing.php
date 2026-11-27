@@ -73,7 +73,7 @@ class Billing
      * amount is not refunded (RF01).
      *
      * @param  Collection<int, Participation>  $participations  all of the family in this event
-     * @return list<array{participation_id: int, person_id: int, description: string, amount_cents: int, discount_cents: int, discount_kind: string|null, membership_type_id: int|null, period: int|null}>
+     * @return list<array{participation_id: int, person_id: int, description: string, amount_cents: int, discount_cents: int, discount_kind: string|null, discount_label: string|null, discount_position: int|null, membership_type_id: int|null, period: int|null}>
      */
     public function lines(Event $event, EventInstallment $installment, Collection $participations, string $locale): array
     {
@@ -93,10 +93,9 @@ class Billing
             $d = $discounts[$p->id] ?? ['discount' => 0, 'kind' => null, 'position' => 0];
             $discount = min($base, $d['discount']);
             $description = trans('finance.line', ['installment' => $installment->labelText($locale), 'name' => $p->person?->fullName()], $locale);
-            if ($discount > 0) {
-                $description .= ' – '.trans('finance.discount_'.$d['kind'], ['position' => $d['position']], $locale);
-            }
-            $result[] = $this->line($event, $installment, $p, $description, $base - $discount, $discount, $discount > 0 ? $d['kind'] : null);
+            // The discount is its own position on the invoice (B10).
+            $label = $discount > 0 ? trans('finance.discount_'.$d['kind'], ['position' => $d['position']], $locale) : null;
+            $result[] = $this->line($event, $installment, $p, $description, $base - $discount, $discount, $discount > 0 ? $d['kind'] : null, $label, $discount > 0 && $d['kind'] === 'sibling' ? (int) $d['position'] : null);
         }
         foreach ($participations->where('status', 'cancelled') as $p) {
             $billed = $this->billedLine($event, $installment, $p);
@@ -104,7 +103,7 @@ class Billing
                 continue;
             }
             if (! $this->refunded($event, $installment, $p)) {
-                $result[] = $this->line($event, $installment, $p, $billed->description, $billed->amount_cents, $billed->discount_cents, $billed->discount_kind);
+                $result[] = $this->line($event, $installment, $p, $billed->description, $billed->amount_cents, $billed->discount_cents, $billed->discount_kind, $billed->discount_label, $billed->discount_position);
             } elseif ($event->cancellation_fee_cents > 0 && $this->feeInstallment($event)?->is($installment)) {
                 $result[] = $this->line($event, $installment, $p, trans('finance.cancellation_fee', ['name' => $p->person?->fullName()], $locale), $event->cancellation_fee_cents, 0, null);
             }
@@ -154,14 +153,14 @@ class Billing
             ->latest('id')->first();
     }
 
-    /** @return array{participation_id: int, person_id: int, description: string, amount_cents: int, discount_cents: int, discount_kind: string|null, membership_type_id: int|null, period: int|null} */
-    private function line(Event $event, EventInstallment $installment, Participation $p, string $description, int $amount, int $discount, ?string $kind): array
+    /** @return array{participation_id: int, person_id: int, description: string, amount_cents: int, discount_cents: int, discount_kind: string|null, discount_label: string|null, discount_position: int|null, membership_type_id: int|null, period: int|null} */
+    private function line(Event $event, EventInstallment $installment, Participation $p, string $description, int $amount, int $discount, ?string $kind, ?string $label = null, ?int $position = null): array
     {
         $member = $installment->kind === 'member';
 
         return [
             'participation_id' => $p->id, 'person_id' => $p->person_id, 'description' => $description, 'amount_cents' => $amount,
-            'discount_cents' => $discount, 'discount_kind' => $kind, 'membership_type_id' => $member ? $installment->membership_type_id : null,
+            'discount_cents' => $discount, 'discount_kind' => $kind, 'discount_label' => $label, 'discount_position' => $position, 'membership_type_id' => $member ? $installment->membership_type_id : null,
             'period' => $member ? (int) $event->starts_at->format('Y') : null,
         ];
     }

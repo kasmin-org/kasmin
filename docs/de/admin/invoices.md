@@ -48,6 +48,10 @@ nichts ändern. Erziehungsberechtigte sehen die Rechnungen ihrer Familie im Port
 Beispiel: Preis 420 €, Anzahlung 100 € (ohne Ermäßigungen), Restbetrag = 320 €, gestaffelt 25 € mit Obergrenze 3. Drei Geschwister zahlen
 Anzahlungen von 3 × 100 € und Restbeträge von 320 €, 295 € und 270 €.
 
+Auf der Rechnung ist jede Ermäßigung eine **eigene Position** unter der Zeile, zu der sie gehört – z. B. *Restbetrag Ben 320,00* und
+darunter *Geschwisterermäßigung (2. Kind) −25,00* –, so muss niemand den Betrag nachrechnen, und die Statistik zählt die Ermäßigungen
+nach Art. Rechnungen, die vor Version 0.31 ausgestellt wurden, behalten ihr bisheriges Aussehen (Ermäßigung in derselben Zeile).
+
 - **Preise nach Alter oder Anmeldedatum**: z. B. ein niedrigerer Preis für jüngere Kinder, ein Frühbucherpreis bis zu einem Datum oder ein höherer
   Preis ab einem Datum. Die erste passende Zeile zählt; sonst der Preis der Rolle.
 - **Ermäßigter Platz**: In der Liste der Teilnehmenden legt *Ermäßigter Platz* den Gesamtpreis einer Person fest (0 = gratis), mit einem

@@ -36,7 +36,7 @@ class DataExport
                 'emergency_contacts' => $h->emergencyContacts->map(fn ($c) => ['name' => $c->getAttribute('name'), 'relation' => $c->getAttribute('relation'), 'phone' => $c->getAttribute('phone')])->values()->all(),
             ])->values()->all(),
             'invoices' => $invoices->map(fn (Invoice $i) => ['number' => $i->number, 'type' => $i->type, 'status' => $i->status, 'issued_on' => $i->issued_on?->toDateString(), 'due_on' => $i->due_on?->toDateString(), 'total' => $i->total_cents / 100, 'paid' => $i->paid_cents / 100, 'currency' => $i->currency,
-                'lines' => $i->lines->map(fn ($l) => ['description' => $l->description, 'amount' => $l->amount_cents / 100])->values()->all(),
+                'lines' => $i->lines->map(fn ($l) => ['description' => $l->description, 'amount' => $l->amount_cents / 100, 'discount' => $l->discount_cents / 100, 'discount_label' => $l->discount_label])->values()->all(),
                 'payments' => $i->payments->map(fn ($p) => ['paid_on' => $p->paid_on->toDateString(), 'amount' => $p->amount_cents / 100])->values()->all()])->values()->all(),
             'mails' => OutgoingMail::query()->where('person_id', $person->id)->where('kind', '!=', 'notification')->latest('id')->get()->map(fn (OutgoingMail $m) => ['sent_at' => $m->sent_at?->toIso8601String(), 'to' => $m->to_address, 'subject' => $m->subject])->values()->all(),
         ];

@@ -25,6 +25,7 @@ use Filament\Http\Middleware\AuthenticateSession;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Livewire\Livewire;
+use App\Support\Events\ParticipationConfirmation;
 use Tests\TestCase;
 
 class InvoicesTest extends TestCase
@@ -121,6 +122,46 @@ class InvoicesTest extends TestCase
         // 2 × (450 − 100) − 20 sibling discount
         $this->assertSame(68000, $balance->total_cents);
         $this->assertSame([35000, 33000], $balance->lines->pluck('amount_cents')->all());
+    }
+
+    public function test_a_discount_is_its_own_position_on_the_invoice(): void
+    {
+        $this->child('Ann', '2014-01-01');
+        $ben = $this->child('Ben', '2016-01-01');
+        $this->draftRun('balance');
+        $balance = Invoice::query()->where('installment_key', 'balance')->with('lines')->firstOrFail();
+        $line = $balance->lines->firstWhere('participation_id', $ben->id);
+        $this->assertNotNull($line);
+        // The line says what is charged; the discount has its own text, kind and position.
+        $this->assertStringNotContainsString('discount', strtolower($line->description));
+        $this->assertSame([35000, 33000, 2000, 'sibling', 2], [$line->grossCents(), $line->amount_cents, $line->discount_cents, $line->discount_kind, $line->discount_position]);
+        $this->assertSame(trans('finance.discount_sibling', ['position' => 2]), $line->discount_label);
+        $this->assertTrue($line->hasOwnDiscountLine());
+
+        $html = view('pdf.invoice', ['invoice' => $balance, 'paid' => false, 'qr' => null, 'org' => InvoicePdf::organisation(), 'locale' => 'en'])->render();
+        $this->assertStringContainsString('<tr class="discount">', $html);
+        $this->assertStringContainsString(e((string) $line->discount_label), $html);
+        $this->assertStringContainsString('−'.Invoice::money(2000), $html);
+        $this->assertStringContainsString(Invoice::money(35000), $html);
+
+        // Lines of invoices made before keep their old look: discount in the same line.
+        $old = $balance->replicate(['number', 'reference']);
+        $old->save();
+        $old->lines()->create(['description' => 'Balance Ben – Sibling discount (2nd child)', 'amount_cents' => 33000, 'discount_cents' => 2000, 'discount_kind' => 'sibling', 'sort' => 0]);
+        $html = view('pdf.invoice', ['invoice' => $old->fresh('lines'), 'paid' => false, 'qr' => null, 'org' => InvoicePdf::organisation(), 'locale' => 'en'])->render();
+        $this->assertStringNotContainsString('<tr class="discount">', $html);
+        $this->assertStringContainsString(e(__('finance.discount')), $html);
+    }
+
+    public function test_the_confirmation_of_participation_counts_what_was_paid_after_the_discount(): void
+    {
+        $this->child('Ann', '2014-01-01');
+        $ben = $this->child('Ben', '2016-01-01');
+        $this->draftRun('balance');
+        $balance = Invoice::query()->where('installment_key', 'balance')->firstOrFail();
+        $balance->forceFill(['status' => 'paid', 'paid_cents' => $balance->total_cents])->save();
+        // 330 were paid for Ben (350 minus 20 sibling discount); the discount was subtracted twice before.
+        $this->assertSame(33000, ParticipationConfirmation::paidCents($ben));
     }
 
     public function test_issue_assigns_number_and_valid_rf_reference(): void

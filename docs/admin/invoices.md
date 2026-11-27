@@ -48,6 +48,10 @@ nothing. Legal guardians see their family's invoices in the portal.
 Example: price 420 €, deposit 100 € (no discounts), balance = 320 €, staggered 25 € with cap 3. Three siblings pay
 deposits of 3 × 100 € and balances of 320 €, 295 € and 270 €.
 
+On the invoice, every discount is **its own position** below the line it belongs to – e.g. *Balance Ben 320.00* and
+below it *Sibling discount (2nd child) −25.00* –, so nobody has to work out the amount, and the statistics count the
+discounts by kind. Invoices issued before version 0.31 keep their old look (discount in the same line).
+
 - **Prices by age or registration date**: e.g. a lower price for younger children, early bird until a date or a late
   price from a date on. The first line that fits counts; without a fitting line the price of the role.
 - **Reduced place**: in the list of participants, *Reduced place* sets the total price of one person (0 = free) with a

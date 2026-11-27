@@ -8,6 +8,7 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ### Changed
 
+- Invoices show every **discount as its own position** below the line it belongs to (e.g. *Sibling discount (2nd child) −25.00*), with the full amount in the line above. REST and MCP give each line `gross`, `discount`, `discount_kind` and `discount_label`. Invoices issued before keep their look.
 - Public forms: below the field *Address* the **full web address** appears while typing, with a button to copy it. The address is suggested from the title and saved normalised – lower case, umlauts spelled out (ä → ae, ß → ss), other accents removed, only a–z, 0–9 and hyphens. Existing addresses are normalised by the update; an earlier or differently written address forwards to the form.
 - The **login code** has six characters in [Base32H](https://base32h.github.io) instead of six digits, shown as `K7M-2QX`: about a billion possibilities instead of 900,000. Typing is forgiving (lower case, with or without hyphen, O for 0, I for 1, S for 5, U for V). Codes in mails sent before the update keep working until they expire.
 
@@ -21,6 +22,7 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ### Fixed
 
+- The confirmation of participation subtracted a sibling or role discount a second time from the amount paid.
 - Public forms accepted an address with umlauts (e.g. `anmeldung-für`), whose page then answered "404 Not Found".
 - Creating a series from the event form labelled its name "Title"; the series form showed the untranslated field "type".
 

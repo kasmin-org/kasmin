@@ -17,6 +17,7 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Support\HtmlString;
 
 /**
  * Invoices and credit notes (AD42): list with status filters, detail with lines and payments, actions.
@@ -87,9 +88,12 @@ class InvoiceResource extends Resource
             ]),
             Section::make(__('admin.finance.lines'))->columnSpanFull()->schema([
                 RepeatableEntry::make('lines')->hiddenLabel()->columns(3)->schema([
-                    TextEntry::make('description')->hiddenLabel()->columnSpan(2),
+                    TextEntry::make('description')->hiddenLabel()->columnSpan(2)
+                        ->formatStateUsing(fn (InvoiceLine $record, $state) => $record->hasOwnDiscountLine() ? new HtmlString(e((string) $state).'<br><span class="text-gray-500">'.e((string) $record->discount_label).'</span>') : $state),
                     TextEntry::make('amount_cents')->hiddenLabel()->alignEnd()
-                        ->formatStateUsing(fn (InvoiceLine $record, $state) => Invoice::money((int) $state).($record->discount_cents > 0 ? ' ('.__('finance.discount').' '.Invoice::money($record->discount_cents).')' : '')),
+                        ->formatStateUsing(fn (InvoiceLine $record, $state) => $record->hasOwnDiscountLine()
+                            ? new HtmlString(e(Invoice::money($record->grossCents())).'<br><span class="text-gray-500">−'.e(Invoice::money($record->discount_cents)).'</span>')
+                            : Invoice::money((int) $state).($record->discount_cents > 0 ? ' ('.__('finance.discount').' '.Invoice::money($record->discount_cents).')' : '')),
                 ]),
             ]),
             Section::make(__('admin.finance.payments'))->columnSpanFull()->schema([

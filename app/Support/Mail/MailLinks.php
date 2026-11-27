@@ -44,7 +44,7 @@ class MailLinks
         if (self::has($html.$text)) {
             [$link, $until] = self::link($mail);
             [$html, $text] = [self::replace($html, $link), self::replace($text, $link)];
-            $date = $until !== null ? $until->copy()->locale(self::locale($mail))->isoFormat('LL') : null;
+            $date = $until !== null ? Carbon::parse($until)->settings(['locale' => self::locale($mail)])->isoFormat('LL') : null;
             [$html, $text] = [self::until($html, $date), self::until($text, $date)];
         }
         // A summary holds several requests: each one has its own placeholder with the number of the run.

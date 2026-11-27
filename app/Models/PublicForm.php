@@ -43,7 +43,11 @@ class PublicForm extends Model
             ->sortBy(fn (self $form) => $form->state() === 'open' ? 0 : 1)->first();
     }
 
-    /** Forms shown on the start page: active, open and marked for it (the sign-up form is the button there). */
+    /**
+     * Forms shown on the start page: active, open and marked for it (the sign-up form is the button there).
+     *
+     * @return Collection<int, self>
+     */
     public static function onStartPage(): Collection
     {
         return self::query()->where('active', true)->where('on_start_page', true)->where('kind', '!=', 'signup')->with('event')->orderBy('id')->get()

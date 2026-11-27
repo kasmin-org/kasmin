@@ -39,6 +39,7 @@ class AreasTest extends TestCase
     public function test_every_page_of_the_admin_interface_belongs_to_an_area(): void
     {
         $panel = Filament::getPanel('admin');
+        $this->assertNotNull($panel);
         $classes = [...$panel->getResources(), ...$panel->getPages()];
         $outside = array_values(array_diff($classes, array_keys(Areas::ITEMS), [Dashboard::class, NotificationsPage::class, \Filament\Pages\Dashboard::class]));
         $this->assertSame([], $outside, 'pages without an area');

@@ -114,7 +114,7 @@ class PreviewMailTemplate extends Page
      */
     private function context(string $locale): array
     {
-        $sample = Placeholders::sample();
+        $sample = Placeholders::sample($this->template()->groupKey()); // only what mails of this group have
         $person = $this->person();
         $event = $this->event !== null ? Event::query()->find($this->event) : null;
         if ($person === null && $event === null) {

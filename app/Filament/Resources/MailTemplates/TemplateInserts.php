@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\MailTemplates;
 
+use App\Models\MailTemplate;
 use App\Support\Mail\TemplateCatalogue;
 use Filament\Actions\Action;
 use Filament\Forms\Components\RichEditor;
@@ -44,7 +45,7 @@ class TemplateInserts
                 $component->runCommands([EditorCommand::make('insertContent', arguments: [e((string) $data['placeholder'])])], editorSelection: $arguments['editorSelection'] ?? null);
             }),
             self::conditionDialogue(self::CONDITION)->action(function (array $arguments, array $data, RichEditor $component): void {
-                $component->runCommands([EditorCommand::make('insertContent', arguments: [e(self::conditionFrom($data))])], editorSelection: $arguments['editorSelection'] ?? null);
+                $component->runCommands([EditorCommand::make('insertContent', arguments: [e(self::conditionFrom($data, self::group($component->getLivewire())))])], editorSelection: $arguments['editorSelection'] ?? null);
             }),
         ];
     }
@@ -65,7 +66,7 @@ class TemplateInserts
         ];
         if ($withCondition) {
             $actions[] = self::conditionDialogue($field.'Condition')->link()->icon('heroicon-o-arrows-right-left')
-                ->action(fn (array $data, Get $get, Set $set) => $append(self::conditionFrom($data))($get, $set));
+                ->action(fn (array $data, Get $get, Set $set, $livewire) => $append(self::conditionFrom($data, self::group($livewire)))($get, $set));
         }
 
         return $actions;
@@ -76,7 +77,8 @@ class TemplateInserts
         return Action::make($name)->label(__('mail.placeholders.insert'))->modalHeading(__('mail.placeholders.insert'))->modalWidth(Width::Large)
             ->modalSubmitActionLabel(__('mail.placeholders.insert'))
             ->schema([
-                Select::make('placeholder')->label(__('mail.placeholders.placeholder'))->options(fn () => TemplateCatalogue::placeholders())->searchable()->required(),
+                Select::make('placeholder')->label(__('mail.placeholders.placeholder'))->options(fn ($livewire) => TemplateCatalogue::placeholders(self::group($livewire)))->searchable()->required()
+                    ->helperText(fn ($livewire) => self::group($livewire) !== null ? __('mail.placeholders.of_group', ['group' => __('admin.mail.groups.'.self::group($livewire))]) : null),
             ]);
     }
 
@@ -85,7 +87,7 @@ class TemplateInserts
         return Action::make($name)->label(__('mail.placeholders.insert_condition'))->modalHeading(__('mail.placeholders.insert_condition'))->modalWidth(Width::TwoExtraLarge)
             ->modalDescription(__('mail.placeholders.condition_hint'))->modalSubmitActionLabel(__('mail.placeholders.insert_condition'))
             ->schema([
-                Select::make('field')->label(__('mail.placeholders.field'))->options(fn () => TemplateCatalogue::fields())->searchable()->required(),
+                Select::make('field')->label(__('mail.placeholders.field'))->options(fn ($livewire) => TemplateCatalogue::fields(self::group($livewire)))->searchable()->required(),
                 Select::make('operator')->label(__('mail.placeholders.operator'))->options(fn () => array_combine(TemplateCatalogue::OPERATORS, array_map(fn (string $o) => (string) __('mail.placeholders.operators.'.$o), TemplateCatalogue::OPERATORS)))
                     ->default('filled')->required()->live()->selectablePlaceholder(false),
                 TextInput::make('value')->label(__('mail.placeholders.value'))->maxLength(200)
@@ -98,8 +100,16 @@ class TemplateInserts
     }
 
     /** @param  array<string, mixed>  $data */
-    private static function conditionFrom(array $data): string
+    private static function conditionFrom(array $data, ?string $group = null): string
     {
-        return TemplateCatalogue::condition((string) $data['field'], (string) $data['operator'], isset($data['value']) ? (string) $data['value'] : null, (string) $data['then'], isset($data['otherwise']) ? (string) $data['otherwise'] : null);
+        return TemplateCatalogue::condition((string) $data['field'], (string) $data['operator'], isset($data['value']) ? (string) $data['value'] : null, (string) $data['then'], isset($data['otherwise']) ? (string) $data['otherwise'] : null, $group);
+    }
+
+    /** The group chosen in the form of the template: the lists offer only its placeholders. */
+    public static function group(mixed $livewire): ?string
+    {
+        $group = is_object($livewire) && property_exists($livewire, 'data') && is_array($livewire->data) ? ($livewire->data['group'] ?? null) : null;
+
+        return is_string($group) && in_array($group, MailTemplate::GROUPS, true) ? $group : null;
     }
 }

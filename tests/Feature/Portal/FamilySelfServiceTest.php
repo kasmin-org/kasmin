@@ -63,7 +63,7 @@ class FamilySelfServiceTest extends TestCase
         $this->household->members()->attach($this->child->id, ['role' => 'child']);
         $this->child->guardians()->attach($this->guardian->id);
         $this->user = User::query()->create(['name' => 'Alex', 'email' => 'alex@example.org', 'password' => 'x', 'person_id' => $this->guardian->id]);
-        $series = EventSeries::query()->create(['name' => 'Summer camp', 'type' => 'camp']);
+        $series = EventSeries::query()->create(['name' => 'Summer camp']);
         $this->event = Event::query()->create(['title' => 'Camp', 'event_series_id' => $series->id, 'starts_at' => now()->addMonths(3), 'ends_at' => now()->addMonths(3)->addWeek(), 'status' => 'open']);
         $this->event->roles()->create(['role_key' => 'child', 'capacity' => 1]);
     }

@@ -106,8 +106,8 @@ class DemoData
     {
         $de = $locale !== 'en';
         $year = (int) now()->addYear()->format('Y');
-        $camp = EventSeries::query()->create(['name' => $de ? 'Sommerlager' : 'Summer camp', 'type' => 'camp']);
-        $alumni = EventSeries::query()->create(['name' => $de ? 'Alumni-Wochenende' : 'Alumni weekend', 'type' => 'alumni']);
+        $camp = EventSeries::query()->create(['name' => $de ? 'Sommerlager' : 'Summer camp']);
+        $alumni = EventSeries::query()->create(['name' => $de ? 'Alumni-Wochenende' : 'Alumni weekend']);
 
         $next = Event::query()->create([
             'event_series_id' => $camp->id, 'title' => ($de ? 'Sommerlager ' : 'Summer camp ').$year,

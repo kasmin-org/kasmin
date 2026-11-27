@@ -146,7 +146,7 @@ Scopes `events:read` / `events:write`.
   `DELETE /event-templates/{id}`. `POST /events` mit `template` (oder `copy_of` = eine Veranstaltung), `title` und
   `starts_at` legt eine Veranstaltung als Kopie an, mit allem, was eingestellt ist, und allen Terminen verschoben, wie es
   *Aus Vorlage* und *Kopieren* tun; Personen, Rechnungen und Kosten werden nicht kopiert.
-- Veranstaltungsreihen: `GET|POST /event-series` (`name`, `type`), `PATCH /event-series/{number}`.
+- Veranstaltungsreihen: `GET|POST /event-series` (`name`), `PATCH /event-series/{number}`.
 - `GET /events/{id}/participations` (`status`, `role`), `POST /events/{id}/registrations` (`person`, `role`).
 - `PATCH /participations/{number}` ändert `status` oder `travel` (`bus`, `car`). Mit `status` `cancelled` wird ein
   optionaler `reason` gespeichert; die Familie wird informiert, der Platz geht an die Warteliste, und Rechnungsentwürfe werden

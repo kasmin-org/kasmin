@@ -12,10 +12,9 @@ class EventSeriesForm
         return $schema
             ->components([
                 TextInput::make('name')
-                    ->required(),
-                TextInput::make('type')
+                    ->label(__('admin.form.name'))
                     ->required()
-                    ->default('camp'),
+                    ->maxLength(200),
             ]);
     }
 }

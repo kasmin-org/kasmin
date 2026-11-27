@@ -138,8 +138,8 @@ class ApiParityTest extends TestCase
     public function test_events_bus_cancel_reason_offers_reserve_places_series_and_schedule(): void
     {
         $token = $this->token(['events:read', 'events:write', 'people:read']);
-        $series = $this->withToken($token)->postJson('/api/v1/event-series', ['name' => 'Summer camps'])->assertCreated()->assertJsonPath('data.type', 'camp')->json('data.id');
-        $this->withToken($token)->patchJson("/api/v1/event-series/$series", ['name' => 'Camps', 'type' => 'other'])->assertOk()->assertJsonPath('data.name', 'Camps');
+        $series = $this->withToken($token)->postJson('/api/v1/event-series', ['name' => 'Summer camps'])->assertCreated()->assertJsonMissingPath('data.type')->json('data.id');
+        $this->withToken($token)->patchJson("/api/v1/event-series/$series", ['name' => 'Camps'])->assertOk()->assertJsonPath('data.name', 'Camps');
         $this->withToken($token)->postJson('/api/v1/event-series', [])->assertUnprocessable()->assertJsonValidationErrors('name');
         $this->withToken($token)->getJson('/api/v1/event-series')->assertOk()->assertJsonCount(1, 'data')->assertJsonPath('data.0.events', 0);
 

@@ -146,7 +146,7 @@ Scopes `events:read` / `events:write`.
   `DELETE /event-templates/{id}`. `POST /events` with `template` (or `copy_of` = an event), `title` and
   `starts_at` creates an event as a copy with everything that is configured and all dates moved, as
   *From a template* and *Copy* do; people, invoices and costs are not copied.
-- Event series: `GET|POST /event-series` (`name`, `type`), `PATCH /event-series/{number}`.
+- Event series: `GET|POST /event-series` (`name`), `PATCH /event-series/{number}`.
 - `GET /events/{id}/participations` (`status`, `role`), `POST /events/{id}/registrations` (`person`, `role`).
 - `PATCH /participations/{number}` changes `status` or `travel` (`bus`, `car`). With `status` `cancelled` an
   optional `reason` is stored; the family is told, the place goes to the waitlist and draft invoices are

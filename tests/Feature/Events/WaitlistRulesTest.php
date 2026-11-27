@@ -43,7 +43,7 @@ class WaitlistRulesTest extends TestCase
         parent::setUp();
         app()->setLocale('en');
         app(Defaults::class)->install('en');
-        $this->series = EventSeries::query()->create(['name' => 'Summer', 'type' => 'camp']);
+        $this->series = EventSeries::query()->create(['name' => 'Summer']);
     }
 
     /** @param  list<string>|null  $order */

@@ -462,7 +462,8 @@ class McpParityTest extends TestCase
     {
         $token = $this->token(['events:read', 'events:write', 'finance:read', 'finance:write']);
         $series = (int) ($this->tool($token, 'create_event_series', ['name' => 'Summer camps'])['data']['id'] ?? 0);
-        $this->assertSame('other', $this->tool($token, 'update_event_series', ['id' => $series, 'type' => 'other'])['data']['type'] ?? null);
+        $this->assertSame('Camps', $this->tool($token, 'update_event_series', ['id' => $series, 'name' => 'Camps'])['data']['name'] ?? null);
+        $this->assertArrayNotHasKey('type', $this->tool($token, 'list_event_series')['data'][0] ?? []);
         $this->assertCount(1, $this->tool($token, 'list_event_series')['data'] ?? []);
 
         $event = $this->event(1, 2);

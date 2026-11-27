@@ -6,6 +6,14 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ## [Unreleased]
 
+### Removed
+
+- Event series no longer have a **type** (camp, alumni, meeting, other). It was stored and shown but never used; what kind of event it is comes from the event template. **Breaking (API):** `type` is gone from `GET|POST|PATCH /event-series` and the MCP tools `create_event_series`, `update_event_series`, `list_event_series`.
+
+### Fixed
+
+- Creating a series from the event form labelled its name "Title"; the series form showed the untranslated field "type".
+
 ## [0.30.0] - 2026-11-27
 
 ### Added

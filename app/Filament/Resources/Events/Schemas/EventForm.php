@@ -32,8 +32,7 @@ class EventForm
             Section::make(__('admin.event.singular'))->disabled(fn (?Event $record) => ! self::mayEdit($record))->columnSpanFull()->columns(['md' => 2])->schema([
                 TextInput::make('title')->label(__('admin.event.title'))->required()->maxLength(200)->columnSpanFull(),
                 Select::make('event_series_id')->label(__('admin.event.series'))->relationship('series', 'name')->createOptionForm([
-                    TextInput::make('name')->label(__('admin.event.title'))->required(),
-                    Select::make('type')->options(__('events.series_types'))->default('camp')->required(),
+                    TextInput::make('name')->label(__('admin.form.name'))->required()->maxLength(200),
                 ]),
                 Select::make('status')->label(__('admin.event.status'))->options(__('events.event_status'))->default('draft')->required(),
                 DateTimePicker::make('starts_at')->label(__('admin.event.starts_at'))->required()->seconds(false),

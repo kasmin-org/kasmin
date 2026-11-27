@@ -13,6 +13,7 @@ use App\Models\Participation;
 use App\Models\Person;
 use App\Models\Role;
 use App\Models\User;
+use App\Support\Events\ParticipationConfirmation;
 use App\Support\Finance\InvoicePdf;
 use App\Support\Finance\Invoices;
 use App\Support\Finance\Payments;
@@ -25,7 +26,6 @@ use Filament\Http\Middleware\AuthenticateSession;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Livewire\Livewire;
-use App\Support\Events\ParticipationConfirmation;
 use Tests\TestCase;
 
 class InvoicesTest extends TestCase

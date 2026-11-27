@@ -94,7 +94,7 @@ class Billing
             $discount = min($base, $d['discount']);
             $description = trans('finance.line', ['installment' => $installment->labelText($locale), 'name' => $p->person?->fullName()], $locale);
             // The discount is its own position on the invoice (B10).
-            $label = $discount > 0 ? trans('finance.discount_'.$d['kind'], ['position' => $d['position']], $locale) : null;
+            $label = $discount > 0 ? (string) trans('finance.discount_'.$d['kind'], ['position' => $d['position']], $locale) : null;
             $result[] = $this->line($event, $installment, $p, $description, $base - $discount, $discount, $discount > 0 ? $d['kind'] : null, $label, $discount > 0 && $d['kind'] === 'sibling' ? (int) $d['position'] : null);
         }
         foreach ($participations->where('status', 'cancelled') as $p) {

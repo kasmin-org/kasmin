@@ -7,6 +7,7 @@ use App\Models\Concerns\Auditable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 /**
@@ -42,8 +43,12 @@ class PublicForm extends Model
             ->sortBy(fn (self $form) => $form->state() === 'open' ? 0 : 1)->first();
     }
 
-    /** Forms shown on the start page: active, open and marked for it (the sign-up form is the button there). */
-    public static function onStartPage(): \Illuminate\Support\Collection
+    /**
+     * Forms shown on the start page: active, open and marked for it (the sign-up form is the button there).
+     *
+     * @return Collection<int, self>
+     */
+    public static function onStartPage(): Collection
     {
         return self::query()->where('active', true)->where('on_start_page', true)->where('kind', '!=', 'signup')->with('event')->orderBy('id')->get()
             ->filter(fn (self $form) => $form->state() === 'open')->values();

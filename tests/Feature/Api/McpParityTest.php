@@ -92,6 +92,7 @@ class McpParityTest extends TestCase
         'settings:write' => ['create_sender_profile', 'update_sender_profile', 'get_settings', 'update_settings', 'list_webhooks', 'update_webhook', 'delete_webhook'],
         'audit:read' => ['list_consents', 'list_deletion_requests'],
         'audit:read,people:read' => ['export_person_data'],
+        'events:read,people:read' => ['get_age_group_members'],
         'privacy:write' => ['anonymise_person'],
     ];
 
@@ -304,8 +305,8 @@ class McpParityTest extends TestCase
         }
         $new = array_merge(...array_values(self::NEW_TOOLS));
         $this->assertSame([], array_values(array_diff($new, $names)));
-        $this->assertCount(87, $new);
-        $this->assertCount(139, $names);
+        $this->assertCount(88, $new);
+        $this->assertCount(140, $names);
     }
 
     public function test_new_tools_are_listed_by_scope_and_refused_without_it(): void

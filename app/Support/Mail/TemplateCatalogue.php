@@ -18,12 +18,13 @@ class TemplateCatalogue
     private const CHILDREN = '{% for child in children %}{{ child.first_name }}{% if loop.revindex == 2 %} %and% {% elseif not loop.last %}, {% endif %}{% endfor %}';
 
     /**
+     * @param  string|null  $templateGroup  group of the template (MailTemplate::GROUPS): only its placeholders; null = all
      * @return array<string, array<string, string>> group label => [what is inserted => label with an example]
      */
-    public static function placeholders(): array
+    public static function placeholders(?string $templateGroup = null): array
     {
         $groups = [];
-        foreach (Placeholders::sample() as $group => $value) {
+        foreach (array_filter(Placeholders::sample($templateGroup), fn ($value) => $value !== null) as $group => $value) {
             $label = self::label($group);
             if (! is_array($value)) {
                 $groups[$label]['{{ '.$group.' }}'] = self::withExample($label, $value);
@@ -49,10 +50,10 @@ class TemplateCatalogue
      *
      * @return array<string, array<string, string>> group label => [expression => label]
      */
-    public static function fields(): array
+    public static function fields(?string $templateGroup = null): array
     {
         $groups = [];
-        foreach (Placeholders::sample() as $group => $value) {
+        foreach (array_filter(Placeholders::sample($templateGroup), fn ($value) => $value !== null) as $group => $value) {
             $label = self::label($group);
             if (! is_array($value)) {
                 continue;
@@ -77,9 +78,9 @@ class TemplateCatalogue
      * The condition as it is written into the template. Everything comes from lists or is quoted, so the result is
      * always valid.
      */
-    public static function condition(string $field, string $operator, ?string $value, string $then, ?string $otherwise = null): string
+    public static function condition(string $field, string $operator, ?string $value, string $then, ?string $otherwise = null, ?string $templateGroup = null): string
     {
-        if (! in_array($field, array_merge(...array_map('array_keys', array_values(self::fields()))), true) || ! in_array($operator, self::OPERATORS, true)) {
+        if (! in_array($field, array_merge(...array_map('array_keys', array_values(self::fields($templateGroup)))), true) || ! in_array($operator, self::OPERATORS, true)) {
             throw new MailException('Unknown field or comparison.');
         }
         $value = trim((string) $value);

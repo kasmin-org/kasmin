@@ -265,6 +265,9 @@ Lesen mit `audit:read`, Anonymisieren mit dem eigenen Scope `privacy:write`.
 
 - `GET /statistics` (`event`, `role`, `groups`) – was die Seite *Statistik* zeigt: Altersverteilung, Altersgruppen,
   Teilnehmende pro Jahr und mit `finance:read` Kosten und Ermäßigungen. Scope `events:read`.
+- `GET /statistics/age-groups` (`event`, `role`, `groups`, `fields[]`) – die Mitglieder der Altersgruppen, eine Zeile je Person
+  mit den gewählten Feldern (`group`, `first_name`, `last_name`, `age`, `birth_date`, `gender`, `role`; Standard: alle), als
+  `headers` und `rows` – das, was *Export* auf der Seite *Statistik* enthält. Scopes `events:read` und `people:read`; wird protokolliert.
 - `GET /dashboard` – die nächste Veranstaltung jeder Reihe (Anmeldungen, freie Plätze, Warteliste, Bus), was zu erledigen ist, und
   Sicherheitsblätter bestätigt und fehlend (nur Zahlen). Scope `events:read`; Zahlen zu Geld nur mit `finance:read`,
   Läufe von Automatisierungen nur mit `automations:read`.
@@ -341,7 +344,7 @@ vergessen wurde (`tests/Feature/Api/McpParityTest.php`).
 | Kosten einer Veranstaltung | `list_event_costs` / `add_event_cost`, `update_event_cost`, `delete_event_cost` | `finance:read` / `finance:write` |
 | Teilnehmende und Plätze | `list_participants` / `register_participant`, `update_participation_status`, `set_participation_travel`, `offer_place`, `assign_reserve_place`, `release_reserve_places` | `events:read` / `events:write` |
 | Gruppen, Zimmer, Dienste einer Veranstaltung | `list_divisions` / `create_division`, `delete_division`, `propose_division`, `move_division_member`, `add_division_unit`, `update_division_unit`, `delete_division_unit` | `events:read` / `events:write` |
-| Listen und Auswertungen | `list_event_lists`, `get_event_list`, `get_statistics`, `get_dashboard` | `events:read` (vertrauliche Listen: `health:read`; Geld: `finance:read`) |
+| Listen und Auswertungen | `list_event_lists`, `get_event_list`, `get_statistics`, `get_age_group_members`, `get_dashboard` | `events:read` (vertrauliche Listen: `health:read`; Geld: `finance:read`; Mitglieder der Altersgruppen: `people:read`) |
 | Rechnungen | `list_invoices`, `get_invoice` / `record_payment`, `issue_invoice`, `send_invoice`, `cancel_invoice` | `finance:read` / `finance:write` |
 | Zahlungen, Rückzahlungen, Archiv | `list_payments`, `list_refunds`, `list_archived_invoices` / `assign_payment`, `mark_refund_done`, `keep_refund_as_credit` | `finance:read` / `finance:write` |
 | Automatisierungen | `list_automations`, `get_automation`, `preview_automation`, `list_approvals`, `get_automation_run` / `create_automation`, `update_automation`, `delete_automation` / `request_automation_run` / `decide_approval` | `automations:read` / `automations:write` / `automations:run` / `approvals:decide` |

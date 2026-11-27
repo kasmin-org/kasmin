@@ -265,6 +265,9 @@ Reading with `audit:read`, anonymising with the own scope `privacy:write`.
 
 - `GET /statistics` (`event`, `role`, `groups`) – what the page *Statistics* shows: age distribution, age groups,
   participants per year, and with `finance:read` costs and discounts. Scope `events:read`.
+- `GET /statistics/age-groups` (`event`, `role`, `groups`, `fields[]`) – the members of the age groups, one row per person
+  with the chosen fields (`group`, `first_name`, `last_name`, `age`, `birth_date`, `gender`, `role`; default all), as
+  `headers` and `rows` – what *Export* on the page *Statistics* holds. Scopes `events:read` and `people:read`; logged.
 - `GET /dashboard` – the next event of every series (registrations, free places, waitlist, bus), to-dos and safety
   sheets confirmed and missing (counts only). Scope `events:read`; figures about money only with `finance:read`,
   automation runs only with `automations:read`.
@@ -341,7 +344,7 @@ forgotten (`tests/Feature/Api/McpParityTest.php`).
 | Costs of an event | `list_event_costs` / `add_event_cost`, `update_event_cost`, `delete_event_cost` | `finance:read` / `finance:write` |
 | Participants and places | `list_participants` / `register_participant`, `update_participation_status`, `set_participation_travel`, `offer_place`, `assign_reserve_place`, `release_reserve_places` | `events:read` / `events:write` |
 | Groups, rooms, duties of an event | `list_divisions` / `create_division`, `delete_division`, `propose_division`, `move_division_member`, `add_division_unit`, `update_division_unit`, `delete_division_unit` | `events:read` / `events:write` |
-| Lists and reports | `list_event_lists`, `get_event_list`, `get_statistics`, `get_dashboard` | `events:read` (confidential lists: `health:read`; money: `finance:read`) |
+| Lists and reports | `list_event_lists`, `get_event_list`, `get_statistics`, `get_age_group_members`, `get_dashboard` | `events:read` (confidential lists: `health:read`; money: `finance:read`; members of age groups: `people:read`) |
 | Invoices | `list_invoices`, `get_invoice` / `record_payment`, `issue_invoice`, `send_invoice`, `cancel_invoice` | `finance:read` / `finance:write` |
 | Payments, refunds, archive | `list_payments`, `list_refunds`, `list_archived_invoices` / `assign_payment`, `mark_refund_done`, `keep_refund_as_credit` | `finance:read` / `finance:write` |
 | Automations | `list_automations`, `get_automation`, `preview_automation`, `list_approvals`, `get_automation_run` / `create_automation`, `update_automation`, `delete_automation` / `request_automation_run` / `decide_approval` | `automations:read` / `automations:write` / `automations:run` / `approvals:decide` |

@@ -50,7 +50,7 @@ class KasminServer extends Server
         Tools\OfferPlace::class, Tools\AssignReservePlace::class, Tools\ReleaseReservePlaces::class,
         Tools\ListDivisions::class, Tools\CreateDivision::class, Tools\DeleteDivision::class, Tools\ProposeDivision::class, Tools\MoveDivisionMember::class,
         Tools\AddDivisionUnit::class, Tools\UpdateDivisionUnit::class, Tools\DeleteDivisionUnit::class,
-        Tools\ListEventLists::class, Tools\GetEventList::class, Tools\GetStatistics::class, Tools\GetDashboard::class,
+        Tools\ListEventLists::class, Tools\GetEventList::class, Tools\GetStatistics::class, Tools\GetAgeGroupMembers::class, Tools\GetDashboard::class,
         // Finance
         Tools\ListInvoices::class, Tools\GetInvoice::class, Tools\RecordPayment::class, Tools\IssueInvoice::class, Tools\SendInvoice::class, Tools\CancelInvoice::class,
         Tools\ListPayments::class, Tools\AssignPayment::class, Tools\ListRefunds::class, Tools\MarkRefundDone::class, Tools\KeepRefundAsCredit::class, Tools\ListArchivedInvoices::class,

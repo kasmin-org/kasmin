@@ -188,6 +188,7 @@ Route::prefix('v1')->middleware([AuthenticateApiToken::class, 'throttle:api', Id
     Route::post('/people/{person}/anonymise', [PrivacyController::class, 'anonymise']);
 
     Route::get('/statistics', [ReportsController::class, 'statistics']);
+    Route::get('/statistics/age-groups', [ReportsController::class, 'ageGroups']);
     Route::get('/dashboard', [ReportsController::class, 'dashboard']);
 
     Route::get('/webhooks', [WebhooksController::class, 'index']);

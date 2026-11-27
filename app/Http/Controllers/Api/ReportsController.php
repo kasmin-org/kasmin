@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Models\Event;
 use App\Models\EventRole;
 use App\Support\Api\ApiContext;
+use App\Support\Audit\Audit;
 use App\Support\Reports\DashboardData;
 use App\Support\Reports\Statistics;
 use Illuminate\Http\JsonResponse;
@@ -41,6 +42,30 @@ class ReportsController extends ApiController
             'discounts' => $event !== null && $finance ? $stats->discounts($event) : null,
             'years' => $stats->years(),
         ]]);
+    }
+
+    /**
+     * The members of the age groups for activities of one event, one row per person with the chosen fields (fields:
+     * group, first_name, last_name, age, birth_date, gender, role; default all) – what the export of the statistics
+     * page holds. Names and dates of birth: needs people:read in addition to events:read. Nothing confidential.
+     */
+    public function ageGroups(Request $request): JsonResponse
+    {
+        $this->scope('events:read');
+        $this->scope('people:read');
+        $data = $request->validate([
+            'event' => ['sometimes', 'nullable', 'string'], 'role' => ['sometimes', 'nullable', Rule::in([...EventRole::KEYS, 'all'])], 'groups' => ['sometimes', 'integer', 'between:2,8'],
+            'fields' => ['sometimes', 'array'], 'fields.*' => [Rule::in(Statistics::AGE_GROUP_FIELDS)],
+        ]);
+        $event = isset($data['event']) ? $this->event($data['event']) : $this->defaultEvent();
+        if ($event === null) {
+            return response()->json(['data' => ['event' => null, 'headers' => [], 'rows' => []]]);
+        }
+        $roles = ($data['role'] ?? 'child') === 'all' ? [] : [$data['role'] ?? 'child'];
+        $list = app(Statistics::class)->ageGroupList($event, (int) ($data['groups'] ?? 3), $roles, array_values((array) ($data['fields'] ?? [])));
+        Audit::record('statistics.age_groups_exported', $event, null, ['format' => 'api', 'fields' => $list->headers, 'rows' => count($list->rows)]);
+
+        return response()->json(['data' => ['event' => $event->public_id, 'title' => $event->title, 'roles' => $roles, 'headers' => $list->headers, 'rows' => $list->rows]]);
     }
 
     /**

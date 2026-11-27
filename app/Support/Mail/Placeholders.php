@@ -7,6 +7,7 @@ use App\Models\FormField;
 use App\Models\Group;
 use App\Models\Household;
 use App\Models\Invoice;
+use App\Models\MailTemplate;
 use App\Models\Participation;
 use App\Models\Person;
 use App\Support\Forms\FormValue;
@@ -58,8 +59,29 @@ class Placeholders
         return $this->event($event, $locale);
     }
 
-    /** @return array<string, mixed> complete example context for previews and validation */
-    public static function sample(): array
+    /** Placeholders that depend on what a mail is about; the others exist in every mail. */
+    public const TOPICS = ['event', 'registration', 'invoice', 'group'];
+
+    /**
+     * Example context for previews and validation. With a group (MailTemplate::GROUPS) only the placeholders of that
+     * group have values; the others are empty, as they are when such a mail is sent.
+     *
+     * @return array<string, mixed>
+     */
+    public static function sample(?string $group = null): array
+    {
+        $sample = self::fullSample();
+        if ($group !== null) {
+            foreach (array_diff(self::TOPICS, MailTemplate::GROUP_FIELDS[$group] ?? []) as $absent) {
+                $sample[$absent] = null;
+            }
+        }
+
+        return $sample;
+    }
+
+    /** @return array<string, mixed> */
+    private static function fullSample(): array
     {
         return [
             'recipient' => ['first_name' => 'Alex', 'last_name' => 'Example', 'full_name' => 'Alex Example', 'age' => 40],

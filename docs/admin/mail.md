@@ -23,6 +23,22 @@ installation that had several keeps using its standard account and the first sen
 version. A template has no versions per language – an installation works in one language (see
 [System](system.md#language)), and the text is simply what you wrote.
 
+Every template belongs to a **group** that says what the mail is about – because that decides which placeholders
+exist. A mail to everybody knows no invoice number:
+
+| Group | For | Placeholders in addition to the general ones |
+|---|---|---|
+| General | mail to everybody or to a group, newsletter, mails about the account | none |
+| Event and forms | information about an event, safety sheet (request, reminder, thanks) | event |
+| Registration and waitlist | confirmation, waitlist position, offer of a place, cancellation | event, registration |
+| Invoice and payment | invoice, payment reminder, overdue notice, payment confirmation | invoice, event |
+| Membership and groups | offer of a place in a group | group |
+
+The general ones exist in every group: salutation, recipient, family, children, organisation, links. The list of
+templates is arranged by group. *Insert placeholder* and *Insert condition* offer only the placeholders of the group
+of the template, and saving refuses a placeholder of another group with a message that names it. The group of a
+standard template is fixed; for your own templates you choose it.
+
 Nobody has to know the placeholders or their syntax by heart:
 
 - **Insert placeholder** (button of the editor, also next to the subject and the HTML source) lists every
@@ -68,7 +84,8 @@ Allowed: `{% if %}`, `{% for %}`, `{% set %}` and the filters `upper`, `lower`, 
 
 ## Mailings
 
-*Communication → Mailings*: template, recipients (groups, event participants with status), send to legal
+*Communication → Mailings*: template (those of the group *General*; with the participants of an event as recipients
+also *Event and forms* – other groups need data a mailing does not have, and mails of the system are never offered), recipients (groups, event participants with status), send to legal
 guardians / the person / both, one mail per family. *Prepare* renders all mails and holds them: page through them,
 edit single mails if wanted, then *Send*. People who opted out, have no address or a bad address are excluded and listed.
 

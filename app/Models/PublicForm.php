@@ -7,6 +7,7 @@ use App\Models\Concerns\Auditable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
 
 /**
  * Form on a public address (PF01): register for an event, apply for the team, or stay informed.
@@ -25,6 +26,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $opens_at
  * @property Carbon|null $closes_at
  * @property bool $active
+ * @property list<string>|null $old_slugs
  */
 class PublicForm extends Model
 {
@@ -38,7 +40,39 @@ class PublicForm extends Model
 
     protected function casts(): array
     {
-        return ['title' => OneText::class, 'intro' => OneText::class, 'needs_approval' => 'boolean', 'ask_newsletter' => 'boolean', 'active' => 'boolean', 'opens_at' => 'datetime', 'closes_at' => 'datetime'];
+        return ['title' => OneText::class, 'intro' => OneText::class, 'needs_approval' => 'boolean', 'ask_newsletter' => 'boolean', 'active' => 'boolean', 'opens_at' => 'datetime', 'closes_at' => 'datetime', 'old_slugs' => 'array'];
+    }
+
+    /**
+     * The part of the address as it is saved (B15): trimmed, lower case, umlauts written out (ä → ae, ß → ss), other
+     * accents removed, everything else a single hyphen, no hyphen at the ends; only a–z, 0–9 and "-", at most 64.
+     */
+    public static function slugFrom(?string $value): string
+    {
+        return trim(substr(Str::slug(trim((string) $value), '-', 'de'), 0, 64), '-');
+    }
+
+    /** Whether another form already has this address (now or as an earlier one that still forwards). */
+    public static function slugTaken(string $slug, ?int $except = null): bool
+    {
+        return self::query()->when($except !== null, fn ($q) => $q->whereKeyNot($except))->where('slug', $slug)->exists();
+    }
+
+    public function url(): string
+    {
+        return route('public.form', $this->slug);
+    }
+
+    protected static function booted(): void
+    {
+        // Always save the normalised address; an earlier address keeps forwarding to the form (links on websites).
+        static::saving(function (PublicForm $form) {
+            $form->slug = self::slugFrom($form->slug);
+            $old = (string) $form->getOriginal('slug');
+            if ($form->exists && $form->isDirty('slug') && $old !== '' && $old !== $form->slug) {
+                $form->old_slugs = array_values(array_unique([...($form->old_slugs ?? []), $old]));
+            }
+        });
     }
 
     /** @return BelongsTo<Event, $this> */

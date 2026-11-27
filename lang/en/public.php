@@ -15,6 +15,10 @@ return [
     'own' => 'My registrations',
     'form' => 'Public form', 'forms' => 'Public forms', 'kind' => 'Kind', 'kinds' => ['event' => 'Register for an event', 'application' => 'Application (team, membership)', 'interest' => 'Stay informed'],
     'slug' => 'Address', 'slug_hint' => 'Part of the address: /f/…', 'title' => 'Title', 'intro' => 'Text', 'needs_approval' => 'Needs approval', 'opens_at' => 'Opens', 'closes_at' => 'Closes', 'open_page' => 'Open',
+    'slug_preview' => 'Address of the form:', 'slug_empty' => 'Please enter an address made of letters or digits.',
+    'slug_taken' => 'Another form already has the address “:slug”.',
+    'slug_moved' => 'After saving, the previous address :old forwards here. Better still change links on websites.',
+    'copy' => 'Copy', 'copied' => 'Copied',
     'questions' => 'Questions', 'group' => 'Add to group', 'submission' => 'Submission', 'submissions' => 'Submissions', 'approve' => 'Approve', 'decline' => 'Decline', 'answers' => 'Show',
     'statuses' => ['pending' => 'Waiting', 'done' => 'Done', 'declined' => 'Declined', 'failed' => 'Failed'],
 ];

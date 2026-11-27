@@ -23,8 +23,18 @@ class PublicFormController extends Controller
 {
     public function __construct(private readonly PublicForms $forms, private readonly Guests $guests, private readonly RegistrationAnswers $answers) {}
 
-    public function show(string $slug): View
+    public function show(string $slug): View|RedirectResponse
     {
+        // An address in other spelling (upper case, underscore) or an earlier address of the form forwards (B15).
+        $exact = PublicForm::query()->where('slug', $slug)->where('active', true)->exists();
+        if (! $exact) {
+            $normal = PublicForm::slugFrom($slug);
+            $moved = PublicForm::query()->where('active', true)->where(fn ($q) => $q->where('slug', $normal)->orWhereJsonContains('old_slugs', $slug))->value('slug');
+            if (is_string($moved) && $moved !== $slug) {
+                return redirect()->to(route('public.form', $moved).(request()->getQueryString() !== null ? '?'.request()->getQueryString() : ''), 301);
+            }
+        }
+
         return $this->page($this->form($slug));
     }
 

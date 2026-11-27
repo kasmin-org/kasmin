@@ -17,6 +17,12 @@ Before registering, legal guardians see places, price, instalments and cancellat
 
 *Forms → Public forms*: address `/f/<name>`, title and text, opening and closing time.
 
+**Address.** The field *Address* is the last part of the web address. Below it, the full address appears while you type
+(with a button to copy it), exactly as it will be saved: Kasmin suggests it from the title, writes everything in lower case,
+spells out umlauts (ä → ae, ß → ss), drops other accents and turns spaces and other characters into a hyphen – so
+*Anmeldung für Kinder* becomes `/f/anmeldung-fuer-kinder`. Each address belongs to one form. If you change the address of a
+published form, the old one keeps forwarding to it; still change the links on your website.
+
 | Kind | After the confirmation |
 |---|---|
 | Register for an event | the person is registered in the chosen role (age rule, places and waitlist apply) |

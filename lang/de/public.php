@@ -15,6 +15,10 @@ return [
     'own' => 'Meine Anmeldungen',
     'form' => 'Öffentliches Formular', 'forms' => 'Öffentliche Formulare', 'kind' => 'Art', 'kinds' => ['event' => 'Anmeldung zu einer Veranstaltung', 'application' => 'Bewerbung (Team, Mitgliedschaft)', 'interest' => 'Informiert bleiben'],
     'slug' => 'Adresse', 'slug_hint' => 'Teil der Adresse: /f/…', 'title' => 'Titel', 'intro' => 'Text', 'needs_approval' => 'Freigabe nötig', 'opens_at' => 'Öffnet', 'closes_at' => 'Schließt', 'open_page' => 'Öffnen',
+    'slug_preview' => 'Adresse des Formulars:', 'slug_empty' => 'Bitte eine Adresse aus Buchstaben oder Ziffern angeben.',
+    'slug_taken' => 'Die Adresse „:slug“ hat schon ein anderes Formular.',
+    'slug_moved' => 'Nach dem Speichern leitet die bisherige Adresse :old hierher weiter. Links auf Websites besser trotzdem ändern.',
+    'copy' => 'Kopieren', 'copied' => 'Kopiert',
     'questions' => 'Fragen', 'group' => 'Zu Gruppe hinzufügen', 'submission' => 'Einsendung', 'submissions' => 'Einsendungen', 'approve' => 'Annehmen', 'decline' => 'Ablehnen', 'answers' => 'Anzeigen',
     'statuses' => ['pending' => 'Wartet', 'done' => 'Erledigt', 'declined' => 'Abgelehnt', 'failed' => 'Fehlgeschlagen'],
 ];

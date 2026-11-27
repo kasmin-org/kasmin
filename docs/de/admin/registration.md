@@ -18,6 +18,12 @@ Vor der Anmeldung sehen Erziehungsberechtigte Plätze, Preis, Raten und Stornobe
 
 *Formulare → Öffentliche Formulare*: Adresse `/f/<name>`, Titel und Text, Beginn und Ende.
 
+**Adresse.** Das Feld *Adresse* ist der letzte Teil der Webadresse. Darunter erscheint beim Tippen die vollständige Adresse (mit
+einem Knopf zum Kopieren), genau so, wie sie gespeichert wird: Kasmin schlägt sie aus dem Titel vor, schreibt alles klein, schreibt
+Umlaute aus (ä → ae, ß → ss), lässt andere Akzente weg und macht aus Leer- und Sonderzeichen einen Bindestrich – aus *Anmeldung für
+Kinder* wird `/f/anmeldung-fuer-kinder`. Jede Adresse gehört zu genau einem Formular. Ändern Sie die Adresse eines veröffentlichten
+Formulars, leitet die alte weiterhin dorthin weiter; ändern Sie die Links auf Ihrer Website trotzdem.
+
 | Art | Nach der Bestätigung |
 |---|---|
 | Anmeldung zu einer Veranstaltung | die Person wird in der gewählten Rolle angemeldet (Altersgrenzen, Plätze und Warteliste gelten) |

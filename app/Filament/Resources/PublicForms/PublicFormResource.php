@@ -23,6 +23,7 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Support\HtmlString;
 
 /**
  * Public forms (PF01, PF03, PF04).
@@ -63,8 +64,25 @@ class PublicFormResource extends Resource
 
         return $schema->components([
             Select::make('kind')->label(__('public.kind'))->options(__('public.kinds'))->required()->live(),
-            TextInput::make('slug')->label(__('public.slug'))->required()->alphaDash()->maxLength(64)->unique(ignoreRecord: true)->helperText(__('public.slug_hint')),
-            TextInput::make('title')->label(__('public.title'))->required()->maxLength(150),
+            TextInput::make('title')->label(__('public.title'))->required()->maxLength(150)->live(onBlur: true)
+                // Suggest the address from the title as long as it was not changed by hand.
+                ->afterStateUpdated(function ($get, $set, ?string $old, ?string $state) {
+                    $slug = (string) $get('slug');
+                    if ($slug === '' || PublicForm::slugFrom($slug) === PublicForm::slugFrom($old)) {
+                        $set('slug', PublicForm::slugFrom($state));
+                    }
+                }),
+            TextInput::make('slug')->label(__('public.slug'))->required()->maxLength(80)->live(debounce: 400)
+                ->dehydrateStateUsing(fn (?string $state) => PublicForm::slugFrom($state))
+                ->rule(fn (?PublicForm $record) => function (string $attribute, mixed $value, \Closure $fail) use ($record) {
+                    $slug = PublicForm::slugFrom(is_string($value) ? $value : '');
+                    if ($slug === '') {
+                        $fail(__('public.slug_empty'));
+                    } elseif (PublicForm::slugTaken($slug, $record?->id)) {
+                        $fail(__('public.slug_taken', ['slug' => $slug]));
+                    }
+                })
+                ->helperText(fn ($get, ?PublicForm $record) => self::addressPreview((string) $get('slug'), $record)),
             Textarea::make('intro')->label(__('public.intro'))->rows(3),
             Select::make('event_id')->label(__('admin.event.singular'))->visible($is('event'))->required($is('event'))
                 ->options(fn () => Event::query()->where('ends_at', '>=', now())->orderBy('starts_at')->pluck('title', 'id')->all()),
@@ -82,10 +100,25 @@ class PublicFormResource extends Resource
         ]);
     }
 
+    /** The full address the form gets, while typing, with a button to copy it (B15). */
+    public static function addressPreview(string $typed, ?PublicForm $record): HtmlString
+    {
+        $slug = PublicForm::slugFrom($typed);
+        if ($slug === '') {
+            return new HtmlString(e(__('public.slug_hint')));
+        }
+        $url = route('public.form', $slug);
+        $moved = $record !== null && $record->exists && $record->slug !== $slug ? '<br>'.e(__('public.slug_moved', ['old' => route('public.form', $record->slug)])) : '';
+
+        return new HtmlString(e(__('public.slug_preview')).' <code class="break-all font-semibold">'.e($url).'</code>'
+            .' <button type="button" class="ms-1 underline" x-data="{ copied: false }" x-on:click="navigator.clipboard.writeText('.e((string) json_encode($url)).'); copied = true; setTimeout(() => copied = false, 2000)"'
+            .' x-text="copied ? '.e((string) json_encode(__('public.copied'))).' : '.e((string) json_encode(__('public.copy'))).'">'.e(__('public.copy')).'</button>'.$moved);
+    }
+
     public static function table(Table $table): Table
     {
         return $table->columns([
-            TextColumn::make('title')->label(__('public.title'))->state(fn (PublicForm $record) => $record->titleText())->description(fn (PublicForm $record) => '/f/'.$record->slug),
+            TextColumn::make('title')->label(__('public.title'))->state(fn (PublicForm $record) => $record->titleText())->description(fn (PublicForm $record) => $record->url()),
             TextColumn::make('kind')->label(__('public.kind'))->formatStateUsing(fn (string $state) => __('public.kinds.'.$state))->badge(),
             IconColumn::make('active')->label(__('admin.form.active'))->boolean(),
         ])->recordActions([

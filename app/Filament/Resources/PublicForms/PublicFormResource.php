@@ -89,14 +89,15 @@ class PublicFormResource extends Resource
             Select::make('role_key')->label(__('admin.event.role'))->options(__('events.roles'))->visible($is('event'))->required($is('event'))->default('guest'),
             Select::make('form_id')->label(__('public.questions'))->visible($is('application'))
                 ->options(fn () => Form::query()->where('kind', 'registration')->get()->mapWithKeys(fn (Form $f) => [$f->id => $f->label()])->all()),
-            Select::make('group_id')->label(__('public.group'))->options(fn () => Group::query()->where('kind', 'manual')->orderBy('name')->pluck('name', 'id')->all()),
+            Select::make('group_id')->label(__('public.group'))->helperText(fn ($get) => $get('kind') === 'signup' ? __('public.signup_group_hint') : null)->options(fn () => Group::query()->where('kind', 'manual')->orderBy('name')->pluck('name', 'id')->all()),
             Select::make('membership_type_id')->label(__('admin.finance.membership_type'))->visible($is('application'))
                 ->options(fn () => MembershipType::query()->get()->mapWithKeys(fn (MembershipType $t) => [$t->id => $t->label()])->all()),
             Toggle::make('needs_approval')->label(__('public.needs_approval'))->default(true)->visible($is('application')),
             DateTimePicker::make('opens_at')->label(__('public.opens_at'))->seconds(false),
             DateTimePicker::make('closes_at')->label(__('public.closes_at'))->seconds(false)->after('opens_at'),
-            Toggle::make('ask_newsletter')->label(__('public.ask_newsletter'))->visible($is('event', 'application')),
-            Toggle::make('active')->label(__('admin.form.active')),
+            Toggle::make('ask_newsletter')->label(__('public.ask_newsletter'))->visible($is('event', 'application', 'signup')),
+            Toggle::make('active')->label(__('admin.form.active'))->helperText(fn ($get) => $get('kind') === 'signup' ? __('public.signup_active_hint') : null),
+            Toggle::make('on_start_page')->label(__('public.on_start_page'))->visible(fn ($get) => $get('kind') !== 'signup'),
         ]);
     }
 

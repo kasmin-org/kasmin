@@ -11,6 +11,7 @@ use App\Models\Participation;
 use App\Models\Payment;
 use App\Models\Person;
 use App\Models\Refund;
+use App\Models\PublicForm;
 use App\Models\Role;
 use App\Models\User;
 use App\Support\Automations\Triggers;
@@ -97,6 +98,8 @@ class DemoData
         }
 
         $this->events($locale);
+        // The demo shows the sign-up: its form is switched on there (on real installations it starts switched off, B16).
+        PublicForm::query()->where('kind', 'signup')->update(['active' => true]);
 
         return ['households' => $families, 'people' => $people];
     }

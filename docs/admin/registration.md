@@ -28,6 +28,15 @@ published form, the old one keeps forwarding to it; still change the links on yo
 | Register for an event | the person is registered in the chosen role (age rule, places and waitlist apply) |
 | Application | waits under *Forms → Submissions*; after approval: membership, group and welcome mail. Without approval it is done at once |
 | Stay informed | newsletter consent, optionally a group |
+| Sign-up (family account) | a legal guardian creates the family account (name, e-mail, consent); after the confirmation the family exists and the person is logged in, optionally in a group. Children are added in the portal |
+
+**Signing up** is only possible through a form of the kind *Sign-up (family account)*. Every installation has one, and it
+is **switched off** – also after the update from an older version, where everybody could sign up before. Switch it on (and
+set opening and closing times if you like): only while it is switched on and open, the start page shows *Sign up for the
+first time*, and the old address `/register` forwards to it; otherwise it says that signing up is not possible at the
+moment.
+
+**Start page.** *Show on the start page* lists a form there (while it is switched on and open), below the public events.
 
 Nothing happens before the link in the mail is opened **and** confirmed with the button (valid 3 days). Known people are
 recognised by address **and** name; their data is never overwritten. The page never shows whether an address is known.

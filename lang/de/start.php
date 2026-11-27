@@ -5,4 +5,5 @@ return [
     'login' => 'Anmelden',
     'register' => 'Zum ersten Mal registrieren',
     'events' => 'Veranstaltungen',
+    'forms' => 'Formulare',
 ];

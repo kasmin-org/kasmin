@@ -7,13 +7,19 @@ use App\Mail\LoginLinkMail;
 use App\Models\Consent;
 use App\Models\ContactPoint;
 use App\Models\Household;
+use App\Models\Group;
 use App\Models\Person;
+use App\Models\PublicForm;
 use App\Models\SignUp;
 use App\Models\User;
 use App\Support\Audit\Audit;
 use App\Support\Auth\LoginLinks;
+use App\Support\Auth\ProofOfWork;
 use App\Support\Language;
 use App\Support\Mail\Notifier;
+use App\Support\Settings;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
@@ -27,7 +33,37 @@ class SignUps
 
     public function __construct(private readonly LoginLinks $links) {}
 
-    /** @param  array{first_name: string, last_name: string, email: string, locale: string, newsletter?: string|null}  $data */
+    /**
+     * The sign-up form of a family account (B16): name, address, consent; then a link to confirm. The answer is the
+     * same whether or not the address is known.
+     */
+    public function fromRequest(PublicForm $form, Request $request): RedirectResponse
+    {
+        abort_unless($form->kind === 'signup' && $form->active, 404);
+        // Honeypot: bots fill every field.
+        if ((string) $request->input('website') !== '') {
+            return redirect()->route('login.code');
+        }
+        abort_unless($form->state() === 'open', 403);
+        $data = $request->validate([
+            'first_name' => ['required', 'string', 'max:120'],
+            'last_name' => ['required', 'string', 'max:120'],
+            'email' => ['required', 'email', 'max:254'],
+            'privacy' => ['accepted'],
+        ]);
+        if (! ProofOfWork::valid($request->input('pow'))) {
+            return back()->withInput()->withErrors(['pow' => __('public.check_failed')]);
+        }
+        $this->request([
+            'first_name' => (string) $data['first_name'], 'last_name' => (string) $data['last_name'], 'email' => (string) $data['email'], 'locale' => Language::current(),
+            'newsletter' => $form->ask_newsletter && Settings::bool('newsletter_ask') && $request->boolean('newsletter') ? (string) __('public.newsletter_consent') : null,
+            'public_form_id' => $form->id,
+        ]);
+
+        return redirect()->route('login.code')->with('email', $data['email'])->with('status', __('auth_link.sent'));
+    }
+
+    /** @param  array{first_name: string, last_name: string, email: string, locale: string, newsletter?: string|null, public_form_id?: int}  $data */
     public function request(array $data): void
     {
         $email = Str::lower(trim($data['email']));
@@ -70,6 +106,11 @@ class SignUps
             $household->update(['invoice_recipient_id' => $person->id]);
             if (($data['newsletter'] ?? null) !== null) {
                 Consent::query()->create(['person_id' => $person->id, 'kind' => 'newsletter', 'granted' => true, 'source' => 'sign_up', 'text' => $data['newsletter']]);
+            }
+            // The group of the sign-up form, if it has one (B16).
+            $groupId = isset($data['public_form_id']) ? PublicForm::query()->whereKey($data['public_form_id'])->value('group_id') : null;
+            if ($groupId !== null && Group::query()->whereKey($groupId)->where('kind', 'manual')->exists()) {
+                $person->groups()->attach($groupId, ['starts_on' => now()->toDateString(), 'source' => 'public_form']);
             }
             Audit::record('registration.guardian', $person, null, ['source' => 'public_form'], 'system');
             app(Notifier::class)->event('registrations', __('portal.notify_signup', ['name' => $person->fullName()]), url('/admin/people/'.$person->id));

@@ -2,6 +2,7 @@
 
 namespace Tests;
 
+use App\Models\PublicForm;
 use App\Support\Api\ApiContext;
 use App\Support\Settings;
 use App\Support\Webhooks\Webhooks;
@@ -19,5 +20,14 @@ abstract class TestCase extends BaseTestCase
         ApiContext::set(null);
         Settings::flush();
         Webhooks::flush();
+    }
+
+    /** Switches on the sign-up form that every installation has (switched off, B16) and returns it. */
+    protected function openSignUp(): PublicForm
+    {
+        $form = PublicForm::query()->where('kind', 'signup')->firstOrFail();
+        $form->forceFill(['active' => true])->save();
+
+        return $form;
     }
 }

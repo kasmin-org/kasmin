@@ -26,21 +26,36 @@ use Illuminate\Support\Str;
  * @property Carbon|null $opens_at
  * @property Carbon|null $closes_at
  * @property bool $active
+ * @property bool $on_start_page
  * @property list<string>|null $old_slugs
  */
 class PublicForm extends Model
 {
     use Auditable;
 
-    public const KINDS = ['event', 'application', 'interest'];
+    public const KINDS = ['event', 'application', 'interest', 'signup'];
+
+    /** The active sign-up form for family accounts (B16), the open one first. */
+    public static function signUp(): ?self
+    {
+        return self::query()->where('kind', 'signup')->where('active', true)->orderBy('id')->get()
+            ->sortBy(fn (self $form) => $form->state() === 'open' ? 0 : 1)->first();
+    }
+
+    /** Forms shown on the start page: active, open and marked for it (the sign-up form is the button there). */
+    public static function onStartPage(): \Illuminate\Support\Collection
+    {
+        return self::query()->where('active', true)->where('on_start_page', true)->where('kind', '!=', 'signup')->with('event')->orderBy('id')->get()
+            ->filter(fn (self $form) => $form->state() === 'open')->values();
+    }
 
     protected $guarded = ['id'];
 
-    protected $attributes = ['needs_approval' => true, 'active' => false, 'ask_newsletter' => false];
+    protected $attributes = ['needs_approval' => true, 'active' => false, 'ask_newsletter' => false, 'on_start_page' => false];
 
     protected function casts(): array
     {
-        return ['title' => OneText::class, 'intro' => OneText::class, 'needs_approval' => 'boolean', 'ask_newsletter' => 'boolean', 'active' => 'boolean', 'opens_at' => 'datetime', 'closes_at' => 'datetime', 'old_slugs' => 'array'];
+        return ['title' => OneText::class, 'intro' => OneText::class, 'needs_approval' => 'boolean', 'ask_newsletter' => 'boolean', 'active' => 'boolean', 'on_start_page' => 'boolean', 'opens_at' => 'datetime', 'closes_at' => 'datetime', 'old_slugs' => 'array'];
     }
 
     /**

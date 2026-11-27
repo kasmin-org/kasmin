@@ -3,6 +3,7 @@
 namespace App\Support\Install;
 
 use App\Models\MembershipType;
+use App\Models\PublicForm;
 use App\Models\Role;
 use App\Support\Language;
 use App\Support\Settings;
@@ -87,6 +88,7 @@ class Defaults
     private function installAll(string $defaults): void
     {
         $this->installRoles();
+        $this->installSignUpForm();
         if ($defaults === 'none') {
             return;
         }
@@ -102,6 +104,23 @@ class Defaults
                 'pays_fee' => $type['fee'],
                 'sort' => $sort += 10,
             ]);
+        }
+    }
+
+    /**
+     * Every installation has a sign-up form for family accounts, switched off (B16). The migration made it before the
+     * language was chosen; here it gets the title and address in the language of the installation.
+     */
+    private function installSignUpForm(): void
+    {
+        $form = PublicForm::query()->where('kind', 'signup')->orderBy('id')->first()
+            ?? PublicForm::query()->create(['kind' => 'signup', 'slug' => 'sign-up', 'title' => 'Create a family account', 'active' => false, 'needs_approval' => false, 'ask_newsletter' => true]);
+        if ($form->slug === 'sign-up' && PublicForm::query()->where('kind', 'signup')->count() === 1) {
+            $slug = PublicForm::slugFrom(__('public.signup_slug'));
+            if ($slug !== '' && ! PublicForm::slugTaken($slug, $form->id)) {
+                $form->forceFill(['slug' => $slug, 'old_slugs' => null])->save();
+            }
+            $form->forceFill(['title' => __('public.signup_title')])->save();
         }
     }
 }

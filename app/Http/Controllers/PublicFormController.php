@@ -9,6 +9,7 @@ use App\Support\Events\Guests;
 use App\Support\Events\PublicForms;
 use App\Support\Events\RegistrationException;
 use App\Support\Forms\RegistrationAnswers;
+use App\Support\People\SignUps;
 use App\Support\Settings;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -40,6 +41,14 @@ class PublicFormController extends Controller
 
     private function page(PublicForm $form, bool $sent = false): View
     {
+        if ($form->kind === 'signup') {
+            return view('register', [
+                'title' => $form->titleText(), 'intro' => $form->introText() ?? __('portal.register_intro'), 'state' => $form->state(), 'form' => $form,
+                'action' => route('public.form.store', [$form->slug] + (request()->boolean('embed') ? ['embed' => 1] : [])),
+                'askNewsletter' => $form->ask_newsletter && Settings::bool('newsletter_ask'),
+            ]);
+        }
+
         return view('public.form', [
             'sent' => $sent || session('sent') === true,
             'title' => $form->titleText(), 'intro' => $form->introText(), 'state' => $form->state(), 'form' => $form,
@@ -52,6 +61,9 @@ class PublicFormController extends Controller
     public function store(Request $request, string $slug): View|RedirectResponse
     {
         $form = $this->form($slug);
+        if ($form->kind === 'signup') {
+            return app(SignUps::class)->fromRequest($form, $request);
+        }
         // Bots fill every field: the same answer, but nothing is sent.
         if ((string) $request->input('website') === '') {
             abort_unless($form->state() === 'open', 403);

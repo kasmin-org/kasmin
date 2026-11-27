@@ -232,7 +232,8 @@ class FamilySelfServiceTest extends TestCase
             }
         };
         $data = ['first_name' => 'A', 'last_name' => 'B', 'email' => 'a@example.org', 'locale' => 'en', 'privacy' => '1'];
-        $this->get('/register')->assertSee('data-challenge', false);
+        $this->openSignUp();
+        $this->followingRedirects()->get('/register')->assertSee('data-challenge', false);
         $this->post('/register', $data)->assertSessionHasErrors('pow');
         $solution = $solve(ProofOfWork::challenge());
         $this->post('/register', $data + ['pow' => $solution])->assertSessionHasNoErrors();
@@ -255,7 +256,8 @@ class FamilySelfServiceTest extends TestCase
         $this->get('/f/team')->assertSee('name="newsletter"', false);
         Settings::set('newsletter_ask', '0');
         $this->get('/f/team')->assertDontSee('name="newsletter"', false);
-        $this->get('/register')->assertDontSee('name="newsletter"', false);
+        $this->openSignUp();
+        $this->followingRedirects()->get('/register')->assertOk()->assertDontSee('name="newsletter"', false);
         Settings::set('newsletter_ask', '1');
         $this->post('/f/team', ['first_name' => 'A', 'last_name' => 'B', 'email' => 'a@example.org', 'birth_date' => '1990-01-01', 'locale' => 'en', 'privacy' => '1', 'newsletter' => '1'])->assertSessionHasNoErrors();
         $this->assertNotEmpty(PublicSubmission::query()->where('public_form_id', $form->id)->sole()->data['newsletter'] ?? null);

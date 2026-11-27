@@ -584,7 +584,7 @@ class ApiParityTest extends TestCase
     {
         $token = $this->token(['people:read', 'people:write']);
         $form = PublicForm::query()->create(['slug' => 'team', 'kind' => 'application', 'title' => ['en' => 'Join the team', 'de' => 'Mitmachen'], 'active' => true, 'needs_approval' => true]);
-        $this->withToken($token)->getJson('/api/v1/public-forms')->assertOk()->assertJsonPath('data.0.slug', 'team')->assertJsonPath('data.0.kind', 'application');
+        $this->withToken($token)->getJson('/api/v1/public-forms')->assertOk()->assertJsonFragment(['slug' => 'team', 'kind' => 'application'])->assertJsonFragment(['kind' => 'signup', 'active' => false]);
         $make = fn (string $first, string $status) => PublicSubmission::query()->create([
             'public_form_id' => $form->id, 'token_hash' => hash('sha256', $first), 'status' => $status, 'expires_at' => now()->addDay(), 'confirmed_at' => now(),
             'data' => ['first_name' => $first, 'last_name' => 'Birch', 'email' => strtolower($first).'@example.org', 'values' => []],

@@ -10,6 +10,9 @@ use App\Models\PublicForm;
 use App\Support\Auth\ProofOfWork;
 use App\Support\Events\PublicForms;
 use App\Support\Forms\RegistrationAnswers;
+use App\Support\People\SignUps;
+use App\Support\Language;
+use App\Support\Settings;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -18,7 +21,7 @@ use Illuminate\Http\Request;
  */
 class PublicController extends Controller
 {
-    public function __construct(private readonly PublicForms $forms, private readonly RegistrationAnswers $answers) {}
+    public function __construct(private readonly PublicForms $forms, private readonly RegistrationAnswers $answers, private readonly SignUps $signUps) {}
 
     /**
      * Events with a public page.
@@ -61,9 +64,18 @@ class PublicController extends Controller
         $data = $request->validate([
             'first_name' => ['required', 'string', 'max:120'], 'last_name' => ['required', 'string', 'max:120'], 'email' => ['required', 'email', 'max:254'], 'phone' => ['nullable', 'string', 'max:40'],
             'privacy' => ['accepted'],
-        ] + ($form->kind !== 'interest' ? ['birth_date' => ['required', 'date', 'before:today', 'after:1900-01-01']] : []) + ($questions !== null ? $this->answers->rules($questions) : []));
+        ] + (! in_array($form->kind, ['interest', 'signup'], true) ? ['birth_date' => ['required', 'date', 'before:today', 'after:1900-01-01']] : []) + ($questions !== null ? $this->answers->rules($questions) : []));
         abort_unless(ProofOfWork::valid($request->input('pow')), 422, 'The proof of work is missing, wrong or already used.');
-        $this->forms->submit($form, $data);
+        if ($form->kind === 'signup') {
+            // A family account (B16): the confirmation link creates the family.
+            $this->signUps->request([
+                'first_name' => (string) $data['first_name'], 'last_name' => (string) $data['last_name'], 'email' => (string) $data['email'], 'locale' => Language::current(),
+                'newsletter' => $form->ask_newsletter && Settings::bool('newsletter_ask') && $request->boolean('newsletter') ? (string) __('public.newsletter_consent') : null,
+                'public_form_id' => $form->id,
+            ]);
+        } else {
+            $this->forms->submit($form, $data);
+        }
 
         return response()->json(['message' => 'Please confirm with the link in the mail.'], 202);
     }

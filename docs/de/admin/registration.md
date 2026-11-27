@@ -29,6 +29,16 @@ Formulars, leitet die alte weiterhin dorthin weiter; ändern Sie die Links auf I
 | Anmeldung zu einer Veranstaltung | die Person wird in der gewählten Rolle angemeldet (Altersgrenzen, Plätze und Warteliste gelten) |
 | Bewerbung | wartet unter *Formulare → Einsendungen*; nach der Freigabe: Mitgliedschaft, Gruppe und Willkommensmail. Ohne Freigabe geschieht das sofort |
 | Informiert bleiben | Einwilligung zum Newsletter, auf Wunsch eine Gruppe |
+| Registrierung (Familienkonto) | eine erziehungsberechtigte Person legt das Familienkonto an (Name, E-Mail, Einwilligung); nach der Bestätigung gibt es die Familie und die Person ist angemeldet, auf Wunsch in einer Gruppe. Kinder kommen im Portal dazu |
+
+**Registrieren** geht nur über ein Formular der Art *Registrierung (Familienkonto)*. Jede Installation hat eines, und es ist
+**ausgeschaltet** – auch nach dem Update von einer älteren Version, bei der sich bisher alle registrieren konnten. Schalten Sie
+es ein (auf Wunsch mit Beginn und Ende): Nur solange es eingeschaltet und offen ist, zeigt die Startseite *Zum ersten Mal
+registrieren*, und die alte Adresse `/register` leitet dorthin weiter; sonst steht dort, dass die Registrierung derzeit nicht
+möglich ist.
+
+**Startseite.** *Auf der Startseite zeigen* führt ein Formular dort an (solange es eingeschaltet und offen ist), unter den
+öffentlichen Veranstaltungen.
 
 Nichts passiert, bevor der Link in der Mail geöffnet **und** mit der Schaltfläche bestätigt wurde (3 Tage gültig). Bekannte Personen
 werden an Adresse **und** Name erkannt; ihre Daten werden nie überschrieben. Die Seite zeigt nie, ob eine Adresse bekannt ist.

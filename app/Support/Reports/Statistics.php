@@ -2,6 +2,7 @@
 
 namespace App\Support\Reports;
 
+use App\Support\Lists\ListTable;
 use App\Models\Event;
 use App\Models\EventSeries;
 use App\Models\Invoice;
@@ -58,11 +59,68 @@ class Statistics
      */
     public function ageGroups(Event $event, int $count, array $roles = []): array
     {
-        $count = max(2, min(8, $count));
         $reference = $event->ageReferenceDate();
-        /** @var list<Person> $people */
-        $people = $this->participants($event, $roles)->map(fn (Participation $p) => $p->person)->filter(fn (?Person $p) => $p?->birth_date !== null)
-            ->sortByDesc(fn (?Person $p) => $p?->birth_date?->timestamp)->values()->all();
+        $groups = [];
+        foreach ($this->ageGroupSlices($event, $count, $roles) as $slice) {
+            $people = array_map(fn (Participation $p) => $p->person, $slice);
+            $first = $people[0];
+            $last = $people[count($people) - 1];
+            $groups[] = [
+                'from' => $last?->birth_date?->toDateString(), 'to' => $first?->birth_date?->toDateString(),
+                'min_age' => $first?->ageAt($reference), 'max_age' => $last?->ageAt($reference),
+                'size' => count($people), 'names' => array_map(fn (?Person $p) => (string) $p?->fullName(), $people),
+            ];
+        }
+
+        return $groups;
+    }
+
+    /** Fields of a person the export of the age groups can hold; nothing confidential. */
+    public const AGE_GROUP_FIELDS = ['group', 'first_name', 'last_name', 'age', 'birth_date', 'gender', 'role'];
+
+    /**
+     * The members of the age groups as a list for XLSX, CSV and PDF (AD63): one row per person with the chosen
+     * fields, in the order of the groups (youngest first).
+     *
+     * @param  list<string>  $roles
+     * @param  list<string>  $fields  out of AGE_GROUP_FIELDS; unknown ones are ignored, none = all
+     */
+    public function ageGroupList(Event $event, int $count, array $roles = [], array $fields = []): ListTable
+    {
+        $fields = array_values(array_intersect(self::AGE_GROUP_FIELDS, $fields)) ?: self::AGE_GROUP_FIELDS;
+        $reference = $event->ageReferenceDate();
+        $rows = [];
+        foreach ($this->ageGroupSlices($event, $count, $roles) as $i => $slice) {
+            foreach ($slice as $participation) {
+                $person = $participation->person;
+                if ($person === null) {
+                    continue;
+                }
+                $values = [
+                    'group' => __('reports.group').' '.($i + 1),
+                    'first_name' => $person->first_name, 'last_name' => $person->last_name,
+                    'age' => (string) ($person->ageAt($reference) ?? ''),
+                    'birth_date' => (string) $person->birth_date?->isoFormat('L'),
+                    'gender' => $person->getAttribute('gender') ? (string) __('admin.genders.'.$person->getAttribute('gender')) : '',
+                    'role' => (string) __('events.roles.'.$participation->role_key),
+                ];
+                $rows[] = array_map(fn (string $field) => (string) $values[$field], $fields);
+            }
+        }
+
+        return new ListTable(__('reports.age_groups'), array_map(fn (string $field) => (string) __('reports.fields.'.$field), $fields), $rows);
+    }
+
+    /**
+     * @param  list<string>  $roles
+     * @return list<list<Participation>> the groups, youngest first; people without a date of birth are left out
+     */
+    private function ageGroupSlices(Event $event, int $count, array $roles): array
+    {
+        $count = max(2, min(8, $count));
+        /** @var list<Participation> $people */
+        $people = $this->participants($event, $roles)->filter(fn (Participation $p) => $p->person?->birth_date !== null)
+            ->sortBy(fn (Participation $p) => [-1 * (int) $p->person?->birth_date?->timestamp, $p->person?->last_name, $p->person?->first_name])->values()->all();
         $total = count($people);
         $groups = [];
         $start = 0;
@@ -70,18 +128,12 @@ class Statistics
             $size = intdiv($total - $start + ($count - $i) - 1, $count - $i); // spread the remainder over the first groups
             $slice = array_slice($people, $start, $size);
             // Keep children born on the same day in one group.
-            while ($start + $size < $total && $people[$start + $size]->birth_date?->toDateString() === $slice[count($slice) - 1]->birth_date?->toDateString()) {
+            while ($start + $size < $total && $people[$start + $size]->person?->birth_date?->toDateString() === $slice[count($slice) - 1]->person?->birth_date?->toDateString()) {
                 $slice[] = $people[$start + $size];
                 $size++;
             }
             $start += $size;
-            $first = $slice[0];
-            $last = $slice[count($slice) - 1];
-            $groups[] = [
-                'from' => $last->birth_date?->toDateString(), 'to' => $first->birth_date?->toDateString(),
-                'min_age' => $first->ageAt($reference), 'max_age' => $last->ageAt($reference),
-                'size' => count($slice), 'names' => array_map(fn (Person $p) => $p->fullName(), $slice),
-            ];
+            $groups[] = $slice;
         }
 
         return $groups;

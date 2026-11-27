@@ -37,6 +37,27 @@
                 <label class="text-sm">{{ __('reports.group_count') }}
                     <select wire:model.live="groups" class="rounded-lg border-gray-300 dark:bg-white/5">@foreach ([2, 3, 4, 5] as $n)<option value="{{ $n }}">{{ $n }}</option>@endforeach</select>
                 </label>
+                @if ($mayExport && $ageGroups !== [])
+                    {{-- Export of the members of the groups: choose the fields, then the format. --}}
+                    <details class="kasmin-export text-sm" style="display:inline-block;position:relative;vertical-align:middle;margin-left:.5rem" data-age-group-export wire:key="export-{{ $model->id }}-{{ $groups }}-{{ $role }}">
+                        <summary style="display:inline-flex;align-items:center;gap:.35rem;cursor:pointer;list-style:none;border:1px solid rgba(128,128,128,.45);border-radius:.5rem;padding:.35rem .7rem;font-weight:600">{{ __('reports.export') }}</summary>
+                        <form method="get" action="{{ route('admin.reports.age-groups', ['event' => $model->id, 'format' => 'xlsx']) }}" target="_blank" class="rounded-lg bg-white dark:bg-gray-900" style="position:absolute;z-index:20;left:0;top:2.4rem;width:min(19rem,82vw);padding:.8rem;border:1px solid rgba(128,128,128,.45);box-shadow:0 6px 18px rgba(0,0,0,.18)">
+                            <input type="hidden" name="groups" value="{{ $groups }}">
+                            @if ($role !== '')<input type="hidden" name="role" value="{{ $role }}">@endif
+                            <p class="font-medium" style="margin-bottom:.35rem">{{ __('reports.export_fields') }}</p>
+                            @foreach ($exportFields as $field)
+                                <label style="display:flex;align-items:center;gap:.5rem;padding:.2rem 0"><input type="checkbox" name="fields[]" value="{{ $field }}" checked> {{ __('reports.fields.'.$field) }}</label>
+                            @endforeach
+                            <p class="font-medium" style="margin:.6rem 0 .35rem">{{ __('reports.export_as') }}</p>
+                            <div style="display:flex;flex-wrap:wrap;gap:.4rem">
+                                @foreach (['xlsx' => 'Excel', 'csv' => 'CSV', 'pdf' => 'PDF'] as $format => $label)
+                                    <button type="submit" formaction="{{ route('admin.reports.age-groups', ['event' => $model->id, 'format' => $format]) }}" data-export-format="{{ $format }}" style="border:1px solid #1da029;color:#14501c;background:#eaf7ec;border-radius:.5rem;padding:.4rem .8rem;font-weight:600">{{ $label }}</button>
+                                @endforeach
+                            </div>
+                            <p class="text-gray-500" style="margin-top:.5rem;font-size:.75rem">{{ __('reports.export_note') }}</p>
+                        </form>
+                    </details>
+                @endif
                 @foreach ($ageGroups as $i => $g)
                     <details class="mt-2 text-sm">
                         <summary><strong>{{ __('reports.group') }} {{ $i + 1 }}</strong>: {{ $g['size'] }} · {{ __('reports.age') }} {{ $g['min_age'] }}–{{ $g['max_age'] }} · {{ __('reports.born') }} {{ $day($g['from']) }} – {{ $day($g['to']) }}</summary>

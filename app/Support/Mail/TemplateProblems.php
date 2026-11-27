@@ -58,8 +58,15 @@ class TemplateProblems
     }
 
     /** Twig's messages for the two most common mistakes, in plain words. */
-    public static function translate(string $message): string
+    public static function translate(string $message, ?string $group = null): string
     {
+        // A placeholder that exists, but not in mails of this group (an invoice number in a mail to everybody).
+        if ($group !== null && preg_match('/on a null variable(?: \("([^"]+)"\))?/', $message, $m) === 1) {
+            $names = __('mail.placeholders.fields');
+            $topic = (string) ($m[1] ?? '');
+
+            return (string) __('mail.problems.not_in_group', ['what' => is_array($names) && isset($names[$topic]) ? $names[$topic] : $topic, 'group' => __('admin.mail.groups.'.$group)]);
+        }
         if (preg_match('/Variable "([^"]+)" does not exist/', $message, $m) === 1) {
             return (string) __('mail.problems.unknown', ['name' => $m[1]]);
         }

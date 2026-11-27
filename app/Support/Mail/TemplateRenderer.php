@@ -60,18 +60,18 @@ class TemplateRenderer
      *
      * @return list<string> error messages, empty when valid
      */
-    public function validate(string $subject, string $html, ?string $text): array
+    public function validate(string $subject, string $html, ?string $text, ?string $group = null): array
     {
         $problems = [...TemplateProblems::find($subject), ...TemplateProblems::find($html), ...TemplateProblems::find((string) $text)];
         if ($problems !== []) {
             return array_values(array_unique($problems));
         }
         try {
-            $this->renderStrings($subject, $html, $text, Placeholders::sample());
+            $this->renderStrings($subject, $html, $text, Placeholders::sample($group));
 
             return [];
         } catch (MailException $e) {
-            return [TemplateProblems::translate($e->getMessage())];
+            return [TemplateProblems::translate($e->getMessage(), $group)];
         }
     }
 

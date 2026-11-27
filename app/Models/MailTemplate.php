@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Casts\OneText;
 use App\Models\Concerns\Auditable;
 use App\Support\Language;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -28,7 +29,51 @@ class MailTemplate extends Model
 
     public const CATEGORIES = ['registration', 'waitlist', 'invoice', 'reminder', 'safety_sheet', 'event_information', 'newsletter', 'notification', 'system'];
 
+    /**
+     * What a mail is about. The group decides which placeholders exist in the template: a mail to everybody knows no
+     * invoice number. Recipient, salutation, family, children, organisation and links exist in every group.
+     */
+    public const GROUPS = ['general', 'event', 'registration', 'invoice', 'membership'];
+
+    /** Placeholders a group has in addition to the general ones. */
+    public const GROUP_FIELDS = ['general' => [], 'event' => ['event'], 'registration' => ['event', 'registration'], 'invoice' => ['invoice', 'event'], 'membership' => ['group']];
+
+    /** The group of the standard templates; it is fixed for them. */
+    public const STANDARD_GROUPS = [
+        'registration_confirmation' => 'registration', 'application_welcome' => 'registration', 'round_offer' => 'registration', 'own_registration_notice' => 'registration',
+        'waitlist_position' => 'registration', 'waitlist_offer' => 'registration', 'cancellation_confirmation' => 'registration', 'offer_expired' => 'registration',
+        'safety_sheet_request' => 'event', 'safety_sheet_confirm' => 'event', 'safety_sheet_thanks' => 'event', 'safety_sheet_reminder' => 'event', 'event_information' => 'event',
+        'invoice' => 'invoice', 'payment_reminder' => 'invoice', 'payment_overdue' => 'invoice', 'payment_confirmation' => 'invoice',
+        'group_place_offer' => 'membership', 'guardianship_ended' => 'general', 'newsletter' => 'general',
+    ];
+
+    /** The group of own templates of older versions, from what was their category. */
+    public const CATEGORY_GROUPS = ['registration' => 'registration', 'waitlist' => 'registration', 'invoice' => 'invoice', 'reminder' => 'event', 'safety_sheet' => 'event', 'event_information' => 'event', 'newsletter' => 'general', 'notification' => 'general', 'system' => 'general'];
+
     protected $guarded = ['id'];
+
+    protected static function booted(): void
+    {
+        static::saving(function (MailTemplate $template): void {
+            $fixed = $template->is_standard ? (self::STANDARD_GROUPS[$template->key] ?? null) : null;
+            $group = $fixed ?? $template->getAttribute('group') ?? self::CATEGORY_GROUPS[$template->category] ?? 'general';
+            $template->setAttribute('group', in_array($group, self::GROUPS, true) ? $group : 'general');
+        });
+    }
+
+    public function groupKey(): string
+    {
+        $group = (string) ($this->getAttribute('group') ?? '');
+
+        return in_array($group, self::GROUPS, true) ? $group : (self::STANDARD_GROUPS[$this->key] ?? self::CATEGORY_GROUPS[$this->category] ?? 'general');
+    }
+
+    /** Templates that can be chosen for a mailing: about nothing (general) or, with an event, about the event. Never mails of the system. */
+    /** @return Builder<MailTemplate> */
+    public static function forMailings(bool $withEvent): Builder
+    {
+        return self::query()->where('active', true)->whereIn('group', $withEvent ? ['general', 'event'] : ['general'])->where('category', '!=', 'system');
+    }
 
     protected $attributes = ['version' => 1, 'audience' => 'guardians', 'active' => true];
 

@@ -7,4 +7,5 @@ return [
     'cost_per_participant' => 'Kosten pro teilnehmender Person (:count)', 'no_costs' => 'Noch keine Kostenpositionen – auf der Seite der Veranstaltung eintragen.',
     'discounts' => 'Ermäßigungen', 'sibling_position' => 'Geschwisterermäßigung, :position. Kind', 'no_sibling' => 'Keine Geschwisterermäßigungen.', 'role_discounts' => 'Rollen-Ermäßigungen',
     'years' => 'Teilnehmende pro Veranstaltung', 'series' => 'Reihe', 'participants' => 'Teilnehmende', 'returning' => 'wiederkehrend', 'new' => 'neu',
+    'returning_hint' => 'Wiederkehrend: war schon bei einer früheren Veranstaltung dieser Reihe dabei – egal in welchem Jahr, nicht nur im Vorjahr. Neu: zum ersten Mal bei dieser Reihe.',
 ];

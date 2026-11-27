@@ -79,7 +79,9 @@
     <x-filament::section :heading="__('reports.years')">
         <div style="overflow-x:auto">
             <table class="w-full text-sm">
-                <thead><tr style="text-align:left"><th class="py-1 pe-4">{{ __('reports.series') }}</th><th class="py-1 pe-4">{{ __('reports.event') }}</th><th class="py-1 ps-4" style="text-align:right">{{ __('reports.participants') }}</th><th class="py-1 ps-4" style="text-align:right">{{ __('reports.returning') }}</th><th class="py-1 ps-4" style="text-align:right">{{ __('reports.new') }}</th></tr></thead>
+                <thead><tr style="text-align:left"><th class="py-1 pe-4">{{ __('reports.series') }}</th><th class="py-1 pe-4">{{ __('reports.event') }}</th><th class="py-1 ps-4" style="text-align:right">{{ __('reports.participants') }}</th><th class="py-1 ps-4" style="text-align:right">{{ __('reports.returning') }}
+                    {{-- Explains the word on hover (and on focus or tap, as a phone has no hover). Not a link, not a button. --}}
+                    <span class="kasmin-hint" tabindex="0" role="note" data-hint="returning" aria-label="{{ __('reports.returning_hint') }}">?<span class="kasmin-hint-text" aria-hidden="true">{{ __('reports.returning_hint') }}</span></span></th><th class="py-1 ps-4" style="text-align:right">{{ __('reports.new') }}</th></tr></thead>
                 <tbody>
                 @forelse ($years as $y)
                     <tr class="border-t border-gray-200 dark:border-white/10"><td class="py-1 pe-4">{{ $y['series'] }}</td><td class="py-1 pe-4">{{ $y['title'] }}</td><td class="py-1 ps-4" style="text-align:right">{{ $y['participants'] }}</td><td class="py-1 ps-4" style="text-align:right">{{ $y['returning'] }}</td><td class="py-1 ps-4" style="text-align:right">{{ $y['new'] }}</td></tr>
@@ -90,4 +92,10 @@
             </table>
         </div>
     </x-filament::section>
+    <style>
+        .kasmin-hint{position:relative;display:inline-flex;align-items:center;justify-content:center;width:1.15rem;height:1.15rem;border-radius:999px;border:1px solid currentColor;font-size:.75rem;font-weight:600;cursor:help;opacity:.75;vertical-align:middle;user-select:none}
+        .kasmin-hint-text{display:none;position:absolute;right:0;top:1.5rem;z-index:20;width:min(20rem,75vw);padding:.6rem .75rem;border-radius:.5rem;background:#1f2937;color:#fff;font-weight:400;font-size:.8rem;line-height:1.35;text-align:left;white-space:normal;box-shadow:0 4px 12px rgba(0,0,0,.25)}
+        .kasmin-hint:hover .kasmin-hint-text,.kasmin-hint:focus .kasmin-hint-text{display:block}
+        .kasmin-hint:focus{outline:2px solid #1da029;outline-offset:2px}
+    </style>
 </x-filament-panels::page>

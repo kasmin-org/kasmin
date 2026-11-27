@@ -39,9 +39,9 @@
                 </label>
                 @if ($mayExport && $ageGroups !== [])
                     {{-- Export of the members of the groups: choose the fields, then the format. --}}
-                    <details class="kasmin-export text-sm" style="display:inline-block;position:relative;vertical-align:middle;margin-left:.5rem" data-age-group-export wire:key="export-{{ $model->id }}-{{ $groups }}-{{ $role }}">
+                    <details class="kasmin-export text-sm" style="display:inline-block;vertical-align:middle;margin-left:.5rem;max-width:100%" data-age-group-export wire:key="export-{{ $model->id }}-{{ $groups }}-{{ $role }}">
                         <summary style="display:inline-flex;align-items:center;gap:.35rem;cursor:pointer;list-style:none;border:1px solid rgba(128,128,128,.45);border-radius:.5rem;padding:.35rem .7rem;font-weight:600">{{ __('reports.export') }}</summary>
-                        <form method="get" action="{{ route('admin.reports.age-groups', ['event' => $model->id, 'format' => 'xlsx']) }}" target="_blank" class="rounded-lg bg-white dark:bg-gray-900" style="position:absolute;z-index:20;left:0;top:2.4rem;width:min(19rem,82vw);padding:.8rem;border:1px solid rgba(128,128,128,.45);box-shadow:0 6px 18px rgba(0,0,0,.18)">
+                        <form method="get" action="{{ route('admin.reports.age-groups', ['event' => $model->id, 'format' => 'xlsx']) }}" target="_blank" class="kasmin-export-panel" style="margin-top:.5rem;max-width:22rem;padding:.8rem;border:1px solid rgba(128,128,128,.45);border-radius:.5rem">
                             <input type="hidden" name="groups" value="{{ $groups }}">
                             @if ($role !== '')<input type="hidden" name="role" value="{{ $role }}">@endif
                             <p class="font-medium" style="margin-bottom:.35rem">{{ __('reports.export_fields') }}</p>
@@ -114,6 +114,7 @@
         </div>
     </x-filament::section>
     <style>
+        details.kasmin-export[open]{display:block;margin-left:0;margin-top:.5rem}
         .kasmin-hint{position:relative;display:inline-flex;align-items:center;justify-content:center;width:1.15rem;height:1.15rem;border-radius:999px;border:1px solid currentColor;font-size:.75rem;font-weight:600;cursor:help;opacity:.75;vertical-align:middle;user-select:none}
         .kasmin-hint-text{display:none;position:absolute;right:0;top:1.5rem;z-index:20;width:min(20rem,75vw);padding:.6rem .75rem;border-radius:.5rem;background:#1f2937;color:#fff;font-weight:400;font-size:.8rem;line-height:1.35;text-align:left;white-space:normal;box-shadow:0 4px 12px rgba(0,0,0,.25)}
         .kasmin-hint:hover .kasmin-hint-text,.kasmin-hint:focus .kasmin-hint-text{display:block}

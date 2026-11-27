@@ -82,6 +82,7 @@ characters). The token is sent as `Authorization: Bearer <token>`; services that
 | Hook | Purpose |
 |---|---|
 | `POST /system/hooks/upgrade` | Runs the upgrade (`kasmin:upgrade`, with backup) – call it after uploading a new release |
+| `POST /system/hooks/update` | The installation updates itself, like *Update* on the system page: downloads and verifies the release, backs up, replaces the files. `version=1.2.3` names the version, without it the latest one. The answer (JSON) holds `finish`: call this address next, it updates the database with the new files. `updated: false` means there was nothing newer. Not in Docker. |
 | `GET or POST /system/cron` | Runs the scheduler once (mail queue, automations, reminders) – call it every few minutes from the hosting's cron job function |
 | `POST /system/hooks/demo` | Demo instances only (`APP_ENV=demo`): installs Kasmin with fictitious demo data if the database is empty |
 
@@ -96,3 +97,6 @@ Demo instances use `APP_ENV=demo` and these settings:
 | `KASMIN_DEMO_LOCALE` | `de` or `en`: language of the demo data and the default content |
 | `KASMIN_DEMO_ADMIN_EMAIL` | address of the first administrator |
 | `KASMIN_DEMO_EMAIL_DOMAIN` | domain of the fictitious people's e-mail addresses – with a catch-all mailbox for this domain, all login links of the demo can be read there |
+
+Demo instances update themselves: the release pipeline calls `POST /system/hooks/update` and checks the result, and
+their automatic update is set to **one day** after a release, so they also follow without the pipeline.

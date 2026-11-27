@@ -6,6 +6,7 @@ use App\Models\ContactPoint;
 use App\Models\Household;
 use App\Models\MailTemplate;
 use App\Models\User;
+use App\Support\Settings;
 use Illuminate\Foundation\Testing\RefreshDatabaseState;
 use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
@@ -51,7 +52,10 @@ class HookTest extends TestCase
         $this->assertTrue(Household::query()->where('name', 'like', 'Familie %')->exists());
         $this->assertSame(0, ContactPoint::query()->where('type', 'email')->where('value', 'not like', '%demo.example.org')->count());
 
+        $this->assertSame('1', Settings::get('auto_update_days'), 'demos follow a release after one day');
+        Settings::set('auto_update_days', '10');
         $this->postJson('/system/hooks/demo', [], $headers)->assertOk()->assertJson(['installed' => false]);
+        $this->assertSame('1', Settings::get('auto_update_days'));
         $admin = User::query()->where('email', 'admin@demo.example.org')->value('id');
         User::query()->whereKey($admin)->update(['name' => 'Changed']);
         config(['cache.default' => 'database']); // as on shared hosting: the cache table is deleted with everything else

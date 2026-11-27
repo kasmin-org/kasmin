@@ -4,11 +4,15 @@ namespace App\Support\System;
 
 use App\Support\Backup\DatabaseBackup;
 use App\Support\Install\Requirements;
+use FilesystemIterator;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
 use RuntimeException;
+use SplFileInfo;
 use Throwable;
 use ZipArchive;
 
@@ -36,9 +40,9 @@ class Updater
     /**
      * @return array{release: ?array<string, mixed>, checks: list<array{label: string, ok: bool}>, passes: bool}
      */
-    public function precheck(): array
+    public function precheck(?string $version = null): array
     {
-        $release = $this->releases->latest();
+        $release = $version === null ? $this->releases->latest() : $this->releases->find($version);
         $target = $this->targetRequirements($release);
         $checks = [];
         $checks[] = ['label' => 'PHP '.PHP_VERSION.' >= '.$target['php'], 'ok' => version_compare(PHP_VERSION, $target['php'], '>=')];
@@ -61,22 +65,28 @@ class Updater
     }
 
     /**
-     * Downloads, verifies and installs the files of the latest release. Returns the URL that finishes the update
-     * (database migrations) in a new request.
+     * Downloads, verifies and installs the files of a release – the latest one, or the version that was chosen (any
+     * newer one; versions in between need not be installed first). Returns the URL that finishes the update (database
+     * migrations) in a new request.
      */
-    public function run(): string
+    public function run(?string $version = null): string
     {
         @set_time_limit(600);
-        $pre = $this->precheck();
+        Requirements::moreMemory(); // where the server allows it; the update also fits into 128 MB
+        $pre = $this->precheck($version);
         if (! $pre['passes'] || $pre['release'] === null) {
             throw new RuntimeException((string) __('system.update.precheck_failed'));
         }
         $release = $pre['release'];
+        if (! version_compare((string) $release['version'], (string) preg_replace('/[-+].*$/', '', (string) config('kasmin.version')), '>')) {
+            throw new RuntimeException((string) __('system.update.up_to_date')); // Kasmin only goes forward
+        }
         $dir = storage_path('app/updates');
         File::ensureDirectoryExists($dir, 0700);
 
         $zip = $dir.'/kasmin-'.$release['tag'].'.zip';
-        File::put($zip, Http::timeout(300)->withHeaders(['User-Agent' => 'kasmin'])->get((string) $release['zip'])->throw()->body());
+        // Written to the file while it arrives: the package is larger than the memory PHP may use on many servers.
+        Http::timeout(300)->withHeaders(['User-Agent' => 'kasmin'])->sink($zip)->get((string) $release['zip'])->throw();
         $expected = strtolower((string) strtok(trim(Http::timeout(30)->withHeaders(['User-Agent' => 'kasmin'])->get((string) $release['sha256'])->throw()->body()), " \t"));
         if (! hash_equals($expected, (string) hash_file('sha256', $zip))) {
             @unlink($zip);
@@ -179,8 +189,12 @@ class Updater
             if (is_file($full)) {
                 $zip->addFile($full, $path);
             } elseif (is_dir($full)) {
-                foreach (File::allFiles($full, true) as $f) {
-                    $zip->addFile($f->getPathname(), $path.'/'.$f->getRelativePathname());
+                // One file at a time – a list of all files (tens of thousands) would not fit into 128 MB.
+                $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($full, FilesystemIterator::SKIP_DOTS));
+                foreach ($files as $f) {
+                    if ($f instanceof SplFileInfo && $f->isFile()) {
+                        $zip->addFile($f->getPathname(), $path.'/'.ltrim(str_replace('\\', '/', substr($f->getPathname(), strlen($full))), '/'));
+                    }
                 }
             }
         }

@@ -83,6 +83,7 @@ Zeichen). Das Token wird als `Authorization: Bearer <token>` gesendet; Dienste, 
 |---|---|
 | `POST /system/hooks/upgrade` | Führt das Upgrade aus (`kasmin:upgrade`, mit Datensicherung) – rufen Sie ihn auf, nachdem Sie eine neue Version hochgeladen haben |
 | `GET or POST /system/cron` | Führt den Scheduler einmal aus (Mail-Warteschlange, Automatisierungen, Erinnerungen) – rufen Sie ihn alle paar Minuten über die Cronjob-Funktion des Hostings auf |
+| `POST /system/hooks/update` | Die Installation aktualisiert sich selbst, wie *Aktualisieren* auf der Systemseite: lädt die Version herunter und prüft sie, sichert, ersetzt die Dateien. `version=1.2.3` nennt die Version, ohne Angabe die neueste. Die Antwort (JSON) enthält `finish`: Rufen Sie diese Adresse als Nächstes auf, sie aktualisiert die Datenbank mit den neuen Dateien. `updated: false` heißt, es gab nichts Neueres. Nicht in Docker. |
 | `POST /system/hooks/demo` | Nur Demo-Instanzen (`APP_ENV=demo`): installiert Kasmin mit erfundenen Demodaten, wenn die Datenbank leer ist |
 
 Verwenden Sie nur HTTPS. Ein falsches oder fehlendes Token ergibt die Antwort „404 Not Found“. So lassen sich die Hooks nicht entdecken.
@@ -96,3 +97,6 @@ Demo-Instanzen verwenden `APP_ENV=demo` und diese Einstellungen:
 | `KASMIN_DEMO_LOCALE` | `de` oder `en`: Sprache der Demodaten und der Standardinhalte |
 | `KASMIN_DEMO_ADMIN_EMAIL` | Adresse der ersten Person mit Administrationsrechten |
 | `KASMIN_DEMO_EMAIL_DOMAIN` | Domain der E-Mail-Adressen der erfundenen Personen – mit einem Sammelpostfach (Catch-all) für diese Domain lassen sich dort alle Anmeldelinks der Demo lesen |
+
+Demo-Instanzen aktualisieren sich selbst: Die Release-Pipeline ruft `POST /system/hooks/update` auf und prüft das Ergebnis, und
+ihre automatische Aktualisierung steht auf **einen Tag** nach einer Veröffentlichung, sodass sie auch ohne Pipeline nachziehen.

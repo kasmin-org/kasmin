@@ -52,8 +52,11 @@ after login until they are dismissed and are sent **once** by e-mail:
 
 ## Updating
 
-On ordinary web hosting any administrator can update Kasmin on the system page: *Check for updates* checks the
-requirements of the new version (PHP version, extensions, functions, write permissions, disk space). *Update now*
+On ordinary web hosting any administrator can update Kasmin on the system page. *Check for updates* lists **every
+newer version** – if there are several, choose the one to update to (the newest is chosen to begin with; versions in
+between need not be installed first, and an older version cannot be installed again). Below the choice the page shows
+**everything that changes** between the installed and the chosen version, taken from the changelog, and the
+requirements of that version (PHP version, extensions, functions, write permissions, disk space). *Update to … now*
 downloads the package and verifies its checksum, backs up the database and the program files, replaces the files
 (restoring the old ones if anything fails) and then updates the database in a second step.
 

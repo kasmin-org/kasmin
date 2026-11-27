@@ -28,6 +28,8 @@ return [
         'checksum' => 'Checksum mismatch – the package was not installed.', 'rolled_back' => 'Error while replacing the files, previous state restored: :error',
         'docker' => 'This installation runs in Docker. Please update the container image (e.g. ghcr.io/kasmin-org/kasmin:latest) instead of updating inside the running container.',
         'done' => 'Kasmin :version is installed.', 'back' => 'Back to the system status',
+        'newest' => 'newest', 'choose' => 'A newer version is available|:count newer versions are available – update to', 'choose_hint' => 'You can go straight to any of them; the versions in between need not be installed first. Kasmin only goes forward – an older version cannot be installed again.',
+        'changes' => 'What changes from :from to :to', 'changes_missing' => 'The list of changes could not be loaded.', 'requirements' => 'Requirements of :version', 'requirements_ok' => 'all met', 'requirements_failed' => 'not met',
     ],
     'schema' => [
         'title' => [

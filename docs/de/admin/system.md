@@ -52,8 +52,11 @@ bis sie ausgeblendet werden, und werden **einmal** per E-Mail gesendet:
 
 ## Aktualisieren
 
-Auf gewöhnlichem Webhosting kann jede Administratorin und jeder Administrator Kasmin auf der Systemseite aktualisieren: *Auf Aktualisierung prüfen* prüft die
-Voraussetzungen der neuen Version (PHP-Version, Erweiterungen, Funktionen, Schreibrechte, Speicherplatz). *Jetzt auf … aktualisieren*
+Auf gewöhnlichem Webhosting kann jede Administratorin und jeder Administrator Kasmin auf der Systemseite aktualisieren. *Auf Aktualisierung prüfen* listet **jede
+neuere Version** auf – gibt es mehrere, wählen Sie, auf welche aktualisiert wird (zu Beginn ist die neueste gewählt; die Versionen
+dazwischen müssen nicht zuerst installiert werden, und eine ältere Version lässt sich nicht wieder installieren). Unter der Auswahl zeigt die Seite
+**alles, was sich** zwischen der installierten und der gewählten Version **ändert**, aus dem Changelog, sowie die
+Voraussetzungen dieser Version (PHP-Version, Erweiterungen, Funktionen, Schreibrechte, Speicherplatz). *Jetzt auf … aktualisieren*
 lädt das Paket herunter und prüft seine Prüfsumme, sichert die Datenbank und die Programmdateien, ersetzt die Dateien
 (und stellt die alten wieder her, wenn etwas fehlschlägt) und aktualisiert dann in einem zweiten Schritt die Datenbank.
 

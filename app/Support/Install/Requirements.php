@@ -68,7 +68,8 @@ class Requirements
     {
         $limit = self::memoryLimitMb();
 
-        return $limit === null || $limit >= $mb || @ini_set('memory_limit', $mb.'M') !== false;
+        // Some hosters switch ini_set() off; calling it then would be an error, not a refusal.
+        return $limit === null || $limit >= $mb || (function_exists('ini_set') && @ini_set('memory_limit', $mb.'M') !== false);
     }
 
     /**

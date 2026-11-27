@@ -143,30 +143,7 @@ class AutoUpdate
     /** Section of the version in CHANGELOG.md, as simple HTML. */
     public static function changes(string $version): string
     {
-        $changelog = is_file(base_path('CHANGELOG.md')) ? (string) file_get_contents(base_path('CHANGELOG.md')) : '';
-        if (preg_match('/^## \['.preg_quote($version, '/').'\][^\n]*\n(.*?)(?=^## \[|\z)/ms', $changelog, $m) !== 1) {
-            return '';
-        }
-        $html = '';
-        $list = false;
-        foreach (explode("\n", trim($m[1])) as $line) {
-            $line = trim($line);
-            $item = str_starts_with($line, '- ');
-            if ($list && ! $item) {
-                $html .= '</ul>';
-                $list = false;
-            }
-            if ($item) {
-                $html .= ($list ? '' : '<ul>').'<li>'.e(substr($line, 2)).'</li>';
-                $list = true;
-            } elseif (str_starts_with($line, '### ')) {
-                $html .= '<h3>'.e(substr($line, 4)).'</h3>';
-            } elseif ($line !== '') {
-                $html .= '<p>'.e($line).'</p>';
-            }
-        }
-
-        return $html.($list ? '</ul>' : '');
+        return Changelog::of(is_file(base_path('CHANGELOG.md')) ? (string) file_get_contents(base_path('CHANGELOG.md')) : '', $version);
     }
 
     private function inWindow(): bool

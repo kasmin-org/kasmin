@@ -44,8 +44,10 @@ class Closing
         $inKeys = [];
         foreach ($centers->where('carries', false) as $source) {
             $cost = -($results[$source->id] ?? 0);
-            $rules = $period->allocationRules()->where('source_cost_center_id', $source->id)->get()
-                ->map(fn ($r) => ['target' => (int) $r->target_cost_center_id, 'kind' => (string) $r->kind, 'value' => (int) $r->value])->all();
+            $rules = [];
+            foreach ($period->allocationRules()->where('source_cost_center_id', $source->id)->get() as $r) {
+                $rules[] = ['target' => (int) $r->target_cost_center_id, 'kind' => (string) $r->kind, 'value' => (int) $r->value];
+            }
             $result = Allocation::compute($cost, $rules, $income);
             foreach ($result['errors'] as $error) {
                 if ($cost !== 0 || $error !== 'allocation.no_key') {
@@ -86,7 +88,7 @@ class Closing
             $rows[] = ['cost_center' => $center, 'before' => $before, 'allocation' => $allocated[$id] ?? 0, 'after' => $after];
             if ($center->carries) {
                 $fund = $center->resultFund();
-                $fundResults[$fund?->id ?? 0] = ($fundResults[$fund?->id ?? 0] ?? 0) + $after;
+                $fundResults[$fund->id ?? 0] = ($fundResults[$fund->id ?? 0] ?? 0) + $after;
             }
         }
         $funds = [];
@@ -108,7 +110,11 @@ class Closing
         return ['rows' => $rows, 'allocations' => $allocations, 'funds' => $funds, 'errors' => array_values(array_unique($errors)), 'warnings' => $warnings];
     }
 
-    /** Books the allocations and the closing and locks the period. */
+    /**
+     * Books the allocations and the closing and locks the period.
+     *
+     * @return array<string, mixed> the preview it followed
+     */
     public function close(Period $period): array
     {
         $preview = $this->preview($period);

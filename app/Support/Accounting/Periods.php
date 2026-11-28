@@ -28,7 +28,7 @@ class Periods
         }
         $last = Period::query()->orderByDesc('ends_on')->first();
         $first = Period::query()->orderBy('starts_on')->first();
-        if ($last !== null && ! $start->equalTo($last->ends_on->copy()->addDay()) && ! $end->equalTo($first?->starts_on->copy()->subDay())) {
+        if ($last !== null && $first !== null && ! $start->equalTo($last->ends_on->copy()->addDay()) && ! $end->equalTo($first->starts_on->copy()->subDay())) {
             throw AccountingException::because('period_gap', ['date' => $last->ends_on->copy()->addDay()->isoFormat('L')]);
         }
 
@@ -38,7 +38,7 @@ class Periods
             // The active cost centres and the keys of the period before (as they were set, not as cut at the closing).
             $active = $previous?->costCenters()->pluck('cost_centers.id')->all() ?? CostCenter::query()->pluck('id')->all();
             $period->costCenters()->sync(array_values(array_unique([...$active, CostCenter::default()->id])));
-            foreach ($previous?->allocationRules ?? [] as $rule) {
+            foreach ($previous === null ? [] : $previous->allocationRules as $rule) {
                 AllocationRule::query()->create(['period_id' => $period->id] + $rule->only(['source_cost_center_id', 'target_cost_center_id', 'kind', 'value']));
             }
             Audit::record('period.created', $period);
@@ -126,7 +126,11 @@ class Periods
         return Period::query()->where('starts_on', '>=', $period->starts_on)->where('status', 'closed')->orderBy('starts_on')->get();
     }
 
-    /** Reopens the period and all later closed ones; their closing bookings are removed (E1f.6, E1g). */
+    /**
+     * Reopens the period and all later closed ones; their closing bookings are removed (E1f.6, E1g).
+     *
+     * @return Collection<int, Period>
+     */
     public function reopen(Period $period, string $reason): Collection
     {
         $periods = $this->reopening($period);

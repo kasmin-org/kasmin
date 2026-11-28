@@ -79,7 +79,7 @@ class JournalTest extends TestCase
         // Typed-in bookings need an existing period; documents make the next one (but not years ahead).
         $this->assertNull(Period::of('2028-01-02'));
         $this->assertNotNull($this->periods->ensureFor('2028-01-02'));
-        $this->assertSame('2028', Period::of('2028-01-02')?->name);
+        $this->assertSame('2028', Period::query()->whereDate('starts_on', '2028-01-01')->value('name'));
         $this->assertNull($this->periods->ensureFor('2035-01-01'));
         $second = $this->book('2028-01-02', ['bank' => 700, 'donations' => -700]);
         $this->assertSame([1, 2], [$first->number, $second->number]);

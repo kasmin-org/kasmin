@@ -78,10 +78,17 @@ class Balances
      */
     public function resultLines(Period $period): array
     {
-        return $this->lines($period->starts_on, $period->ends_on, false)
+        $rows = [];
+        $grouped = $this->lines($period->starts_on, $period->ends_on, false)
             ->whereHas('account', fn ($q) => $q->whereIn('type', ['income', 'expense']))
-            ->selectRaw('account_id, cost_center_id, SUM(credit_cents) - SUM(debit_cents) AS balance')->groupBy('account_id', 'cost_center_id')->get()
-            ->map(fn ($r) => ['account_id' => (int) $r->getAttribute('account_id'), 'cost_center_id' => (int) $r->getAttribute('cost_center_id'), 'balance' => (int) $r->getAttribute('balance')])
-            ->filter(fn (array $r) => $r['balance'] !== 0)->values()->all();
+            ->selectRaw('account_id, cost_center_id, SUM(credit_cents) - SUM(debit_cents) AS balance')->groupBy('account_id', 'cost_center_id')->get();
+        foreach ($grouped as $r) {
+            $balance = (int) $r->getAttribute('balance');
+            if ($balance !== 0) {
+                $rows[] = ['account_id' => (int) $r->getAttribute('account_id'), 'cost_center_id' => (int) $r->getAttribute('cost_center_id'), 'balance' => $balance];
+            }
+        }
+
+        return $rows;
     }
 }

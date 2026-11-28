@@ -24,6 +24,12 @@ class AllocationRule extends Model
 
     protected $guarded = ['id'];
 
+    /** @return BelongsTo<Period, $this> */
+    public function period(): BelongsTo
+    {
+        return $this->belongsTo(Period::class);
+    }
+
     /** @return BelongsTo<CostCenter, $this> */
     public function source(): BelongsTo
     {

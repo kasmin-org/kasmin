@@ -5,6 +5,7 @@ namespace App\Support\Install;
 use App\Models\MembershipType;
 use App\Models\PublicForm;
 use App\Models\Role;
+use App\Support\Accounting\AccountingDefaults;
 use App\Support\Language;
 use App\Support\Settings;
 use Illuminate\Support\Facades\DB;
@@ -89,6 +90,9 @@ class Defaults
     {
         $this->installRoles();
         $this->installSignUpForm();
+        // The chart of accounts was made by the migration before the language was chosen.
+        AccountingDefaults::install();
+        AccountingDefaults::rename();
         if ($defaults === 'none') {
             return;
         }

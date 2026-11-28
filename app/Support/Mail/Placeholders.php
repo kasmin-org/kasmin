@@ -3,6 +3,7 @@
 namespace App\Support\Mail;
 
 use App\Models\Event;
+use App\Models\Form;
 use App\Models\FormField;
 use App\Models\Group;
 use App\Models\Household;
@@ -80,6 +81,25 @@ class Placeholders
         return $sample;
     }
 
+    /**
+     * The questions of the events that a mail can name (B8): the fields of the forms with questions that are not
+     * confidential, by their internal key, with their label. A field of several forms with the same key is listed once.
+     *
+     * @return array<string, string> key => label
+     */
+    public static function answerFields(): array
+    {
+        $fields = [];
+        $forms = Form::query()->where('kind', 'registration')->where('active', true)->with('fields')->orderBy('sort')->orderBy('id')->get();
+        foreach ($forms as $form) {
+            foreach ($form->fields->reject(fn (FormField $f) => $f->isConfidential()) as $field) {
+                $fields[$field->key] ??= $field->labelText();
+            }
+        }
+
+        return $fields;
+    }
+
     /** @return array<string, mixed> */
     private static function fullSample(): array
     {
@@ -91,7 +111,7 @@ class Placeholders
             'organisation' => ['name' => 'Example Camp'],
             'group' => ['name' => 'Junior team', 'offer_until' => '01.06.2027'],
             'event' => ['title' => 'Summer camp', 'starts_at' => '15.08.2027', 'ends_at' => '22.08.2027', 'location' => 'Example place', 'meeting_point' => 'Station'],
-            'registration' => ['status' => 'Waitlist', 'waitlist_position' => 3, 'waitlist_total' => 9, 'child' => 'Kim Example', 'answers' => [], 'by_payment' => false, 'offer_until' => '20.03.2027 23:59'],
+            'registration' => ['status' => 'Waitlist', 'waitlist_position' => 3, 'waitlist_total' => 9, 'child' => 'Kim Example', 'answers' => array_map(fn (string $label) => '['.$label.']', self::answerFields()), 'by_payment' => false, 'offer_until' => '20.03.2027 23:59'],
             'invoice' => ['number' => 'R17', 'total' => '250,00 €', 'open' => '250,00 €', 'paid' => '0,00 €', 'due_on' => '01.06.2027', 'reference' => 'RF72R17', 'iban' => 'AT61 1904 3002 3457 3201', 'overdue' => false, 'children' => 'Kim Example'],
             'links' => ['portal' => 'https://example.org/portal', 'login' => 'https://example.org/login/link/x', 'preferences' => 'https://example.org/mail/preferences'],
         ];

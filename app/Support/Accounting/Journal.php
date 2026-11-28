@@ -19,6 +19,9 @@ use Illuminate\Support\Facades\DB;
  */
 class Journal
 {
+    /** Kinds that people type in: they need an existing period (a typing error must not create periods). */
+    public const TYPED = ['manual', 'fund_transfer', 'opening', 'allocation', 'closing'];
+
     public function __construct(private readonly Periods $periods) {}
 
     /**
@@ -39,7 +42,8 @@ class Journal
         }
 
         return DB::transaction(function () use ($entry, $lines, $kind, $date, $source, $closing) {
-            $period = $kind === 'manual' ? Period::of($date) : $this->periods->ensureFor($date);
+            // Documents may open the next period by themselves; what people type in (bookings, fund transfers) needs one.
+            $period = in_array($kind, self::TYPED, true) ? Period::of($date) : $this->periods->ensureFor($date);
             if ($period === null) {
                 throw AccountingException::because('no_period', ['date' => $date->isoFormat('L')]);
             }
@@ -78,6 +82,7 @@ class Journal
         }
         $original = Period::of($entry->date);
         $date ??= $original !== null && ! $original->isClosed() ? $entry->date : now();
+        $this->periods->ensureFor($date); // a reversal of a closed year is booked today, also if today's period is still missing
         $lines = [];
         foreach ($entry->lines as $l) {
             $lines[] = ['account' => $l->account_id, 'debit' => $l->credit_cents, 'credit' => $l->debit_cents, 'cost_center' => $l->cost_center_id,

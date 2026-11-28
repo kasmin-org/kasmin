@@ -97,9 +97,9 @@ class PeriodResource extends Resource
                     ? trans_choice('accounting.periods.moving', $n = app(Periods::class)->movingEntries($record, Carbon::parse($get('starts_on')), Carbon::parse($get('ends_on')))->count(), ['count' => $n]) : ''),
             ])
             ->action(function (Period $record, array $data) {
-                $record->update(['name' => $data['name']]);
                 $result = CostCenterResource::attempt(fn () => app(Periods::class)->move($record, $data['starts_on'], $data['ends_on']));
                 if ($result !== null) {
+                    $record->update(['name' => $data['name']]); // only when the dates could be changed
                     Notification::make()->title(trans_choice('accounting.periods.moved', $result['moved'], ['count' => $result['moved']]))->success()->send();
                 }
             });

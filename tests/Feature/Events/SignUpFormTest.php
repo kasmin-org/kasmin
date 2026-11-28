@@ -4,6 +4,7 @@ namespace Tests\Feature\Events;
 
 use App\Mail\ConfirmSignUpMail;
 use App\Models\Group;
+use App\Models\Household;
 use App\Models\Person;
 use App\Models\PublicForm;
 use App\Models\SignUp;
@@ -60,6 +61,53 @@ class SignUpFormTest extends TestCase
         $this->post('/register/confirm/'.$token)->assertRedirect();
         $person = Person::query()->where('first_name', 'Robin')->sole();
         $this->assertTrue($person->groups()->whereKey($group->id)->exists());
+    }
+
+    public function test_switching_the_form_off_stops_pending_confirmations(): void
+    {
+        app(Defaults::class)->install('en');
+        Mail::fake();
+        $form = $this->openSignUp();
+        $this->post($form->url(), ['first_name' => 'Robin', 'last_name' => 'Example', 'email' => 'robin@example.org', 'privacy' => '1'])->assertRedirect('/login/code');
+        $token = '';
+        Mail::assertSent(ConfirmSignUpMail::class, function (ConfirmSignUpMail $mail) use (&$token) {
+            $token = (string) preg_replace('#.*/register/confirm/#', '', $mail->url);
+
+            return true;
+        });
+        $form->update(['active' => false]);
+        $this->get('/register/confirm/'.$token)->assertOk()->assertSee(__('public.no_signup_title'));
+        $this->post('/register/confirm/'.$token)->assertOk()->assertSee(__('public.no_signup_title'));
+        $this->assertFalse(User::query()->where('email', 'robin@example.org')->exists());
+
+        // Switched on again within the three days, the same link works.
+        $form->update(['active' => true]);
+        $this->post('/register/confirm/'.$token)->assertRedirect();
+        $this->assertTrue(User::query()->where('email', 'robin@example.org')->exists());
+    }
+
+    public function test_in_the_portal_only_a_family_or_an_open_sign_up_adds_children(): void
+    {
+        app(Defaults::class)->install('en');
+        // E.g. someone who confirmed a "stay informed" form: a login, but no family.
+        $person = Person::factory()->create(['last_name' => 'Stranger']);
+        $user = User::query()->create(['name' => 'Sam Stranger', 'email' => 'sam@example.org', 'password' => 'x', 'person_id' => $person->id]);
+        $child = ['first_name' => 'Kim', 'last_name' => 'Stranger', 'birth_date' => now()->subYears(9)->toDateString(), 'gender' => 'female'];
+
+        $this->actingAs($user)->get('/portal')->assertOk()->assertDontSee(route('portal.child.create'));
+        $this->actingAs($user)->get('/portal/children/new')->assertRedirect('/portal');
+        $this->actingAs($user)->post('/portal/children', $child)->assertForbidden();
+        $this->assertFalse(Household::query()->where('name', 'Stranger')->exists());
+
+        // While signing up is open, adding a child is signing up.
+        $this->openSignUp();
+        $this->actingAs($user)->get('/portal')->assertSee(route('portal.child.create'));
+        $this->actingAs($user)->post('/portal/children', $child)->assertRedirect();
+        $this->assertTrue(Household::query()->where('name', 'Stranger')->exists());
+
+        // With a family of their own, also when it is closed again.
+        PublicForm::query()->where('kind', 'signup')->update(['active' => false]);
+        $this->actingAs($user)->get('/portal/children/new')->assertOk();
     }
 
     public function test_a_closed_sign_up_form_shows_that_and_the_start_page_has_no_button(): void

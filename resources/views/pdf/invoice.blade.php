@@ -53,7 +53,7 @@
     @endif
 </table>
 
-@php($legacy = $invoice->lines->contains(fn ($l) => $l->discount_cents > 0 && $l->discount_label === null))
+@php($legacy = $invoice->showsDiscountsInLine())
 @if ($legacy)
 {{-- Invoices made before discounts were their own position look as they did when they were issued. --}}
 <table class="lines">

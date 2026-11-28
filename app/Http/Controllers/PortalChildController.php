@@ -26,6 +26,7 @@ use App\Support\Mail\Notifier;
 use App\Support\People\Duplicates;
 use App\Support\People\GroupWaitlist;
 use App\Support\People\Guardians;
+use App\Support\People\SignUps;
 use App\Support\Settings;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -40,8 +41,12 @@ class PortalChildController extends Controller
 {
     public function __construct(private readonly Registrations $registrations, private readonly Forms $forms, private readonly RegistrationAnswers $answers) {}
 
-    public function create(): View
+    public function create(Request $request): View|RedirectResponse
     {
+        if (! SignUps::mayAddChildren(PortalPerson::for($request))) {
+            return redirect()->route('portal')->with('status', __('portal.add_child_closed'));
+        }
+
         return view('portal.child-create', ['genderNotes' => Settings::genderNotes()]);
     }
 
@@ -54,6 +59,8 @@ class PortalChildController extends Controller
             'gender' => ['required', 'in:female,male,diverse'], // rooms are planned by gender, so "not specified" is no choice here
         ]);
         $guardian = $this->guardian($request);
+        // Without a family of their own a new family is made, which is signing up: only with a sign-up form on (B16).
+        abort_unless(SignUps::mayAddChildren($guardian), 403);
         $household = $this->household($guardian);
 
         $child = Person::query()->create($data);

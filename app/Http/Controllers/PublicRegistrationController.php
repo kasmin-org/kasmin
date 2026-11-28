@@ -35,7 +35,12 @@ class PublicRegistrationController extends Controller
 
     public function confirmation(string $token): View
     {
-        return $this->signUps->find($token) === null
+        $signUp = $this->signUps->find($token);
+        if ($signUp !== null && ! $this->signUps->stillOpen($signUp)) {
+            return view('public.no-sign-up');
+        }
+
+        return $signUp === null
             ? view('public.confirm-simple', ['title' => __('public.invalid_title'), 'action' => null, 'text' => __('public.invalid')])
             : view('public.confirm-simple', ['title' => __('portal.register_title'), 'action' => route('register.confirm.store', $token), 'text' => null]);
     }
@@ -43,7 +48,7 @@ class PublicRegistrationController extends Controller
     public function confirm(string $token): View|RedirectResponse
     {
         $signUp = $this->signUps->find($token);
-        if ($signUp === null) {
+        if ($signUp === null || ! $this->signUps->stillOpen($signUp)) {
             return $this->confirmation($token);
         }
 

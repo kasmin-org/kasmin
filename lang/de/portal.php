@@ -27,6 +27,7 @@ return [
     'guardians' => 'Erziehungsberechtigte',
     'no_family' => 'Ihrem Konto ist noch keine Familie zugeordnet.',
     'add_child' => 'Kind hinzufügen',
+    'add_child_closed' => 'Eine neue Familie lässt sich derzeit nicht selbst anlegen. Bitte wenden Sie sich an die Organisation.',
     'child_added' => 'Das Kind wurde hinzugefügt.',
     'save' => 'Speichern',
     'registrations' => 'Anmeldungen',

@@ -14,8 +14,9 @@ use Illuminate\Validation\ValidationException;
  * per type. In the REST API and MCP they are addressed by the id or by the exact name; the internal key of older
  * versions is still accepted, without being shown anywhere.
  *
- * A number is always taken as an id. A name matches without regard to upper and lower case and to spaces at the start
- * and end; a name that fits several records is refused with a clear message.
+ * A number is taken as an id first; only when no record has that id, it is looked for as a name. A name matches without
+ * regard to upper and lower case and to spaces at the start and end; a name that fits several records is refused with a
+ * clear message, and so is a text that is the name of one record and exactly the old key of another.
  */
 final class Records
 {
@@ -41,13 +42,19 @@ final class Records
     public static function find(Builder $query, mixed $ref, string $field, string $name = 'name', ?string $key = 'key'): ?Model
     {
         if (is_int($ref) || (is_string($ref) && ctype_digit($ref))) {
-            return (clone $query)->whereKey((int) $ref)->first();
+            return (clone $query)->whereKey((int) $ref)->first() ?? (is_string($ref) ? self::findByName($query, $ref, $field, $name) : null);
         }
         if (! is_string($ref) || trim($ref) === '') {
             return null;
         }
+        $byName = self::findByName($query, $ref, $field, $name);
+        // Old keys are compared exactly (MariaDB and MySQL would also find "Leader" for the key "leader").
+        $byKey = $key === null ? null : (clone $query)->where($key, $ref)->get()->first(fn (Model $model) => $model->getAttribute($key) === $ref);
+        if ($byName !== null && $byKey !== null && ! $byName->is($byKey)) {
+            throw ValidationException::withMessages([$field => ["\"{$ref}\" is the name of one record and the old key of another. Use the id."]]);
+        }
 
-        return self::findByName($query, $ref, $field, $name) ?? ($key === null ? null : (clone $query)->where($key, $ref)->first());
+        return $byName ?? $byKey;
     }
 
     /**

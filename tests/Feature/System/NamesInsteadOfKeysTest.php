@@ -143,7 +143,7 @@ class NamesInsteadOfKeysTest extends TestCase
         $taken = (string) MembershipType::query()->orderBy('id')->firstOrFail()->label();
         Livewire::test(ManageMembershipTypes::class)->callAction('create', data: ['name' => ' '.mb_strtoupper($taken).' ', 'pays_fee' => false])->assertHasActionErrors(['name']);
         Livewire::test(ManageMembershipTypes::class)->callAction('create', data: ['name' => 'Supporter', 'pays_fee' => false])->assertHasNoActionErrors();
-        $this->assertSame('own_supporter', MembershipType::query()->where('name', json_encode('Supporter'))->value('key'));
+        $this->assertSame('own_supporter', MembershipType::query()->orderByDesc('id')->value('key')); // by id: the name is a JSON column on MySQL
 
         $treasurer = Role::query()->where('key', 'treasurer')->firstOrFail();
         Livewire::test(ManageRoles::class)->callTableAction('edit', $treasurer, data: ['name' => Role::query()->where('key', 'board')->firstOrFail()->label(), 'is_admin' => true, 'scope' => 'all'])
@@ -201,6 +201,24 @@ class NamesInsteadOfKeysTest extends TestCase
         $this->withToken($token)->patchJson("/api/v1/people/{$ann->public_id}/forms/".rawurlencode('general INFORMATION'), ['values' => [(string) $field['id'] => 'M']])->assertOk()
             ->assertJsonPath('data.form', $sheet['id'])->assertJsonPath('data.name', 'General information');
         $this->withToken($token)->getJson("/api/v1/people/{$ann->public_id}/forms/{$sheet['id']}")->assertOk()->assertJsonPath('data.values.'.$field['key'], 'M');
+    }
+
+    public function test_a_number_is_a_name_when_no_record_has_that_id_and_a_name_that_is_another_old_key_is_refused(): void
+    {
+        $token = ApiToken::issue($this->admin, 'test', ['people:read', 'people:write'])['plain'];
+        $ann = Person::factory()->create(['birth_date' => '2015-01-01']);
+        $url = "/api/v1/people/{$ann->public_id}/memberships";
+        $year = MembershipType::query()->create(['name' => '902027']);
+        $this->withToken($token)->postJson($url, ['type' => '902027'])->assertCreated()->assertJsonPath('data.0.type', $year->id);
+        $ann->memberships()->delete();
+
+        // "own_supporter" is the old key of one type and the name of another: refused, so nobody gets the wrong one.
+        $supporter = MembershipType::query()->create(['name' => 'Supporter']);
+        $other = MembershipType::query()->create(['name' => 'Own_Supporter']);
+        $this->assertSame('own_supporter', $supporter->key);
+        $this->withToken($token)->postJson($url, ['type' => 'own_supporter'])->assertUnprocessable()->assertJsonValidationErrors('type');
+        // Old keys are compared exactly, so the name in its own spelling is clear.
+        $this->withToken($token)->postJson($url, ['type' => 'Own_Supporter'])->assertCreated()->assertJsonPath('data.0.type', $other->id);
     }
 
     public function test_the_person_import_takes_the_name_of_a_membership_type(): void

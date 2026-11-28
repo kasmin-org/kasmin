@@ -89,6 +89,25 @@ class SignUps
     }
 
     /** Creates person, family and login; returns a login token, because the link has proved the address (RG02). */
+    /**
+     * Whether the sign-up may still be confirmed: its form (or, for sign-ups requested before there were sign-up forms,
+     * any sign-up form) is switched on. Switching the form off stops pending confirmations too (B16).
+     */
+    public function stillOpen(SignUp $signUp): bool
+    {
+        $formId = $signUp->data['public_form_id'] ?? null;
+
+        return $formId !== null
+            ? PublicForm::query()->whereKey($formId)->where('kind', 'signup')->where('active', true)->exists()
+            : PublicForm::signUp() !== null;
+    }
+
+    /** Whether the person may add children in the portal: only to their own family, or with a sign-up form switched on. */
+    public static function mayAddChildren(?Person $guardian): bool
+    {
+        return $guardian !== null && ($guardian->households()->wherePivot('role', 'guardian')->exists() || PublicForm::signUp() !== null);
+    }
+
     public function confirm(SignUp $signUp): string
     {
         $user = DB::transaction(function () use ($signUp) {

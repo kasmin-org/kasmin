@@ -67,7 +67,9 @@
         @endif
     @endforelse
     @if ($person)<p class="mb-4 flex flex-wrap gap-x-6 gap-y-2"><a class="underline" href="{{ route('portal.profile') }}">{{ __('portal.profile') }}</a><a class="underline" href="{{ route('portal.child', $person->public_id) }}">{{ __('public.own') }}</a>@if ($expenses)<a class="underline" href="{{ route('portal.expenses') }}" data-expenses-link>{{ __('accounting.expenses.portal.link') }}</a>@endif</p>@endif
-    <a href="{{ route('portal.child.create') }}" class="mt-2 block w-full rounded-lg bg-kasmin-600 px-4 py-3 text-center font-semibold text-white">{{ __('portal.add_child') }}</a>
+    @if (\App\Support\People\SignUps::mayAddChildren($person))
+        <a href="{{ route('portal.child.create') }}" class="mt-2 block w-full rounded-lg bg-kasmin-600 px-4 py-3 text-center font-semibold text-white">{{ __('portal.add_child') }}</a>
+    @endif
     @if ($invoices->isNotEmpty())
         <section class="mt-8" id="invoices">
             <h2 class="mb-2 text-lg font-semibold">{{ __('finance.invoices') }}</h2>

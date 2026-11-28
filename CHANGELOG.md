@@ -10,8 +10,32 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 - **Accounting** (double-entry): chart of accounts in the language of the installation, bookings with any number of lines (typed in, with receipt) that are reversed instead of changed, numbers over all years; **periods** as date ranges that can be changed while open (bookings move along) and are closed in order and reopened together with all later ones; **cost centres** (one over all years, active per period; "carries its result" or "is allocated") and **funds** (reserves, pots of the equity, optionally assigned to a bank or cash account) – both switchable in the global settings; **allocation keys** per period with fixed amounts (cut in proportion when the costs are smaller), percentages, rest and share of income; **closing** with a preview that allocates, carries the results into the funds and locks the period; bank and cash accounts with a check against the statement; a **budget** per period (planned result per cost centre); reports: balance sheet, income statement, cost centres with budget and difference, statement of funds, ledger and open items, as Excel, CSV or PDF. See the new documentation page *Accounting*.
 - **REST API and MCP for the accounting:** chart of accounts, cost centres (kind, active per period, standard, deleting with `confirm_count`), funds with transfers, periods (dates with a dry run, allocation keys, budgets, closing preview, closing, reopening with `confirm`), bookings (list, book, reverse) and reports as JSON or CSV, XLSX and PDF under `/api/v1/accounting`, scopes `finance:read` / `finance:write`; references by id or exact name; the switches *Use cost centres* and *Use funds* in `PATCH /settings`. 31 new MCP tools such as `list_accounts`, `create_booking`, `close_period_preview`, `reopen_period` and `get_report`.
-- Accounting: **invoices, credit notes, payments, credits and refunds are booked by themselves** from the first period on – the receivable of the payer and the income per line with the amount before the discount, the discount on *Discounts given*, on the cost centre of the instalment, the membership type, the event or its series; payments to *Bank* or *Cash* (or the bank account of the import), overpayments to *Credits of families*, a credit note as the mirror of its invoice. Every document is booked once; a failed booking never stops the invoice or payment and is shown as a system notification. `php artisan kasmin:book-documents` books what is missing. Events, event series and membership types get an income account and a cost centre in the forms, REST and MCP (`cost_center`, `revenue_account`, id or exact name). Payments of the bank import are booked when they are assigned.
+- Accounting: **invoices, credit notes, payments, credits and refunds are booked by themselves** from the first period on – the receivable of the payer and the income per line with the amount before the discount, the discount on *Discounts given*, on the cost centre of the instalment, the membership type, the event or its series; payments to *Bank* or *Cash* (or the bank account of the import), overpayments to *Credits of families*, a credit note as the mirror of its invoice. Every document is booked once; a failed booking never stops the invoice or payment and is shown as a system notification. `php artisan kasmin:book-documents` books what is missing. Events, event series and membership types get an income account and a cost centre in the forms, REST and MCP (`cost_center`, `revenue_account`, id or exact name). Payments of the bank import are booked when they are assigned. Missing ones are booked when the first period is created or starts earlier, with *Book missing documents* (also REST and MCP) and every night; what was open before the start goes into an opening booking with a person on each line.
 - **Expense claims and advances.** Team members submit their expenses in the portal (*Expenses and advances*: photo or PDF of the receipt from the phone, event, category, or a flat rate from the settings) and keep their IBAN for refunds there, stored encrypted and shown only masked; the treasurer can also enter a claim for a person. *Accounting → Expense claims*: approve (expense on the account and cost centre of the event, owed to the person), reject with a reason, pay out one or many from a bank account with a **SEPA file** (pain.001.001.09, one transfer per claim or per person) or a payment code, or in cash, and book a waived refund as a donation; optional approval by a second person. *Accounting → Advances*: hand out in cash or by transfer, settle with the receipts submitted against it, the rest comes back or becomes a claim. Mails at submission (notification *Expense claims*), approval, rejection and payout. REST `/expense-claims`, `/advances` and MCP tools (without the SEPA file). See the new documentation page *Expense claims and advances*.
+
+## [0.31.1] - 2026-11-28
+
+### Security
+
+- **Login:** five wrong codes made the link in the same login mail unusable as well, so anyone who knew an address could
+  lock the person out. Wrong codes are still counted per person (the code entry closes for 30 minutes); the link of the
+  mail keeps working.
+- **Sign-up switched off means switched off:** a pending sign-up is confirmed only while its form is switched on, and in
+  the portal someone without a family of their own (for example after a “stay informed” form) can add a child – which
+  creates a family – only while a sign-up form is switched on.
+
+### Fixed
+
+- The **sign-up form** of an existing German installation was created in English when the language was set only in the
+  configuration (`APP_LOCALE`). The update now uses that language, and a form that is still unchanged is translated.
+- **Invoices issued before 0.31** keep the discount column also when they have no discount (issued invoices never change
+  their look).
+- The **portal copy of a mail** showed the placeholder of the link date instead of leaving the sentence out.
+- **Public forms:** the address preview says when the address still forwards to another form (it then opens the new one).
+- **REST and MCP:** a number is looked for as a name when no record has that id (e.g. a membership type named `2027`); a
+  text that is the name of one record and the old key of another is refused instead of silently taking the name.
+
+## [0.31.0] - 2026-11-28
 
 ### Changed
 
@@ -706,7 +730,9 @@ First public pre-release for testing. Not ready for production use.
 - Docker image: system packages updated and build packages removed after compiling the PHP extensions – the
   container scan reports no high or critical findings any more (previously 75 in Debian packages).
 
-[Unreleased]: https://github.com/kasmin-org/kasmin/compare/v0.30.0...develop
+[Unreleased]: https://github.com/kasmin-org/kasmin/compare/v0.31.1...develop
+[0.31.1]: https://github.com/kasmin-org/kasmin/releases/tag/v0.31.1
+[0.31.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.31.0
 [0.30.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.30.0
 [0.29.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.29.0
 [0.28.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.28.0

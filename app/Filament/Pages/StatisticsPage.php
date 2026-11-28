@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Support\InArea;
 use App\Models\Event;
 use App\Models\User;
 use App\Support\Auth\Permissions;
@@ -16,6 +17,8 @@ use Filament\Support\Icons\Heroicon;
  */
 class StatisticsPage extends Page
 {
+    use InArea;
+
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedChartBar;
 
     protected static ?string $slug = 'reports';
@@ -27,11 +30,6 @@ class StatisticsPage extends Page
     public int $groups = 3;
 
     public string $role = 'child';
-
-    public static function getNavigationGroup(): ?string
-    {
-        return __('admin.nav.reports');
-    }
 
     public static function getNavigationLabel(): string
     {

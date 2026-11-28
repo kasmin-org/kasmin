@@ -8,6 +8,7 @@ use App\Filament\Resources\Groups\Pages\ListGroups;
 use App\Filament\Resources\Groups\Schemas\GroupForm;
 use App\Filament\Resources\Groups\Tables\GroupsTable;
 use App\Filament\Support\AreaAccess;
+use App\Filament\Support\InArea;
 use App\Models\Group;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -18,6 +19,7 @@ use Filament\Tables\Table;
 class GroupResource extends Resource
 {
     use AreaAccess;
+    use InArea;
 
     public static function area(): string
     {
@@ -34,11 +36,6 @@ class GroupResource extends Resource
     public static function getPluralModelLabel(): string
     {
         return __('admin.group.plural');
-    }
-
-    public static function getNavigationGroup(): ?string
-    {
-        return __('admin.nav.people');
     }
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUserGroup;

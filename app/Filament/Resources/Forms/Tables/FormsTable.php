@@ -9,6 +9,7 @@ use Filament\Actions\EditAction;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Support\Str;
 
 class FormsTable
 {
@@ -28,7 +29,7 @@ class FormsTable
                 Action::make('export')->label(__('admin.form.export'))->icon('heroicon-o-arrow-down-tray')->color('gray')
                     ->action(fn (Form $record) => response()->streamDownload(function () use ($record) {
                         echo json_encode(app(FormDefinitions::class)->export($record), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-                    }, 'kasmin-form-'.$record->key.'.json', ['Content-Type' => 'application/json'])),
+                    }, 'kasmin-form-'.(Str::slug($record->label()) ?: $record->id).'.json', ['Content-Type' => 'application/json'])),
             ]);
     }
 }

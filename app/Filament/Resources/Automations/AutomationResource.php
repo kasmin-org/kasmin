@@ -8,9 +8,11 @@ use App\Filament\Resources\Automations\Pages\EditAutomation;
 use App\Filament\Resources\Automations\Pages\ListAutomations;
 use App\Filament\Resources\Groups\Schemas\GroupForm;
 use App\Filament\Support\AreaAccess;
+use App\Filament\Support\InArea;
 use App\Models\Automation;
 use App\Models\Event;
 use App\Models\EventSeries;
+use App\Models\Form;
 use App\Models\Group;
 use App\Models\MailTemplate;
 use App\Models\Role;
@@ -18,6 +20,8 @@ use App\Models\User;
 use App\Support\Auth\Permissions;
 use App\Support\Automations\Actions\Custom;
 use App\Support\Automations\Engine;
+use App\Support\Automations\InstallmentPosition;
+use App\Support\Records\UniqueName;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
@@ -48,6 +52,7 @@ use Illuminate\Support\HtmlString;
 class AutomationResource extends Resource
 {
     use AreaAccess;
+    use InArea;
 
     public static function area(): string
     {
@@ -58,8 +63,6 @@ class AutomationResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBolt;
 
-    protected static ?int $navigationSort = 10;
-
     public static function getModelLabel(): string
     {
         return __('automations.singular');
@@ -68,11 +71,6 @@ class AutomationResource extends Resource
     public static function getPluralModelLabel(): string
     {
         return __('automations.plural');
-    }
-
-    public static function getNavigationGroup(): ?string
-    {
-        return __('admin.nav.automations');
     }
 
     /** Shipped automations can be switched off, but not deleted. */
@@ -88,7 +86,7 @@ class AutomationResource extends Resource
 
         return $schema->components([
             Section::make()->columnSpanFull()->columns(['md' => 2, 'xl' => 3])->schema([
-                TextInput::make('name')->label(__('automations.name'))->required(),
+                TextInput::make('name')->label(__('automations.name'))->required()->maxLength(200)->rule(fn (?Automation $record) => new UniqueName(Automation::query(), $record?->getKey())),
                 Select::make('action')->label(__('automations.action'))->options(__('automations.actions'))->default('custom')->disabled()->dehydrated(false),
                 Toggle::make('active')->label(__('automations.active'))->inline(false)->hiddenOn('create'),
                 Select::make('mode')->label(__('automations.mode'))->options(__('automations.modes'))->default('confirm')->required()
@@ -138,16 +136,18 @@ class AutomationResource extends Resource
             Section::make(__('automations.steps_title'))->columnSpanFull()->visible($is('custom'))->schema([self::steps()]),
             Section::make(__('automations.settings'))->columnSpanFull()->columns(['md' => 2, 'xl' => 3])->visible(fn (Get $get) => $get('action') !== 'custom')->schema([
                 Select::make('config.template')->label(__('automations.template'))->visible($is('send_template'))
-                    ->options(fn () => MailTemplate::query()->orderBy('key')->get()->mapWithKeys(fn (MailTemplate $t) => [$t->key => $t->label()])->all()),
+                    ->options(fn () => MailTemplate::query()->get()->mapWithKeys(fn (MailTemplate $t) => [$t->key => $t->label()])->sort(SORT_NATURAL | SORT_FLAG_CASE)->all()),
                 CheckboxList::make('config.statuses')->label(__('automations.participant_statuses'))->visible($is('send_template'))
                     ->options(collect(['registered', 'confirmed', 'offered', 'waitlist', 'attended'])->mapWithKeys(fn ($s) => [$s => __('events.status.'.$s)])->all()),
                 Select::make('config.to')->label(__('automations.to'))->options(__('automations.to_options'))->visible($is('send_template')),
-                TextInput::make('config.installment')->label(__('automations.installment'))->visible($is('invoice_run')),
+                Select::make('config.installment')->label(__('automations.installment_position'))->visible($is('invoice_run'))->selectablePlaceholder(false)->default(InstallmentPosition::DEFAULT)
+                    ->options(fn (?Automation $record) => InstallmentPosition::options($record?->setting('installment')))->hintIcon('heroicon-m-question-mark-circle', tooltip: __('automations.installment_position_hint')),
                 Toggle::make('config.send')->label(__('automations.send'))->inline(false)->visible($is('invoice_run', 'invoice_corrections', 'membership_invoices')),
                 TextInput::make('config.days')->label(__('automations.release_days'))->numeric()->minValue(0)->placeholder('14')->visible($is('payment_followup')),
                 TextInput::make('config.year')->label(__('automations.year'))->numeric()->minValue(2000)->maxValue(2100)->placeholder(now()->format('Y'))->visible($is('membership_invoices')),
                 TextInput::make('config.offer_days')->label(__('automations.offer_days'))->numeric()->minValue(1)->visible($is('waitlist_offer', 'group_waitlist_offer')),
-                TextInput::make('config.form')->label(__('automations.form'))->visible($is('safety_sheet_reminder')),
+                Select::make('config.form')->label(__('automations.form_name'))->visible($is('safety_sheet_reminder'))
+                    ->options(fn () => Form::query()->where('kind', 'person')->orderBy('sort')->get()->mapWithKeys(fn (Form $f) => [$f->key => $f->label()])->all()),
                 TextInput::make('config.interval_days')->label(__('automations.interval_days'))->numeric()->minValue(1)->visible($is('safety_sheet_reminder')),
                 TextInput::make('config.max')->label(__('automations.max'))->numeric()->minValue(1)->visible($is('safety_sheet_reminder')),
                 TextInput::make('config.window_days')->label(__('automations.window_days'))->numeric()->minValue(1)->visible($is('safety_sheet_reminder', 'age_notice')),
@@ -189,7 +189,7 @@ class AutomationResource extends Resource
                     ->options(fn () => collect(__('automations.steps'))->when(! Permissions::current('finance', 'edit'), fn ($c) => $c->except('invoice'))->all())
                     ->rule(fn () => fn (string $attribute, mixed $value, \Closure $fail) => $value === 'invoice' && ! Permissions::current('finance', 'edit') ? $fail(__('automations.invoice_rights')) : null),
                 Select::make('template')->label(__('automations.template'))->visible($is('send_mail'))->required($is('send_mail'))
-                    ->options(fn () => MailTemplate::query()->orderBy('key')->get()->mapWithKeys(fn (MailTemplate $t) => [$t->key => $t->label()])->all()),
+                    ->options(fn () => MailTemplate::query()->get()->mapWithKeys(fn (MailTemplate $t) => [$t->key => $t->label()])->sort(SORT_NATURAL | SORT_FLAG_CASE)->all()),
                 Select::make('to')->label(__('automations.to'))->visible($is('send_mail'))->options(__('automations.step_to'))->default('template'),
                 Select::make('group_id')->label(__('admin.group.singular'))->visible($is('add_group', 'remove_group'))->required($is('add_group', 'remove_group'))
                     ->options(fn () => Group::query()->where('kind', 'manual')->orderBy('name')->pluck('name', 'id')->all()),

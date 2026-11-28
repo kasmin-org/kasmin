@@ -50,7 +50,7 @@ class OwnAutomationsTest extends TestCase
         app()->setLocale('en');
         app(Defaults::class)->install('en');
         Automation::query()->update(['active' => false]);
-        $series = EventSeries::query()->create(['name' => 'Summer', 'type' => 'camp']);
+        $series = EventSeries::query()->create(['name' => 'Summer']);
         $this->event = Event::query()->create(['title' => 'Camp', 'event_series_id' => $series->id, 'status' => 'open', 'starts_at' => now()->addDays(60), 'ends_at' => now()->addDays(67)]);
         $this->event->roles()->create(['role_key' => 'child', 'capacity' => 10]);
     }

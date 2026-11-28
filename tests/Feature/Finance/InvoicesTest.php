@@ -2,7 +2,7 @@
 
 namespace Tests\Feature\Finance;
 
-use App\Filament\Pages\OrganisationSettingsPage;
+use App\Filament\Pages\InvoiceSettingsPage;
 use App\Filament\Resources\Invoices\Pages\ListInvoices;
 use App\Filament\Resources\Invoices\Pages\ViewInvoice;
 use App\Models\Event;
@@ -13,6 +13,7 @@ use App\Models\Participation;
 use App\Models\Person;
 use App\Models\Role;
 use App\Models\User;
+use App\Support\Events\ParticipationConfirmation;
 use App\Support\Finance\InvoicePdf;
 use App\Support\Finance\Invoices;
 use App\Support\Finance\Payments;
@@ -121,6 +122,54 @@ class InvoicesTest extends TestCase
         // 2 × (450 − 100) − 20 sibling discount
         $this->assertSame(68000, $balance->total_cents);
         $this->assertSame([35000, 33000], $balance->lines->pluck('amount_cents')->all());
+    }
+
+    public function test_a_discount_is_its_own_position_on_the_invoice(): void
+    {
+        $this->child('Ann', '2014-01-01');
+        $ben = $this->child('Ben', '2016-01-01');
+        $this->draftRun('balance');
+        $balance = Invoice::query()->where('installment_key', 'balance')->with('lines')->firstOrFail();
+        $line = $balance->lines->firstWhere('participation_id', $ben->id);
+        $this->assertNotNull($line);
+        // The line says what is charged; the discount has its own text, kind and position.
+        $this->assertStringNotContainsString('discount', strtolower($line->description));
+        $this->assertSame([35000, 33000, 2000, 'sibling', 2], [$line->grossCents(), $line->amount_cents, $line->discount_cents, $line->discount_kind, $line->discount_position]);
+        $this->assertSame(trans('finance.discount_sibling', ['position' => 2]), $line->discount_label);
+        $this->assertTrue($line->hasOwnDiscountLine());
+
+        $html = view('pdf.invoice', ['invoice' => $balance, 'paid' => false, 'qr' => null, 'org' => InvoicePdf::organisation(), 'locale' => 'en'])->render();
+        $this->assertStringContainsString('<tr class="discount">', $html);
+        $this->assertStringContainsString(e((string) $line->discount_label), $html);
+        $this->assertStringContainsString('−'.Invoice::money(2000), $html);
+        $this->assertStringContainsString(Invoice::money(35000), $html);
+
+        // Lines of invoices made before keep their old look: discount in the same line.
+        $old = $balance->replicate(['number', 'reference']);
+        $old->save();
+        $old->lines()->create(['description' => 'Balance Ben – Sibling discount (2nd child)', 'amount_cents' => 33000, 'discount_cents' => 2000, 'discount_kind' => 'sibling', 'sort' => 0]);
+        $html = view('pdf.invoice', ['invoice' => $old->fresh('lines'), 'paid' => false, 'qr' => null, 'org' => InvoicePdf::organisation(), 'locale' => 'en'])->render();
+        $this->assertStringNotContainsString('<tr class="discount">', $html);
+        $this->assertStringContainsString(e(__('finance.discount')), $html);
+    }
+
+    public function test_the_confirmation_of_participation_counts_what_was_paid_after_the_discount(): void
+    {
+        $this->child('Ann', '2014-01-01');
+        $ben = $this->child('Ben', '2016-01-01');
+        $this->draftRun('balance');
+        $balance = Invoice::query()->where('installment_key', 'balance')->firstOrFail();
+        $balance->forceFill(['status' => 'paid', 'paid_cents' => $balance->total_cents])->save();
+        // 330 were paid for Ben (350 minus 20 sibling discount); the discount was subtracted twice before.
+        $this->assertSame(33000, ParticipationConfirmation::paidCents($ben));
+    }
+
+    public function test_an_invoiced_instalment_cannot_be_deleted(): void
+    {
+        $this->child('Ann', '2014-01-01');
+        $this->draftRun('deposit');
+        $this->expectException(\RuntimeException::class);
+        $this->event->installments()->where('key', 'deposit')->firstOrFail()->delete();
     }
 
     public function test_issue_assigns_number_and_valid_rf_reference(): void
@@ -257,7 +306,7 @@ class InvoicesTest extends TestCase
         $treasurer = $make('treasurer');
         $leader = $make('camp_leader');
 
-        foreach (['/admin/invoices', '/admin/invoices/'.$invoice->id, '/admin/payments', '/admin/settings/organisation', '/admin/events/'.$this->event->id.'/edit'] as $page) {
+        foreach (['/admin/invoices', '/admin/invoices/'.$invoice->id, '/admin/payments', '/admin/settings/invoices', '/admin/events/'.$this->event->id.'/edit'] as $page) {
             $this->actingAs($treasurer)->withSession(['two_factor_passed' => true])->get($page)->assertOk();
         }
         $this->actingAs($treasurer)->withSession(['two_factor_passed' => true])->get('/admin/invoices/'.$invoice->id.'/pdf')
@@ -285,8 +334,8 @@ class InvoicesTest extends TestCase
         Livewire::test(ViewInvoice::class, ['record' => $invoice->id])->callAction('payment', data: ['amount' => '100.00', 'paid_on' => now()->toDateString(), 'method' => 'cash'])->assertHasNoActionErrors();
         $this->assertSame('paid', Invoice::query()->findOrFail($invoice->id)->status);
 
-        Livewire::test(OrganisationSettingsPage::class)->fillForm(['organisation_iban' => 'AT00 1234'])->call('save')->assertHasFormErrors(['organisation_iban']);
-        Livewire::test(OrganisationSettingsPage::class)->fillForm(['organisation_iban' => 'de89 3704 0044 0532 0130 00', 'invoice_number_format' => '{year}-{number}'])->call('save')->assertHasNoFormErrors();
+        Livewire::test(InvoiceSettingsPage::class)->fillForm(['organisation_iban' => 'AT00 1234'])->call('save')->assertHasFormErrors(['organisation_iban']);
+        Livewire::test(InvoiceSettingsPage::class)->fillForm(['organisation_iban' => 'de89 3704 0044 0532 0130 00', 'invoice_number_format' => '{year}-{number}'])->call('save')->assertHasNoFormErrors();
         $this->assertSame('DE89370400440532013000', Settings::get('organisation_iban'));
     }
 

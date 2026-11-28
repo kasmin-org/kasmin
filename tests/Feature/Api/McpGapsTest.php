@@ -186,17 +186,20 @@ class McpGapsTest extends TestCase
     {
         $token = $this->token(['people:read', 'people:write']);
         $before = MembershipType::query()->count();
-        $created = $this->tool($token, 'create_membership_type', ['key' => 'supporter', 'name' => 'Supporter', 'pays_fee' => true, 'fee' => 25.5]);
-        $this->assertSame('supporter', $created['data']['key'] ?? null);
-        $this->assertSame(2550, MembershipType::query()->where('key', 'supporter')->firstOrFail()->fee_cents);
+        $created = $this->tool($token, 'create_membership_type', ['name' => 'Supporter', 'pays_fee' => true, 'fee' => 25.5]);
+        $id = (int) ($created['data']['id'] ?? 0);
+        $this->assertArrayNotHasKey('key', $created['data']);
+        $this->assertSame(2550, MembershipType::query()->findOrFail($id)->fee_cents);
         $this->assertCount($before + 1, $this->tool($token, 'list_membership_types')['data'] ?? []);
 
-        $updated = $this->tool($token, 'update_membership_type', ['key' => 'supporter', 'fee' => 30, 'pays_fee' => false]);
+        $updated = $this->tool($token, 'update_membership_type', ['type' => (string) $id, 'fee' => 30, 'pays_fee' => false]);
         $this->assertEquals(30, $updated['data']['fee'] ?? null);
         $this->assertFalse($updated['data']['pays_fee']);
         $this->assertSame('Supporter', $updated['data']['name']);
+        $this->assertEquals(31, $this->tool($token, 'update_membership_type', ['type' => 'supporter', 'fee' => 31])['data']['fee'] ?? null); // by name
+        $this->assertEquals(32, $this->tool($token, 'update_membership_type', ['key' => 'own_supporter', 'fee' => 32])['data']['fee'] ?? null); // the argument of older versions
 
-        $error = $this->refused($token, 'create_membership_type', ['key' => 'supporter', 'name' => 'B'], 'the key is taken');
+        $error = $this->refused($token, 'create_membership_type', ['name' => 'SUPPORTER'], 'the name is taken');
         $this->assertStringContainsString('HTTP 422', $error);
     }
 
@@ -285,9 +288,11 @@ class McpGapsTest extends TestCase
 
         // With approvals:decide, the token of a person who may decide can change the approval.
         $decider = $this->token(['automations:read', 'automations:write', 'approvals:decide']);
-        $changed = $this->tool($decider, 'update_automation', ['key' => $key, 'mode' => 'confirm', 'approver_roles' => ['administrator'], 'approvals_needed' => 1, 'trigger_config' => ['days' => 30]]);
+        $administrator = Role::query()->where('key', 'administrator')->firstOrFail();
+        $changed = $this->tool($decider, 'update_automation', ['automation' => (string) $automation->id, 'mode' => 'confirm', 'approver_roles' => [$administrator->label()], 'approvals_needed' => 1, 'trigger_config' => ['days' => 30]]);
         $this->assertSame('confirm', $changed['data']['mode'] ?? null);
-        $this->assertSame(['administrator'], $changed['data']['approver_roles']);
+        $this->assertSame([$administrator->id], $changed['data']['approver_roles']);
+        $this->assertSame(['administrator'], $automation->refresh()->approver_roles);
         $this->assertFalse($changed['data']['approver_roles_default']);
 
         // The REST API keeps the scope automations:write as it is.

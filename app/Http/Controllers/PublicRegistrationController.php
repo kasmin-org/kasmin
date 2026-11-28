@@ -2,48 +2,35 @@
 
 namespace App\Http\Controllers;
 
-use App\Support\Auth\ProofOfWork;
-use App\Support\Language;
+use App\Models\PublicForm;
 use App\Support\People\SignUps;
-use App\Support\Settings;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 /**
- * Public registration for legal guardians (RG01–RG03): name and e-mail, then a link to confirm. The answer is the same
- * whether or not the address already exists; existing accounts simply receive a login link.
+ * Public registration for legal guardians (RG01–RG03): since B16 a public form of the kind "signup"; the old address
+ * /register forwards to it. Name and e-mail, then a link to confirm; the answer is the same whether or not the address
+ * already exists, existing accounts simply receive a login link.
  */
 class PublicRegistrationController extends Controller
 {
     public function __construct(private readonly SignUps $signUps) {}
 
-    public function show(): View
+    /** The old address of the sign-up: forwards to the sign-up form, if one is switched on (B16). */
+    public function show(): View|RedirectResponse
     {
-        return view('register');
+        $form = PublicForm::signUp();
+
+        return $form !== null ? redirect()->to($form->url()) : view('public.no-sign-up');
     }
 
-    public function store(Request $request): RedirectResponse
+    /** Sign-ups sent to the old address (e.g. a page opened before the update) go to the active form. */
+    public function store(Request $request): RedirectResponse|View
     {
-        // Honeypot: bots fill every field.
-        if ((string) $request->input('website') !== '') {
-            return redirect()->route('login.code');
-        }
-        $data = $request->validate([
-            'first_name' => ['required', 'string', 'max:120'],
-            'last_name' => ['required', 'string', 'max:120'],
-            'email' => ['required', 'email', 'max:254'],
-            'privacy' => ['accepted'],
-        ]);
-        if (! ProofOfWork::valid($request->input('pow'))) {
-            return back()->withInput()->withErrors(['pow' => __('public.check_failed')]);
-        }
-        $this->signUps->request([
-            'first_name' => (string) $data['first_name'], 'last_name' => (string) $data['last_name'], 'email' => (string) $data['email'], 'locale' => Language::current(),
-            'newsletter' => Settings::bool('newsletter_ask') && $request->boolean('newsletter') ? (string) __('public.newsletter_consent') : null,
-        ]);
+        $form = PublicForm::signUp();
 
-        return redirect()->route('login.code')->with('email', $data['email'])->with('status', __('auth_link.sent'));
+        return $form !== null ? $this->signUps->fromRequest($form, $request) : view('public.no-sign-up');
     }
 
     public function confirmation(string $token): View

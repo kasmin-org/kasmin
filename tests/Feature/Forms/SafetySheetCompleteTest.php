@@ -289,14 +289,27 @@ class SafetySheetCompleteTest extends TestCase
         $export = $definitions->export($this->sheet);
         $this->assertStringNotContainsString('Peanuts', (string) json_encode($export));
 
-        $copy = $definitions->import(['key' => 'copy'] + $export);
+        $copy = $definitions->import(['key' => 'copy', 'name' => 'Copy of the safety sheet'] + $export);
+        $this->assertNotSame($this->sheet->id, $copy->id);
+        $this->assertSame('copy', $copy->key);
         $this->assertSame($this->sheet->fields->pluck('key')->all(), $copy->fields->pluck('key')->all());
         $this->assertSame($this->sheet->fields->firstWhere('key', 'diet')?->options, $copy->fields->firstWhere('key', 'diet')?->options);
 
+        // Matched by the internal key of the file (ids differ between installations) …
         $version = $this->sheet->version;
         $export['fields'][0]['label'] = 'Insurer';
-        $definitions->import($export);
+        $this->assertSame($this->sheet->id, $definitions->import($export)->id);
         $this->assertSame($version + 1, $this->sheet->fresh()?->version);
+        // … or, without that key, by the name; a name another form has is refused.
+        $this->assertSame($this->sheet->id, $definitions->import(['key' => 'from_elsewhere'] + $export)->id);
+        $this->assertSame($version + 2, $this->sheet->fresh()?->version);
+        $this->assertSame(2, Form::query()->where('kind', 'person')->where('name', 'like', '%afety sheet%')->count());
+        try {
+            $definitions->import(['name' => 'Copy of the safety sheet'] + $export);
+            $this->fail('a form got the name of another one');
+        } catch (ValidationException $e) {
+            $this->assertArrayHasKey('name', $e->errors());
+        }
 
         // A file of the versions up to 0.27 holds one text per language: the one in use is taken.
         $old = $export;

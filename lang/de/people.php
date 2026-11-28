@@ -6,4 +6,5 @@ return [
     'merge_hint' => 'Alles vom anderen Eintrag wechselt zum behaltenen: Familie, Anmeldungen, Rechnungen, Mails, Formulare. Das kann nicht rückgängig gemacht werden.',
     'merge_roles' => 'Der andere Eintrag hat Verwaltungsrollen. Bitte zuerst entfernen, damit ein Zusammenführen nie mehr Rechte gibt.', 'merge_invoiced' => 'Beide Einträge haben eine verrechnete Anmeldung zur selben Veranstaltung. Bitte zuerst eine stornieren.',
     'reasons' => ['name_birth' => 'Gleicher Name und gleiches Geburtsdatum', 'name' => 'Gleicher Name', 'sound_birth' => 'Ähnlicher Name, gleiches Geburtsdatum', 'mail' => 'Gleiche E-Mail-Adresse, ähnlicher Vorname'],
+    'revoke_links' => 'Links in Mails ungültig machen', 'revoke_links_hint' => 'Alle Links in bisherigen Mails an diese Person werden ungültig (z. B. wenn eine Mail weitergeleitet wurde). Die Person kann sich jederzeit neu anmelden.',
 ];

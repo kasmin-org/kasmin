@@ -9,7 +9,7 @@ nichts ändern. Erziehungsberechtigte sehen die Rechnungen ihrer Familie im Port
 
 ## 1. Daten der Organisation
 
-*Einstellungen → Organisation und Rechnungen*:
+*Buchhaltung → Rechnungseinstellungen*:
 
 | Einstellung | Bedeutung |
 |---|---|
@@ -34,8 +34,9 @@ nichts ändern. Erziehungsberechtigte sehen die Rechnungen ihrer Familie im Port
   zählt weiter als Geschwisterkind. Jüngere Geschwister behalten also ihre Stufe.
 - **Zählt als Geschwisterkind**: ob Anmeldungen in dieser Rolle bei der Geschwisterermäßigung mitgezählt werden (meist ja bei
   Kindern und Nachwuchs-Betreuung, nein beim Team).
-- **Ratenplan** (*Preise, Ratenplan und Geschwisterermäßigung*): beliebig viele Raten, jede entweder ein
-  **fester Betrag** (z. B. Anzahlung 100 €) oder der **Restbetrag** (Preis minus alle festen Raten). Jede
+- **Ratenplan** (*Preise, Ratenplan und Geschwisterermäßigung*): beliebig viele Raten, jede mit einem Namen, der innerhalb der
+  Veranstaltung eindeutig ist, und entweder ein **fester Betrag** (z. B. Anzahlung 100 €) oder der **Restbetrag** (Preis minus alle
+  festen Raten). Jede
   Rate hat ein festes Fälligkeitsdatum oder „Fällig nach … Tagen“, kann als erstattbar markiert werden und hat den Schalter
   *Ermäßigungen anwenden* – üblich sind Ermäßigungen nur beim Restbetrag, nicht bei der Anzahlung.
 - **Geschwisterermäßigung**:
@@ -47,6 +48,10 @@ nichts ändern. Erziehungsberechtigte sehen die Rechnungen ihrer Familie im Port
 
 Beispiel: Preis 420 €, Anzahlung 100 € (ohne Ermäßigungen), Restbetrag = 320 €, gestaffelt 25 € mit Obergrenze 3. Drei Geschwister zahlen
 Anzahlungen von 3 × 100 € und Restbeträge von 320 €, 295 € und 270 €.
+
+Auf der Rechnung ist jede Ermäßigung eine **eigene Position** unter der Zeile, zu der sie gehört – z. B. *Restbetrag Ben 320,00* und
+darunter *Geschwisterermäßigung (2. Kind) −25,00* –, so muss niemand den Betrag nachrechnen, und die Statistik zählt die Ermäßigungen
+nach Art. Rechnungen, die vor Version 0.31 ausgestellt wurden, behalten ihr bisheriges Aussehen (Ermäßigung in derselben Zeile).
 
 - **Preise nach Alter oder Anmeldedatum**: z. B. ein niedrigerer Preis für jüngere Kinder, ein Frühbucherpreis bis zu einem Datum oder ein höherer
   Preis ab einem Datum. Die erste passende Zeile zählt; sonst der Preis der Rolle.
@@ -65,12 +70,12 @@ verrechnet, wenn eine erstattbare Rate erstattet wird.
 
 ### Mitgliedsbeiträge pro Jahr
 
-*Personen → Mitgliedsarten* enthält den Jahresbeitrag pro Art. Die Automatisierung *Mitgliedsbeiträge* erstellt eine Rechnung
+*Personen → Mitgliedsarten* enthält den Namen (eindeutig) und den Jahresbeitrag pro Art. Die Automatisierung *Mitgliedsbeiträge* erstellt eine Rechnung
 pro Familie; Beiträge, die schon als Rate einer Veranstaltung desselben Jahres verrechnet wurden, werden übersprungen.
 
 ## 3. Rechnungslauf
 
-*Finanzen → Rechnungen → Rechnungslauf*: Wählen Sie die Veranstaltung und die Rate. Kasmin erstellt einen **Entwurf** pro Familie
+*Buchhaltung → Rechnungen → Rechnungslauf*: Wählen Sie die Veranstaltung und die Rate. Kasmin erstellt einen **Entwurf** pro Familie
 (alle Teilnehmenden, die angemeldet oder bestätigt sind oder ein Platzangebot haben; Einträge auf der Warteliste werden nicht verrechnet).
 Die Rechnung geht an die Person, die in der Familie die Rechnungen bekommt, sonst an die erste erziehungsberechtigte Person. Ein weiterer Lauf
 ergänzt nur Familien, die für diese Rate noch keine Rechnung haben.
@@ -85,7 +90,7 @@ IBAN, Betrag und Referenz automatisch aus.
 ## 4. Zahlungen und Bankimport
 
 - **Zahlung erfassen** bei einer Rechnung für Barzahlungen oder einzelne Überweisungen (Teilzahlungen sind möglich).
-- **Bankimport** (*Finanzen → Zahlungen → Bankimport*): Laden Sie den CSV- oder Excel-Export (XLSX) Ihres Bankkontos hoch
+- **Bankimport** (*Buchhaltung → Zahlungen → Bankimport*): Laden Sie den CSV- oder Excel-Export (XLSX) Ihres Bankkontos hoch
   und geben Sie an, in welcher Spalte Datum, Betrag, Verwendungszweck und (optional) Name und IBAN stehen. Die Zuordnung der Spalten wird gemerkt.
   Nur Eingänge werden importiert; dieselbe Zeile wird beim zweiten Import erkannt. Die Datei wird danach gelöscht.
 - Zuordnung:
@@ -98,7 +103,7 @@ IBAN, Betrag und Referenz automatisch aus.
   sonst verwenden Sie *Aufteilen*. Der Rest bleibt nicht zugeordnet.
 - **Zu viel bezahlt**: Der Rest wird ein **Guthaben** der Familie mit einem Vorschlag zur Rückzahlung. Verwenden Sie es für eine andere
   Rechnung oder zahlen Sie es zurück.
-- **Rückzahlungen** (*Finanzen → Rückzahlungen*): Betrag, zahlungspflichtige Person, IBAN und Grund. Überweisen Sie bei der Bank und markieren Sie die Rückzahlung dann als
+- **Rückzahlungen** (*Buchhaltung → Rückzahlungen*): Betrag, zahlungspflichtige Person, IBAN und Grund. Überweisen Sie bei der Bank und markieren Sie die Rückzahlung dann als
   *Zurückgezahlt* – oder *Als Guthaben behalten*. Kasmin überweist nie selbst Geld.
 - Ist eine Rechnung vollständig bezahlt, bekommt die zahlende Person die **Zahlungsbestätigung** (Vorlage *Zahlungsbestätigung*,
   auf Wunsch mit der bezahlten Rechnung im Anhang), und wer das Benachrichtigungsthema *Zahlungen* abonniert hat, wird informiert.

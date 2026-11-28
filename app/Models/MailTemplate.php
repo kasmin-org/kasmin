@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Casts\OneText;
 use App\Models\Concerns\Auditable;
+use App\Models\Concerns\HasInternalKey;
 use App\Support\Language;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -27,6 +28,7 @@ use Illuminate\Support\Facades\Schema;
 class MailTemplate extends Model
 {
     use Auditable;
+    use HasInternalKey;
 
     public const CATEGORIES = ['registration', 'waitlist', 'invoice', 'reminder', 'safety_sheet', 'event_information', 'newsletter', 'notification', 'system'];
 
@@ -156,6 +158,12 @@ class MailTemplate extends Model
             'snapshot' => $this->snapshot(),
             'changed_by_id' => auth()->id(),
         ]);
+    }
+
+    /** Own records never take a key that a later version might ship. */
+    protected function internalKeyPrefix(): string
+    {
+        return 'own_';
     }
 
     public function label(): string

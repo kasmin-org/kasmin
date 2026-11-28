@@ -27,6 +27,7 @@ use App\Http\Middleware\ReadOnlyPortalPreview;
 use App\Http\Middleware\RequireFullLogin;
 use App\Http\Middleware\RequireSecondFactor;
 use App\Models\Event;
+use App\Models\PublicForm;
 use App\Models\User;
 use App\Support\Mail\Placeholders;
 use Illuminate\Support\Facades\Route;
@@ -43,6 +44,9 @@ Route::get('/', function () {
     return view('welcome', [
         'organisation' => Placeholders::organisationName(),
         'events' => Event::query()->where('public_page', true)->where('is_template', false)->whereNotIn('status', ['draft', 'archived', 'cancelled'])->where('ends_at', '>=', now())->orderBy('starts_at')->limit(12)->get(),
+        // Signing up only through a sign-up form that is switched on and open (B16); other forms only if marked.
+        'signUp' => ($form = PublicForm::signUp()) !== null && $form->state() === 'open' ? $form : null,
+        'forms' => PublicForm::onStartPage(),
     ]);
 })->name('start');
 
@@ -122,6 +126,7 @@ Route::middleware('auth')->group(function () {
             Route::post('/email/{point}/remove', [PortalProfileController::class, 'removeEmail'])->whereNumber('point')->name('portal.profile.email.remove');
             Route::post('/families/{household}', [PortalProfileController::class, 'saveFamily'])->name('portal.profile.family');
             Route::post('/sessions', [PortalProfileController::class, 'logoutOthers'])->name('portal.profile.sessions');
+            Route::post('/links', [PortalProfileController::class, 'revokeLinks'])->name('portal.profile.links');
             Route::get('/export', [PortalProfileController::class, 'export'])->middleware('throttle:login-send')->name('portal.profile.export');
         });
         Route::get('/team/{event}/{list?}', [PortalTeamController::class, 'show'])->middleware(RequireFullLogin::class)->name('portal.team');

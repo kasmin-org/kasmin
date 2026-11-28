@@ -22,7 +22,6 @@ return [
         'running' => 'Running', 'finished' => 'Finished', 'archived' => 'Archived',
     ],
     'roles' => ['child' => 'Child', 'junior_counsellor' => 'Junior counsellor', 'staff' => 'Team', 'guest' => 'Guest'],
-    'series_types' => ['camp' => 'Camp', 'alumni' => 'Alumni event', 'meeting' => 'Meeting', 'other' => 'Other'],
     'waitlist_position' => 'Position :position of :total on the waitlist',
     'places_left' => 'Places left: :count',
     'waitlist_only' => 'Waitlist only',

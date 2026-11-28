@@ -58,7 +58,7 @@ class CreateEvent extends ApiTool
             'safety_confirm_days' => $schema->integer()->description('days before the start in which the safety sheet has to be confirmed'),
             'reserve_auto_release' => $schema->boolean()->description('reserved places are released automatically'),
             'reserve_reminder_on' => $schema->string()->description('date of the reminder about reserved places'),
-            'roles' => $schema->array()->items($schema->object())->description('roles: objects with role (child, junior_counsellor, staff or guest), capacity, reserve_places, min_age, max_age, registered_by (guardian, self or admin), price, role_discount, counts_as_sibling, waitlist_order, registration_form (key of a registration form)'),
+            'roles' => $schema->array()->items($schema->object())->description('roles: objects with role (child, junior_counsellor, staff or guest), capacity, reserve_places, min_age, max_age, registered_by (guardian, self or admin), price, role_discount, counts_as_sibling, waitlist_order, registration_form (id or exact name of a form with questions)'),
             ...EventSchema::money($schema),
         ];
     }

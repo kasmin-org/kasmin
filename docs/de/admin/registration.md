@@ -2,13 +2,14 @@
 
 ## Fragen einer Veranstaltung
 
-1. *Formulare → Neu*: Art **Fragen einer Veranstaltung**. Jede Frage wird *pro teilnehmender Person* oder *einmal pro Familie*
+1. *Veranstaltungen → Formulare → Neu*: Art **Fragen einer Veranstaltung**. Jede Frage wird *pro teilnehmender Person* oder *einmal pro Familie*
    gestellt; Einwilligungen, die als Pflicht markiert sind, müssen gegeben werden.
 2. *Veranstaltungen → Bearbeiten → Rollen, Plätze und Altersgrenzen*: Wählen Sie das Formular unter **Fragen bei der Anmeldung**.
    Jede Rolle kann ihr eigenes Formular haben.
 
 Antworten können bis **Antworten änderbar bis** geändert werden (Voreinstellung: Beginn der Veranstaltung). Sie erscheinen auf der Liste
-*Antworten*, bei der teilnehmenden Person (*Antworten*) und in Mails als `{{ registration.answers.<key> }}`. Felder mit der
+*Antworten*, bei der teilnehmenden Person (*Antworten*) und in Mails: *Platzhalter einfügen* im Editor der Vorlagen führt jede Frage mit
+ihrer Bezeichnung an (*Antwort: …*) und fügt sie richtig geschrieben ein. Felder mit der
 Vertraulichkeit *Gesundheit* oder *Ausweis-/Versicherungsnummer* werden verschlüsselt. Nur die Rolle Sicherheitsdaten sieht sie, und
 sie kommen nie in Mails oder auf diese Liste. Der Text einer Einwilligung wird so gespeichert, wie er angezeigt wurde.
 
@@ -16,13 +17,29 @@ Vor der Anmeldung sehen Erziehungsberechtigte Plätze, Preis, Raten und Stornobe
 
 ## Öffentliche Formulare
 
-*Formulare → Öffentliche Formulare*: Adresse `/f/<name>`, Titel und Text, Beginn und Ende.
+*Veranstaltungen → Formulare → Öffentliche Formulare*: Adresse `/f/<name>`, Titel und Text, Beginn und Ende.
+
+**Adresse.** Das Feld *Adresse* ist der letzte Teil der Webadresse. Darunter erscheint beim Tippen die vollständige Adresse (mit
+einem Knopf zum Kopieren), genau so, wie sie gespeichert wird: Kasmin schlägt sie aus dem Titel vor, schreibt alles klein, schreibt
+Umlaute aus (ä → ae, ß → ss), lässt andere Akzente weg und macht aus Leer- und Sonderzeichen einen Bindestrich – aus *Anmeldung für
+Kinder* wird `/f/anmeldung-fuer-kinder`. Jede Adresse gehört zu genau einem Formular. Ändern Sie die Adresse eines veröffentlichten
+Formulars, leitet die alte weiterhin dorthin weiter; ändern Sie die Links auf Ihrer Website trotzdem.
 
 | Art | Nach der Bestätigung |
 |---|---|
 | Anmeldung zu einer Veranstaltung | die Person wird in der gewählten Rolle angemeldet (Altersgrenzen, Plätze und Warteliste gelten) |
-| Bewerbung | wartet unter *Formulare → Einsendungen*; nach der Freigabe: Mitgliedschaft, Gruppe und Willkommensmail. Ohne Freigabe geschieht das sofort |
+| Bewerbung | wartet unter *Veranstaltungen → Formulare → Einsendungen*; nach der Freigabe: Mitgliedschaft, Gruppe und Willkommensmail. Ohne Freigabe geschieht das sofort |
 | Informiert bleiben | Einwilligung zum Newsletter, auf Wunsch eine Gruppe |
+| Registrierung (Familienkonto) | eine erziehungsberechtigte Person legt das Familienkonto an (Name, E-Mail, Einwilligung); nach der Bestätigung gibt es die Familie und die Person ist angemeldet, auf Wunsch in einer Gruppe. Kinder kommen im Portal dazu |
+
+**Registrieren** geht nur über ein Formular der Art *Registrierung (Familienkonto)*. Jede Installation hat eines, und es ist
+**ausgeschaltet** – auch nach dem Update von einer älteren Version, bei der sich bisher alle registrieren konnten. Schalten Sie
+es ein (auf Wunsch mit Beginn und Ende): Nur solange es eingeschaltet und offen ist, zeigt die Startseite *Zum ersten Mal
+registrieren*, und die alte Adresse `/register` leitet dorthin weiter; sonst steht dort, dass die Registrierung derzeit nicht
+möglich ist.
+
+**Startseite.** *Auf der Startseite zeigen* führt ein Formular dort an (solange es eingeschaltet und offen ist), unter den
+öffentlichen Veranstaltungen.
 
 Nichts passiert, bevor der Link in der Mail geöffnet **und** mit der Schaltfläche bestätigt wurde (3 Tage gültig). Bekannte Personen
 werden an Adresse **und** Name erkannt; ihre Daten werden nie überschrieben. Die Seite zeigt nie, ob eine Adresse bekannt ist.
@@ -36,7 +53,7 @@ eine eigene Rechnung.
 
 ## Familien
 
-*Einstellungen → Organisation und Rechnungen → Familien*:
+*Administration → Organisation → Familien*:
 
 | Einstellung | Voreinstellung |
 |---|---|
@@ -75,7 +92,7 @@ statt nach einer Familie zu fragen.
 ### Geschlecht eines Kindes
 
 Wenn Erziehungsberechtigte ein Kind anlegen, müssen sie das Geschlecht wählen: weiblich, männlich oder divers – damit werden die Zimmer geplant, deshalb wird „keine Angabe“
-dort nicht angeboten. *Einstellungen → Organisation und Rechnungen → Familien* enthält pro Geschlecht einen optionalen Hinweis, der unter der Auswahl erscheint, sobald dieses
+dort nicht angeboten. *Administration → Organisation → Familien* enthält pro Geschlecht einen optionalen Hinweis, der unter der Auswahl erscheint, sobald dieses
 Geschlecht gewählt wird. Weiblich und männlich haben standardmäßig keinen; divers hat diesen, den Sie ändern oder leeren können:
 
 > Wir trennen die Kinder in den Zimmern nach Geschlecht. Bitte melden Sie sich direkt bei uns und sagen Sie uns, in welchem Zimmer das Kind schlafen möchte, damit wir

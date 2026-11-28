@@ -22,6 +22,8 @@
     .r { text-align: right; white-space: nowrap; }
     .muted { color: #777; font-size: 8.5pt; }
     tr.total td { font-weight: bold; border-top: 1px solid #222; border-bottom: none; }
+    tr.discount td { color: #555; }
+    tr.discount td:first-child { padding-left: 14px; }
     .pay { margin-top: 10mm; }
     .pay td { vertical-align: top; }
     .stamp { margin-top: 10mm; display: inline-block; border: 3px solid #1da029; color: #1da029; font-size: 20pt; font-weight: bold; padding: 4px 16px; transform: rotate(-6deg); }
@@ -51,6 +53,9 @@
     @endif
 </table>
 
+@php($legacy = $invoice->lines->contains(fn ($l) => $l->discount_cents > 0 && $l->discount_label === null))
+@if ($legacy)
+{{-- Invoices made before discounts were their own position look as they did when they were issued. --}}
 <table class="lines">
     <thead><tr><th>{{ __('finance.description') }}</th><th class="r">{{ __('finance.discount') }}</th><th class="r">{{ __('finance.amount') }}</th></tr></thead>
     <tbody>
@@ -68,6 +73,30 @@
     @endif
     </tbody>
 </table>
+@else
+<table class="lines">
+    <thead><tr><th>{{ __('finance.description') }}</th><th class="r">{{ __('finance.amount') }}</th></tr></thead>
+    <tbody>
+    @foreach ($invoice->lines as $line)
+        <tr>
+            <td>{{ $line->description }}</td>
+            <td class="r">{{ $money($line->grossCents()) }}</td>
+        </tr>
+        @if ($line->hasOwnDiscountLine())
+            <tr class="discount">
+                <td>{{ $line->discount_label }}</td>
+                <td class="r">−{{ $money($line->discount_cents) }}</td>
+            </tr>
+        @endif
+    @endforeach
+    <tr class="total"><td>{{ __('finance.total') }}</td><td class="r">{{ $money($invoice->total_cents) }}</td></tr>
+    @if ($invoice->paid_cents > 0 && ! $paid)
+        <tr><td>{{ __('finance.already_paid') }}</td><td class="r">−{{ $money($invoice->paid_cents) }}</td></tr>
+        <tr class="total"><td>{{ __('finance.open') }}</td><td class="r">{{ $money($invoice->openCents()) }}</td></tr>
+    @endif
+    </tbody>
+</table>
+@endif
 
 @if ($paid)
     <div class="stamp">{{ mb_strtoupper(__('finance.paid')) }}@php($last = $invoice->payments()->max('paid_on'))@if ($last) {{ $date(\Illuminate\Support\Carbon::parse($last)) }}@endif</div>

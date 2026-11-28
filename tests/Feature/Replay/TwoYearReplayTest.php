@@ -335,6 +335,7 @@ class TwoYearReplayTest extends TestCase
         $guardian = $family['guardian'];
         if (! isset($this->signedUp[$family['id']])) {
             $this->lastMail = '';
+            $this->openSignUp(); // signing up is a public form, switched off by default (B16)
             $this->post('/register', ['first_name' => $guardian['first_name'], 'last_name' => $guardian['last_name'], 'email' => $guardian['email'], 'locale' => 'de', 'privacy' => '1'])->assertSessionHasNoErrors()->assertRedirect('/login/code');
             preg_match('~/register/confirm/([A-Za-z0-9]+)~', $this->lastMail, $m);
             $this->check(isset($m[1]), 'no confirmation link in the sign-up mail for '.$family['id']);

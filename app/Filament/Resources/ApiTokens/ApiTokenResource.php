@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\ApiTokens;
 
 use App\Filament\Resources\ApiTokens\Pages\ListApiTokens;
+use App\Filament\Support\InArea;
 use App\Models\ApiToken;
 use App\Models\User;
 use App\Support\Audit\Audit;
@@ -19,6 +20,8 @@ use Filament\Tables\Table;
  */
 class ApiTokenResource extends Resource
 {
+    use InArea;
+
     protected static ?string $model = ApiToken::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedKey;
@@ -31,11 +34,6 @@ class ApiTokenResource extends Resource
     public static function getPluralModelLabel(): string
     {
         return __('api.tokens');
-    }
-
-    public static function getNavigationGroup(): ?string
-    {
-        return __('admin.nav.settings');
     }
 
     public static function canViewAny(): bool

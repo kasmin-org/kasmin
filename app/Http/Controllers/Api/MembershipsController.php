@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Models\Membership;
 use App\Models\MembershipType;
 use App\Models\Person;
+use App\Support\Records\Records;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
@@ -23,7 +24,7 @@ class MembershipsController extends ApiController
     }
 
     /**
-     * Gives the person a membership: type is the key of a membership type, starts_on defaults to today. A person
+     * Gives the person a membership: type is the id or the name of a membership type, starts_on defaults to today. A person
      * has one running membership per type at most.
      */
     public function store(Request $request, string $person): JsonResponse
@@ -31,10 +32,10 @@ class MembershipsController extends ApiController
         $this->scope('people:write');
         $model = $this->person($person);
         $data = $request->validate([
-            'type' => ['required', 'string', 'exists:membership_types,key'], 'starts_on' => ['sometimes', 'date'],
+            'type' => ['required'], 'starts_on' => ['sometimes', 'date'],
             'ends_on' => ['sometimes', 'nullable', 'date', 'after_or_equal:'.($request->input('starts_on') ? 'starts_on' : 'today')],
         ]);
-        $type = MembershipType::query()->where('key', $data['type'])->firstOrFail();
+        $type = Records::require(MembershipType::query(), $data['type'], 'type');
         if ($model->memberships()->where('membership_type_id', $type->id)->whereNull('ends_on')->exists()) {
             throw ValidationException::withMessages(['type' => ['The person already has a running membership of this type.']]);
         }
@@ -64,7 +65,7 @@ class MembershipsController extends ApiController
         $items = $person->memberships()->with('type')->orderByDesc('starts_on')->orderByDesc('id')->get();
 
         return response()->json(['data' => $items->map(fn (Membership $m) => [
-            'id' => (int) $m->getKey(), 'type' => $m->type?->key, 'name' => $m->type?->label(),
+            'id' => (int) $m->getKey(), 'type' => $m->getAttribute('membership_type_id'), 'name' => $m->type?->label(),
             'starts_on' => $m->getAttribute('starts_on')?->toDateString(), 'ends_on' => $m->getAttribute('ends_on')?->toDateString(),
         ])->values()], $status);
     }

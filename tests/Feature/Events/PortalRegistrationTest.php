@@ -25,6 +25,7 @@ class PortalRegistrationTest extends TestCase
     {
         parent::setUp();
         app(Defaults::class)->installRoles();
+        $this->openSignUp();
         app()->setLocale('en');
         config(['app.locale' => 'en']);
     }

@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Api;
 
 use App\Casts\OneText;
-use App\Models\Automation;
 use App\Models\Event;
 use App\Models\EventInstallment;
 use App\Models\EventRole;
@@ -22,6 +21,7 @@ use App\Support\Events\Registrations;
 use App\Support\Events\ReservePlaces;
 use App\Support\Events\Waitlist;
 use App\Support\Finance\Corrections;
+use App\Support\Records\Records;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -81,8 +81,9 @@ class EventsController extends ApiController
     /**
      * Changes the fields of the event form. With "roles", the listed roles are created or changed (what is not sent
      * stays, null empties a field) and the roles that are not listed are removed; a role with registrations cannot
-     * be removed. "prices" replaces all prices by age or date. "installments" works like roles, by key; an
-     * instalment that already has invoices cannot be removed.
+     * be removed. "prices" replaces all prices by age or date. "installments" works like roles: an instalment is
+     * found by its id (or, without an id, by its exact name); the ones that are not listed are removed, but not once
+     * they have invoices.
      */
     public function update(Request $request, string $event): JsonResponse
     {
@@ -276,10 +277,9 @@ class EventsController extends ApiController
     public function schedule(string $event): JsonResponse
     {
         $this->scope('events:read');
-        $keys = Automation::query()->pluck('key', 'id');
         $items = array_map(fn (array $i) => [
             'at' => $i['at']->toIso8601String(), 'what' => $i['what'], 'kind' => $i['kind'], 'state' => $i['state'],
-            'automation' => $i['automation'] !== null ? $keys->get($i['automation']) : null, 'run' => $i['run'],
+            'automation' => $i['automation'], 'run' => $i['run'],
         ], app(Schedule::class)->ofEvent($this->event($event)));
 
         return response()->json(['data' => $items]);
@@ -321,7 +321,7 @@ class EventsController extends ApiController
             'roles.*.counts_as_sibling' => ['nullable', 'boolean'],
             'roles.*.waitlist_order' => ['nullable', 'array'],
             'roles.*.waitlist_order.*' => ['string', 'distinct', Rule::in(Waitlist::CRITERIA)],
-            'roles.*.registration_form' => ['nullable', 'string', Rule::exists('forms', 'key')->where('kind', 'registration')],
+            'roles.*.registration_form' => ['nullable'], // id or name of a form with questions (or its old key)
             // Prices, payment plan and sibling discount, as in the section of the form.
             'sibling_mode' => ['sometimes', Rule::in(['none', 'staggered', 'all'])], 'sibling_order' => ['sometimes', Rule::in(['oldest', 'highest_price', 'registration'])],
             'sibling_amount' => ['sometimes', 'numeric', 'min:0', 'max:1000000'],
@@ -336,19 +336,30 @@ class EventsController extends ApiController
             'prices.*.from_date' => ['nullable', 'date'], 'prices.*.until_date' => ['nullable', 'date'],
             'prices.*.price' => ['required', 'numeric', 'min:0', 'max:1000000'],
             'installments' => ['sometimes', 'array', 'max:20'],
-            'installments.*.key' => ['required', 'string', 'alpha_dash', 'max:32', 'distinct'],
+            'installments.*.id' => ['sometimes', 'nullable', 'integer'],
+            'installments.*.key' => ['sometimes', 'nullable', 'string', 'alpha_dash', 'max:32'], // older clients
             'installments.*.label' => ['sometimes', 'string', 'max:200'],
             'installments.*.kind' => ['sometimes', Rule::in(['fixed', 'rest', 'member'])],
             'installments.*.amount' => ['nullable', 'numeric', 'min:0', 'max:1000000'],
             'installments.*.due_date' => ['nullable', 'date'], 'installments.*.due_days' => ['nullable', 'integer', 'between:0,3650'],
-            'installments.*.membership_type' => ['nullable', 'string', 'exists:membership_types,key'],
+            'installments.*.membership_type' => ['nullable'], // id or name (or the old key)
             'installments.*.refundable' => ['sometimes', 'boolean'], 'installments.*.refund_until_days' => ['nullable', 'integer', 'between:0,3650'],
             'installments.*.confirms_place' => ['sometimes', 'boolean'], 'installments.*.discounts_apply' => ['sometimes', 'boolean'],
             'installments.*.paid_add_group' => ['nullable', 'integer', Rule::exists('groups', 'id')->where('kind', 'manual')],
             'installments.*.paid_remove_group' => ['nullable', 'integer', Rule::exists('groups', 'id')->where('kind', 'manual')],
         ]);
-        $prices = array_key_exists('prices', $data) ? array_values($data['prices']) : null;
-        $installments = array_key_exists('installments', $data) ? array_values($data['installments']) : null;
+        // The validated lists keep the order they were sent in, also when a rule fills a later entry first.
+        $list = function (string $key) use ($data): ?array {
+            if (! array_key_exists($key, $data)) {
+                return null;
+            }
+            $items = (array) $data[$key];
+            ksort($items);
+
+            return array_values($items);
+        };
+        $prices = $list('prices');
+        $installments = $list('installments');
         unset($data['prices'], $data['installments']);
         foreach (['sibling_amount' => 'sibling_amount_cents', 'cancellation_fee' => 'cancellation_fee_cents'] as $key => $column) {
             if (array_key_exists($key, $data)) {
@@ -362,7 +373,7 @@ class EventsController extends ApiController
         if ($template) {
             $data = ['is_template' => true, 'status' => 'draft', 'public_page' => false] + $data;
         }
-        $roles = array_key_exists('roles', $data) ? array_values($data['roles']) : null;
+        $roles = $list('roles');
         unset($data['roles']);
         if (array_key_exists('series_id', $data)) {
             $data['event_series_id'] = $data['series_id'];
@@ -395,10 +406,30 @@ class EventsController extends ApiController
                 $errors["prices.{$i}.until_date"][] = 'The last day must not be before the first day.';
             }
         }
+        foreach ($roles ?? [] as $i => $role) {
+            if (($role['registration_form'] ?? null) !== null) {
+                $roles[$i]['registration_form'] = Records::require(Form::query()->where('kind', 'registration'), $role['registration_form'], "roles.{$i}.registration_form")->id;
+            }
+        }
+        $names = [];
+        $ids = [];
         foreach ($installments ?? [] as $i => $installment) {
-            $known = $event?->installments()->where('key', $installment['key'])->first();
+            $known = $this->knownInstallment($event, $installment, $i);
+            $installments[$i]['id'] = $known?->id;
+            if ($known !== null && in_array($known->id, $ids, true)) {
+                $errors["installments.{$i}"][] = 'Two entries mean the same instalment.';
+            }
+            $ids[] = $known?->id;
             if ($known === null && ! isset($installment['label'])) {
-                $errors["installments.{$i}.label"][] = 'A new instalment needs its label in German and English.';
+                $errors["installments.{$i}.label"][] = 'A new instalment needs its name (label).';
+            }
+            $name = Records::normalise((string) ($installment['label'] ?? $known?->label));
+            if ($name !== '' && in_array($name, $names, true)) {
+                $errors["installments.{$i}.label"][] = 'Two instalments of the event cannot have the same name.';
+            }
+            $names[] = $name;
+            if (($installment['membership_type'] ?? null) !== null) {
+                $installments[$i]['membership_type'] = Records::require(MembershipType::query(), $installment['membership_type'], "installments.{$i}.membership_type")->id;
             }
             if (($installment['kind'] ?? $known->kind ?? 'fixed') === 'member' && ! isset($installment['membership_type']) && $known?->membership_type_id === null) {
                 $errors["installments.{$i}.membership_type"][] = 'An instalment for the membership fee needs the membership type.';
@@ -408,7 +439,33 @@ class EventsController extends ApiController
             throw ValidationException::withMessages($errors);
         }
 
-        return ['event' => $data, 'roles' => $roles, 'prices' => $prices, 'installments' => $installments];
+        return ['event' => $data, 'roles' => $roles === null ? null : array_values($roles), 'prices' => $prices, 'installments' => $installments === null ? null : array_values($installments)];
+    }
+
+    /**
+     * The instalment of the event an item of "installments" means: by its id, by the key of older clients, or by its
+     * exact name; null for a new one.
+     *
+     * @param  array<string, mixed>  $item
+     */
+    private function knownInstallment(?Event $event, array $item, int $i): ?EventInstallment
+    {
+        if (isset($item['id'])) {
+            $known = $event?->installments()->whereKey((int) $item['id'])->first();
+            if ($known === null) {
+                throw ValidationException::withMessages(["installments.{$i}.id" => ['This event has no instalment with this id.']]);
+            }
+
+            return $known;
+        }
+        if ($event === null) {
+            return null;
+        }
+        if (isset($item['key'])) {
+            return $event->installments()->where('key', $item['key'])->first();
+        }
+
+        return isset($item['label']) ? Records::findByName($event->installments()->getQuery(), (string) $item['label'], "installments.{$i}.label", 'label') : null;
     }
 
     /**
@@ -436,7 +493,7 @@ class EventsController extends ApiController
                 }
             }
             if (array_key_exists('registration_form', $role)) {
-                $values['registration_form_id'] = $role['registration_form'] !== null ? Form::query()->where('key', $role['registration_form'])->where('kind', 'registration')->value('id') : null;
+                $values['registration_form_id'] = $role['registration_form']; // the id, see data()
             }
             $model = $event->roles()->firstOrNew(['role_key' => $role['role']]);
             $model->fill($values)->save();
@@ -463,7 +520,7 @@ class EventsController extends ApiController
     }
 
     /**
-     * The payment plan, by key: listed instalments are created or changed, the others are removed.
+     * The payment plan: listed instalments are created or changed (by their id, see data()), the others are removed.
      *
      * @param  list<array<string, mixed>>|null  $installments
      */
@@ -472,21 +529,21 @@ class EventsController extends ApiController
         if ($installments === null) {
             return;
         }
-        foreach ($event->installments()->whereNotIn('key', array_column($installments, 'key'))->get() as $gone) {
-            if (Invoice::query()->where('event_id', $event->id)->where('installment_key', $gone->key)->exists()) {
-                throw ValidationException::withMessages(['installments' => ["The instalment {$gone->key} has invoices and cannot be removed."]]);
+        foreach ($event->installments()->whereNotIn('id', array_values(array_filter(array_column($installments, 'id'))))->get() as $gone) {
+            if (Invoice::query()->forInstallment($gone)->exists()) {
+                throw ValidationException::withMessages(['installments' => ["The instalment {$gone->labelText()} has invoices and cannot be removed."]]);
             }
             $gone->delete();
         }
         foreach ($installments as $sort => $item) {
             /** @var EventInstallment $model */
-            $model = $event->installments()->firstOrNew(['key' => $item['key']]);
+            $model = isset($item['id']) ? $event->installments()->findOrFail($item['id']) : $event->installments()->make(isset($item['key']) ? ['key' => $item['key']] : []);
             $values = ['sort' => $sort] + array_intersect_key($item, array_flip(['label', 'kind', 'due_date', 'due_days', 'refundable', 'refund_until_days', 'confirms_place', 'discounts_apply']));
             if (array_key_exists('amount', $item)) {
                 $values['amount_cents'] = $item['amount'] !== null ? (int) round(((float) $item['amount']) * 100) : null;
             }
             if (array_key_exists('membership_type', $item)) {
-                $values['membership_type_id'] = $item['membership_type'] !== null ? MembershipType::query()->where('key', $item['membership_type'])->value('id') : null;
+                $values['membership_type_id'] = $item['membership_type']; // the id, see data()
             }
             foreach (['paid_add_group' => 'paid_add_group_id', 'paid_remove_group' => 'paid_remove_group_id'] as $key => $column) {
                 if (array_key_exists($key, $item)) {

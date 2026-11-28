@@ -112,8 +112,10 @@ class ApiCompleteTest extends TestCase
     {
         $person = Person::factory()->create(['locale' => 'en']);
         $person->contactPoints()->create(['type' => 'email', 'value' => 'a@example.org', 'is_primary' => true]);
-        $make = function (string $token) use ($person): int {
-            $id = (int) $this->withToken($token)->postJson('/api/v1/mailings', ['name' => 'M', 'template' => 'newsletter', 'people' => [$person->public_id], 'routing' => 'person'])->assertCreated()->assertJsonPath('data.status', 'draft')->json('data.id');
+        $newsletter = MailTemplate::query()->where('key', 'newsletter')->firstOrFail();
+        $make = function (string $token) use ($person, $newsletter): int {
+            $id = (int) $this->withToken($token)->postJson('/api/v1/mailings', ['name' => 'M', 'template' => $newsletter->label(), 'people' => [$person->public_id], 'routing' => 'person'])->assertCreated()
+                ->assertJsonPath('data.status', 'draft')->assertJsonPath('data.template', $newsletter->id)->assertJsonPath('data.template_name', $newsletter->label())->json('data.id');
             $this->withToken($token)->postJson("/api/v1/mailings/$id/release")->assertUnprocessable();
             $this->withToken($token)->postJson("/api/v1/mailings/$id/prepare")->assertOk()->assertJsonPath('data.mails_count', 1);
 

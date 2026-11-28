@@ -55,6 +55,7 @@ class MailTextsTest extends TestCase
     public function test_the_sign_up_mail_addresses_adults_with_their_full_name(): void
     {
         Mail::fake();
+        $this->openSignUp();
         $this->post('/register', ['first_name' => 'Kim', 'last_name' => 'Ash', 'email' => 'kim@example.org', 'locale' => 'de', 'privacy' => '1'])->assertSessionHasNoErrors();
         Mail::assertSent(ConfirmSignUpMail::class, fn (ConfirmSignUpMail $mail) => $mail->name === 'Kim Ash');
     }

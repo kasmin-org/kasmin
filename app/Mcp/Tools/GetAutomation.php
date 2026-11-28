@@ -22,9 +22,9 @@ class GetAutomation extends ApiTool
 
     public function handle(Request $request): Response
     {
-        $args = $this->args($request);
-        $path = '/automations/'.rawurlencode((string) ($args['key'] ?? ''));
-        unset($args['key']);
+        $args = $this->withRecord($this->args($request), 'automation');
+        $path = '/automations/'.rawurlencode((string) ($args['automation'] ?? ''));
+        unset($args['automation']);
 
         return $this->call('GET', $path, $args);
     }
@@ -33,7 +33,7 @@ class GetAutomation extends ApiTool
     public function schema(JsonSchema $schema): array
     {
         return [
-            'key' => $schema->string()->description('automation key')->required(),
+            'automation' => $schema->string()->description('id or exact name of the automation, see list_automations')->required(),
         ];
     }
 }

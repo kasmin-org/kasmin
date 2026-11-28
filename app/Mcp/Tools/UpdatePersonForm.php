@@ -28,8 +28,8 @@ class UpdatePersonForm extends ApiTool
     {
         return [
             'id' => $schema->string()->description('person id')->required(),
-            'form' => $schema->string()->description('key of the form, e.g. safety_sheet')->required(),
-            'values' => $schema->object()->description('field key => value, with the keys of list_forms')->required(),
+            'form' => $schema->string()->description('id or exact name of the form, see list_forms')->required(),
+            'values' => $schema->object()->description('field => value; a field is named by its key or its id from list_forms')->required(),
         ];
     }
 }

@@ -8,7 +8,8 @@ cannot be removed.
 
 ## Permissions
 
-*Settings → Roles* (administrators only): access per area – none, view or edit – and own roles. Defaults:
+*Administration → Roles* (administrators only): access per area – none, view or edit – and own roles, each with a name of
+its own (two roles cannot have the same name). Defaults:
 
 | Area | Administrator | Board | Treasurer | Safety officer | Camp leader | Auditor |
 |---|---|---|---|---|---|---|
@@ -34,7 +35,7 @@ itself can change it. This also holds for imports and for merging duplicates. On
 
 ## Own events only
 
-A role can count for **everything** or for **own events only** (*Settings → Roles → Counts for*). Camp leaders and counsellors
+A role can count for **everything** or for **own events only** (*Administration → Roles → Counts for*). Camp leaders and counsellors
 are set to own events, also in existing installations; an administrator can change it.
 
 Own events are events
@@ -43,7 +44,7 @@ Own events are events
 - the person takes part in as team member or junior counsellor. Somebody who only registered itself does not count until the team
   confirms it.
 
-They count until 180 days after the end (*Settings → Organisation and invoices → Own events: days of access after the end*). People with such a role see these events, their participants and the legal guardians of these,
+They count until 180 days after the end (*Administration → Organisation → Own events: days of access after the end*). People with such a role see these events, their participants and the legal guardians of these,
 the lists, and the schedule. Registrations a child made itself do not show its legal guardians. Everything else is closed: other events,
 families, groups, imports, statistics, mailings, the to-do list, and searching for other people. Health data needs the additional right
 *Safety* in the role and then also only counts for the own events.

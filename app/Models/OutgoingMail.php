@@ -16,6 +16,7 @@ use Illuminate\Support\Carbon;
  * @property int|null $person_id
  * @property int|null $household_id
  * @property int|null $mailing_id
+ * @property int|null $event_id
  * @property string $to_address
  * @property string|null $to_name
  * @property list<array<string, mixed>>|null $attachments

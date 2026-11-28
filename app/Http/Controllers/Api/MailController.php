@@ -12,6 +12,7 @@ use App\Support\Language;
 use App\Support\Mail\Mailings;
 use App\Support\Mail\Placeholders;
 use App\Support\Mail\TemplateRenderer;
+use App\Support\Records\Records;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -19,7 +20,7 @@ use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Mail templates and mailings. Scopes: mail:read, mail:write. Sending a mailing always needs a human decision unless the token
+ * Mail templates and mailings. A template is addressed by its id or its exact name. Scopes: mail:read, mail:write. Sending a mailing always needs a human decision unless the token
  * has approvals:decide (X05).
  */
 class MailController extends ApiController
@@ -29,7 +30,7 @@ class MailController extends ApiController
     {
         $this->scope('mail:read');
 
-        return response()->json(['data' => MailTemplate::query()->orderBy('key')->get()->map(fn (MailTemplate $t) => $this->presentTemplate($t))->values()]);
+        return response()->json(['data' => MailTemplate::query()->orderBy('id')->get()->map(fn (MailTemplate $t) => $this->presentTemplate($t))->values()]);
     }
 
     /** One template with its subject and text. */
@@ -111,7 +112,7 @@ class MailController extends ApiController
         $this->scope('mail:write');
         $data = $request->validate([
             'name' => ['required', 'string', 'max:200'],
-            'template' => ['required', 'string'],
+            'template' => ['required'],
             'groups' => ['nullable', 'array', 'max:50'], 'groups.*' => ['integer', 'exists:groups,id'],
             'people' => ['nullable', 'array', 'max:1000'], 'people.*' => ['string'],
             'event' => ['nullable', 'string'],
@@ -121,7 +122,7 @@ class MailController extends ApiController
             'scheduled_at' => ['nullable', 'date'],
         ]);
         $mailing = Mailing::query()->create([
-            'name' => $data['name'], 'mail_template_id' => $this->find($data['template'])->id, 'routing' => $data['routing'] ?? 'guardians', 'one_per_family' => $data['one_per_family'] ?? true, 'scheduled_at' => $data['scheduled_at'] ?? null,
+            'name' => $data['name'], 'mail_template_id' => Records::require(MailTemplate::query(), $data['template'], 'template')->id, 'routing' => $data['routing'] ?? 'guardians', 'one_per_family' => $data['one_per_family'] ?? true, 'scheduled_at' => $data['scheduled_at'] ?? null,
             'recipients' => [
                 'group_ids' => array_map('intval', $data['groups'] ?? []),
                 'event_id' => isset($data['event']) ? Event::query()->where('public_id', $data['event'])->firstOrFail()->id : null,
@@ -156,15 +157,15 @@ class MailController extends ApiController
         return response()->json(['data' => $this->presentMailing($model->refresh()->load('template')->loadCount('mails'))], 202);
     }
 
-    private function find(string $key): MailTemplate
+    private function find(string $template): MailTemplate
     {
-        return MailTemplate::query()->where('key', $key)->firstOrFail();
+        return Records::findOrFail(MailTemplate::query(), $template, 'template');
     }
 
     /** @return array<string, mixed> */
     private function presentTemplate(MailTemplate $t, bool $contents = false): array
     {
-        $data = ['key' => $t->key, 'name' => $t->name, 'group' => $t->groupKey(), 'category' => $t->category, 'audience' => $t->audience, 'version' => $t->version, 'active' => (bool) $t->getAttribute('active')];
+        $data = ['id' => (int) $t->getKey(), 'name' => $t->label(), 'group' => $t->groupKey(), 'category' => $t->category, 'audience' => $t->audience, 'version' => $t->version, 'active' => (bool) $t->getAttribute('active')];
 
         $content = $contents ? $t->contents()->first() : null;
 
@@ -174,6 +175,6 @@ class MailController extends ApiController
     /** @return array<string, mixed> */
     private function presentMailing(Mailing $m): array
     {
-        return ['id' => $m->id, 'name' => $m->name, 'template' => $m->template?->key, 'status' => $m->status, 'routing' => $m->routing, 'one_per_family' => $m->one_per_family, 'mails_count' => (int) $m->getAttribute('mails_count')];
+        return ['id' => $m->id, 'name' => $m->name, 'template' => $m->getAttribute('mail_template_id'), 'template_name' => $m->template?->label(), 'status' => $m->status, 'routing' => $m->routing, 'one_per_family' => $m->one_per_family, 'mails_count' => (int) $m->getAttribute('mails_count')];
     }
 }

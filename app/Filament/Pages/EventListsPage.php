@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Support\InArea;
 use App\Models\Event;
 use App\Models\User;
 use App\Support\Audit\Audit;
@@ -20,11 +21,11 @@ use Livewire\Attributes\Url;
  */
 class EventListsPage extends Page
 {
+    use InArea;
+
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedListBullet;
 
     protected static ?string $slug = 'lists';
-
-    protected static ?int $navigationSort = 30;
 
     protected string $view = 'filament.pages.event-lists';
 
@@ -36,11 +37,6 @@ class EventListsPage extends Page
 
     #[Url]
     public string $role = '';
-
-    public static function getNavigationGroup(): ?string
-    {
-        return __('admin.nav.events');
-    }
 
     public static function getNavigationLabel(): string
     {

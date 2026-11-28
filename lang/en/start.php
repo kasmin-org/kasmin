@@ -5,4 +5,5 @@ return [
     'login' => 'Log in',
     'register' => 'Sign up for the first time',
     'events' => 'Events',
+    'forms' => 'Forms',
 ];

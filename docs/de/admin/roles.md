@@ -8,8 +8,8 @@ nicht von einer Person abhängt. Die letzte Administration kann nicht entfernt w
 
 ## Rechte
 
-*Einstellungen → Rollen* (nur Administratorinnen und Administratoren): Zugriff pro Bereich – kein Zugriff, ansehen oder bearbeiten –
-und eigene Rollen. Voreinstellung:
+*Administration → Rollen* (nur Administratorinnen und Administratoren): Zugriff pro Bereich – kein Zugriff, ansehen oder bearbeiten –
+und eigene Rollen, jede mit einem eigenen Namen (zwei Rollen können nicht denselben Namen haben). Voreinstellung:
 
 | Bereich | Administration | Vorstand | Finanzen | Sicherheitsdaten | Lagerleitung | Rechnungsprüfung |
 |---|---|---|---|---|---|---|
@@ -36,7 +36,7 @@ Administratorinnen und Administratoren können eine solche Person löschen.
 
 ## Nur eigene Veranstaltungen
 
-Eine Rolle kann für **Alles** gelten oder **Nur eigene Veranstaltungen** (*Einstellungen → Rollen → Gilt für*). Lagerleitung und
+Eine Rolle kann für **Alles** gelten oder **Nur eigene Veranstaltungen** (*Administration → Rollen → Gilt für*). Lagerleitung und
 Betreuung sind auf eigene Veranstaltungen eingestellt, auch in bestehenden Installationen; eine Administratorin oder ein
 Administrator kann das ändern.
 
@@ -46,7 +46,7 @@ Eigene Veranstaltungen sind Veranstaltungen,
 - an denen die Person im Team oder als Nachwuchs-Betreuung teilnimmt. Wer sich nur selbst angemeldet hat, zählt erst, wenn das Team
   die Anmeldung bestätigt.
 
-Sie zählen bis 180 Tage nach dem Ende (*Einstellungen → Organisation und Rechnungen → Eigene Veranstaltungen: Tage Zugriff nach dem Ende*). Personen mit einer solchen Rolle sehen diese Veranstaltungen, deren Teilnehmende und die Erziehungsberechtigten dieser Teilnehmenden,
+Sie zählen bis 180 Tage nach dem Ende (*Administration → Organisation → Eigene Veranstaltungen: Tage Zugriff nach dem Ende*). Personen mit einer solchen Rolle sehen diese Veranstaltungen, deren Teilnehmende und die Erziehungsberechtigten dieser Teilnehmenden,
 die Listen und den Zeitplan. Hat sich ein Kind selbst angemeldet, werden seine Erziehungsberechtigten nicht angezeigt. Alles andere ist gesperrt: andere
 Veranstaltungen, Familien, Gruppen, Importe, Statistik, Aussendungen, die Liste „Zu erledigen“ und die Suche nach anderen Personen.
 Gesundheitsdaten brauchen zusätzlich das Recht *Sicherheitsblätter und Gesundheitsdaten* in der Rolle und gelten dann ebenfalls nur

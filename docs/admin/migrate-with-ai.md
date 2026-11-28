@@ -23,7 +23,7 @@ A migration passes personal data to the AI service. Before you start, check:
 
 ## Steps
 
-1. Create the token (*Settings → API tokens*) and connect the assistant to `https://your-kasmin.example/mcp`
+1. Create the token (*Administration → API tokens*) and connect the assistant to `https://your-kasmin.example/mcp`
    (see [API and MCP](api.md)).
 2. Give the assistant the export (or let it read Webling via the import wizard instead).
 3. Let it **map** the columns to the [import fields](import.md#fields) and run **`import_preview`** with a stable

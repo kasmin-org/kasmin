@@ -37,7 +37,7 @@ Health and safety data are not imported this way.
 | `guardian2_…` | second legal guardian, same fields |
 | `family` | optional family key: rows with the same key form one family |
 | `groups` | group names, comma-separated (created if missing) |
-| `membership_type`, `membership_start`, `membership_end` | membership (type key, e.g. `child`) |
+| `membership_type`, `membership_start`, `membership_end` | membership (the name of the membership type as in *People → Membership types*, e.g. `Child (associate member)`) |
 | `participations` | past participations: `Event title:role:status;…`, e.g. `Summer camp 2026:child:attended` (the event must exist) |
 
 ## Family builder
@@ -64,7 +64,7 @@ See also [Migrate with an AI assistant](migrate-with-ai.md).
 
 ## Invoices from the system used before
 
-*Finance → Invoice archive* keeps old invoices to look them up. They are **read-only**: nothing is sent, reminded or booked for them.
+*Accounting → Invoice archive* keeps old invoices to look them up. They are **read-only**: nothing is sent, reminded or booked for them.
 
 **Import invoices** (treasurers and administrators) takes
 

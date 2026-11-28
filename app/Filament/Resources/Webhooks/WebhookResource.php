@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Webhooks;
 use App\Filament\Resources\Webhooks\Pages\CreateWebhook;
 use App\Filament\Resources\Webhooks\Pages\EditWebhook;
 use App\Filament\Resources\Webhooks\Pages\ListWebhooks;
+use App\Filament\Support\InArea;
 use App\Models\User;
 use App\Models\Webhook;
 use BackedEnum;
@@ -24,6 +25,8 @@ use Filament\Tables\Table;
  */
 class WebhookResource extends Resource
 {
+    use InArea;
+
     protected static ?string $model = Webhook::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedArrowTopRightOnSquare;
@@ -36,11 +39,6 @@ class WebhookResource extends Resource
     public static function getPluralModelLabel(): string
     {
         return __('webhooks.plural');
-    }
-
-    public static function getNavigationGroup(): ?string
-    {
-        return __('admin.nav.settings');
     }
 
     public static function canViewAny(): bool

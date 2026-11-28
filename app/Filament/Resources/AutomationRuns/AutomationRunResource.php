@@ -5,6 +5,7 @@ namespace App\Filament\Resources\AutomationRuns;
 use App\Filament\Resources\AutomationRuns\Pages\ListAutomationRuns;
 use App\Filament\Resources\AutomationRuns\Pages\ViewAutomationRun;
 use App\Filament\Support\AreaAccess;
+use App\Filament\Support\InArea;
 use App\Models\AutomationApproval;
 use App\Models\AutomationRun;
 use BackedEnum;
@@ -25,6 +26,7 @@ use Filament\Tables\Table;
 class AutomationRunResource extends Resource
 {
     use AreaAccess;
+    use InArea;
 
     public static function area(): string
     {
@@ -35,8 +37,6 @@ class AutomationRunResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCheckBadge;
 
-    protected static ?int $navigationSort = 20;
-
     public static function getModelLabel(): string
     {
         return __('automations.run');
@@ -45,11 +45,6 @@ class AutomationRunResource extends Resource
     public static function getPluralModelLabel(): string
     {
         return __('automations.runs');
-    }
-
-    public static function getNavigationGroup(): ?string
-    {
-        return __('admin.nav.automations');
     }
 
     public static function getNavigationBadge(): ?string

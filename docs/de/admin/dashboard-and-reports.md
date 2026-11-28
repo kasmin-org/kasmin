@@ -1,5 +1,23 @@
 # Dashboard, Suche und Statistik
 
+## Navigation
+
+Die Verwaltung hat fünf **Bereiche**, oben neben dem Logo: **Personen**, **Veranstaltungen**, **Kommunikation**,
+**Buchhaltung** und **Administration**. Die Navigation links zeigt nur die Seiten des geöffneten Bereichs:
+
+| Bereich | Seiten |
+|---|---|
+| Personen | Personen, Familien, Gruppen, Mitgliedsarten; *Pflege:* Doppelte Einträge, Personen importieren, Importe |
+| Veranstaltungen | Veranstaltungen, Veranstaltungsreihen, Neue Saison, Listen, Statistik; *Formulare:* Formulare, Öffentliche Formulare, Einsendungen; *Automatisierungen:* Automatisierungen, Läufe und Freigaben; *Vorlagen:* Veranstaltungsvorlagen |
+| Kommunikation | Aussendungen, Mailvorlagen, Mailprotokoll, Unzustellbare Adressen, Einwilligungen und Abmeldungen |
+| Buchhaltung | Rechnungen, Zahlungen, Rückzahlungen, Rechnungsarchiv; *Einstellungen:* Rechnungseinstellungen |
+| Administration | Globale Einstellungen, Organisation, Rollen, E-Mail-Versand, Löschung und Aufbewahrung, Audit-Protokoll, API-Tokens, Webhooks; *System:* Systemstatus, Datensicherungen, Aktualisierung |
+
+Das Logo oder **Dashboard** oben links öffnet die Startseite. Einen Bereich sehen nur Personen, die mindestens eine seiner Seiten öffnen
+dürfen – *Administration* nur, wer für eine ihrer Seiten ein Recht hat; die globalen Einstellungen, die Systemseiten, Datensicherungen und
+die Aktualisierung nur Administratorinnen und Administratoren. *Meine Benachrichtigungen* ist im Benutzermenü oben rechts. Auf dem Telefon
+stehen die Bereiche oben im Menü.
+
 ## Dashboard
 
 Die Startseite der Verwaltung zeigt:
@@ -26,7 +44,7 @@ kann nichts geändert werden. Ein Balken zeigt die Vorschau an und beendet sie. 
 
 ## Statistik
 
-*Auswertungen → Statistik*, pro Veranstaltung und Rolle:
+*Veranstaltungen → Statistik*, pro Veranstaltung und Rolle:
 
 - **Altersverteilung** zu Beginn der Veranstaltung (oder zum Stichtag der Veranstaltung).
 - **Altersgruppen für Aktivitäten**: teilt die Teilnehmenden in 2–5 etwa gleich große Gruppen, die Jüngsten zuerst,

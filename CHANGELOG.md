@@ -6,6 +6,37 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ## [Unreleased]
 
+## [0.31.0] - 2026-11-28
+
+### Changed
+
+- **Navigation in five areas.** The admin interface has the areas *People*, *Events*, *Communication*, *Accounting* and *Administration* at the top next to the logo; the navigation on the left shows only the pages of the open area, the logo or *Dashboard* opens the start page, and *My notifications* moved to the user menu. Areas without any page a person may open are not shown. The settings are split into *Organisation* and *Global settings* (Administration, the latter for administrators only) and *Invoice settings* (Accounting, also for finance roles); *System status*, *Backups* and *Update* are separate pages.
+- **Signing up only through a public form.** The sign-up of family accounts is now a public form of the new kind *Sign-up (family account)* with opening and closing times, text, group and newsletter question. **Breaking:** it is **switched off** on every installation, also after this update – until an administrator switches it on, nobody can sign up; a system notification says so after the update. `/register` forwards to the form while it is on and open; the start page shows *Sign up for the first time* only then. Public forms can also be shown on the start page (*Show on the start page*). The public API accepts the sign-up form as well.
+- **Links in mails about an event** stay valid until the event has ended, if the person or one of their children is registered, on the waitlist or has an open offer – never shorter than 30 days, never longer than a year; other mails keep 30 days. A cancellation, a cancelled event or the end of the guardianship shortens such a link at once. Every mail with a personal link says until when it is valid. New: *Make all links in older e-mails invalid* in the portal (*My data*) and *Make links in mails invalid* on the person page.
+- Invoices show every **discount as its own position** below the line it belongs to (e.g. *Sibling discount (2nd child) −25.00*), with the full amount in the line above. REST and MCP give each line `gross`, `discount`, `discount_kind` and `discount_label`. Invoices issued before keep their look.
+- Public forms: below the field *Address* the **full web address** appears while typing, with a button to copy it. The address is suggested from the title and saved normalised – lower case, umlauts spelled out (ä → ae, ß → ss), other accents removed, only a–z, 0–9 and hyphens. Existing addresses are normalised by the update; an earlier or differently written address forwards to the form.
+- The **login code** has six characters in [Base32H](https://base32h.github.io) instead of six digits, shown as `K7M-2QX`: about a billion possibilities instead of 900,000. Typing is forgiving (lower case, with or without hyphen, O for 0, I for 1, S for 5, U for V). Codes in mails sent before the update keep working until they expire.
+- **No more "Key" fields.** Membership types, roles, forms and their fields, mail templates, automations and the instalments of a payment plan are shown and edited with their **name** only; the field *Key* is gone from the admin interface. Names are **unique** per type (instalments: per event), with a plain message when a name is taken. Records refer to each other by their database id; the records the software itself knows (the role administrator, standard templates, forms and automations) keep an internal key that is never shown. A new record gets its internal key from its name, once; a form field keeps it when its label changes, so answers and placeholders keep working. Membership types are labelled *Name* instead of *Key* and *Label*.
+- Invoices refer to the instalment of the payment plan by its id (`installment_id`); the update fills it in for existing invoices. What issued invoices say does not change.
+- The automation **invoice run** chooses its instalment by the **position in the payment plan** of the event it runs for (*1st*, *2nd*, *3rd* or *last instalment*) instead of a typed key. A key stored by an older version keeps working and is offered as *Previous setting*. New installations: *Deposit invoices* use the 1st, *Balance invoices* the last instalment. The safety sheet reminders choose their form from a list.
+- *Insert placeholder* in the template editor lists the **answers to the questions of the events** by their label (*Answer: …*); before, the placeholders `registration.answers.…` had to be typed and were refused when saving. The person import accepts the **name** of a membership type in `membership_type`.
+- Form files (*Export*, `GET|PUT /forms/{form}/definition`) keep the internal keys, so a form still fits another installation; an import without a matching key updates the form with the same name.
+- **Breaking (API):** membership types, roles, forms, mail templates and automations are addressed by their **id or exact name** (`/membership-types/{type}`, `/forms/{form}`, `/mail-templates/{template}`, `/automations/{automation}`, `type` of a membership, `role`, `template` of a mailing, `registration_form`, `membership_type`, templates, form and `approver_roles` of an automation); a name that several records have is refused with 422. Old keys are still accepted. Answers give `id` and `name` and no longer `key` (except form definitions and the fields of `GET /forms`, whose `values` refer to the field key). Instalments of `GET|PATCH /events/{id}` have `id` instead of `key` and are matched by `id` or by their exact `label`; `membership_type`, `registration_form` and the mail templates and form in automation settings are ids; `approver_roles` are role ids; invoices give `installment` as the id of the instalment plus `installment_name` (also in webhooks); automation runs and the event schedule give the automation id plus `automation_name` (runs); mailings give `template` as id plus `template_name`; `POST /membership-types` no longer takes `key`. MCP tools take `automation`, `template`, `type`, `form` and `role` as id or name instead of `key`.
+
+### Security
+
+- **Guessing a login code with many requested mails is no longer easier.** Wrong codes were counted only on the newest of all open codes of a person, while a typed code was compared with all of them, and login mails were limited only per IP address. Now wrong codes are counted per person (five within 30 minutes close the code entry for 30 minutes; the link in the mail keeps working), a new code ends the codes of older mails (their links keep working), and an address gets at most three login or sign-up mails within 15 minutes, whatever the IP address.
+
+### Removed
+
+- Event series no longer have a **type** (camp, alumni, meeting, other). It was stored and shown but never used; what kind of event it is comes from the event template. **Breaking (API):** `type` is gone from `GET|POST|PATCH /event-series` and the MCP tools `create_event_series`, `update_event_series`, `list_event_series`.
+
+### Fixed
+
+- The confirmation of participation subtracted a sibling or role discount a second time from the amount paid.
+- Public forms accepted an address with umlauts (e.g. `anmeldung-für`), whose page then answered "404 Not Found".
+- Creating a series from the event form labelled its name "Title"; the series form showed the untranslated field "type".
+
 ## [0.30.0] - 2026-11-27
 
 ### Added
@@ -670,7 +701,8 @@ First public pre-release for testing. Not ready for production use.
 - Docker image: system packages updated and build packages removed after compiling the PHP extensions – the
   container scan reports no high or critical findings any more (previously 75 in Debian packages).
 
-[Unreleased]: https://github.com/kasmin-org/kasmin/compare/v0.30.0...develop
+[Unreleased]: https://github.com/kasmin-org/kasmin/compare/v0.31.0...develop
+[0.31.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.31.0
 [0.30.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.30.0
 [0.29.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.29.0
 [0.28.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.28.0

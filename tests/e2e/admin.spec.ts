@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 // Needs one login link of an administrator per project (created by the CI job, which switches the second factor off in
 // its throwaway instance): KASMIN_ADMIN_DESKTOP and KASMIN_ADMIN_PHONE. Skipped when not set.
 const pages = ['', '/reports', '/privacy', '/audit-events', '/consents', '/api-tokens', '/webhooks/create', '/import/people',
-    '/people', '/households', '/events', '/invoices', '/payments', '/mailings', '/automations', '/automation-runs', '/settings/organisation', '/system',
+    '/people', '/households', '/events', '/invoices', '/payments', '/mailings', '/automations', '/automation-runs', '/settings/organisation', '/settings/invoices', '/settings/global', '/system', '/backups', '/updates',
     '/lists', '/duplicates', '/notifications', '/mail-templates', '/outgoing-mails', '/bad-addresses', '/archived-invoices', '/refunds', '/groups', '/forms', '/roles', '/membership-types', '/season'];
 
 test('admin pages load without errors, styled and without horizontal scrolling', async ({ page }, testInfo) => {

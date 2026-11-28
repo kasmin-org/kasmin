@@ -3,8 +3,8 @@
 ## Language
 
 An installation works in **one language** – German or English – for everybody: admin interface, portal, public
-pages, mails and documents. It is chosen at the installation; administrators change it under *Settings → Organisation
-and invoices → System → Language*. There is no switch per person or per visit.
+pages, mails and documents. It is chosen at the installation; administrators change it under *Administration → Global settings →
+System → Language*. There is no switch per person or per visit.
 
 The language decides the texts of the software. Everything that was **entered** – forms and their fields, mail
 templates, names of roles and membership types, automations, texts of events – exists once and is not translated:
@@ -16,13 +16,13 @@ is kept in the version history of the template.
 
 ## Time zone
 
-*Settings → Organisation and invoices → Time zone*: all times and daily jobs. Installations before 0.13 run in UTC until a
+*Administration → Global settings → Time zone*: all times and daily jobs. Installations before 0.13 run in UTC until a
 time zone is chosen. Times already stored are not converted, so links and offers that are open at that moment may expire up
 to two hours earlier or later.
 
 ## System status
 
-*System → System status* (administrators only) shows:
+*Administration → System → System status* (administrators only) shows:
 
 - PHP version and the date until which it receives security updates
 - PHP extensions, functions and write permissions: *Show every item* lists each one with what it is needed for and
@@ -65,7 +65,7 @@ recreate the container; the database upgrade runs with `php artisan kasmin:upgra
 
 ## Finding a setting
 
-*Settings → Organisation and invoices* has a search field at the top: type a word (e.g. *IBAN* or *retention*) and only the matching
+*Administration → Organisation*, *Administration → Global settings* and *Accounting → Invoice settings* have a search field at the top: type a word (e.g. *IBAN* or *retention*) and only the matching
 settings stay visible.
 
 ## Help

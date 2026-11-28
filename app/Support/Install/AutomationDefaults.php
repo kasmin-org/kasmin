@@ -37,12 +37,12 @@ class AutomationDefaults
             'deposit_invoices' => [
                 'name' => ['de' => 'Anzahlungsrechnungen', 'en' => 'Deposit invoices'],
                 'description' => ['de' => 'Erstellt und versendet die Anzahlungsrechnungen pro Familie.', 'en' => 'Creates and sends the deposit invoices per family.'],
-                'action' => 'invoice_run', 'config' => ['installment' => 'deposit', 'send' => true], 'trigger' => 'manual', 'mode' => 'confirm',
+                'action' => 'invoice_run', 'config' => ['installment' => 'pos:1', 'send' => true], 'trigger' => 'manual', 'mode' => 'confirm',
             ],
             'balance_invoices' => [
                 'name' => ['de' => 'Restzahlungsrechnungen', 'en' => 'Balance invoices'],
                 'description' => ['de' => 'Erstellt und versendet die Restzahlungsrechnungen 90 Tage vor Beginn.', 'en' => 'Creates and sends the balance invoices 90 days before the start.'],
-                'action' => 'invoice_run', 'config' => ['installment' => 'balance', 'send' => true], 'trigger' => 'before_event', 'trigger_config' => ['days' => 90], 'mode' => 'confirm',
+                'action' => 'invoice_run', 'config' => ['installment' => 'pos:last', 'send' => true], 'trigger' => 'before_event', 'trigger_config' => ['days' => 90], 'mode' => 'confirm',
             ],
             'group_waitlist_offers' => [
                 'name' => ['de' => 'Freie Plätze in Gruppen anbieten', 'en' => 'Offer free places in groups'],

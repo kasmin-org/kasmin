@@ -30,7 +30,7 @@ class GetPersonForm extends ApiTool
     {
         return [
             'id' => $schema->string()->description('person id')->required(),
-            'form' => $schema->string()->description('key of the form, e.g. safety_sheet')->required(),
+            'form' => $schema->string()->description('id or exact name of the form, see list_forms')->required(),
         ];
     }
 }

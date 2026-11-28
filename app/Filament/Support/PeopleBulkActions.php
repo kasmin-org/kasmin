@@ -54,7 +54,7 @@ class PeopleBulkActions
                 ->modalDescription(__('admin.bulk.mailing_hint'))
                 ->schema([
                     TextInput::make('name')->label(__('admin.mail.name'))->required()->maxLength(120)->default(fn () => __('admin.bulk.selection', ['date' => now()->isoFormat('L')])),
-                    Select::make('mail_template_id')->label(__('admin.mail.template'))->options(fn () => MailTemplate::query()->orderBy('key')->pluck('key', 'id')->all())->searchable()->required(),
+                    Select::make('mail_template_id')->label(__('admin.mail.template'))->options(fn () => MailTemplate::query()->get()->mapWithKeys(fn (MailTemplate $t) => [$t->id => $t->label()])->sort(SORT_NATURAL | SORT_FLAG_CASE)->all())->searchable()->required(),
                     Select::make('routing')->label(__('admin.mail.routing'))->options(__('admin.mail.audiences'))->default('guardians')->required(),
                 ])
                 ->action(function (Collection $records, array $data) use ($ids) {

@@ -45,7 +45,7 @@ class EventSchema
             'safety_confirm_days' => $schema->integer()->description('days before the start in which the safety sheet has to be confirmed'),
             'reserve_auto_release' => $schema->boolean()->description('reserved places are released automatically'),
             'reserve_reminder_on' => $schema->string()->description('date of the reminder about reserved places'),
-            'roles' => $schema->array()->items($schema->object())->description('all roles: objects with role (child, junior_counsellor, staff or guest), capacity, reserve_places, min_age, max_age, registered_by (guardian, self or admin), price, role_discount, counts_as_sibling, waitlist_order, registration_form (key of a registration form)'),
+            'roles' => $schema->array()->items($schema->object())->description('all roles: objects with role (child, junior_counsellor, staff or guest), capacity, reserve_places, min_age, max_age, registered_by (guardian, self or admin), price, role_discount, counts_as_sibling, waitlist_order, registration_form (id or exact name of a form with questions)'),
         ];
     }
 
@@ -68,7 +68,7 @@ class EventSchema
             'cancellation_fee' => $schema->number()->description('fee for a cancellation'),
             'cancellation_text' => $schema->object()->description('cancellation terms: {"de": "…", "en": "…"}'),
             'prices' => $schema->array()->items($schema->object())->description('prices by age or date; the list replaces all stored ones: objects with role, price and optionally min_age, max_age, from_date, until_date'),
-            'installments' => $schema->array()->items($schema->object())->description('the payment plan, by key: listed instalments are created or changed, the others are removed (not once they have invoices). Objects with key, label {"de": "…", "en": "…"}, kind (fixed, rest or member), amount, due_date or due_days, membership_type, refundable, refund_until_days, confirms_place, discounts_apply, paid_add_group, paid_remove_group'),
+            'installments' => $schema->array()->items($schema->object())->description('the payment plan: listed instalments are created or changed, the others are removed (not once they have invoices). An instalment is found by its id from get_event (without id: by its exact label; no match = new). Objects with id, label (name, unique in the plan), kind (fixed, rest or member), amount, due_date or due_days, membership_type (id or exact name), refundable, refund_until_days, confirms_place, discounts_apply, paid_add_group, paid_remove_group'),
         ];
     }
 }

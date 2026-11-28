@@ -8,6 +8,7 @@ use App\Filament\Resources\Forms\Pages\ListForms;
 use App\Filament\Resources\Forms\Schemas\FormForm;
 use App\Filament\Resources\Forms\Tables\FormsTable;
 use App\Filament\Support\AreaAccess;
+use App\Filament\Support\InArea;
 use App\Models\Form;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -18,6 +19,7 @@ use Filament\Tables\Table;
 class FormResource extends Resource
 {
     use AreaAccess;
+    use InArea;
 
     public static function area(): string
     {
@@ -34,11 +36,6 @@ class FormResource extends Resource
     public static function getPluralModelLabel(): string
     {
         return __('admin.form.plural');
-    }
-
-    public static function getNavigationGroup(): ?string
-    {
-        return __('admin.nav.forms');
     }
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedClipboardDocumentList;

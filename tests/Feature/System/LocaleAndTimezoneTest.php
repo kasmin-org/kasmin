@@ -54,7 +54,8 @@ class LocaleAndTimezoneTest extends TestCase
         $this->get('/login')->assertOk()->assertDontSee('English')->assertDontSee('name="locale"', false);
         $this->post('/language', ['locale' => 'en'])->assertNotFound();
         $this->actingAs($user)->withSession(['locale' => 'en'])->get('/portal')->assertSee('lang="de"', false)->assertDontSee('name="locale"', false);
-        $this->get('/register')->assertDontSee('name="locale"', false);
+        $this->openSignUp();
+        $this->followingRedirects()->get('/register')->assertOk()->assertDontSee('name="locale"', false);
     }
 
     public function test_only_administrators_change_the_language_and_entered_texts_stay(): void

@@ -5,10 +5,14 @@ namespace App\Support\Api;
 use App\Casts\OneText;
 use App\Models\Automation;
 use App\Models\EventRole;
+use App\Models\Form;
+use App\Models\MailTemplate;
 use App\Models\Participation;
 use App\Models\Role;
 use App\Support\Automations\Actions\Custom;
+use App\Support\Automations\InstallmentPosition;
 use App\Support\People\GroupMembers;
+use App\Support\Records\Records;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Validator;
@@ -18,6 +22,10 @@ use Illuminate\Validation\ValidationException;
 /**
  * Checks changes to an automation that come in via the API, with the rules of the automation form in the admin
  * interface (AP01). Key, action and "standard" cannot be changed.
+ *
+ * Mail templates, forms and approver roles are given by their id or exact name (B8; the internal key of older versions
+ * is still accepted). The automation stores the internal key of the template, form or role, so standard automations
+ * keep working; the API shows ids (see Presenter::automation()).
  */
 class AutomationInput
 {
@@ -60,6 +68,10 @@ class AutomationInput
     public static function check(Automation $automation, array $input): array
     {
         self::known(array_keys($input), self::FIELDS, 'automation');
+        if (is_array($input['approver_roles'] ?? null)) {
+            $admins = Role::query()->where('is_admin', true);
+            $input['approver_roles'] = array_map(fn ($role, $i) => is_scalar($role) ? Records::require($admins, $role, "approver_roles.{$i}")->key : $role, $input['approver_roles'], array_keys($input['approver_roles']));
+        }
         $data = Validator::make(OneText::collapse($input, ['name']), [
             'name' => ['sometimes', 'string', 'max:200'],
             'active' => ['sometimes', 'boolean'],
@@ -159,12 +171,18 @@ class AutomationInput
     {
         $allowed = self::CONFIG_KEYS[$action] ?? [];
         self::known(array_keys($config), $allowed, 'action '.$action, 'config');
+        if (is_scalar($config['template'] ?? null)) {
+            $config['template'] = Records::require(MailTemplate::query(), $config['template'], 'config.template')->key;
+        }
+        if (is_scalar($config['form'] ?? null)) {
+            $config['form'] = Records::require(Form::query()->where('kind', 'person'), $config['form'], 'config.form')->key;
+        }
         $count = ['nullable', 'integer', 'min:1', 'max:100000'];
         $rules = array_intersect_key([
             'template' => ['nullable', 'string', 'exists:mail_templates,key'],
             'statuses' => ['nullable', 'array'],
             'to' => ['nullable', Rule::in(['guardians', 'person', 'both'])],
-            'installment' => ['nullable', 'string', 'alpha_dash', 'max:32'],
+            'installment' => ['nullable', 'string', 'max:32', 'regex:'.InstallmentPosition::PATTERN],
             'send' => ['nullable', 'boolean'],
             'days' => ['nullable', 'integer', 'min:0', 'max:100000'],
             'year' => ['nullable', 'integer', 'between:2000,2100'],
@@ -195,6 +213,11 @@ class AutomationInput
     private static function customConfig(array $config, string $trigger): array
     {
         self::known(array_keys($config), self::CONFIG_KEYS['custom'], 'action custom', 'config');
+        foreach (is_array($config['steps'] ?? null) ? $config['steps'] : [] as $i => $step) {
+            if (is_array($step) && is_scalar($step['template'] ?? null)) {
+                $config['steps'][$i]['template'] = Records::require(MailTemplate::query(), $step['template'], "config.steps.{$i}.template")->key;
+            }
+        }
         $valid = self::prefixed('config', $config, [
             'target' => ['required', 'array:source,statuses,roles,group_id'],
             'target.source' => ['required', Rule::in(['subject', 'event', 'group', 'people'])],

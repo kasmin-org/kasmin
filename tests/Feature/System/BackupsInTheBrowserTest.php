@@ -63,7 +63,7 @@ class BackupsInTheBrowserTest extends TestCase
 
         $this->actingAs($admin)->withSession($session)->post(route('admin.backups.create'))->assertRedirect();
         $backup = app(Backups::class)->all()[0];
-        $this->actingAs($admin)->withSession($session)->get('/admin/system')->assertOk()->assertSee($backup['name'])->assertSee('Back up now');
+        $this->actingAs($admin)->withSession($session)->get('/admin/backups')->assertOk()->assertSee($backup['name'])->assertSee('Back up now');
         $plain = $this->actingAs($admin)->withSession($session)->get(route('admin.backups.download', $backup['name']))->assertOk()->getContent();
         $this->assertStringStartsWith("\x1f\x8b", (string) $plain);
         $this->actingAs($admin)->withSession($session)->get(route('admin.backups.download', 'nothing.sql.gz'))->assertNotFound();

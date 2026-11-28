@@ -1,5 +1,23 @@
 # Dashboard, search and statistics
 
+## Navigation
+
+The admin interface has five **areas**, shown at the top next to the logo: **People**, **Events**, **Communication**,
+**Accounting** and **Administration**. The navigation on the left shows only the pages of the open area:
+
+| Area | Pages |
+|---|---|
+| People | People, Families, Groups, Membership types; *Maintenance:* Duplicates, Import people, Imports |
+| Events | Events, Event series, New season, Lists, Statistics; *Forms:* Forms, Public forms, Submissions; *Automations:* Automations, Runs and approvals; *Templates:* Event templates |
+| Communication | Mailings, Mail templates, Mail log, Bad addresses, Consents and opt-outs |
+| Accounting | Invoices, Payments, Refunds, Invoice archive; *Settings:* Invoice settings |
+| Administration | Global settings, Organisation, Roles, E-mail sending, Deletion and retention, Audit log, API tokens, Webhooks; *System:* System status, Backups, Update |
+
+The logo or **Dashboard** at the top left opens the start page. An area is shown only to people who may open at least
+one of its pages – *Administration* only to those with a right for one of its pages; the global settings, the system
+pages, backups and the update only to administrators. *My notifications* is in the user menu at the top right. On a
+phone, the areas are at the top of the menu.
+
 ## Dashboard
 
 The start page of the admin interface shows:
@@ -26,7 +44,7 @@ can be changed in the preview. A banner shows the preview and ends it. Start and
 
 ## Statistics
 
-*Reports → Statistics*, per event and role:
+*Events → Statistics*, per event and role:
 
 - **Age distribution** at the start of the event (or the reference date of the event).
 - **Age groups for activities**: splits the participants into 2–5 groups of about the same size, youngest first,

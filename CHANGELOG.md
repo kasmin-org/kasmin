@@ -6,6 +6,8 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ## [Unreleased]
 
+## [0.31.0] - 2026-11-28
+
 ### Changed
 
 - **Navigation in five areas.** The admin interface has the areas *People*, *Events*, *Communication*, *Accounting* and *Administration* at the top next to the logo; the navigation on the left shows only the pages of the open area, the logo or *Dashboard* opens the start page, and *My notifications* moved to the user menu. Areas without any page a person may open are not shown. The settings are split into *Organisation* and *Global settings* (Administration, the latter for administrators only) and *Invoice settings* (Accounting, also for finance roles); *System status*, *Backups* and *Update* are separate pages.
@@ -699,7 +701,8 @@ First public pre-release for testing. Not ready for production use.
 - Docker image: system packages updated and build packages removed after compiling the PHP extensions – the
   container scan reports no high or critical findings any more (previously 75 in Debian packages).
 
-[Unreleased]: https://github.com/kasmin-org/kasmin/compare/v0.30.0...develop
+[Unreleased]: https://github.com/kasmin-org/kasmin/compare/v0.31.0...develop
+[0.31.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.31.0
 [0.30.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.30.0
 [0.29.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.29.0
 [0.28.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.28.0

@@ -175,7 +175,12 @@ class PeriodsController extends AccountingController
         ]);
         $amounts = [];
         foreach (array_values($data['budgets']) as $i => $item) {
-            $amounts[(int) $this->find(CostCenter::class, $item['cost_center'], "budgets.{$i}.cost_center")->getKey()] = $this->cents($item['amount']);
+            $center = $this->find(CostCenter::class, $item['cost_center'], "budgets.{$i}.cost_center");
+            if (! $model->costCenters()->whereKey($center->getKey())->exists()) {
+                // As in the admin interface: only cost centres active in the period have a budget there.
+                throw ValidationException::withMessages(["budgets.{$i}.cost_center" => ["The cost centre {$center->getAttribute('name')} is not active in the period {$model->name}."]]);
+            }
+            $amounts[(int) $center->getKey()] = $this->cents($item['amount']);
         }
         app(Budgets::class)->save($model, $amounts);
 

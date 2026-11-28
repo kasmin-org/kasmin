@@ -7,12 +7,14 @@ use App\Models\CostCenter;
 use App\Models\Fund;
 use App\Models\JournalEntry;
 use App\Models\Period;
+use App\Models\Person;
 use App\Support\Accounting\Journal;
 use App\Support\Api\AccountingPresenter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 /**
  * The journal (E1): every booking with its lines. Scopes: finance:read, finance:write. Bookings are typed in with any
@@ -78,7 +80,7 @@ class BookingsController extends AccountingController
                 'debit' => $this->cents($line['debit'] ?? 0), 'credit' => $this->cents($line['credit'] ?? 0),
                 'cost_center' => $this->findOptional(CostCenter::class, $line['cost_center'] ?? null, "lines.{$i}.cost_center"),
                 'fund' => $this->findOptional(Fund::class, $line['fund'] ?? null, "lines.{$i}.fund"),
-                'person_id' => filled($line['person'] ?? null) ? $this->person((string) $line['person'])->id : null, // the public id, as everywhere in the API
+                'person_id' => $this->linePerson($line['person'] ?? null, $line['account'], $i),
                 'text' => $line['text'] ?? null,
             ];
         }
@@ -87,10 +89,28 @@ class BookingsController extends AccountingController
         return response()->json(['data' => AccountingPresenter::booking($entry->load(AccountingPresenter::BOOKING_WITH), true)], 201);
     }
 
+    /** The person of a line (its public id), only on accounts kept per person; a 422 on the field when it does not fit. */
+    private function linePerson(mixed $ref, mixed $account, int $i): ?int
+    {
+        if (blank($ref)) {
+            return null;
+        }
+        $personal = in_array($this->find(Account::class, $account, "lines.{$i}.account")->system_key, Journal::PERSONAL, true);
+        $person = $personal ? Person::query()->where('public_id', (string) $ref)->whereNull('anonymised_at')->first() : null;
+        if ($person === null) {
+            throw ValidationException::withMessages(["lines.{$i}.person" => [$personal
+                ? 'No person with this id.'
+                : 'A person goes only on receivables, credits, expenses to pay back and advances.']]);
+        }
+
+        return $person->id;
+    }
+
     /**
      * Reverses a booking: a counter-booking with the same amounts on the opposite sides, dated on the original date
-     * while its period is open, else today (or date). Allocations and closings are not reversed but removed by
-     * reopening the period. The answer is the reversal.
+     * while its period is open, else today (or date). Only typed-in bookings, fund transfers and opening bookings are
+     * reversed; a booking of a document is corrected through the document, allocations and closings by reopening the
+     * period. The answer is the reversal.
      */
     public function reverse(Request $request, int $booking): JsonResponse
     {

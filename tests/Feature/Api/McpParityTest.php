@@ -306,7 +306,7 @@ class McpParityTest extends TestCase
         $new = array_merge(...array_values(self::NEW_TOOLS));
         $this->assertSame([], array_values(array_diff($new, $names)));
         $this->assertCount(88, $new);
-        $this->assertCount(140, $names);
+        $this->assertCount(169, $names);
     }
 
     public function test_new_tools_are_listed_by_scope_and_refused_without_it(): void
@@ -769,7 +769,8 @@ class McpParityTest extends TestCase
         ]);
         $ben = $make('Ben');
         $cleo = $make('Cleo');
-        $this->assertSame('team', $this->tool($token, 'list_public_forms')['data'][0]['slug'] ?? null);
+        // Every installation also has the sign-up form (switched off), sorted before "team".
+        $this->assertContains('team', array_column((array) ($this->tool($token, 'list_public_forms')['data'] ?? []), 'slug'));
 
         // Even with health:read and "all data": the answers to confidential questions are not part of the answer.
         $response = $this->callTool($token, 'list_public_submissions', ['status' => 'pending'])->assertOk();

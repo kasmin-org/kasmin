@@ -1,5 +1,10 @@
 # Installing Kasmin
 
+> **⚠️ Kasmin is under development and should not be used yet.** A first version that is suitable for tests and for
+> real use is planned for January 2027 at the latest; the [README](https://github.com/kasmin-org/kasmin#readme) will
+> then name the version from which on that is the case. Until then a version may change or drop data structures without
+> a way to upgrade.
+
 Requirements: PHP 8.3 or newer with 128 MB of memory and the usual extensions, MariaDB or MySQL, and a cron job. The
 full list, with what each item is needed for, is in [Hosting](hosting.md#what-the-server-must-offer); the set-up
 script checks it before it starts.

@@ -57,7 +57,7 @@ final class Allocation
      * @param  list<array{target: int, kind: string, value: int}>  $rules
      * @param  array<int, int>  $income  net income per cost centre in the period (for "share")
      * @return array{amounts: array<int, int>, cut: array<int, array{0: int, 1: int}>, errors: list<string>}
-     *                                                                                                      amounts: cost borne per receiving cost centre (negative = credit); cut: fixed amounts that were cut [configured, used]
+     *                                                                                                       amounts: cost borne per receiving cost centre (negative = credit); cut: fixed amounts that were cut [configured, used]
      */
     public static function compute(int $cost, array $rules, array $income = []): array
     {

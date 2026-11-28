@@ -12,6 +12,7 @@ use App\Models\SystemNotification;
 use App\Models\User;
 use App\Support\Install\Defaults;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
@@ -61,6 +62,31 @@ class SignUpFormTest extends TestCase
         $this->post('/register/confirm/'.$token)->assertRedirect();
         $person = Person::query()->where('first_name', 'Robin')->sole();
         $this->assertTrue($person->groups()->whereKey($group->id)->exists());
+    }
+
+    public function test_the_form_follows_the_language_of_the_configuration_and_an_unchanged_english_one_is_translated(): void
+    {
+        app(Defaults::class)->install('en');
+        DB::table('system_meta')->where('key', 'default_locale')->delete();
+        config(['app.locale' => 'de']);
+        $b16 = require database_path('migrations/2026_12_26_000000_sign_up_only_through_a_public_form.php');
+        $fix = require database_path('migrations/2026_12_29_000000_sign_up_form_in_the_language_of_the_installation.php');
+
+        // An update from 0.30: the form is made in the language of the configuration.
+        PublicForm::query()->where('kind', 'signup')->delete();
+        $b16->up();
+        $this->assertSame(['registrierung', 'Familienkonto anlegen'], [PublicForm::query()->where('kind', 'signup')->sole()->slug, PublicForm::query()->where('kind', 'signup')->sole()->title]);
+
+        // Made in English by 0.31.0 and never touched: translated. Changed by someone: left alone.
+        PublicForm::query()->where('kind', 'signup')->delete();
+        $at = now()->subDay();
+        DB::table('public_forms')->insert(['slug' => 'sign-up', 'kind' => 'signup', 'title' => json_encode('Create a family account'), 'active' => false, 'needs_approval' => false, 'ask_newsletter' => true, 'on_start_page' => false, 'created_at' => $at, 'updated_at' => $at]);
+        $fix->up();
+        $form = PublicForm::query()->where('kind', 'signup')->sole();
+        $this->assertSame(['registrierung', 'Familienkonto anlegen'], [$form->slug, $form->title]);
+        $form->update(['slug' => 'sign-up', 'title' => 'Create a family account']);
+        $fix->up();
+        $this->assertSame('sign-up', $form->refresh()->slug);
     }
 
     public function test_switching_the_form_off_stops_pending_confirmations(): void

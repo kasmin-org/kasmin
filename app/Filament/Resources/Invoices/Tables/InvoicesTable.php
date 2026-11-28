@@ -27,8 +27,8 @@ class InvoicesTable
                 TextColumn::make('number')->label(__('admin.finance.number'))->searchable()->sortable()->placeholder(__('finance.status.draft')),
                 TextColumn::make('payer_name')->label(__('admin.finance.payer'))->searchable()->wrap(),
                 TextColumn::make('event.title')->label(__('finance.event'))->toggleable()->wrap(),
-                TextColumn::make('installment_key')->label(__('admin.finance.installment'))->toggleable()->badge()->color('gray')
-                    ->formatStateUsing(fn (Invoice $record, string $state) => $record->event?->installments->firstWhere('key', $state)?->labelText() ?? $state),
+                TextColumn::make('installment')->label(__('admin.finance.installment'))->toggleable()->badge()->color('gray')
+                    ->state(fn (Invoice $record) => $record->installmentName()),
                 TextColumn::make('total_cents')->label(__('finance.total'))->alignEnd()->sortable()
                     ->formatStateUsing(fn (Invoice $record, $state) => Invoice::money((int) $state, $record->currency)),
                 TextColumn::make('open')->label(__('finance.open'))->alignEnd()

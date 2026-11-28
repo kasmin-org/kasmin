@@ -109,7 +109,7 @@ class Payments
     /** After the payment, as configured in the payment plan: place confirmed, groups changed (PY07, A03). */
     private function followUps(Invoice $invoice): void
     {
-        $installment = $invoice->event?->installments()->where('key', $invoice->installment_key)->first();
+        $installment = $invoice->installmentOfPlan();
         if ($installment === null) {
             return;
         }

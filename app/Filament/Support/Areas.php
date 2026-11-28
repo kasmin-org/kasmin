@@ -59,6 +59,8 @@ final class Areas
         Resources\Refunds\RefundResource::class => ['finance', null, 30],
         Resources\ArchivedInvoices\ArchivedInvoiceResource::class => ['finance', null, 40],
         Resources\JournalEntries\JournalEntryResource::class => ['finance', null, 50],
+        Resources\ExpenseClaims\ExpenseClaimResource::class => ['finance', null, 60],
+        Resources\Advances\AdvanceResource::class => ['finance', null, 65],
         Pages\MoneyAccountsPage::class => ['finance', null, 70],
         Pages\AccountingReportsPage::class => ['finance', null, 80],
         Resources\Accounts\AccountResource::class => ['finance', 'finance_settings', 10],

@@ -44,6 +44,7 @@ class PortalController extends Controller
             'pay' => InvoicePdf::organisation(),
             // Not in the preview of somebody else's portal.
             'teamEvents' => $person !== null && $user->person_id === $person->id ? Event::query()->whereIn('id', PortalTeamController::events($user))->orderBy('starts_at')->get() : collect(),
+            'expenses' => $person !== null && $user->person_id === $person->id && PortalExpensesController::mayUse($person),
             'wardIds' => $person !== null ? $person->wards()->pluck('people.id')->all() : [],
             'guardiansLeft' => $households->mapWithKeys(fn (Household $h) => [$h->id => app(Guardians::class)->left($h)])->all(),
             'limited' => $request->session()->get('login_scope') === 'limited',

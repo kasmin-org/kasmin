@@ -319,7 +319,7 @@ class McpParityTest extends TestCase
         $new = array_merge(...array_values(self::NEW_TOOLS));
         $this->assertSame([], array_values(array_diff($new, $names)));
         $this->assertCount(88, $new);
-        $this->assertCount(171, $names);
+        $this->assertCount(180, $names);
     }
 
     public function test_new_tools_are_listed_by_scope_and_refused_without_it(): void

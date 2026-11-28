@@ -49,20 +49,32 @@ class InvoicePdf
     public static function epcPayload(Invoice $invoice): ?string
     {
         $org = self::organisation();
-        $open = $invoice->openCents();
-        if ($org['iban'] === '' || $invoice->currency !== 'EUR' || $open <= 0 || $open > 99999999999) {
+        if ($invoice->currency !== 'EUR') {
+            return null;
+        }
+
+        return self::epc($org['bic'], $org['name'], $org['iban'], $invoice->openCents(), (string) $invoice->reference);
+    }
+
+    /**
+     * EPC069-12 payload for any transfer in euro to a payee: a structured reference (RF…) or a free text. Null without
+     * an IBAN or with an amount the code cannot carry.
+     */
+    public static function epc(string $bic, string $name, string $iban, int $cents, string $reference = '', string $text = ''): ?string
+    {
+        if ($iban === '' || $cents <= 0 || $cents > 99999999999) {
             return null;
         }
 
         return implode("\n", [
             'BCD', '002', '1', 'SCT',
-            $org['bic'],
-            mb_substr($org['name'], 0, 70),
-            $org['iban'],
-            'EUR'.number_format($open / 100, 2, '.', ''),
+            $bic,
+            mb_substr($name, 0, 70),
+            Iban::normalise($iban),
+            'EUR'.number_format($cents / 100, 2, '.', ''),
             '',
-            (string) $invoice->reference,
-            '',
+            $reference,
+            $reference === '' ? mb_substr($text, 0, 140) : '',
         ]);
     }
 
@@ -90,11 +102,14 @@ class InvoicePdf
     private function qr(Invoice $invoice): ?string
     {
         $payload = self::epcPayload($invoice);
-        if ($payload === null) {
-            return null;
-        }
 
-        return (new QRCode(new QROptions([
+        return $payload === null ? null : self::qrImage($payload);
+    }
+
+    /** The payment code as data URI (PNG). */
+    public static function qrImage(string $payload): string
+    {
+        return (string) (new QRCode(new QROptions([
             'outputType' => QROutputInterface::GDIMAGE_PNG,
             'eccLevel' => EccLevel::M,
             'scale' => 6,

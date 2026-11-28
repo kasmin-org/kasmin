@@ -58,6 +58,8 @@ class Settings
         'approval_days' => null,
         'approval_summary_time' => '07:00', // AT06: one mail with all open approvals at this time; several times with commas; empty = each request at once
         'ai_processing' => 'none', // none, non_confidential, all (MI12)
+        'expense_four_eyes' => '0', // E1d.3: a second person approves expense claims
+        'expense_flat_rates' => '', // E1d.3: one flat rate per line, "name: amount"
     ];
 
     /** @var array<string, string|null> */

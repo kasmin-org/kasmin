@@ -4,6 +4,8 @@ Kasmin keeps a double-entry bookkeeping: every booking has lines with debit and 
 same amount. Invoices, payments, refunds and expenses are booked automatically; everything else is typed in under
 *Accounting → Bookings*. You find everything in the area **Accounting**.
 
+Expense claims of the team and advances: see [Expense claims and advances](expenses.md).
+
 ## Basic terms
 
 | Term | Answers | Example |

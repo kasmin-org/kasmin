@@ -4,6 +4,8 @@ Kasmin führt eine doppelte Buchhaltung: Jede Buchung hat Zeilen mit Soll und Ha
 Rechnungen, Zahlungen, Rückzahlungen und Auslagen werden automatisch gebucht; alles andere geben Sie unter *Buchhaltung →
 Buchungen* ein. Alles finden Sie im Bereich **Buchhaltung**.
 
+Auslagen des Teams und Vorschüsse: siehe [Auslagen und Vorschüsse](expenses.md).
+
 ## Grundbegriffe
 
 | Begriff | Beantwortet | Beispiel |

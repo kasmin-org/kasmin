@@ -2,7 +2,11 @@
 
 namespace Tests\Feature\Accounting;
 
+use App\Filament\Resources\Events\Pages\EditEvent;
+use App\Filament\Resources\EventSeries\Pages\EditEventSeries;
+use App\Filament\Resources\MembershipTypes\Pages\ManageMembershipTypes;
 use App\Models\Account;
+use App\Models\ApiToken;
 use App\Models\BankImport;
 use App\Models\CostCenter;
 use App\Models\Event;
@@ -17,7 +21,9 @@ use App\Models\Payment;
 use App\Models\Period;
 use App\Models\Person;
 use App\Models\Refund;
+use App\Models\Role;
 use App\Models\SystemNotification;
+use App\Models\User;
 use App\Support\Accounting\Balances;
 use App\Support\Accounting\DocumentBookings;
 use App\Support\Accounting\Periods;
@@ -28,8 +34,11 @@ use App\Support\Finance\Invoices;
 use App\Support\Finance\MembershipFees;
 use App\Support\Finance\Payments;
 use App\Support\Install\Defaults;
+use App\Support\Settings;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Session\Middleware\AuthenticateSession;
 use Illuminate\Support\Carbon;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 /**
@@ -128,6 +137,23 @@ class DocumentBookingsTest extends TestCase
         $this->assertSame(68000, $this->balance('receivables'));
         $this->assertSame(-70000, $this->balance('event_income', $this->camp->id));
         $this->assertSame(2000, $this->balance('discounts', $this->camp->id));
+    }
+
+    /** The example of docs/admin/invoices.md, "Bookings" (E1i: every example of the documentation is a test). */
+    public function test_the_example_of_the_documentation(): void
+    {
+        $this->start();
+        $this->child('Ann', '2014-01-01');
+        $this->child('Ben', '2016-01-01');
+        $balance = $this->invoice('balance');
+        $this->assertSame(['receivables: +68000', 'event_income: -35000 [Camp]', 'event_income: -35000 [Camp]', 'discounts: +2000 [Camp]'], $this->lines($this->entry($balance, 'invoice')));
+        app(Payments::class)->record($balance, 70000, Carbon::now());
+        $this->assertSame(['bank: +70000', 'receivables: -68000', 'credits: -2000'], $this->lines($this->entry(Payment::query()->whereNull('parent_id')->sole(), 'payment')));
+        $refund = Refund::query()->sole();
+        app(Credits::class)->markRefunded($refund, Carbon::now());
+        $this->assertSame(['credits: +2000', 'bank: -2000'], $this->lines($this->entry($refund, 'refund')));
+        $this->assertSame([0, 0, 68000, -70000, 2000], [$this->balance('receivables'), $this->balance('credits'), $this->balance('bank'),
+            $this->balance('event_income', $this->camp->id), $this->balance('discounts', $this->camp->id)]);
     }
 
     public function test_income_account_and_cost_centre_come_from_the_instalment_the_membership_type_the_event_or_the_series(): void
@@ -318,5 +344,66 @@ class DocumentBookingsTest extends TestCase
         $period->forceFill(['status' => 'open'])->save();
         $this->assertSame(2, app(DocumentBookings::class)->backfill());
         $this->assertNotNull($notice->refresh()->resolved_at, 'solved once everything is booked');
+    }
+
+    public function test_rest_and_mcp_set_the_account_and_cost_centre_of_events_series_instalments_and_membership_types(): void
+    {
+        Settings::set('ai_processing', 'non_confidential');
+        $this->guardian->roleAssignments()->create(['role_id' => Role::query()->where('key', 'administrator')->value('id')]);
+        $user = User::query()->create(['name' => 'Alex', 'email' => 'alex@example.org', 'password' => 'x', 'person_id' => $this->guardian->id]);
+        $token = ApiToken::issue($user, 'test', ['events:read', 'events:write', 'people:read', 'people:write'])['plain'];
+        $fees = Account::query()->create(['name' => 'Camp contributions', 'type' => 'income']);
+        $id = $this->event->public_id;
+
+        $this->withToken($token)->patchJson("/api/v1/events/$id", ['cost_center' => 'Nowhere'])->assertUnprocessable()->assertJsonValidationErrors('cost_center');
+        $this->withToken($token)->patchJson("/api/v1/events/$id", ['installments' => [['key' => 'deposit', 'revenue_account' => 'Bank']]])
+            ->assertUnprocessable()->assertJsonValidationErrors('installments.0.revenue_account'); // not an income account
+        $this->withToken($token)->patchJson("/api/v1/events/$id", ['cost_center' => null, 'installments' => [['key' => 'deposit', 'revenue_account' => 'Camp contributions', 'cost_center' => (string) $this->camp->id], ['key' => 'balance']]])
+            ->assertOk()->assertJsonPath('data.cost_center', null)->assertJsonPath('data.installments.0.revenue_account', 'Camp contributions')
+            ->assertJsonPath('data.installments.0.revenue_account_id', $fees->id)->assertJsonPath('data.installments.0.cost_center', 'Camp')->assertJsonPath('data.installments.1.cost_center', null);
+        $this->assertSame([null, $fees->id, $this->camp->id], [$this->event->refresh()->cost_center_id, $this->event->installments()->where('key', 'deposit')->value('revenue_account_id'), $this->event->installments()->where('key', 'deposit')->value('cost_center_id')]);
+
+        $series = $this->withToken($token)->postJson('/api/v1/event-series', ['name' => 'Camps', 'cost_center' => 'Camp'])->assertCreated()->assertJsonPath('data.cost_center', 'Camp')->json('data.id');
+        $this->withToken($token)->patchJson("/api/v1/event-series/$series", ['cost_center' => $this->camp->id])->assertOk()->assertJsonPath('data.cost_center_id', $this->camp->id);
+        $this->withToken($token)->patchJson('/api/v1/membership-types/child', ['revenue_account' => $fees->id, 'cost_center' => 'Camp'])->assertOk()
+            ->assertJsonPath('data.revenue_account', 'Camp contributions')->assertJsonPath('data.cost_center', 'Camp');
+        $this->withToken($token)->patchJson('/api/v1/membership-types/child', ['cost_center' => 'Nowhere'])->assertUnprocessable()->assertJsonValidationErrors('cost_center');
+
+        // The same through MCP.
+        $mcp = ApiToken::issue($user, 'assistant', ['events:read', 'events:write', 'people:read', 'people:write'], true)['plain'];
+        $tool = fn (string $name, array $arguments) => (array) json_decode((string) $this->withToken($mcp)->withHeaders(['Accept' => 'application/json, text/event-stream', 'MCP-Protocol-Version' => '2025-06-18'])
+            ->postJson('/mcp', ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tools/call', 'params' => ['name' => $name, 'arguments' => $arguments]])->assertOk()->json('result.content.0.text'), true);
+        $this->assertSame('Camp', $tool('update_event', ['id' => $id, 'cost_center' => 'Camp'])['data']['cost_center'] ?? null);
+        $this->assertSame($this->camp->id, $this->event->refresh()->cost_center_id);
+        $tool('update_event', ['id' => $id, 'clear' => ['cost_center']]);
+        $this->assertNull($this->event->refresh()->cost_center_id);
+        $this->assertSame('Camp', $tool('update_event_series', ['id' => $series, 'cost_center' => 'Camp'])['data']['cost_center'] ?? null);
+        $this->assertSame('General', $tool('update_membership_type', ['key' => 'child', 'cost_center' => 'General'])['data']['cost_center'] ?? null);
+    }
+
+    public function test_the_forms_offer_the_income_account_and_the_cost_centre_only_while_cost_centres_are_used(): void
+    {
+        $this->withoutMiddleware(AuthenticateSession::class);
+        $this->guardian->roleAssignments()->create(['role_id' => Role::query()->where('key', 'administrator')->value('id')]);
+        $this->actingAs(User::query()->create(['name' => 'Alex', 'email' => 'alex@example.org', 'password' => 'x', 'person_id' => $this->guardian->id]));
+        $fees = Account::query()->create(['name' => 'Camp contributions', 'type' => 'income']);
+        $type = MembershipType::query()->where('key', 'child')->firstOrFail();
+        $series = EventSeries::query()->create(['name' => 'Camps']);
+
+        Livewire::test(EditEvent::class, ['record' => $this->event->getRouteKey()])->assertFormFieldHidden('cost_center_id');
+        Livewire::test(EditEventSeries::class, ['record' => $series->getRouteKey()])->assertFormFieldHidden('cost_center_id');
+        Livewire::test(ManageMembershipTypes::class)->callTableAction('edit', $type, data: ['name' => 'Child', 'pays_fee' => true, 'fee_cents' => '80', 'revenue_account_id' => $fees->id])
+            ->assertHasNoTableActionErrors();
+        $this->assertSame([$fees->id, null], [$type->refresh()->revenue_account_id, $type->cost_center_id]);
+
+        Settings::set('use_cost_centers', '1');
+        Livewire::test(EditEvent::class, ['record' => $this->event->getRouteKey()])->assertFormFieldVisible('cost_center_id')
+            ->fillForm(['cost_center_id' => null])->call('save')->assertHasNoFormErrors();
+        $this->assertNull($this->event->refresh()->cost_center_id);
+        Livewire::test(EditEventSeries::class, ['record' => $series->getRouteKey()])->fillForm(['cost_center_id' => $this->camp->id])->call('save')->assertHasNoFormErrors();
+        $this->assertSame($this->camp->id, $series->refresh()->cost_center_id);
+        Livewire::test(ManageMembershipTypes::class)->callTableAction('edit', $type, data: ['name' => 'Child', 'pays_fee' => true, 'fee_cents' => '80', 'cost_center_id' => $this->camp->id])
+            ->assertHasNoTableActionErrors();
+        $this->assertSame($this->camp->id, $type->refresh()->cost_center_id);
     }
 }

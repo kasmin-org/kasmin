@@ -6,6 +6,10 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ## [Unreleased]
 
+### Added
+
+- Accounting: **invoices, credit notes, payments, credits and refunds are booked by themselves** from the first period on – the receivable of the payer and the income per line with the amount before the discount, the discount on *Discounts given*, on the cost centre of the instalment, the membership type, the event or its series; payments to *Bank* or *Cash* (or the bank account of the import), overpayments to *Credits of families*, a credit note as the mirror of its invoice. Every document is booked once; a failed booking never stops the invoice or payment and is shown as a system notification. `php artisan kasmin:book-documents` books what is missing. Events, event series and membership types get an income account and a cost centre in the forms, REST and MCP (`cost_center`, `revenue_account`, id or exact name). Payments of the bank import are booked when they are assigned.
+
 ### Changed
 
 - **Navigation in five areas.** The admin interface has the areas *People*, *Events*, *Communication*, *Accounting* and *Administration* at the top next to the logo; the navigation on the left shows only the pages of the open area, the logo or *Dashboard* opens the start page, and *My notifications* moved to the user menu. Areas without any page a person may open are not shown. The settings are split into *Organisation* and *Global settings* (Administration, the latter for administrators only) and *Invoice settings* (Accounting, also for finance roles); *System status*, *Backups* and *Update* are separate pages.

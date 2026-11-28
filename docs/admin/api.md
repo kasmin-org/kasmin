@@ -295,7 +295,8 @@ Scopes `finance:read` / `finance:write`; see [Accounting](accounting.md) for the
   the lines), `GET /accounting/bookings/{id}` (the `id`, not the booking `number`), `POST /accounting/bookings` (`date`,
   `text`, `receipt`, `lines` with `account`, `debit` or `credit`, `cost_center`, `fund`, `person` = public id, for receivables,
   credits, expenses to pay back and advances, `text`),
-  `POST /accounting/bookings/{id}/reverse` (`text`, `date`; allocations and closings are not reversed but removed by reopening).
+  `POST /accounting/bookings/{id}/reverse` (`text`, `date`; only typed-in bookings, fund transfers and opening bookings – a booking of
+  a document is corrected through the document, allocations and closings by reopening).
 - **Reports:** `GET /accounting/reports/{report}` – `balance` (`date`), `income` (`period`, `cost_center`), `cost_centers`
   (`period`), `funds` (`period`), `ledger` (`account`, `from`, `to`) or `open_items` (`date`); the date is today and the period
   the current one unless given. The answer has `title`, `headers` and `rows` as on the page; with `format` `csv`, `xlsx` or `pdf`

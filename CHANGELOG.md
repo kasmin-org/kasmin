@@ -6,6 +6,17 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ## [Unreleased]
 
+## [0.32.1] - 2026-11-28
+
+### Fixed
+
+- Accounting: moving the start of the first period through REST or MCP booked the documents inside one long transaction;
+  they are now booked after it. Two payouts of the same claims at once, a receipt submitted while its advance is settled
+  and the first booking of a new installation no longer wait for each other or fail.
+- Accounting (REST/MCP): a person on a booking line that is unknown or on an account not kept per person is refused on the
+  field (it answered 404); budgets only for cost centres active in the period, as in the admin interface.
+- One reversal per booking also in databases that ran a development version of the accounting.
+
 ## [0.32.0] - 2026-11-28
 
 ### Added
@@ -732,7 +743,8 @@ First public pre-release for testing. Not ready for production use.
 - Docker image: system packages updated and build packages removed after compiling the PHP extensions – the
   container scan reports no high or critical findings any more (previously 75 in Debian packages).
 
-[Unreleased]: https://github.com/kasmin-org/kasmin/compare/v0.32.0...develop
+[Unreleased]: https://github.com/kasmin-org/kasmin/compare/v0.32.1...develop
+[0.32.1]: https://github.com/kasmin-org/kasmin/releases/tag/v0.32.1
 [0.32.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.32.0
 [0.31.1]: https://github.com/kasmin-org/kasmin/releases/tag/v0.31.1
 [0.31.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.31.0

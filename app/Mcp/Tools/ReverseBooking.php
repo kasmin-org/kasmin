@@ -12,7 +12,7 @@ use Laravel\Mcp\Server\Attributes\Name;
 use Laravel\Mcp\Server\Tools\Annotations\IsDestructive;
 
 #[Name('reverse_booking')]
-#[Description('Reverses a booking with a counter-booking on the opposite sides, dated on the original date while its period is open, else today. A booking is reversed only once; allocations and closings are removed by reopening the period instead. Ask the human first.')]
+#[Description('Reverses a booking with a counter-booking on the opposite sides, dated on the original date while its period is open, else today. A booking is reversed only once, and only typed-in bookings, fund transfers and opening bookings: a booking of an invoice, payment, refund, expense claim or advance is corrected through the document, allocations and closings by reopening the period. Ask the human first.')]
 #[IsDestructive]
 class ReverseBooking extends ApiTool
 {

@@ -7,6 +7,7 @@ use App\Models\Account;
 use App\Models\ApiToken;
 use App\Models\Budget;
 use App\Models\CostCenter;
+use App\Models\Period;
 use App\Models\Person;
 use App\Models\Role;
 use App\Models\User;
@@ -79,6 +80,12 @@ class BudgetsTest extends TestCase
         $this->withToken($token)->putJson('/api/v1/accounting/periods/2027/budgets', ['budgets' => [['cost_center' => 'Camp', 'amount' => 1500.5], ['cost_center' => CostCenter::default()->id, 'amount' => -300]]])
             ->assertOk()->assertJsonPath('data.0.cost_center.name', 'Camp')->assertJsonPath('data.0.amount', 1500.5);
         $this->withToken($read)->getJson('/api/v1/accounting/periods/2027/budgets')->assertOk()->assertJsonCount(2, 'data');
+
+        // Only cost centres active in the period, as in the admin interface.
+        $old = CostCenter::query()->create(['name' => 'Old project', 'carries' => true]);
+        Period::query()->where('name', '2027')->firstOrFail()->costCenters()->detach($old->id);
+        $this->withToken($token)->putJson('/api/v1/accounting/periods/2027/budgets', ['budgets' => [['cost_center' => 'Old project', 'amount' => 10]]])
+            ->assertUnprocessable()->assertJsonValidationErrors('budgets.0.cost_center');
 
         // Amount 0 removes one, the others stay.
         $this->withToken($token)->putJson('/api/v1/accounting/periods/2027/budgets', ['budgets' => [['cost_center' => $camp->id, 'amount' => 0]]])->assertOk()->assertJsonCount(1, 'data');

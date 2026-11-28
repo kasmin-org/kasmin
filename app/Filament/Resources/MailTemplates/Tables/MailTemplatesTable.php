@@ -22,7 +22,7 @@ class MailTemplatesTable
     public static function configure(Table $table): Table
     {
         return $table->columns([
-            TextColumn::make('name')->label(__('admin.form.name'))->state(fn (MailTemplate $r) => $r->label())->searchable(['key']),
+            TextColumn::make('name')->label(__('admin.form.name'))->state(fn (MailTemplate $r) => $r->label())->searchable(['name']),
             TextColumn::make('group')->label(__('admin.mail.group'))->formatStateUsing(fn ($state) => __('admin.mail.groups.'.($state ?: 'general')))->badge()->color('gray'),
             TextColumn::make('category')->label(__('admin.mail.category'))->formatStateUsing(fn ($state) => __('admin.mail.categories.'.$state))->badge(),
             TextColumn::make('version')->label(__('admin.form.version')),

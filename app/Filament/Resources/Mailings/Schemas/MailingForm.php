@@ -26,7 +26,7 @@ class MailingForm
                 Select::make('mail_template_id')->label(__('admin.mail.template'))->required()
                     // A mailing is about nothing in particular or about an event: templates of other groups (invoice,
                     // registration, membership) and mails of the system have placeholders a mailing cannot fill.
-                    ->options(fn ($get) => MailTemplate::forMailings(filled($get('recipients.event_id')))->orderBy('key')->get()->mapWithKeys(fn (MailTemplate $t) => [$t->id => $t->label().' · '.__('admin.mail.groups.'.$t->groupKey())])->all())
+                    ->options(fn ($get) => MailTemplate::forMailings(filled($get('recipients.event_id')))->get()->mapWithKeys(fn (MailTemplate $t) => [$t->id => $t->label().' · '.__('admin.mail.groups.'.$t->groupKey())])->sort(SORT_NATURAL | SORT_FLAG_CASE)->all())
                     ->helperText(__('admin.mail.mailing_templates_hint')),
                 DateTimePicker::make('scheduled_at')->label(__('admin.mail.scheduled_at'))->seconds(false),
                 FileUpload::make('attachments')->label(__('admin.mail.attachments'))->multiple()->disk('local')->directory('mail-attachments')->visibility('private')->getUploadedFileNameForStorageUsing(fn (TemporaryUploadedFile $file) => Str::lower(Str::random(6)).'-'.Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)).'.'.$file->guessExtension())->maxSize(5120)->maxFiles(5)

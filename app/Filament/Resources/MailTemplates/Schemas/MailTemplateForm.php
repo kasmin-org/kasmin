@@ -8,6 +8,7 @@ use App\Support\Language;
 use App\Support\Mail\MailImages;
 use App\Support\Mail\TemplateHtml;
 use App\Support\Mail\TemplateRenderer;
+use App\Support\Records\UniqueName;
 use Closure;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Hidden;
@@ -31,9 +32,8 @@ class MailTemplateForm
     {
         return $schema->components([
             Section::make(__('admin.mail.template'))->columnSpanFull()->columns(['md' => 2])->schema([
-                TextInput::make('key')->label(__('admin.form.key'))->required()->alphaDash()->unique(ignoreRecord: true),
                 Select::make('category')->label(__('admin.mail.category'))->options(array_combine(MailTemplate::CATEGORIES, array_map(fn ($c) => __('admin.mail.categories.'.$c), MailTemplate::CATEGORIES)))->required(),
-                TextInput::make('name')->label(__('admin.form.name'))->required(),
+                TextInput::make('name')->label(__('admin.form.name'))->required()->maxLength(200)->rule(fn (?MailTemplate $record) => new UniqueName(MailTemplate::query(), $record?->getKey())),
                 Select::make('group')->label(__('admin.mail.group'))->options(fn () => array_combine(MailTemplate::GROUPS, array_map(fn (string $g) => __('admin.mail.groups.'.$g), MailTemplate::GROUPS)))
                     ->default('general')->required()->live()->selectablePlaceholder(false)
                     ->disabled(fn (?MailTemplate $record) => (bool) $record?->is_standard)->dehydrated(fn (?MailTemplate $record) => ! $record?->is_standard)

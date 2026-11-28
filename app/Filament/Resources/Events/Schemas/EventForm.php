@@ -11,8 +11,11 @@ use App\Models\MembershipType;
 use App\Support\Auth\Permissions;
 use App\Support\Events\Bus;
 use App\Support\Events\Waitlist;
+use App\Support\Records\Records;
+use Closure;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\Field;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
@@ -123,8 +126,7 @@ class EventForm
                 Repeater::make('installments')->relationship()->label(__('admin.finance.installments'))->columnSpanFull()->columns(['md' => 2, 'xl' => 4])
                     ->orderColumn('sort')->addActionLabel(__('admin.finance.add_installment'))->defaultItems(0)
                     ->schema([
-                        TextInput::make('key')->label(__('admin.finance.installment_key'))->required()->alphaDash()->maxLength(32)->distinct(),
-                        TextInput::make('label')->label(__('admin.finance.label_de'))->required(),
+                        TextInput::make('label')->label(__('admin.form.name'))->required()->maxLength(200)->rule(static fn (Field $component) => self::uniqueInPlan($component)),
                         Select::make('kind')->label(__('admin.finance.installment_kind'))->options(__('finance.installment_kind'))->default('fixed')->required()->live(),
                         Money::input('amount_cents', __('admin.finance.amount'))->visible(fn ($get) => $get('kind') === 'fixed'),
                         DatePicker::make('due_date')->label(__('admin.finance.due_date'))
@@ -163,6 +165,27 @@ class EventForm
                     ]),
             ]),
         ]);
+    }
+
+    /**
+     * Two instalments of a payment plan never have the same name (B8), regardless of upper and lower case.
+     */
+    private static function uniqueInPlan(Field $component): Closure
+    {
+        return function (string $attribute, mixed $value, Closure $fail) use ($component): void {
+            $repeater = $component->getParentRepeater();
+            if ($repeater === null || ! is_string($value) || trim($value) === '') {
+                return;
+            }
+            $item = (string) str($component->getStatePath())->after($repeater->getStatePath().'.')->before('.');
+            foreach ((array) $repeater->getRawState() as $key => $row) {
+                if ((string) $key !== $item && is_array($row) && Records::normalise((string) ($row['label'] ?? '')) === Records::normalise($value)) {
+                    $fail((string) __('admin.finance.installment_name_taken'));
+
+                    return;
+                }
+            }
+        };
     }
 
     private static function mayEdit(?Event $event): bool

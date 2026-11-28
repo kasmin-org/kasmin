@@ -19,6 +19,7 @@ return [
         'sibling_cap' => 'Obergrenze ab Kind Nr.', 'sibling_cap_hint' => 'Ab diesem Kind steigt die Ermäßigung nicht weiter (z. B. 3 = ab dem 3. Kind gleich viel).',
         'sibling_min' => 'Mindestanzahl Kinder', 'reminder_days' => 'Erinnerung … Tage vor Fälligkeit', 'reminder_days_hint' => 'Leer = globale Einstellung (Standard 3 Tage). Mehrere Werte möglich.',
         'installments' => 'Ratenplan', 'add_installment' => 'Rate hinzufügen', 'installment' => 'Rate', 'installment_key' => 'Schlüssel', 'installment_kind' => 'Art',
+        'installment_name_taken' => 'Zwei Raten des Ratenplans können nicht denselben Namen haben.',
         'label_de' => 'Bezeichnung', 'amount' => 'Betrag', 'due_date' => 'Fällig am', 'due_date_hint' => 'Fester Termin; leer = Tage ab Rechnungsdatum.',
         'due_days' => 'Fällig nach … Tagen', 'refundable' => 'Rückerstattbar', 'discounts_apply' => 'Ermäßigungen anwenden', 'discounts_apply_hint' => 'Üblich: Ermäßigungen nur beim Restbetrag, nicht bei der Anzahlung.',
         'number' => 'Nummer', 'type' => 'Art', 'payer' => 'Zahlungspflichtig', 'lines' => 'Positionen', 'payments' => 'Zahlungen', 'payment' => 'Zahlung',
@@ -94,7 +95,9 @@ return [
     'group' => ['changes' => 'Letzte 30 Tage', 'singular' => 'Gruppe', 'plural' => 'Gruppen', 'parent' => 'Gehört zu', 'members' => 'Mitglieder', 'kinds' => ['manual' => 'Von Hand', 'dynamic' => 'Nach Regeln', 'event' => 'Teilnehmende einer Veranstaltung'], 'event_hint' => 'Das Alter zählt bei dieser Veranstaltung, und nur Veranstaltungen ihrer Reihe werden gezählt. Leer = heute, alle Veranstaltungen.', 'rules' => 'Regeln', 'match' => 'Personen müssen passen zu', 'matches' => ['all' => 'allen Regeln', 'any' => 'mindestens einer Regel'], 'add_rule' => 'Regel hinzufügen', 'field' => 'Feld', 'fields' => ['age' => 'Alter', 'membership' => 'Mitgliedschaft', 'role' => 'Rolle', 'group' => 'Mitglied der Gruppe', 'events' => 'Anzahl bisheriger Veranstaltungen'], 'value' => 'Wert', 'min' => 'Von', 'max' => 'Bis', 'not' => 'Nicht', 'source' => 'Herkunft', 'update' => 'Neu berechnen', 'add' => 'Person hinzufügen', 'remove' => 'Entfernen'],
     'form' => [
         'kind' => 'Art', 'kinds' => ['person' => 'Person (gilt für alle Veranstaltungen)', 'registration' => 'Fragen einer Veranstaltung'], 'scope' => 'Gefragt', 'scopes' => ['participant' => 'pro teilnehmender Person', 'family' => 'einmal pro Familie'],
-        'singular' => 'Formular', 'plural' => 'Formulare', 'key' => 'Schlüssel', 'active' => 'Aktiv', 'name' => 'Name', 'description' => 'Beschreibung',
+        'singular' => 'Formular', 'plural' => 'Formulare', 'key' => 'Schlüssel', 'name_taken' => 'Dieser Name ist schon vergeben. Bitte wählen Sie einen anderen.',
+        'import_hint_name' => 'Ein Formular aus einer Datei importieren. Ein Formular, das aus demselben Formular exportiert wurde oder denselben Namen hat, bekommt eine neue Version; Felder, die nicht in der Datei stehen, werden entfernt.',
+        'active' => 'Aktiv', 'name' => 'Name', 'description' => 'Beschreibung',
         'applies_until_age' => 'Gilt bis zum Alter', 'confirm_every_days' => 'Bestätigen alle … Tage', 'family_emergency_contacts' => 'Notfallkontakte der Familie anzeigen',
         'version' => 'Version', 'fields' => 'Felder', 'add_field' => 'Feld hinzufügen', 'type' => 'Typ', 'label' => 'Bezeichnung', 'help' => 'Hilfetext (Tooltip)',
         'sensitivity' => 'Vertraulichkeit', 'list_use' => 'Verwendung in Listen', 'required' => 'Pflichtfeld', 'carry_over' => 'Ins nächste Jahr übernehmen',

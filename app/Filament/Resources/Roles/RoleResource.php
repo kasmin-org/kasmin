@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Roles;
 use App\Filament\Resources\Roles\Pages\ManageRoles;
 use App\Models\Role;
 use App\Support\Auth\Permissions;
+use App\Support\Records\UniqueName;
 use BackedEnum;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\Select;
@@ -71,8 +72,7 @@ class RoleResource extends Resource
         $admin = fn ($get, ?Role $record) => $record?->key === 'administrator';
 
         return $schema->components([
-            TextInput::make('key')->label(__('admin.form.key'))->required()->alphaDash()->maxLength(40)->unique(ignoreRecord: true)->disabledOn('edit'),
-            TextInput::make('name')->label(__('admin.form.name'))->required()->maxLength(80),
+            TextInput::make('name')->label(__('admin.form.name'))->required()->maxLength(80)->rule(fn (?Role $record) => new UniqueName(Role::query(), $record?->getKey())),
             Toggle::make('is_admin')->label(__('roles.is_admin'))->live()->default(true)->disabled($admin),
             Select::make('scope')->label(__('roles.scope'))->options(__('roles.scopes'))->default('all')->required()->visible(fn (?Role $record) => $record?->key !== 'administrator')->hintIcon('heroicon-m-question-mark-circle', tooltip: __('roles.scope_hint')),
             Section::make(__('roles.permissions'))->columns(['md' => 3])->columnSpanFull()->visible(fn ($get, ?Role $record) => (bool) $get('is_admin') && $record?->key !== 'administrator')

@@ -156,9 +156,9 @@ class LoginLinks
 
             return $this->consume($model);
         }
-        // Counted per person over all codes, so many requested mails do not give more guesses.
+        // Counted per person over all codes, so many requested mails do not give more guesses. Not on the token: the
+        // link in the same mail keeps working, so someone who knows the address cannot lock the person out.
         RateLimiter::hit($key, self::CODE_LOCK_SECONDS);
-        $model?->increment('failed_attempts');
 
         return null;
     }

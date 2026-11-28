@@ -18,6 +18,7 @@ return [
     'slug_preview' => 'Address of the form:', 'slug_empty' => 'Please enter an address made of letters or digits.',
     'slug_taken' => 'Another form already has the address “:slug”.',
     'slug_moved' => 'After saving, the previous address :old forwards here. Better still change links on websites.',
+    'slug_takes_forward' => 'This address forwards to the form “:title” so far. After saving it opens this form instead.',
     'copy' => 'Copy', 'copied' => 'Copied',
     'questions' => 'Questions', 'group' => 'Add to group', 'submission' => 'Submission', 'submissions' => 'Submissions', 'approve' => 'Approve', 'decline' => 'Decline', 'answers' => 'Show',
     'statuses' => ['pending' => 'Waiting', 'done' => 'Done', 'declined' => 'Declined', 'failed' => 'Failed'],

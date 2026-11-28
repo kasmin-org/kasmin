@@ -105,6 +105,11 @@ class PublicFormResource extends Resource
         }
         $url = route('public.form', $slug);
         $moved = $record !== null && $record->exists && $record->slug !== $slug ? '<br>'.e(__('public.slug_moved', ['old' => route('public.form', $record->slug)])) : '';
+        $except = $record !== null && $record->exists ? $record->id : null;
+        $forwarding = PublicForm::query()->when($except !== null, fn ($query) => $query->whereKeyNot($except))->whereJsonContains('old_slugs', $slug)->first();
+        if ($forwarding !== null) {
+            $moved .= '<br>'.e(__('public.slug_takes_forward', ['title' => $forwarding->titleText()]));
+        }
 
         return new HtmlString(e(__('public.slug_preview')).' <code class="break-all font-semibold">'.e($url).'</code>'
             .' <button type="button" class="ms-1 underline" x-data="{ copied: false }" x-on:click="navigator.clipboard.writeText('.e((string) json_encode($url)).'); copied = true; setTimeout(() => copied = false, 2000)"'

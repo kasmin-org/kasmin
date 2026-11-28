@@ -72,7 +72,10 @@ class PublicForm extends Model
         return trim(substr(Str::slug(trim((string) $value), '-', 'de'), 0, 64), '-');
     }
 
-    /** Whether another form already has this address (now or as an earlier one that still forwards). */
+    /**
+     * Whether another form has this address now. An earlier address of another form may be taken: it then opens the
+     * new form instead of forwarding, and the preview in the form says so.
+     */
     public static function slugTaken(string $slug, ?int $except = null): bool
     {
         return self::query()->when($except !== null, fn ($q) => $q->whereKeyNot($except))->where('slug', $slug)->exists();

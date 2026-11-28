@@ -143,7 +143,7 @@ class NamesInsteadOfKeysTest extends TestCase
         $taken = (string) MembershipType::query()->orderBy('id')->firstOrFail()->label();
         Livewire::test(ManageMembershipTypes::class)->callAction('create', data: ['name' => ' '.mb_strtoupper($taken).' ', 'pays_fee' => false])->assertHasActionErrors(['name']);
         Livewire::test(ManageMembershipTypes::class)->callAction('create', data: ['name' => 'Supporter', 'pays_fee' => false])->assertHasNoActionErrors();
-        $this->assertSame('own_supporter', MembershipType::query()->where('name', json_encode('Supporter'))->value('key'));
+        $this->assertSame('own_supporter', MembershipType::query()->orderByDesc('id')->value('key')); // by id: the name is a JSON column on MySQL
 
         $treasurer = Role::query()->where('key', 'treasurer')->firstOrFail();
         Livewire::test(ManageRoles::class)->callTableAction('edit', $treasurer, data: ['name' => Role::query()->where('key', 'board')->firstOrFail()->label(), 'is_admin' => true, 'scope' => 'all'])

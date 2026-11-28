@@ -6,6 +6,8 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ## [Unreleased]
 
+## [0.32.0] - 2026-11-28
+
 ### Added
 
 - **Accounting** (double-entry): chart of accounts in the language of the installation, bookings with any number of lines (typed in, with receipt) that are reversed instead of changed, numbers over all years; **periods** as date ranges that can be changed while open (bookings move along) and are closed in order and reopened together with all later ones; **cost centres** (one over all years, active per period; "carries its result" or "is allocated") and **funds** (reserves, pots of the equity, optionally assigned to a bank or cash account) – both switchable in the global settings; **allocation keys** per period with fixed amounts (cut in proportion when the costs are smaller), percentages, rest and share of income; **closing** with a preview that allocates, carries the results into the funds and locks the period; bank and cash accounts with a check against the statement; a **budget** per period (planned result per cost centre); reports: balance sheet, income statement, cost centres with budget and difference, statement of funds, ledger and open items, as Excel, CSV or PDF. See the new documentation page *Accounting*.
@@ -730,7 +732,8 @@ First public pre-release for testing. Not ready for production use.
 - Docker image: system packages updated and build packages removed after compiling the PHP extensions – the
   container scan reports no high or critical findings any more (previously 75 in Debian packages).
 
-[Unreleased]: https://github.com/kasmin-org/kasmin/compare/v0.31.1...develop
+[Unreleased]: https://github.com/kasmin-org/kasmin/compare/v0.32.0...develop
+[0.32.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.32.0
 [0.31.1]: https://github.com/kasmin-org/kasmin/releases/tag/v0.31.1
 [0.31.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.31.0
 [0.30.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.30.0

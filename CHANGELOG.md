@@ -6,6 +6,15 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ## [Unreleased]
 
+### Fixed
+
+- Accounting: moving the start of the first period through REST or MCP booked the documents inside one long transaction;
+  they are now booked after it. Two payouts of the same claims at once, a receipt submitted while its advance is settled
+  and the first booking of a new installation no longer wait for each other or fail.
+- Accounting (REST/MCP): a person on a booking line that is unknown or on an account not kept per person is refused on the
+  field (it answered 404); budgets only for cost centres active in the period, as in the admin interface.
+- One reversal per booking also in databases that ran a development version of the accounting.
+
 ## [0.32.0] - 2026-11-28
 
 ### Added

@@ -8,6 +8,7 @@ use App\Models\Household;
 use App\Models\Invoice;
 use App\Models\Participation;
 use App\Models\Person;
+use App\Support\Accounting\DocumentBookings;
 use App\Support\Api\Presenter;
 use App\Support\Mail\Composer;
 use App\Support\Settings;
@@ -22,7 +23,7 @@ use RuntimeException;
  */
 class Invoices
 {
-    public function __construct(private readonly Billing $billing) {}
+    public function __construct(private readonly Billing $billing, private readonly DocumentBookings $bookings) {}
 
     /**
      * Creates draft invoices for all families with occupying participations that have no invoice for this
@@ -137,6 +138,7 @@ class Invoices
                 'issued_on' => now()->toDateString(), 'due_on' => $due->toDateString() < now()->toDateString() ? now()->addDays(14)->toDateString() : $due->toDateString(),
             ])->save();
             app(Webhooks::class)->emit('invoice.issued', Presenter::invoice($invoice));
+            $this->bookings->invoiceIssued($invoice);
 
             return $invoice;
         });
@@ -180,6 +182,7 @@ class Invoices
     {
         foreach ($invoice->payments()->get() as $payment) {
             $payment->forceFill(['invoice_id' => null, 'household_id' => $invoice->household_id, 'match' => 'credit'])->save();
+            $this->bookings->paymentChanged($payment);
             if ($refundReason !== null) {
                 app(Credits::class)->proposeRefund($payment, $refundReason, $invoice->payer_id);
             }

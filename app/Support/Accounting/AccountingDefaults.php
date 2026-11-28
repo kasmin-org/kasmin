@@ -21,7 +21,7 @@ class AccountingDefaults
         'funds' => ['equity', null, true],
         'membership_fees' => ['income', null, true], 'event_income' => ['income', null, true], 'donations' => ['income', null, true],
         'reminder_fees' => ['income', null, true], 'cancellation_fees' => ['income', null, true], 'interest' => ['income', null, false],
-        'other_income' => ['income', null, false], 'discounts' => ['income', null, true],
+        'other_income' => ['income', null, true], 'discounts' => ['income', null, true],
         'accommodation' => ['expense', null, false], 'food' => ['expense', null, false], 'travel' => ['expense', null, false],
         'material' => ['expense', null, false], 'activities' => ['expense', null, false], 'team' => ['expense', null, false],
         'advertising' => ['expense', null, false], 'insurance' => ['expense', null, false], 'software' => ['expense', null, false],

@@ -48,4 +48,27 @@ return [
         'allocation_text' => 'Allocation of :name, :period',
         'closing_text' => 'Closing :period: results into the funds',
     ],
+    'bookings' => [
+        'invoice' => 'Invoice :number – :payer',
+        'credit_note' => 'Credit note :number for invoice :invoice – :payer',
+        'payment' => 'Payment :payer: :what',
+        'moved' => 'Payment of :date, :payer: now :what',
+        'refund' => 'Refund to :payer',
+        'what_invoices' => 'invoice :numbers', 'what_credit' => 'credit', 'what_nothing' => 'not assigned',
+        'failed_title' => 'A booking failed',
+        'failed' => 'Kasmin could not book :document in the accounting: :error The document itself is saved. Remove the cause (e.g. reopen the period), then book the missing documents (Accounting, or the command kasmin:book-documents).',
+        'document' => [
+            'invoice' => 'the invoice :number', 'credit_note' => 'the credit note :number', 'payment' => 'the payment of :date (:payer)', 'refund' => 'the refund of :date (:payer)',
+        ],
+    ],
+    'fields' => [
+        'revenue_account' => 'Income account',
+        'cost_center' => 'Cost centre',
+        'installment_revenue_hint' => 'The account this instalment is booked on. Empty: membership fees for an instalment of the kind membership fee (or the account of the membership type), otherwise income from events.',
+        'installment_cost_center_hint' => 'What this instalment is booked for. Empty: the cost centre of the event.',
+        'event_cost_center_hint' => 'Invoices of this event are booked on this cost centre. Empty: the cost centre of the series, otherwise the standard cost centre.',
+        'series_cost_center_hint' => 'Invoices of events of this series are booked on this cost centre, unless the event has its own.',
+        'type_revenue_hint' => 'The account membership fees of this type are booked on. Empty: membership fees.',
+        'type_cost_center_hint' => 'What membership fees of this type are booked for, also when they are an instalment of an event – e.g. the camp, if the fee is a fixed part of its costs. Empty: the cost centre of the event, otherwise the standard cost centre.',
+    ],
 ];

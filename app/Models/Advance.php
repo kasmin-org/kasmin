@@ -20,6 +20,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $purpose
  * @property int $returned_cents
  * @property Carbon|null $settled_on
+ * @property int|null $created_by_id
  */
 class Advance extends Model
 {
@@ -50,9 +51,21 @@ class Advance extends Model
         return $this->hasMany(ExpenseClaim::class);
     }
 
-    /** What is still open: handed out minus receipts minus what came back. */
+    /**
+     * What the person still has to account for: handed out minus the receipts settled against it minus what came back,
+     * plus what the organisation took over as an open expense when the receipts were more (negative while that is
+     * not done yet).
+     */
     public function openCents(): int
     {
-        return $this->amount_cents - (int) $this->claims()->whereIn('status', ['approved', 'settled'])->sum('amount_cents') - $this->returned_cents;
+        $receipts = (int) $this->claims()->where('advance_rest', false)->where('status', 'settled')->sum('amount_cents');
+        $rest = (int) $this->claims()->where('advance_rest', true)->whereNot('status', 'rejected')->sum('amount_cents');
+
+        return $this->amount_cents - $receipts - $this->returned_cents + $rest;
+    }
+
+    public function isSettled(): bool
+    {
+        return $this->settled_on !== null;
     }
 }

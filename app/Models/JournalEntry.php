@@ -27,7 +27,7 @@ use Illuminate\Support\Carbon;
  */
 class JournalEntry extends Model
 {
-    public const KINDS = ['manual', 'invoice', 'credit_note', 'payment', 'refund', 'credit', 'expense', 'expense_payout', 'donation', 'advance', 'allocation', 'closing', 'fund_transfer', 'opening'];
+    public const KINDS = ['manual', 'invoice', 'credit_note', 'payment', 'refund', 'credit', 'expense', 'expense_payout', 'donation', 'advance', 'advance_return', 'allocation', 'closing', 'fund_transfer', 'opening'];
 
     protected $guarded = ['id'];
 

@@ -5,9 +5,12 @@ namespace App\Filament\Pages;
 use App\Filament\Support\InArea;
 use App\Filament\Support\SettingsPage;
 use App\Models\User;
+use App\Support\Accounting\ExpenseClaims;
 use App\Support\Auth\Permissions;
+use App\Support\Finance\Iban;
 use App\Support\Settings;
 use BackedEnum;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Section;
@@ -45,12 +48,12 @@ class InvoiceSettingsPage extends SettingsPage
     protected static function keys(): array
     {
         return ['organisation_iban', 'organisation_bic', 'organisation_bank', 'invoice_number_format', 'invoice_next_number', 'invoice_due_days',
-            'invoice_reminder_days_before', 'invoice_overdue_days', 'invoice_overdue_fees'];
+            'invoice_reminder_days_before', 'invoice_overdue_days', 'invoice_overdue_fees', 'expense_flat_rates'];
     }
 
     protected static function switches(): array
     {
-        return ['invoice_number_per_year', 'invoice_attach_paid'];
+        return ['invoice_number_per_year', 'invoice_attach_paid', 'expense_four_eyes'];
     }
 
     protected static function section(): string
@@ -88,6 +91,20 @@ class InvoiceSettingsPage extends SettingsPage
                 TextInput::make('invoice_overdue_fees')->label(__('admin.settings.overdue_fees'))->regex('/^\s*\d+([.,]\d{1,2})?(\s*;\s*\d+([.,]\d{1,2})?)*\s*$/')->placeholder('0')->hintIcon(...$hint('overdue_fees')),
                 Toggle::make('invoice_attach_paid')->label(__('admin.settings.attach_paid'))->inline(false),
             ]),
+            // Expense claims (E1d.3): the four-eyes principle and the flat rates.
+            Section::make(__('accounting.expenses.settings.section'))->columns(2)->schema([
+                Toggle::make('expense_four_eyes')->label(__('accounting.expenses.settings.four_eyes'))->inline(false)
+                    ->hintIcon('heroicon-m-question-mark-circle', __('accounting.expenses.settings.four_eyes_hint')),
+                Textarea::make('expense_flat_rates')->label(__('accounting.expenses.settings.flat_rates'))->rows(3)->maxLength(2000)
+                    ->hintIcon('heroicon-m-question-mark-circle', __('accounting.expenses.settings.flat_rates_hint'))
+                    ->rule(fn () => function (string $attribute, mixed $value, \Closure $fail) {
+                        foreach (preg_split('/\R/', (string) $value) ?: [] as $line) {
+                            if (trim($line) !== '' && preg_match(ExpenseClaims::FLAT_RATE_LINE, $line) !== 1) {
+                                $fail(__('accounting.expenses.settings.flat_rates_invalid'));
+                            }
+                        }
+                    }),
+            ]),
         ];
     }
 
@@ -98,15 +115,6 @@ class InvoiceSettingsPage extends SettingsPage
 
     public static function validIban(string $iban): bool
     {
-        $iban = strtoupper(str_replace(' ', '', $iban));
-        if (preg_match('/^[A-Z]{2}\d{2}[A-Z0-9]{10,30}$/', $iban) !== 1) {
-            return false;
-        }
-        $numeric = '';
-        foreach (str_split(substr($iban, 4).substr($iban, 0, 4)) as $char) {
-            $numeric .= ctype_alpha($char) ? (string) (ord($char) - 55) : $char;
-        }
-
-        return bcmod($numeric, '97') === '1';
+        return Iban::valid($iban);
     }
 }

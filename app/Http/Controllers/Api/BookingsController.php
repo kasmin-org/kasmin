@@ -95,7 +95,6 @@ class BookingsController extends AccountingController
         $this->scope('finance:write');
         $entry = JournalEntry::query()->with('lines')->findOrFail($booking);
         $data = $request->validate(['text' => ['sometimes', 'nullable', 'string', 'max:250'], 'date' => ['sometimes', 'nullable', 'date']]);
-        abort_if(in_array($entry->kind, ['allocation', 'closing'], true), 422, 'Allocations and closings are not reversed: reopen the period instead.');
         $reversal = app(Journal::class)->reverse($entry, $data['text'] ?? null, $data['date'] ?? null);
 
         return response()->json(['data' => AccountingPresenter::booking($reversal->load(AccountingPresenter::BOOKING_WITH), true)], 201);

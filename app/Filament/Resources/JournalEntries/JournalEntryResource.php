@@ -125,7 +125,7 @@ class JournalEntryResource extends Resource
                 ->modalContent(fn (JournalEntry $record) => new HtmlString(view('filament.accounting.entry', ['entry' => $record->load('lines.account', 'lines.costCenter', 'lines.fund', 'lines.person')])->render())),
             Action::make('reverse')->label(__('accounting.reverse'))->icon('heroicon-o-arrow-uturn-left')->color('danger')->requiresConfirmation()
                 ->modalDescription(__('accounting.reverse_hint'))
-                ->visible(fn (JournalEntry $record) => self::canCreate() && $record->reverses_id === null && ! $record->reversal()->exists() && ! in_array($record->kind, ['allocation', 'closing'], true))
+                ->visible(fn (JournalEntry $record) => self::canCreate() && Journal::reversible($record))
                 ->action(fn (JournalEntry $record) => CostCenterResource::attempt(fn () => app(Journal::class)->reverse($record))),
         ]);
     }

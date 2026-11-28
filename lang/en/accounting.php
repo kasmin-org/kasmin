@@ -41,6 +41,7 @@ return [
         'both_sides' => 'A line has either a debit or a credit amount, not both.',
         'inactive_cost_center' => 'The cost centre :name is not active in :period.',
         'reversed' => 'This booking has already been reversed or is itself a reversal.',
+        'not_reversible' => 'Only typed-in bookings, fund transfers and opening bookings are reversed here. A booking of an invoice, payment, refund, expense claim or advance is corrected through the document (e.g. a credit note); allocations and closings by reopening the period.',
         'period_dates' => 'The dates do not fit: the end must be after the start, and a period cannot cover a neighbouring one completely.',
         'period_gap' => 'Periods follow each other without gaps: the next one starts on :date.',
         'already_closed' => 'The period is already closed.',

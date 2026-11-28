@@ -41,6 +41,7 @@ return [
         'both_sides' => 'Eine Zeile hat entweder einen Soll- oder einen Haben-Betrag, nicht beides.',
         'inactive_cost_center' => 'Die Kostenstelle :name ist in :period nicht aktiv.',
         'reversed' => 'Diese Buchung wurde schon storniert oder ist selbst ein Storno.',
+        'not_reversible' => 'Hier werden nur eingegebene Buchungen, Umbuchungen zwischen Fonds und Eröffnungsbuchungen storniert. Eine Buchung aus einer Rechnung, Zahlung, Rückzahlung, Auslage oder einem Vorschuss wird über den Beleg korrigiert (z. B. mit einer Gutschrift); Umlagen und Abschlüsse durch Wiedereröffnen der Periode.',
         'period_dates' => 'Die Daten passen nicht: Das Ende muss nach dem Beginn liegen, und eine Periode darf eine Nachbarperiode nicht ganz überdecken.',
         'period_gap' => 'Perioden folgen lückenlos aufeinander: Die nächste beginnt am :date.',
         'already_closed' => 'Die Periode ist schon abgeschlossen.',

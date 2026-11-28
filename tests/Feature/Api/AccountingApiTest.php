@@ -13,6 +13,7 @@ use App\Models\Person;
 use App\Models\Role;
 use App\Models\User;
 use App\Support\Accounting\Balances;
+use App\Support\Accounting\Journal;
 use App\Support\Accounting\Money;
 use App\Support\Accounting\Periods;
 use App\Support\Install\Defaults;
@@ -367,6 +368,18 @@ class AccountingApiTest extends TestCase
         $this->withToken($token)->patchJson('/api/v1/settings', ['use_cost_centers' => false])->assertOk();
         $this->assertFalse(Settings::bool('use_cost_centers'));
         $this->withToken($this->token())->patchJson('/api/v1/settings', ['use_cost_centers' => true])->assertForbidden();
+    }
+
+    public function test_bookings_of_documents_are_corrected_through_the_document_not_reversed(): void
+    {
+        app(Periods::class)->create('2027', '2027-01-01', '2027-12-31');
+        $token = $this->token();
+        $entry = app(Journal::class)->post(['date' => '2027-03-01', 'text' => 'Payment', 'kind' => 'payment'], [
+            ['account' => Account::system('bank')->id, 'debit' => 5000], ['account' => Account::system('receivables')->id, 'credit' => 5000],
+        ]);
+        $this->withToken($token)->postJson($this->url('/bookings/'.$entry->id.'/reverse'))->assertUnprocessable()->assertJsonPath('message', __('accounting.errors.not_reversible'));
+        $this->assertFalse(Journal::reversible($entry));
+        $this->assertSame(1, JournalEntry::query()->count());
     }
 
     public function test_a_booking_with_an_idempotency_key_is_booked_once(): void

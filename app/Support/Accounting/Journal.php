@@ -22,6 +22,19 @@ class Journal
     /** Kinds that people type in: they need an existing period (a typing error must not create periods). */
     public const TYPED = ['manual', 'fund_transfer', 'opening', 'allocation', 'closing'];
 
+    /**
+     * Kinds that are reversed in the journal. A booking of a document (invoice, payment, refund, expense claim, advance
+     * …) is corrected through the document – a credit note, a correction of the payment – so that the document and its
+     * booking never disagree; allocations and closings go by reopening the period.
+     */
+    public const REVERSIBLE = ['manual', 'fund_transfer', 'opening'];
+
+    /** Whether the booking can be reversed in the journal now. */
+    public static function reversible(JournalEntry $entry): bool
+    {
+        return in_array($entry->kind, self::REVERSIBLE, true) && $entry->reverses_id === null && ! $entry->reversal()->exists();
+    }
+
     public function __construct(private readonly Periods $periods) {}
 
     /**
@@ -79,6 +92,9 @@ class Journal
     {
         if ($entry->reverses_id !== null || $entry->reversal()->exists()) {
             throw AccountingException::because('reversed');
+        }
+        if (! in_array($entry->kind, self::REVERSIBLE, true)) {
+            throw AccountingException::because('not_reversible');
         }
         $original = Period::of($entry->date);
         $date ??= $original !== null && ! $original->isClosed() ? $entry->date : now();

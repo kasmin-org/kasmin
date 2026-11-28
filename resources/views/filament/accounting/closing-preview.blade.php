@@ -9,10 +9,10 @@
     <div class="overflow-x-auto">
         <table class="w-full">
             <thead><tr class="text-start">
-                <th class="py-1 text-start">{{ __('accounting.cost_center') }}</th>
-                <th class="py-1 text-end">{{ __('accounting.closing.before') }}</th>
-                <th class="py-1 text-end">{{ __('accounting.closing.allocation') }}</th>
-                <th class="py-1 text-end">{{ __('accounting.closing.after') }}</th>
+                <th class="py-1" style="text-align:start">{{ __('accounting.cost_center') }}</th>
+                <th class="py-1" style="text-align:end">{{ __('accounting.closing.before') }}</th>
+                <th class="py-1" style="text-align:end">{{ __('accounting.closing.allocation') }}</th>
+                <th class="py-1" style="text-align:end">{{ __('accounting.closing.after') }}</th>
             </tr></thead>
             <tbody>
             @forelse ($preview['rows'] as $row)
@@ -32,10 +32,10 @@
         <div class="overflow-x-auto">
             <table class="w-full">
                 <thead><tr>
-                    <th class="py-1 text-start">{{ __('accounting.fund') }}</th>
-                    <th class="py-1 text-end">{{ __('accounting.closing.fund_before') }}</th>
-                    <th class="py-1 text-end">{{ __('accounting.closing.result') }}</th>
-                    <th class="py-1 text-end">{{ __('accounting.closing.fund_after') }}</th>
+                    <th class="py-1" style="text-align:start">{{ __('accounting.fund') }}</th>
+                    <th class="py-1" style="text-align:end">{{ __('accounting.closing.fund_before') }}</th>
+                    <th class="py-1" style="text-align:end">{{ __('accounting.closing.result') }}</th>
+                    <th class="py-1" style="text-align:end">{{ __('accounting.closing.fund_after') }}</th>
                 </tr></thead>
                 <tbody>
                 @foreach ($preview['funds'] as $row)

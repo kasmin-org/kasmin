@@ -4,7 +4,7 @@
     @if ($entry->reverses_id)<p class="text-gray-500">{{ __('accounting.is_reversal', ['number' => $entry->reverses?->number]) }}</p>@endif
     @if ($entry->reversal)<p class="text-gray-500">{{ __('accounting.was_reversed', ['number' => $entry->reversal->number]) }}</p>@endif
     <div class="overflow-x-auto"><table class="w-full">
-        <thead><tr><th class="py-1 text-start">{{ __('accounting.account') }}</th><th class="py-1 text-start">{{ __('accounting.cost_center') }} / {{ __('accounting.fund') }}</th><th class="py-1 text-end">{{ __('accounting.debit') }}</th><th class="py-1 text-end">{{ __('accounting.credit') }}</th></tr></thead>
+        <thead><tr><th class="py-1" style="text-align:start">{{ __('accounting.account') }}</th><th class="py-1" style="text-align:start">{{ __('accounting.cost_center') }} / {{ __('accounting.fund') }}</th><th class="py-1" style="text-align:end">{{ __('accounting.debit') }}</th><th class="py-1" style="text-align:end">{{ __('accounting.credit') }}</th></tr></thead>
         <tbody>
         @foreach ($entry->lines as $line)
             <tr class="border-t border-gray-200 dark:border-white/10">

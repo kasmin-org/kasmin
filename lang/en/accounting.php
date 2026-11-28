@@ -53,7 +53,7 @@ return [
         'explain' => 'Closing books the allocations, carries the results into the funds and locks the period. It can be reopened.',
         'cut' => ':source: the fixed amount of :target was cut from :configured to :used, because :source cost only :cost.',
         'not_in_key' => ':name has income but appears in no allocation key.',
-        'negative_fund' => 'The fund :name will be negative: :amount.',
+        'negative_fund' => '“:name” will be negative: :amount.',
         'allocation_text' => 'Allocation of :name, :period',
         'closing_text' => 'Closing :period: results into the funds',
     ],

@@ -33,7 +33,7 @@
     @else
         <x-filament::section :heading="$table->title">
             <div class="overflow-x-auto"><table class="w-full text-sm" data-report-table>
-                <thead><tr>@foreach ($table->headers as $i => $header)<th class="py-1 {{ $i === 0 ? 'text-start' : 'text-end' }}">{{ $header }}</th>@endforeach</tr></thead>
+                <thead><tr>@foreach ($table->headers as $i => $header)<th class="py-1" style="text-align:{{ $i === 0 ? 'start' : 'end' }}">{{ $header }}</th>@endforeach</tr></thead>
                 <tbody>
                 @forelse ($table->rows as $row)
                     <tr class="border-t border-gray-200 dark:border-white/10">@foreach ($row as $i => $cell)<td class="py-1 {{ $i === 0 ? '' : 'text-end' }} {{ str_starts_with((string) $cell, '  ') ? 'ps-4' : (count($row) === 2 && $row[1] === '' ? 'font-semibold' : '') }}" style="white-space:pre-wrap">{{ trim((string) $cell) }}</td>@endforeach</tr>

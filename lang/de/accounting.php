@@ -53,7 +53,7 @@ return [
         'explain' => 'Das Abschließen bucht die Umlagen, überträgt die Ergebnisse in die Fonds und sperrt die Periode. Sie lässt sich wiedereröffnen.',
         'cut' => ':source: Der Fixbetrag von :target wurde von :configured auf :used gekürzt, weil :source nur :cost gekostet hat.',
         'not_in_key' => ':name hat Erträge, kommt aber in keinem Umlageschlüssel vor.',
-        'negative_fund' => 'Der Fonds :name wird negativ: :amount.',
+        'negative_fund' => '„:name“ wird negativ: :amount.',
         'allocation_text' => 'Umlage von :name, :period',
         'closing_text' => 'Abschluss :period: Ergebnisse in die Fonds',
     ],

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Models\CostCenter;
 use App\Models\EventSeries;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -23,24 +24,37 @@ class EventSeriesController extends ApiController
     public function store(Request $request): JsonResponse
     {
         $this->scope('events:write');
-        $series = EventSeries::query()->create($request->validate(['name' => ['required', 'string', 'max:200']]));
+        $series = EventSeries::query()->create($this->data($request, true));
 
         return response()->json(['data' => $this->present($series->loadCount('events'))], 201);
     }
 
-    /** Changes the name. */
+    /** Changes the name or the cost centre. */
     public function update(Request $request, int $series): JsonResponse
     {
         $this->scope('events:write');
         $model = EventSeries::query()->findOrFail($series);
-        $model->update($request->validate(['name' => ['sometimes', 'string', 'max:200']]));
+        $model->update($this->data($request, false));
 
         return response()->json(['data' => $this->present($model->loadCount('events'))]);
+    }
+
+    /** @return array<string, mixed> name, and the cost centre (id or exact name) invoices of its events are booked on */
+    private function data(Request $request, bool $new): array
+    {
+        $data = $request->validate(['name' => [$new ? 'required' : 'sometimes', 'string', 'max:200'], 'cost_center' => ['sometimes', 'nullable']]);
+        if (array_key_exists('cost_center', $data)) {
+            $data['cost_center_id'] = $this->costCenterRef($data['cost_center'], 'cost_center');
+            unset($data['cost_center']);
+        }
+
+        return $data;
     }
 
     /** @return array<string, mixed> */
     private function present(EventSeries $s): array
     {
-        return ['id' => (int) $s->getKey(), 'name' => $s->name, 'events' => (int) $s->getAttribute('events_count')];
+        return ['id' => (int) $s->getKey(), 'name' => $s->name, 'events' => (int) $s->getAttribute('events_count'),
+            'cost_center' => $s->cost_center_id !== null ? CostCenter::query()->whereKey($s->cost_center_id)->value('name') : null, 'cost_center_id' => $s->cost_center_id];
     }
 }

@@ -34,6 +34,8 @@ class CreateMembershipType extends ApiTool
             'name' => $schema->string()->description('name')->required(),
             'pays_fee' => $schema->boolean()->description('whether members of this type pay the yearly fee'),
             'fee' => $schema->number()->description('yearly fee in the invoice currency'),
+            'revenue_account' => $schema->string()->description('income account the fees are booked on: id or exact name (empty: membership fees)'),
+            'cost_center' => $schema->string()->description('cost centre the fees are booked on, also as an instalment of an event: id or exact name (empty: the one of the event)'),
         ];
     }
 }

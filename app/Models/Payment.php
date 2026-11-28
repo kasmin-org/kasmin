@@ -21,6 +21,7 @@ use Illuminate\Support\Carbon;
  * @property int|null $household_id
  * @property int|null $parent_id
  * @property string|null $note
+ * @property int|null $bank_import_id
  */
 class Payment extends Model
 {

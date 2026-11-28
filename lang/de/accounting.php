@@ -129,4 +129,27 @@ return [
         'result' => 'Ergebnis', 'budget' => 'Budget', 'difference' => 'Differenz', 'provisional' => 'vorläufig, nicht abgeschlossen',
         'opening' => 'Anfang', 'transfers' => 'Umbuchungen', 'end' => 'Ende', 'balance' => 'Stand', 'person' => 'Person',
     ],
+    'bookings' => [
+        'invoice' => 'Rechnung :number – :payer',
+        'credit_note' => 'Gutschrift :number zur Rechnung :invoice – :payer',
+        'payment' => 'Zahlung :payer: :what',
+        'moved' => 'Zahlung vom :date, :payer: jetzt :what',
+        'refund' => 'Rückzahlung an :payer',
+        'what_invoices' => 'Rechnung :numbers', 'what_credit' => 'Guthaben', 'what_nothing' => 'nicht zugeordnet',
+        'failed_title' => 'Eine Buchung ist fehlgeschlagen',
+        'failed' => 'Kasmin konnte :document nicht in der Buchhaltung buchen: :error Der Beleg selbst ist gespeichert. Beheben Sie die Ursache (z. B. die Periode wieder öffnen) und buchen Sie dann die fehlenden Belege nach (Buchhaltung, oder der Befehl kasmin:book-documents).',
+        'document' => [
+            'invoice' => 'die Rechnung :number', 'credit_note' => 'die Gutschrift :number', 'payment' => 'die Zahlung vom :date (:payer)', 'refund' => 'die Rückzahlung vom :date (:payer)',
+        ],
+    ],
+    'fields' => [
+        'revenue_account' => 'Ertragskonto',
+        'cost_center' => 'Kostenstelle',
+        'installment_revenue_hint' => 'Auf dieses Konto wird die Rate gebucht. Leer: Mitgliedsbeiträge bei einer Rate der Art Mitgliedsbeitrag (oder das Konto der Mitgliedsart), sonst Einnahmen aus Veranstaltungen.',
+        'installment_cost_center_hint' => 'Wofür die Rate gebucht wird. Leer: die Kostenstelle der Veranstaltung.',
+        'event_cost_center_hint' => 'Rechnungen dieser Veranstaltung werden auf diese Kostenstelle gebucht. Leer: die Kostenstelle der Reihe, sonst die Standard-Kostenstelle.',
+        'series_cost_center_hint' => 'Rechnungen von Veranstaltungen dieser Reihe werden auf diese Kostenstelle gebucht, wenn die Veranstaltung keine eigene hat.',
+        'type_revenue_hint' => 'Auf dieses Konto werden Mitgliedsbeiträge dieser Art gebucht. Leer: Mitgliedsbeiträge.',
+        'type_cost_center_hint' => 'Wofür Mitgliedsbeiträge dieser Art gebucht werden, auch wenn sie eine Rate einer Veranstaltung sind – z. B. das Lager, wenn der Beitrag ein fixer Teil seiner Kosten ist. Leer: die Kostenstelle der Veranstaltung, sonst die Standard-Kostenstelle.',
+    ],
 ];

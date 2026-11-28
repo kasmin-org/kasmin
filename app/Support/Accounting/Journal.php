@@ -25,7 +25,7 @@ class Journal
     public function __construct(private readonly Periods $periods) {}
 
     /**
-     * @param  array{date: \DateTimeInterface|string, text: string, receipt?: string|null, receipt_path?: string|null, kind?: string, source?: Model|null, period_closing_id?: int|null, created_by_id?: int|null}  $entry
+     * @param  array{date: \DateTimeInterface|string, text: string, receipt?: string|null, receipt_path?: string|null, kind?: string, source?: Model|null, once?: bool, period_closing_id?: int|null, created_by_id?: int|null}  $entry  once: false for a document that gets several entries of a kind (the money of a payment moving between receivables and credits)
      * @param  list<array{account: Account|string|int, debit?: int, credit?: int, cost_center?: CostCenter|int|null, fund?: Fund|int|null, person_id?: int|null, text?: string|null}>  $lines
      */
     public function post(array $entry, array $lines, bool $closing = false): JournalEntry
@@ -33,7 +33,7 @@ class Journal
         $kind = $entry['kind'] ?? 'manual';
         $date = Carbon::parse($entry['date'])->startOfDay();
         $source = $entry['source'] ?? null;
-        if ($source !== null) {
+        if ($source !== null && ($entry['once'] ?? true)) {
             $existing = JournalEntry::query()->where('kind', $kind)->where('source_type', $source->getMorphClass())->where('source_id', $source->getKey())
                 ->whereDoesntHave('reversal')->first();
             if ($existing !== null) {

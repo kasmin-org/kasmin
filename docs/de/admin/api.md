@@ -73,7 +73,8 @@ Scopes `people:read` / `people:write`.
 - Mitgliedschaften einer Person: `GET|POST /people/{id}/memberships` (`type` = Schlüssel einer Mitgliedsart, `starts_on`,
   `ends_on`), `PATCH /people/{id}/memberships/{number}` mit `ends_on` beendet eine Mitgliedschaft (`null` lässt sie wieder
   laufen). Eine Person hat pro Art höchstens eine laufende Mitgliedschaft.
-- Mitgliedsarten: `GET|POST /membership-types`, `PATCH /membership-types/{key}` (`name.de`, `name.en`, `pays_fee`, `fee`).
+- Mitgliedsarten: `GET|POST /membership-types`, `PATCH /membership-types/{key}` (`name.de`, `name.en`, `pays_fee`, `fee`,
+  `revenue_account` und `cost_center`: worauf der Beitrag in der Buchhaltung gebucht wird, die ID oder der genaue Name; `null` leert).
 - Doppelte Einträge: `GET /duplicates` führt die Paare an, die wahrscheinlich dieselbe Person sind, mit dem Grund.
   `POST /duplicates/merge` (`keep`, `duplicate` und `fields` wie `{"birth_date": "duplicate"}` für die Werte,
   die vom doppelten Eintrag kommen sollen) verschiebt alles zur Person, die bleibt, und löscht den doppelten Eintrag – das
@@ -129,10 +130,14 @@ Scopes `events:read` / `events:write`.
   Alter oder Datum: `role`, `min_age`, `max_age`, `from_date`, `until_date`, `price` – die Liste ersetzt die
   gespeicherte) und `installments` (`key`, `label.de`, `label.en`, `kind` = `fixed`, `rest` oder `member`, `amount`,
   `due_date`, `due_days`, `membership_type`, `refundable`, `refund_until_days`, `confirms_place`,
-  `paid_add_group`, `paid_remove_group`, `discounts_apply`). Raten werden wie Rollen über den Schlüssel geführt: Was angeführt ist, wird
+  `paid_add_group`, `paid_remove_group`, `discounts_apply`, `revenue_account`, `cost_center`). Raten werden wie Rollen über den Schlüssel geführt: Was angeführt ist, wird
   angelegt oder geändert, der Rest wird entfernt. Wie im Veranstaltungsformular können Preise geändert werden, während es Rechnungen gibt:
   Ausgestellte Rechnungen bleiben, wie sie sind. Eine Rate, zu der es schon Rechnungen gibt, kann nicht
   entfernt werden (422). Die Währung wird angezeigt, kann aber nicht geändert werden, wie im Formular.
+- Buchhaltung: `cost_center` der Veranstaltung und `revenue_account` / `cost_center` einer Rate sagen, worauf ihre
+  Rechnungen gebucht werden (siehe [Rechnungen – Buchungen](invoices.md)). Senden Sie die ID oder den genauen Namen; `null`
+  leert das Feld. Die Antwort hat den Namen und die ID (`cost_center_id`, `revenue_account_id`). Ein unbekannter Name wird
+  abgelehnt (422).
 - Anmelderunden: `GET|PUT /events/{id}/rounds`. `PUT` sendet `rounds` (`id` für eine bestehende Runde, `role`,
   `kind` = `returning`, `selection`, `waitlist` oder `open`, `mode` = `accept` oder `payment`, `opens_at`, `closes_at`,
   `min_events`, `group`) und ersetzt die Liste; Runden, die nicht angeführt sind, werden entfernt.
@@ -146,7 +151,8 @@ Scopes `events:read` / `events:write`.
   `DELETE /event-templates/{id}`. `POST /events` mit `template` (oder `copy_of` = eine Veranstaltung), `title` und
   `starts_at` legt eine Veranstaltung als Kopie an, mit allem, was eingestellt ist, und allen Terminen verschoben, wie es
   *Aus Vorlage* und *Kopieren* tun; Personen, Rechnungen und Kosten werden nicht kopiert.
-- Veranstaltungsreihen: `GET|POST /event-series` (`name`), `PATCH /event-series/{number}`.
+- Veranstaltungsreihen: `GET|POST /event-series` (`name`, `cost_center` = ID oder genauer Name der Kostenstelle, auf die
+  ihre Veranstaltungen gebucht werden), `PATCH /event-series/{number}`.
 - `GET /events/{id}/participations` (`status`, `role`), `POST /events/{id}/registrations` (`person`, `role`).
 - `PATCH /participations/{number}` ändert `status` oder `travel` (`bus`, `car`). Mit `status` `cancelled` wird ein
   optionaler `reason` gespeichert; die Familie wird informiert, der Platz geht an die Warteliste, und Rechnungsentwürfe werden

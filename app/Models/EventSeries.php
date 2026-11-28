@@ -9,7 +9,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /**
  * Events of the same kind over the years, e.g. the camp series or the alumni-event series (ET03).
  *
+ * @property int $id
  * @property string $name
+ * @property int|null $cost_center_id
  */
 class EventSeries extends Model
 {

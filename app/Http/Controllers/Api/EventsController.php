@@ -330,6 +330,7 @@ class EventsController extends ApiController
             'cancellation_fee' => ['sometimes', 'numeric', 'min:0', 'max:1000000'],
             'cancellation_text' => ['sometimes', 'nullable', 'string', 'max:2000'],
             'currency' => ['prohibited'],
+            'cost_center' => ['sometimes', 'nullable'], // id or exact name
             'prices' => ['sometimes', 'array', 'max:100'],
             'prices.*.role' => ['required', Rule::in(EventRole::KEYS)],
             'prices.*.min_age' => ['nullable', 'integer', 'between:0,120'], 'prices.*.max_age' => ['nullable', 'integer', 'between:0,120'],
@@ -346,6 +347,7 @@ class EventsController extends ApiController
             'installments.*.confirms_place' => ['sometimes', 'boolean'], 'installments.*.discounts_apply' => ['sometimes', 'boolean'],
             'installments.*.paid_add_group' => ['nullable', 'integer', Rule::exists('groups', 'id')->where('kind', 'manual')],
             'installments.*.paid_remove_group' => ['nullable', 'integer', Rule::exists('groups', 'id')->where('kind', 'manual')],
+            'installments.*.revenue_account' => ['sometimes', 'nullable'], 'installments.*.cost_center' => ['sometimes', 'nullable'],
         ]);
         $prices = array_key_exists('prices', $data) ? array_values($data['prices']) : null;
         $installments = array_key_exists('installments', $data) ? array_values($data['installments']) : null;
@@ -367,6 +369,13 @@ class EventsController extends ApiController
         if (array_key_exists('series_id', $data)) {
             $data['event_series_id'] = $data['series_id'];
             unset($data['series_id']);
+        }
+        if (array_key_exists('cost_center', $data)) {
+            $data['cost_center_id'] = $this->costCenterRef($data['cost_center'], 'cost_center');
+            unset($data['cost_center']);
+        }
+        if ($installments !== null) {
+            $installments = array_map(fn (array $item, int $i) => $this->bookedOn($item, $i), $installments, array_keys($installments));
         }
         // The same rules between two dates as in the form, also when only one of them is sent.
         $date = fn (string $key) => array_key_exists($key, $data) ? ($data[$key] !== null ? Carbon::parse((string) $data[$key]) : null) : $event?->getAttribute($key);
@@ -409,6 +418,24 @@ class EventsController extends ApiController
         }
 
         return ['event' => $data, 'roles' => $roles, 'prices' => $prices, 'installments' => $installments];
+    }
+
+    /**
+     * What an instalment is booked on (E1): income account and cost centre, each by id or exact name.
+     *
+     * @param  array<string, mixed>  $item
+     * @return array<string, mixed>
+     */
+    private function bookedOn(array $item, int $i): array
+    {
+        if (array_key_exists('revenue_account', $item)) {
+            $item['revenue_account_id'] = $this->revenueAccountRef($item['revenue_account'], "installments.{$i}.revenue_account");
+        }
+        if (array_key_exists('cost_center', $item)) {
+            $item['cost_center_id'] = $this->costCenterRef($item['cost_center'], "installments.{$i}.cost_center");
+        }
+
+        return $item;
     }
 
     /**
@@ -481,7 +508,7 @@ class EventsController extends ApiController
         foreach ($installments as $sort => $item) {
             /** @var EventInstallment $model */
             $model = $event->installments()->firstOrNew(['key' => $item['key']]);
-            $values = ['sort' => $sort] + array_intersect_key($item, array_flip(['label', 'kind', 'due_date', 'due_days', 'refundable', 'refund_until_days', 'confirms_place', 'discounts_apply']));
+            $values = ['sort' => $sort] + array_intersect_key($item, array_flip(['label', 'kind', 'due_date', 'due_days', 'refundable', 'refund_until_days', 'confirms_place', 'discounts_apply', 'revenue_account_id', 'cost_center_id']));
             if (array_key_exists('amount', $item)) {
                 $values['amount_cents'] = $item['amount'] !== null ? (int) round(((float) $item['amount']) * 100) : null;
             }

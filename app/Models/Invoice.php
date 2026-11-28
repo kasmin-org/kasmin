@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\Auditable;
+use App\Support\Settings;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -127,6 +128,17 @@ class Invoice extends Model
         }
 
         return null;
+    }
+
+    /**
+     * Whether the invoice shows its discounts in a column of the line, as invoices did before discounts were their
+     * own position (B10): every invoice made before the update, with or without a discount – issued invoices never
+     * change their look.
+     */
+    public function showsDiscountsInLine(): bool
+    {
+        return $this->lines->contains(fn (InvoiceLine $line) => $line->discount_cents > 0 && $line->discount_label === null)
+            || $this->id < Settings::int('invoice_discount_lines_from');
     }
 
     /** What the invoice is for, as it is shown: the name of the instalment, or the membership fee of a year. */

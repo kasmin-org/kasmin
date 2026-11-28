@@ -22,8 +22,9 @@ return new class extends Migration
         if (DB::table('public_forms')->where('kind', 'signup')->exists()) {
             return;
         }
-        $de = DB::table('system_meta')->where('key', 'default_locale')->value('value');
-        $de = is_string($de) && str_contains($de, 'de');
+        // The language of the installation: the setting, otherwise the configuration (as Language::current()).
+        $locale = DB::table('system_meta')->where('key', 'default_locale')->value('value');
+        $de = str_contains(is_string($locale) && $locale !== '' ? $locale : (string) config('app.locale'), 'de');
         $slug = $de ? 'registrierung' : 'sign-up';
         for ($n = 2; DB::table('public_forms')->where('slug', $slug)->exists(); $n++) {
             $slug = ($de ? 'registrierung-' : 'sign-up-').$n;

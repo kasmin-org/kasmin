@@ -13,6 +13,7 @@ use App\Support\Auth\LoginLinks;
 use App\Support\Install\Defaults;
 use App\Support\Install\MailTemplateDefaults;
 use App\Support\Mail\Composer;
+use App\Support\Mail\MailLinks;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
@@ -125,6 +126,27 @@ class LoginTest extends TestCase
         ['code' => $later] = app(LoginLinks::class)->issue($user);
         $this->post('/login/code', ['email' => $user->email, 'code' => $later])->assertRedirect('/portal');
         $this->assertAuthenticatedAs($user);
+    }
+
+    public function test_wrong_codes_do_not_lock_the_link_of_the_same_mail(): void
+    {
+        $user = $this->guardian();
+        ['code' => $code, 'token' => $link] = app(LoginLinks::class)->issue($user);
+        $wrong = $code === '111-111' ? '222-222' : '111-111';
+        for ($i = 0; $i < 6; $i++) {
+            $this->post('/login/code', ['email' => $user->email, 'code' => $wrong])->assertSessionHasErrors('code');
+        }
+        // Someone who only knows the address cannot lock the person out: the link of that very mail still works.
+        $this->post('/login/link/'.$link)->assertRedirect('/portal');
+        $this->assertAuthenticatedAs($user);
+    }
+
+    public function test_the_portal_copy_of_a_mail_shows_no_placeholder_of_the_link_date(): void
+    {
+        $user = $this->guardian();
+        $mail = app(Composer::class)->queueRaw($user->email, 'Robin', 'Your invoice', '<p>Hello</p>', 'en', 'invoice', $user->person_id);
+        $mail->update(['text' => "Hello\n\nThe link is valid until ".MailLinks::UNTIL_PLACEHOLDER.".\n\nSee you"]);
+        $this->actingAs($user)->get('/portal/mails/'.$mail->uuid)->assertOk()->assertSee('See you')->assertDontSee(MailLinks::UNTIL_PLACEHOLDER, false);
     }
 
     public function test_codes_may_be_typed_in_lower_case_without_hyphen_and_with_look_alikes(): void

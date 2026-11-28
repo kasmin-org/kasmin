@@ -62,9 +62,11 @@ that is unique per type (instalments: per event), and are referred to by their *
   `/mail-templates/{template}`, `/automations/{automation}`) or in a field (`type` of a membership, `role`,
   `template` of a mailing, `registration_form`, `membership_type`, the mail templates, the form and `approver_roles`
   of an automation) – send the **id** or the **exact name**. Upper and lower case and spaces at the start and end do
-  not matter. A number is always taken as an id.
+  not matter. A number is taken as an id; only when no record has that id, as a name (use the id for a name such as
+  `2027`).
 - A name that several records have is refused with `422` and the message that the name is not unique; use the id
-  then. Nothing found: `404` in the path, `422` in a field.
+  then. The same when a text is the name of one record and the old key (see below) of another. Nothing found: `404` in
+  the path, `422` in a field.
 - Up to 0.30 these records had a visible key (`deposit`, `safety_sheet` …). Such a key is still accepted where an id
   or name is, but it is no longer part of any answer, except in the files of form definitions (see below) and of
   `kasmin:config:export`, which go from one installation to another, where ids differ.

@@ -62,9 +62,11 @@ der pro Art eindeutig ist (Raten: pro Veranstaltung), und werden über ihre **Da
   `/mail-templates/{template}`, `/automations/{automation}`) oder in einem Feld (`type` einer Mitgliedschaft, `role`,
   `template` einer Aussendung, `registration_form`, `membership_type`, die Mailvorlagen, das Formular und `approver_roles`
   einer Automatisierung) –, senden Sie die **ID** oder den **genauen Namen**. Groß- und Kleinschreibung sowie Leerzeichen am
-  Anfang und Ende spielen keine Rolle. Eine Zahl gilt immer als ID.
+  Anfang und Ende spielen keine Rolle. Eine Zahl gilt als ID; nur wenn kein Eintrag diese ID hat, als Name (für einen Namen
+  wie `2027` besser die ID verwenden).
 - Einen Namen, den mehrere Einträge haben, lehnt die API mit `422` und dem Hinweis ab, dass der Name nicht eindeutig ist;
-  verwenden Sie dann die ID. Nichts gefunden: `404` im Pfad, `422` in einem Feld.
+  verwenden Sie dann die ID. Ebenso, wenn ein Text der Name eines Eintrags und der alte Schlüssel (siehe unten) eines anderen
+  ist. Nichts gefunden: `404` im Pfad, `422` in einem Feld.
 - Bis 0.30 hatten diese Einträge einen sichtbaren Schlüssel (`deposit`, `safety_sheet` …). Ein solcher Schlüssel wird weiter
   angenommen, wo eine ID oder ein Name steht, ist aber in keiner Antwort mehr enthalten – außer in den Dateien von
   Formulardefinitionen (siehe unten) und von `kasmin:config:export`, die von einer Installation zur anderen gehen, wo die

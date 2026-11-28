@@ -79,7 +79,6 @@ class Advances
         });
     }
 
-    /** @phpstan-assert Account $account */
     private function moneyAccount(?Account $account): void
     {
         if ($account === null || $account->money === null || ! $account->active) {
@@ -92,7 +91,7 @@ class Advances
     {
         return [
             'date' => $date, 'text' => (string) __('accounting.expenses.entry.'.$text, ['name' => $advance->person->fullName(), 'purpose' => (string) $advance->purpose]),
-            'kind' => $kind, 'source' => $advance, 'created_by_id' => $by?->id ?? auth()->id(),
+            'kind' => $kind, 'source' => $advance, 'created_by_id' => $by->id ?? (auth()->id() !== null ? (int) auth()->id() : null),
         ];
     }
 }

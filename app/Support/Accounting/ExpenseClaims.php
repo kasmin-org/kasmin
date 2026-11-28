@@ -84,7 +84,7 @@ class ExpenseClaims
      * A new claim, by the person in the portal or entered centrally for them ($by is then the treasurer). A flat rate
      * gives the amount (rate × quantity) and needs no receipt.
      *
-     * @param  array{date: \DateTimeInterface|string, amount_cents?: int|null, purpose?: string|null, account_id?: int|null, cost_center_id?: int|null, event_id?: int|null, flat_rate?: string|null, quantity?: float|int|string|null, advance_id?: int|null, waived?: bool|null, receipt?: UploadedFile|null}  $data
+     * @param  array{date: \DateTimeInterface|string, amount_cents?: int|null, purpose?: string|null, account_id?: int|null, cost_center_id?: int|null, event_id?: int|null, flat_rate?: string|null, quantity?: float|int|string|null, advance_id?: int|null, waived?: bool|null, receipt?: UploadedFile|string|null}  $data  receipt: an upload, or the path of a file already stored in the receipts folder
      */
     public function submit(Person $person, array $data, ?User $by = null): ExpenseClaim
     {
@@ -102,17 +102,29 @@ class ExpenseClaims
         }
         $account = $this->account($data['account_id'] ?? null);
         $advance = $this->openAdvance($person, $data['advance_id'] ?? null);
-        $path = isset($data['receipt']) ? $data['receipt']->store(self::RECEIPTS, 'local') : null;
+        $path = $this->storeReceipt($data['receipt'] ?? null);
 
         $claim = ExpenseClaim::query()->create([
             'person_id' => $person->id, 'submitted_by_id' => $by?->id, 'date' => $date->toDateString(), 'amount_cents' => $cents,
             'purpose' => $purpose, 'account_id' => $account?->id, 'cost_center_id' => $this->costCenterFor($event, $data['cost_center_id'] ?? null, $account),
-            'event_id' => $event?->id, 'receipt_path' => is_string($path) ? $path : null, 'flat' => $rate !== null, 'flat_rate' => $rate['name'] ?? null,
+            'event_id' => $event?->id, 'receipt_path' => $path, 'flat' => $rate !== null, 'flat_rate' => $rate['name'] ?? null,
             'advance_id' => $advance?->id, 'waived' => $advance === null && (bool) ($data['waived'] ?? false), 'status' => 'submitted',
         ]);
         app(Notifier::class)->event('expense_claims', (string) __('accounting.expenses.notify_submitted', ['name' => $person->fullName(), 'amount' => $claim->amount(), 'purpose' => $claim->purpose]), url('/admin/expense-claims'));
 
         return $claim;
+    }
+
+    private function storeReceipt(UploadedFile|string|null $receipt): ?string
+    {
+        if ($receipt instanceof UploadedFile) {
+            $path = $receipt->store(self::RECEIPTS, 'local');
+
+            return is_string($path) ? $path : null;
+        }
+
+        // Only files that the upload of the admin interface put into the folder of the receipts.
+        return is_string($receipt) && str_starts_with($receipt, self::RECEIPTS.'/') && ! str_contains($receipt, '..') ? $receipt : null;
     }
 
     /**
@@ -260,7 +272,7 @@ class ExpenseClaims
         Audit::record('expense_claims.paid', null, null, ['count' => $list->count(), 'total' => $list->sum('amount_cents'), 'account' => $from->id]);
         $list->each(fn (ExpenseClaim $c) => $this->mail($c, 'paid'));
 
-        return ['claims' => $list->all(), 'sepa' => $sepa];
+        return ['claims' => array_values($list->all()), 'sepa' => $sepa];
     }
 
     /** The person waives the refund: "expenses to pay back" to donations, in the cost centre of the expense. */
@@ -361,7 +373,7 @@ class ExpenseClaims
         return [
             'date' => $date, 'text' => (string) __('accounting.expenses.entry.'.$text, ['name' => $claim->person->fullName(), 'purpose' => $claim->purpose]),
             'receipt' => (string) __('accounting.expenses.receipt_number', ['id' => $claim->id]), 'receipt_path' => $claim->receipt_path,
-            'kind' => $kind, 'source' => $claim, 'created_by_id' => $by?->id ?? auth()->id(),
+            'kind' => $kind, 'source' => $claim, 'created_by_id' => $by->id ?? (auth()->id() !== null ? (int) auth()->id() : null),
         ];
     }
 
@@ -381,9 +393,9 @@ class ExpenseClaims
             'id' => ($perPerson ? 'KASMIN-P'.$group->first()?->person_id.'-' : 'KASMIN-A').$group->pluck('id')->implode('-'),
             'name' => (string) $group->first()?->account_holder, 'iban' => (string) $group->first()?->iban,
             'cents' => (int) $group->sum('amount_cents'), 'text' => $this->transferText($group->pluck('purpose')->implode(', ')),
-        ])->values()->all();
+        ])->all();
 
-        return app(SepaCreditTransfer::class)->render($debtor, $payments, $date->isPast() ? today() : $date);
+        return app(SepaCreditTransfer::class)->render($debtor, array_values($payments), $date->isPast() ? today() : $date);
     }
 
     /** Mail to the person about the decision or the payout; never with the IBAN. */
@@ -395,7 +407,7 @@ class ExpenseClaims
             return;
         }
         $locale = $person->locale;
-        $values = ['date' => $claim->date->copy()->locale($locale)->isoFormat('L'), 'amount' => $claim->amount(), 'purpose' => $claim->purpose,
+        $values = ['date' => $claim->date->isoFormat('L'), 'amount' => $claim->amount(), 'purpose' => $claim->purpose,
             'way' => __('accounting.expenses.way.'.(Account::query()->whereKey($claim->paid_from_account_id)->value('money') ?? 'bank'), [], $locale), 'organisation' => Placeholders::organisationName()];
         $html = '<p>'.e(app(Placeholders::class)->salutation($person, $locale)).'</p><p>'.e(__('accounting.expenses.mail.'.$kind, $values, $locale)).'</p>'
             .($kind === 'rejected' ? '<p>'.e(__('accounting.expenses.mail.reason', [], $locale)).' '.e((string) $claim->reason).'</p>' : '')

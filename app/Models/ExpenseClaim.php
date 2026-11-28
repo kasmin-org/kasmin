@@ -13,6 +13,7 @@ use Illuminate\Support\Carbon;
  *
  * @property int $id
  * @property int $person_id
+ * @property-read Person $person the person always exists (deleting is restricted)
  * @property int|null $submitted_by_id
  * @property Carbon $date
  * @property int $amount_cents

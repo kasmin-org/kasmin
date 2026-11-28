@@ -21,6 +21,7 @@ use App\Support\Accounting\Advances;
 use App\Support\Accounting\Balances;
 use App\Support\Accounting\ExpenseClaims;
 use App\Support\Accounting\Periods;
+use App\Support\Accounting\SepaCreditTransfer;
 use App\Support\Install\Defaults;
 use App\Support\Settings;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -89,6 +90,20 @@ class ExpenseClaimsTest extends TestCase
         return app(Balances::class)->account(Account::system($key), now()->addMonth());
     }
 
+    /**
+     * The values at an XPath of a SEPA file (namespace prefix p).
+     *
+     * @return \Closure(string): list<string>
+     */
+    private function sepa(string $xml): \Closure
+    {
+        $doc = simplexml_load_string($xml);
+        $this->assertNotFalse($doc, 'the SEPA file is well-formed XML');
+        $doc->registerXPathNamespace('p', SepaCreditTransfer::NAMESPACE);
+
+        return fn (string $path): array => array_map('strval', array_values($doc->xpath($path) ?: []));
+    }
+
     /** @param  array<string, mixed>  $data */
     private function claim(array $data = [], ?Person $person = null, ?User $by = null): ExpenseClaim
     {
@@ -115,8 +130,9 @@ class ExpenseClaimsTest extends TestCase
         $this->assertSame('approved', $claim->refresh()->status);
         $entry = JournalEntry::query()->where('kind', 'expense')->sole();
         $expense = $entry->lines->firstWhere('debit_cents', 6170);
-        $this->assertSame($this->account('Material')->id, $expense?->account_id);
-        $this->assertSame($camp->id, $expense?->cost_center_id);
+        $this->assertNotNull($expense);
+        $this->assertSame($this->account('Material')->id, $expense->account_id);
+        $this->assertSame($camp->id, $expense->cost_center_id);
         $this->assertSame($this->kim->id, $entry->lines->firstWhere('credit_cents', 6170)?->person_id);
         $this->assertSame(-6170, $this->balance('open_expenses'), 'the organisation owes Kim 61.70');
         $this->assertSame($claim->receipt_path, $entry->receipt_path);
@@ -187,22 +203,19 @@ class ExpenseClaimsTest extends TestCase
         }
         $result = $this->claims->pay([$a, $b, $c], Account::system('bank'), now()->toDateString(), false, $this->treasurer);
 
-        $xml = simplexml_load_string((string) $result['sepa']);
-        $this->assertNotFalse($xml);
-        $xml->registerXPathNamespace('p', 'urn:iso:std:iso:20022:tech:xsd:pain.001.001.09');
-        $this->assertSame('3', (string) $xml->xpath('//p:GrpHdr/p:NbOfTxs')[0]);
-        $this->assertSame('105.00', (string) $xml->xpath('//p:GrpHdr/p:CtrlSum')[0]);
-        $this->assertSame('105.00', (string) $xml->xpath('//p:PmtInf/p:CtrlSum')[0]);
-        $this->assertSame('AT611904300234573201', (string) $xml->xpath('//p:DbtrAcct/p:Id/p:IBAN')[0]);
-        $this->assertSame('BKAUATWW', (string) $xml->xpath('//p:DbtrAgt/p:FinInstnId/p:BICFI')[0]);
-        $this->assertSame('Example camp', (string) $xml->xpath('//p:Dbtr/p:Nm')[0]);
-        $transfers = $xml->xpath('//p:CdtTrfTxInf');
-        $this->assertCount(3, $transfers);
-        $this->assertSame(['AT483200000012345864', 'AT483200000012345864', 'DE89370400440532013000'], array_map('strval', $xml->xpath('//p:CdtTrfTxInf/p:CdtrAcct/p:Id/p:IBAN')));
-        $this->assertSame(['61.70', '25.00', '18.30'], array_map('strval', $xml->xpath('//p:CdtTrfTxInf/p:Amt/p:InstdAmt')));
-        $this->assertSame('Robin Roehrich', (string) $xml->xpath('//p:CdtTrfTxInf/p:Cdtr/p:Nm')[2], 'SEPA character set');
-        $this->assertSame('Refund of expenses: Postage + stamps', (string) $xml->xpath('//p:CdtTrfTxInf/p:RmtInf/p:Ustrd')[2]);
-        $this->assertSame('EUR', (string) $xml->xpath('//p:InstdAmt/@Ccy')[0]);
+        $sepa = $this->sepa((string) $result['sepa']);
+        $this->assertSame(['3'], $sepa('//p:GrpHdr/p:NbOfTxs'));
+        $this->assertSame(['105.00'], $sepa('//p:GrpHdr/p:CtrlSum'));
+        $this->assertSame(['105.00'], $sepa('//p:PmtInf/p:CtrlSum'));
+        $this->assertSame(['AT611904300234573201'], $sepa('//p:DbtrAcct/p:Id/p:IBAN'));
+        $this->assertSame(['BKAUATWW'], $sepa('//p:DbtrAgt/p:FinInstnId/p:BICFI'));
+        $this->assertSame(['Example camp'], $sepa('//p:Dbtr/p:Nm'));
+        $this->assertCount(3, $sepa('//p:CdtTrfTxInf'));
+        $this->assertSame(['AT483200000012345864', 'AT483200000012345864', 'DE89370400440532013000'], $sepa('//p:CdtTrfTxInf/p:CdtrAcct/p:Id/p:IBAN'));
+        $this->assertSame(['61.70', '25.00', '18.30'], $sepa('//p:CdtTrfTxInf/p:Amt/p:InstdAmt'));
+        $this->assertSame('Robin Roehrich', $sepa('//p:CdtTrfTxInf/p:Cdtr/p:Nm')[2], 'SEPA character set');
+        $this->assertSame('Refund of expenses: Postage + stamps', $sepa('//p:CdtTrfTxInf/p:RmtInf/p:Ustrd')[2]);
+        $this->assertSame(['EUR', 'EUR', 'EUR'], $sepa('//p:InstdAmt/@Ccy'));
 
         $this->assertSame(0, $this->balance('open_expenses'));
         $this->assertSame(-10500, $this->balance('bank'));
@@ -217,13 +230,10 @@ class ExpenseClaimsTest extends TestCase
         $e = $this->claim(['amount_cents' => 500, 'purpose' => 'Tape']);
         $this->claims->approve($d, $this->treasurer);
         $this->claims->approve($e, $this->treasurer);
-        $sepa = (string) $this->claims->pay([$d, $e], Account::system('bank'), now()->toDateString(), true)['sepa'];
-        $xml = simplexml_load_string($sepa);
-        $this->assertNotFalse($xml);
-        $xml->registerXPathNamespace('p', 'urn:iso:std:iso:20022:tech:xsd:pain.001.001.09');
-        $this->assertSame('1', (string) $xml->xpath('//p:GrpHdr/p:NbOfTxs')[0]);
-        $this->assertSame('15.00', (string) $xml->xpath('//p:CdtTrfTxInf/p:Amt/p:InstdAmt')[0]);
-        $this->assertSame('Refund of expenses: Glue, Tape', (string) $xml->xpath('//p:Ustrd')[0]);
+        $sepa = $this->sepa((string) $this->claims->pay([$d, $e], Account::system('bank'), now()->toDateString(), true)['sepa']);
+        $this->assertSame(['1'], $sepa('//p:GrpHdr/p:NbOfTxs'));
+        $this->assertSame(['15.00'], $sepa('//p:CdtTrfTxInf/p:Amt/p:InstdAmt'));
+        $this->assertSame(['Refund of expenses: Glue, Tape'], $sepa('//p:Ustrd'));
         $this->assertSame(2, JournalEntry::query()->where('kind', 'expense_payout')->whereIn('source_id', [$d->id, $e->id])->count(), 'one booking per claim');
     }
 
@@ -345,6 +355,31 @@ class ExpenseClaimsTest extends TestCase
         $this->assertSame('Mileage (120 × 0,42 €): Vienna – camp', $miles->purpose);
         $this->expectException(AccountingException::class);
         $this->claim(['flat_rate' => 'Travel allowance per event', 'event_id' => $event->id]);
+    }
+
+    /** The table "Bookings, step by step" of docs/admin/expenses.md. */
+    public function test_the_walkthrough_of_the_documentation(): void
+    {
+        $camp = CostCenter::query()->create(['name' => 'Summer camp', 'carries' => true]);
+        $robin = $this->person('Robin', 'Rowe', 'robin@example.org');
+        $sam = $this->person('Sam', 'Stone', 'sam@example.org');
+        $this->claims->setIban($this->kim, 'AT483200000012345864');
+        $kims = $this->claim(['cost_center_id' => $camp->id, 'account_id' => $this->account('Material')->id]);
+        $this->claims->approve($kims, $this->treasurer);
+        $this->claims->pay([$kims], Account::system('bank'), now());
+        $robins = $this->claim(['amount_cents' => 1830, 'purpose' => 'Postage', 'cost_center_id' => $camp->id, 'account_id' => $this->account('Postage')->id], $robin);
+        $this->claims->approve($robins, $this->treasurer);
+        $this->claims->donate($robins, $this->treasurer);
+        $advance = app(Advances::class)->handOut($sam, 30000, Account::system('cash'), now()->subDays(5), 'Camp shopping');
+        foreach ([[18450, 'Food', 'Food'], [4300, 'Bus tickets', 'Travel']] as [$cents, $purpose, $account]) {
+            $receipt = $this->claim(['amount_cents' => $cents, 'purpose' => $purpose, 'advance_id' => $advance->id, 'cost_center_id' => $camp->id, 'account_id' => $this->account($account)->id], $sam);
+            $this->claims->approve($receipt, $this->treasurer);
+        }
+        app(Advances::class)->settle($advance, 7250, Account::system('cash'), now());
+
+        $this->assertSame([0, 0, -6170, -22750], [$this->balance('open_expenses'), $this->balance('advances'), $this->balance('bank'), $this->balance('cash')]);
+        $this->assertSame(-28920, app(Balances::class)->results(Period::query()->sole())[$camp->id]);
+        $this->assertSame(8, JournalEntry::query()->count());
     }
 
     public function test_the_iban_is_stored_encrypted_checked_and_never_in_the_audit_log(): void

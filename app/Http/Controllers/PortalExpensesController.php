@@ -8,6 +8,7 @@ use App\Models\Event;
 use App\Models\ExpenseClaim;
 use App\Models\Person;
 use App\Models\User;
+use App\Support\Accounting\Accounting;
 use App\Support\Accounting\AccountingException;
 use App\Support\Accounting\ExpenseClaims;
 use App\Support\Auth\PortalPerson;
@@ -50,7 +51,7 @@ class PortalExpensesController extends Controller
             'defaultAccount' => ExpenseClaims::defaultAccount()?->id,
             'flatRates' => ExpenseClaims::flatRates(),
             'events' => self::events(),
-            'costCenters' => CostCenter::query()->count() > 1 ? CostCenter::query()->orderBy('sort')->orderBy('name')->pluck('name', 'id') : collect(),
+            'costCenters' => Accounting::costCenters() ? CostCenter::query()->orderBy('sort')->orderBy('name')->pluck('name', 'id') : collect(),
         ]);
     }
 

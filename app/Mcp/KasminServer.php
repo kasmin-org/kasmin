@@ -14,13 +14,14 @@ use Laravel\Mcp\Server\Attributes\Version;
 #[Version('1.0.0')]
 #[Instructions(<<<'TXT'
 Kasmin manages the members, families, events, waitlists, invoices and automations of an organisation (e.g. a holiday camp).
-Areas of the tools: people with contact data, legal guardians, families, memberships, roles, duplicates and groups; events with series, templates, registration rounds, costs, participants, offers and reserve places, divisions (groups, rooms, duties), lists, statistics and the dashboard; invoices, payments, refunds and the invoice archive; automations and approvals; imports; forms and public forms; mail templates, mailings and the mail log; privacy (consents, data export, anonymising); settings and webhooks; the audit log. You only see the tools the token allows.
+Areas of the tools: people with contact data, legal guardians, families, memberships, roles, duplicates and groups; events with series, templates, registration rounds, costs, participants, offers and reserve places, divisions (groups, rooms, duties), lists, statistics and the dashboard; invoices, payments, refunds and the invoice archive; the accounting (accounts, cost centres, funds, periods with allocation keys and closing, bookings, reports); expense claims and advances of team members; automations and approvals; imports; forms and public forms; mail templates, mailings and the mail log; privacy (consents, data export, anonymising); settings and webhooks; the audit log. You only see the tools the token allows.
 Rules:
 - Use the wording "legal guardians", never "parents". Address adults formally, children informally.
 - Personal data: request only what the task needs. Health and safety data are not available unless the organisation allows it.
 - Changes with effect on many people (imports, automation runs, mails, invoices) follow: dry run or preview → show the result to the human → act only after their approval. Never decide approvals on your own; pass on the human's decision.
 - Automations: show the human every change before update_automation. Never weaken an approval (mode, max_items, approvals_needed, approver_roles) on your own; without the permission approvals:decide these changes are refused.
-- Deleting and things that cannot be undone (merge_duplicates, anonymise_person, cancel_invoice, issue_invoice, delete_… tools) and everything that sends mails to families (offer_place, release_reserve_places, send_invoice, update_participation_status with cancelled, accept_public_submission): show the human exactly what will happen and act only after their approval. anonymise_person: always with preview first.
+- Accounting: bookings are never changed, only reversed - show the lines to the human before create_booking. close_period only after the human has seen close_period_preview; reopen_period and delete_cost_center with bookings need explicit confirmation parameters (confirm, confirm_count): set them only after the human has approved what the refusal or the list shows.
+- Deleting and things that cannot be undone (merge_duplicates, anonymise_person, cancel_invoice, issue_invoice, reverse_booking, approve_expense_claim, pay_expense_claims, delete_… tools) and everything that sends mails to families (offer_place, release_reserve_places, send_invoice, update_participation_status with cancelled, accept_public_submission): show the human exactly what will happen and act only after their approval. anonymise_person: always with preview first.
 - Roles give rights: assign_role and remove_role only on the explicit wish of the human; they need the permission approvals:decide, and the role administrator is never available.
 - Files (documents of an event, PDFs) cannot be read or uploaded here; webhooks are created in the admin interface.
 - Imports: import_preview first, review errors and family suggestions with the human, then import_people with a stable source name and source_id per row; rollback_import if something went wrong.
@@ -54,6 +55,16 @@ class KasminServer extends Server
         // Finance
         Tools\ListInvoices::class, Tools\GetInvoice::class, Tools\RecordPayment::class, Tools\IssueInvoice::class, Tools\SendInvoice::class, Tools\CancelInvoice::class,
         Tools\ListPayments::class, Tools\AssignPayment::class, Tools\ListRefunds::class, Tools\MarkRefundDone::class, Tools\KeepRefundAsCredit::class, Tools\ListArchivedInvoices::class,
+        // Accounting
+        Tools\ListAccounts::class, Tools\CreateAccount::class, Tools\UpdateAccount::class, Tools\DeleteAccount::class,
+        Tools\ListCostCenters::class, Tools\CreateCostCenter::class, Tools\UpdateCostCenter::class, Tools\ChangeCostCenterKind::class, Tools\SetCostCenterActive::class,
+        Tools\MakeDefaultCostCenter::class, Tools\DeleteCostCenter::class,
+        Tools\ListFunds::class, Tools\CreateFund::class, Tools\UpdateFund::class, Tools\TransferBetweenFunds::class, Tools\DeleteFund::class,
+        Tools\ListPeriods::class, Tools\CreatePeriod::class, Tools\UpdatePeriod::class, Tools\GetAllocationKeys::class, Tools\SaveAllocationKey::class, Tools\GetBudgets::class, Tools\SaveBudgets::class, Tools\BookDocuments::class,
+        Tools\ClosePeriodPreview::class, Tools\ClosePeriod::class, Tools\ReopenPeriod::class,
+        Tools\ListBookings::class, Tools\GetBooking::class, Tools\CreateBooking::class, Tools\ReverseBooking::class, Tools\GetReport::class,
+        Tools\ListExpenseClaims::class, Tools\CreateExpenseClaim::class, Tools\ApproveExpenseClaim::class, Tools\RejectExpenseClaim::class, Tools\DonateExpenseClaim::class, Tools\PayExpenseClaims::class,
+        Tools\ListAdvances::class, Tools\CreateAdvance::class, Tools\SettleAdvance::class,
         // Automations and approvals
         Tools\ListAutomations::class, Tools\GetAutomation::class, Tools\CreateAutomation::class, Tools\UpdateAutomation::class, Tools\DeleteAutomation::class,
         Tools\PreviewAutomation::class, Tools\RequestAutomationRun::class, Tools\ListApprovals::class, Tools\GetAutomationRun::class, Tools\DecideApproval::class,

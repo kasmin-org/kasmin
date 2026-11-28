@@ -126,7 +126,12 @@ class Duplicates
                 $seen[$key] = true;
                 $seen[$primary] = $seen[$primary] ?? (bool) $point->is_primary;
             }
-            $keep->fill(array_intersect_key($fields, array_flip(self::FIELDS)))->save();
+            $keep->fill(array_intersect_key($fields, array_flip(self::FIELDS)));
+            // The account for payouts of expense claims: the kept person's, otherwise the duplicate's.
+            if (blank($keep->payout_iban) && filled($duplicate->payout_iban)) {
+                $keep->payout_iban = $duplicate->payout_iban;
+            }
+            $keep->save();
             $duplicate->refresh();
             $duplicate->delete();
             Audit::record('person.merged', $keep, ['merged' => $snapshot]);

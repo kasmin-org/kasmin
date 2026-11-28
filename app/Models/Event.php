@@ -43,6 +43,7 @@ use Illuminate\Support\Carbon;
  * @property int $sibling_min_children
  * @property string $sibling_order
  * @property list<int>|null $reminder_days_before
+ * @property int|null $cost_center_id
  */
 class Event extends Model
 {

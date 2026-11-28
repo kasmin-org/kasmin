@@ -1,16 +1,22 @@
 <?php
 
+use App\Http\Controllers\Api\AccountingReportsController;
+use App\Http\Controllers\Api\AccountsController;
 use App\Http\Controllers\Api\AuditController;
 use App\Http\Controllers\Api\AutomationsController;
+use App\Http\Controllers\Api\BookingsController;
 use App\Http\Controllers\Api\ContactPointsController;
+use App\Http\Controllers\Api\CostCentersController;
 use App\Http\Controllers\Api\DivisionsController;
 use App\Http\Controllers\Api\DuplicatesController;
 use App\Http\Controllers\Api\EventListsController;
 use App\Http\Controllers\Api\EventPartsController;
 use App\Http\Controllers\Api\EventsController;
 use App\Http\Controllers\Api\EventSeriesController;
+use App\Http\Controllers\Api\ExpensesController;
 use App\Http\Controllers\Api\FinanceController;
 use App\Http\Controllers\Api\FormsController;
+use App\Http\Controllers\Api\FundsController;
 use App\Http\Controllers\Api\GroupsController;
 use App\Http\Controllers\Api\GuardiansController;
 use App\Http\Controllers\Api\HouseholdsController;
@@ -21,6 +27,7 @@ use App\Http\Controllers\Api\MeController;
 use App\Http\Controllers\Api\MembershipsController;
 use App\Http\Controllers\Api\MembershipTypesController;
 use App\Http\Controllers\Api\PeopleController;
+use App\Http\Controllers\Api\PeriodsController;
 use App\Http\Controllers\Api\PrivacyController;
 use App\Http\Controllers\Api\PublicController;
 use App\Http\Controllers\Api\PublicFormsController;
@@ -127,6 +134,51 @@ Route::prefix('v1')->middleware([AuthenticateApiToken::class, 'throttle:api', Id
     Route::post('/refunds/{refund}/done', [FinanceController::class, 'refundDone'])->whereNumber('refund');
     Route::post('/refunds/{refund}/keep', [FinanceController::class, 'refundKeep'])->whereNumber('refund');
     Route::get('/invoice-archive', [FinanceController::class, 'archive']);
+    Route::get('/expense-claims', [ExpensesController::class, 'index']);
+    Route::post('/expense-claims', [ExpensesController::class, 'store']);
+    Route::post('/expense-claims/pay', [ExpensesController::class, 'pay']);
+    Route::post('/expense-claims/{claim}/approve', [ExpensesController::class, 'approve'])->whereNumber('claim');
+    Route::post('/expense-claims/{claim}/reject', [ExpensesController::class, 'reject'])->whereNumber('claim');
+    Route::post('/expense-claims/{claim}/donate', [ExpensesController::class, 'donate'])->whereNumber('claim');
+    Route::get('/advances', [ExpensesController::class, 'advances']);
+    Route::post('/advances', [ExpensesController::class, 'storeAdvance']);
+    Route::post('/advances/{advance}/settle', [ExpensesController::class, 'settleAdvance'])->whereNumber('advance');
+
+    // Accounting (E1): references by id or exact name, amounts as decimals.
+    Route::prefix('accounting')->group(function () {
+        Route::get('/accounts', [AccountsController::class, 'index']);
+        Route::post('/accounts', [AccountsController::class, 'store']);
+        Route::patch('/accounts/{account}', [AccountsController::class, 'update']);
+        Route::delete('/accounts/{account}', [AccountsController::class, 'destroy']);
+        Route::get('/cost-centers', [CostCentersController::class, 'index']);
+        Route::post('/cost-centers', [CostCentersController::class, 'store']);
+        Route::patch('/cost-centers/{center}', [CostCentersController::class, 'update']);
+        Route::post('/cost-centers/{center}/kind', [CostCentersController::class, 'kind']);
+        Route::put('/cost-centers/{center}/periods/{period}', [CostCentersController::class, 'active']);
+        Route::post('/cost-centers/{center}/default', [CostCentersController::class, 'makeDefault']);
+        Route::delete('/cost-centers/{center}', [CostCentersController::class, 'destroy']);
+        Route::get('/funds', [FundsController::class, 'index']);
+        Route::post('/funds', [FundsController::class, 'store']);
+        Route::patch('/funds/{fund}', [FundsController::class, 'update']);
+        Route::post('/funds/{fund}/transfers', [FundsController::class, 'transfer']);
+        Route::delete('/funds/{fund}', [FundsController::class, 'destroy']);
+        Route::get('/periods', [PeriodsController::class, 'index']);
+        Route::post('/periods', [PeriodsController::class, 'store']);
+        Route::patch('/periods/{period}', [PeriodsController::class, 'update']);
+        Route::get('/periods/{period}/allocation-keys', [PeriodsController::class, 'keys']);
+        Route::put('/periods/{period}/allocation-keys/{center}', [PeriodsController::class, 'saveKey']);
+        Route::get('/periods/{period}/budgets', [PeriodsController::class, 'budgets']);
+        Route::post('/book-documents', [PeriodsController::class, 'bookDocuments']);
+        Route::put('/periods/{period}/budgets', [PeriodsController::class, 'saveBudgets']);
+        Route::get('/periods/{period}/closing', [PeriodsController::class, 'closing']);
+        Route::post('/periods/{period}/close', [PeriodsController::class, 'close']);
+        Route::post('/periods/{period}/reopen', [PeriodsController::class, 'reopen']);
+        Route::get('/bookings', [BookingsController::class, 'index']);
+        Route::post('/bookings', [BookingsController::class, 'store']);
+        Route::get('/bookings/{booking}', [BookingsController::class, 'show'])->whereNumber('booking');
+        Route::post('/bookings/{booking}/reverse', [BookingsController::class, 'reverse'])->whereNumber('booking');
+        Route::get('/reports/{report}', [AccountingReportsController::class, 'show']);
+    });
 
     Route::get('/automations', [AutomationsController::class, 'index']);
     Route::post('/automations', [AutomationsController::class, 'store']);

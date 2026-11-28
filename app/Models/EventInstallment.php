@@ -27,6 +27,8 @@ use Illuminate\Support\Carbon;
  * @property int|null $due_days
  * @property bool $refundable
  * @property bool $discounts_apply
+ * @property int|null $revenue_account_id
+ * @property int|null $cost_center_id
  */
 class EventInstallment extends Model
 {

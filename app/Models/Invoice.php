@@ -29,6 +29,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $payer_name
  * @property string|null $payer_address
  * @property int|null $fee_for_id
+ * @property int|null $corrects_id
  */
 class Invoice extends Model
 {

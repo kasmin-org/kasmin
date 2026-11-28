@@ -11,7 +11,7 @@ use Laravel\Mcp\Server\Attributes\Description;
 use Laravel\Mcp\Server\Attributes\Name;
 
 #[Name('update_event_series')]
-#[Description('Changes the name of an event series.')]
+#[Description('Changes the name or the cost centre of an event series.')]
 class UpdateEventSeries extends ApiTool
 {
     public const ENDPOINT = ['PATCH', '/event-series/{series}'];
@@ -29,6 +29,7 @@ class UpdateEventSeries extends ApiTool
         return [
             'id' => $schema->integer()->description('series id')->required(),
             'name' => $schema->string()->description('name'),
+            'cost_center' => $schema->string()->description('cost centre the invoices of its events are booked on, unless an event has its own: id or exact name'),
         ];
     }
 }

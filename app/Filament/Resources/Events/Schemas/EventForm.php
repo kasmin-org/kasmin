@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Events\Schemas;
 
+use App\Filament\Support\AccountingFields;
 use App\Filament\Support\Money;
 use App\Models\Event;
 use App\Models\EventDocument;
@@ -115,6 +116,7 @@ class EventForm
                     ->dehydrateStateUsing(fn ($state) => is_array($state) && $state !== [] ? array_values(array_map('intval', $state)) : null),
                 Money::input('cancellation_fee_cents', __('admin.finance.cancellation_fee'))->hintIcon('heroicon-m-question-mark-circle', tooltip: __('admin.finance.cancellation_fee_hint')),
                 Textarea::make('cancellation_text')->label(__('admin.finance.cancellation_text'))->rows(2),
+                AccountingFields::costCenter(__('accounting.fields.event_cost_center_hint')),
                 Repeater::make('prices')->relationship()->label(__('admin.finance.prices'))->columnSpanFull()->columns(['md' => 3, 'xl' => 6])
                     ->orderColumn('sort')->addActionLabel(__('admin.finance.add_price'))->defaultItems(0)->helperText(__('admin.finance.prices_hint'))
                     ->schema([
@@ -146,6 +148,8 @@ class EventForm
                         Select::make('paid_remove_group_id')->label(__('admin.finance.paid_remove_group'))->options(fn () => Group::query()->where('kind', 'manual')->orderBy('name')->pluck('name', 'id')->all()),
                         Toggle::make('discounts_apply')->label(__('admin.finance.discounts_apply'))->default(true)->inline(false)
                             ->hintIcon('heroicon-m-question-mark-circle', tooltip: __('admin.finance.discounts_apply_hint')),
+                        AccountingFields::revenueAccount(__('accounting.fields.installment_revenue_hint')),
+                        AccountingFields::costCenter(__('accounting.fields.installment_cost_center_hint')),
                     ]),
             ]),
             Section::make(__('admin.event.rounds'))->disabled(fn (?Event $record) => ! self::mayEdit($record))->collapsible()->collapsed(fn (?Event $record) => $record === null || ! $record->rounds()->exists())->columnSpanFull()->description(__('admin.event.rounds_hint'))->schema([

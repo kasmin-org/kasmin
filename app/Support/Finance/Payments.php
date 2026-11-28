@@ -6,6 +6,7 @@ use App\Models\BankImport;
 use App\Models\Group;
 use App\Models\Invoice;
 use App\Models\Payment;
+use App\Support\Accounting\DocumentBookings;
 use App\Support\Api\Presenter;
 use App\Support\Audit\Audit;
 use App\Support\Mail\Composer;
@@ -27,6 +28,8 @@ use RuntimeException;
  */
 class Payments
 {
+    public function __construct(private readonly DocumentBookings $bookings) {}
+
     public function record(Invoice $invoice, int $amountCents, Carbon $paidOn, string $method = 'bank', ?string $note = null, string $match = 'manual'): Payment
     {
         $payment = Payment::query()->create([
@@ -56,6 +59,7 @@ class Payments
             }
             $payment->forceFill(['invoice_id' => $invoice->id, 'household_id' => $invoice->household_id, 'match' => $match, 'suggested_invoice_id' => null])->save();
             $this->apply($invoice, $quiet);
+            $this->bookings->paymentChanged($payment); // with the part that became a credit
         });
     }
 

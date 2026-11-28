@@ -14,7 +14,7 @@ each token was last used. Every write via the API is recorded in the audit log w
 |---|---|
 | `people:read` / `people:write` | read / create and change people, families, contact data, legal guardians, memberships, groups and membership types; read roles; list / merge duplicates; read / decide public submissions |
 | `events:read` / `events:write` | read events, participants, rounds, documents, templates, lists, groups and rooms, statistics and the dashboard / create and change events (incl. prices and payment plan), series, templates, rounds and documents, register, change participations, offer places, groups and rooms |
-| `finance:read` / `finance:write` | read invoices (incl. PDF), payments, refunds and the invoice archive and the costs of an event / issue, send and cancel invoices, record and assign payments, settle refunds, change the costs of an event |
+| `finance:read` / `finance:write` | read invoices (incl. PDF), payments, refunds, the invoice archive, expense claims, advances and the costs of an event; read the accounting (accounts, cost centres, funds, periods, bookings, reports) / issue, send and cancel invoices, record and assign payments, settle refunds, enter, approve, reject and pay out expense claims, hand out and settle advances, change the costs of an event; book and reverse, close and reopen periods, change the chart of accounts, cost centres, funds and allocation keys |
 | `mail:read` / `mail:write` | read mail templates and their versions, mailings, the mail log, bad addresses and sender profiles / change and restore templates, create, prepare and release mailings |
 | `automations:read` | read automations and runs, dry runs |
 | `automations:write` | change automations: active, mode, trigger, settings, approvers. It can switch an approval off – give it only to tokens a person controls. Via MCP, changes to an approval also need `approvals:decide` |
@@ -39,7 +39,7 @@ Base URL `https://your-kasmin.example/api/v1`, header `Authorization: Bearer kas
 - Everything the admin interface can do is also available here (see the [parity table](#parity-interface-rest-and-mcp)
   at the end). An endpoint calls the same function as the page, so mails, audit entries and rules are the same.
 - Lists that can get long (`/people`, `/households`, `/events`, `/invoices`, `/payments`, `/refunds`,
-  `/invoice-archive`, `/automation-runs`, `/outgoing-mails`, `/public-submissions`, `/consents`) come in pages:
+  `/invoice-archive`, `/accounting/bookings`, `/automation-runs`, `/outgoing-mails`, `/public-submissions`, `/consents`) come in pages:
   `page` and `per_page` (default 50, at most 200) in the query, and `meta` with `total`, `page` and `last_page` in
   the answer. They are sorted newest first, people and families by name.
 - Creating answers with `201`. Where the entry already existed (a person that already is a member of the group
@@ -98,7 +98,8 @@ Scopes `people:read` / `people:write`.
   `ends_on`), `PATCH /people/{id}/memberships/{number}` with `ends_on` ends a membership (`null` lets it run
   again). A person has one running membership per type at most.
 - Membership types: `GET|POST /membership-types`, `PATCH /membership-types/{type}` (`{type}` = id or name; `name`,
-  unique, `pays_fee`, `fee`).
+  unique, `pays_fee`, `fee`, `revenue_account` and `cost_center`: what the fee is booked on in the
+  accounting, the id or the exact name; `null` empties).
 - Duplicates: `GET /duplicates` lists the pairs that are probably the same person with the reason.
   `POST /duplicates/merge` (`keep`, `duplicate`, and `fields` such as `{"birth_date": "duplicate"}` for the values
   that should come from the duplicate) moves everything to the person to keep and deletes the duplicate – this
@@ -157,11 +158,14 @@ Scopes `events:read` / `events:write`.
   age or date: `role`, `min_age`, `max_age`, `from_date`, `until_date`, `price` – the list replaces the stored
   one) and `installments` (`id`, `label` = the name, unique within the event, `kind` = `fixed`, `rest` or `member`,
   `amount`, `due_date`, `due_days`, `membership_type` = id or name, `refundable`, `refund_until_days`,
-  `confirms_place`, `paid_add_group`, `paid_remove_group`, `discounts_apply`). Instalments go like roles: an entry
+  `confirms_place`, `paid_add_group`, `paid_remove_group`, `discounts_apply`, `revenue_account`, `cost_center`). Instalments go like roles: an entry
   with the `id` of an instalment changes it, an entry without `id` changes the instalment with the same name or
   creates a new one, and the instalments that are not listed are removed. As in the event form, prices can be changed while invoices exist: invoices
   that are issued stay as they are. An instalment that already has invoices cannot
   be removed (422). The currency is shown but cannot be changed, as in the form.
+- Accounting: `cost_center` of the event and `revenue_account` / `cost_center` of an instalment say what its invoices are
+  booked on (see [Invoices – Bookings](invoices.md)). Send the id or the exact name; `null` empties the field. The answer
+  has the name and the id (`cost_center_id`, `revenue_account_id`). An unknown name is refused (422).
 - Registration rounds: `GET|PUT /events/{id}/rounds`. `PUT` sends `rounds` (`id` for an existing round, `role`,
   `kind` = `returning`, `selection`, `waitlist` or `open`, `mode` = `accept` or `payment`, `opens_at`, `closes_at`,
   `min_events`, `group`) and replaces the list; rounds that are not listed are removed.
@@ -175,7 +179,8 @@ Scopes `events:read` / `events:write`.
   `DELETE /event-templates/{id}`. `POST /events` with `template` (or `copy_of` = an event), `title` and
   `starts_at` creates an event as a copy with everything that is configured and all dates moved, as
   *From a template* and *Copy* do; people, invoices and costs are not copied.
-- Event series: `GET|POST /event-series` (`name`), `PATCH /event-series/{number}`.
+- Event series: `GET|POST /event-series` (`name`, `cost_center` = id or exact name of the cost centre its events are
+  booked on), `PATCH /event-series/{number}`.
 - `GET /events/{id}/participations` (`status`, `role`), `POST /events/{id}/registrations` (`person`, `role`).
 - `PATCH /participations/{number}` changes `status` or `travel` (`bus`, `car`). With `status` `cancelled` an
   optional `reason` is stored; the family is told, the place goes to the waitlist and draft invoices are
@@ -243,6 +248,81 @@ Scopes `finance:read` / `finance:write`.
   another invoice, the reduced price of a place and single invoices.
 
 Example: `POST /invoices/{number}/cancel` with `{"reason": "Camp cancelled"}`.
+
+### Accounting
+
+Scopes `finance:read` / `finance:write`; see [Accounting](accounting.md) for the terms and rules.
+
+- Accounts, cost centres, funds and periods are named by their `id` or their exact `name` – accounts also by their
+  account `number` – in the path and in the body; every list has both. A name that fits two records (a period name used
+  twice, a name that is also the id of another record) answers `422`: use the id then. Amounts are decimals in the
+  currency of the installation. What the admin interface refuses (a closed period, debit and credit not equal, an
+  inactive cost centre …) answers `422` with the same `message`.
+- **Chart of accounts:** `GET|POST /accounting/accounts` (filter `type`, `money` = `bank`, `cash` or `any`, `active`),
+  `PATCH|DELETE /accounting/accounts/{id}` with `name`, `number`, `type`, `money`, `iban`, `default_cost_center`, `active`
+  and `sort`. The list has the balance today; bank and cash accounts also the funds on them and the difference, as on the page
+  *Bank and cash accounts*. System accounts keep their type, and so does an account with bookings; only own accounts without
+  bookings can be deleted (switch the others off with `active` `false`).
+- **Cost centres:** `GET|POST /accounting/cost-centers` (`name`, `kind` = `carries` or `allocated`, `fund`, `sort`; a new one
+  is active in all open periods), `PATCH /accounting/cost-centers/{id}` (`name`, `fund`, `sort`),
+  `POST /accounting/cost-centers/{id}/kind` (`kind`, `fund`), `PUT /accounting/cost-centers/{id}/periods/{period}` with
+  `active` `true` or `false` (the answer has `warnings`, e.g. money left in its fund), `POST /accounting/cost-centers/{id}/default`
+  makes it the standard one. `DELETE /accounting/cost-centers/{id}` with `move_to` (the cost centre that gets the bookings) or
+  with `delete_bookings` `true` and `confirm_count` – the number of its bookings (`bookings` in the list) instead of the sentence
+  typed in the admin interface; only typed-in bookings in open periods can be deleted, and a backup is made before.
+  `cannot_delete` in the list gives the reasons why a cost centre cannot be deleted.
+- **Funds:** `GET|POST /accounting/funds` (`name`, `account` = a bank or cash account, `note`, `sort`),
+  `PATCH|DELETE /accounting/funds/{id}`; `POST /accounting/funds/{id}/transfers` (`to`, `amount`, `text` = the decision,
+  `date`) moves money to another fund with a booking of the kind `fund_transfer`. Only a fund that holds nothing and that no
+  cost centre uses can be deleted, never the general fund. Creating cost centres and funds needs the switches below.
+- **Periods:** `GET|POST /accounting/periods` (`name`, `starts_on` – only for the first period, later the day after the last –,
+  `ends_on`). `PATCH /accounting/periods/{id}` changes `name`, `starts_on` and `ends_on` of an open period; `moved` says how
+  many bookings now belong to another period, with `dry_run` `true` nothing is saved.
+- **Missing documents:** `POST /accounting/book-documents` books every invoice, credit note, payment and refund from the start of
+  the first period on that has no booking yet; the answer has `booked` (how many) and `failures`. MCP: `book_documents`.
+- **Budget:** `GET /accounting/periods/{id}/budgets` (the planned result per cost centre) and `PUT /accounting/periods/{id}/budgets`
+  with `budgets` (`cost_center` = id or exact name, `amount` = planned result, negative for costs; `0` removes it). Cost centres that
+  are not listed keep their budget; closed periods can be planned too. MCP: `get_budgets`, `save_budgets`.
+- **Allocation keys:** `GET /accounting/periods/{id}/allocation-keys` (one per allocated cost centre),
+  `PUT /accounting/periods/{id}/allocation-keys/{cost_center}` with `rules` (`target`, `kind` = `fixed`, `percent`, `rest` or
+  `share`, `amount` for `fixed`, `percent` for `percent`) replaces the key of one allocated cost centre in an open period, with the
+  checks of the page; an empty list removes it.
+- **Closing:** `GET /accounting/periods/{id}/closing` is the preview: `rows` per cost centre (`before`, `allocation`, `after`),
+  `allocations`, `funds` (`before`, `result`, `after`), `warnings`, `errors` and `can_close`. `POST /accounting/periods/{id}/close`
+  closes as the preview shows. `POST /accounting/periods/{id}/reopen` with `reason` and `confirm` `true` reopens the period and
+  every later closed one; without `confirm` the answer is `422` with the `periods` that would be reopened.
+- **Bookings:** `GET /accounting/bookings` (`from`, `to`, `period`, `account`, `cost_center`, `kind`, `search`; in pages, with
+  the lines), `GET /accounting/bookings/{id}` (the `id`, not the booking `number`), `POST /accounting/bookings` (`date`,
+  `text`, `receipt`, `lines` with `account`, `debit` or `credit`, `cost_center`, `fund`, `person` = public id, for receivables,
+  credits, expenses to pay back and advances, `text`),
+  `POST /accounting/bookings/{id}/reverse` (`text`, `date`; allocations and closings are not reversed but removed by reopening).
+- **Reports:** `GET /accounting/reports/{report}` – `balance` (`date`), `income` (`period`, `cost_center`), `cost_centers`
+  (`period`), `funds` (`period`), `ledger` (`account`, `from`, `to`) or `open_items` (`date`); the date is today and the period
+  the current one unless given. The answer has `title`, `headers` and `rows` as on the page; with `format` `csv`, `xlsx` or `pdf`
+  it is the file of *Export* (logged).
+- **Switches:** `use_cost_centers` and `use_funds` in `GET|PATCH /settings` (`settings:write`), with the rules of the global
+  settings.
+- Interface only: the receipt file (photo or PDF) of a booking; the answer says `has_receipt_file`.
+
+Example: `POST /accounting/bookings` with `{"date": "2027-03-01", "text": "Shop", "lines": [{"account": "Food", "debit": 30},
+{"account": "Material", "debit": 12.5}, {"account": "Cash", "credit": 42.5}]}`.
+
+### Expense claims and advances
+
+Scopes `finance:read` / `finance:write`. See [Expense claims and advances](expenses.md). IBANs are only shown masked.
+
+- `GET /expense-claims` (`status` = `submitted`, `approved`, `rejected`, `paid`, `donated`, `settled`; `person`).
+- `POST /expense-claims` enters a claim for a person, as *Enter expense claim* does: `person`, `date`, `amount` and
+  `purpose`, or `flat_rate` (name from the settings) with `quantity`; optional `account`, `cost_center`, `event`,
+  `advance`, `waived` and `iban` (stored for the refunds of the person). Receipt files only in the interface.
+- `POST /expense-claims/{id}/approve` (optional `account`, `cost_center`), `POST /expense-claims/{id}/reject` with
+  `reason` (mailed to the person), `POST /expense-claims/{id}/donate` (the person waives the refund).
+- `POST /expense-claims/pay` with `claims` (ids), `account` (id, or `bank` / `cash`), `date` and `per_person`: books
+  the payout and mails the people. From a bank account the answer has the SEPA file in `sepa_xml` (not via MCP).
+- `GET /advances` (`settled`, `person`), `POST /advances` (`person`, `amount`, `account`, `date`, `purpose`),
+  `POST /advances/{id}/settle` (`returned` – exactly what is still open –, `account`, `date`).
+
+Example: `POST /expense-claims/pay` with `{"claims": [12, 13], "account": "bank", "date": "2027-07-20"}`.
 
 ### Mail
 
@@ -385,6 +465,10 @@ automations by their id or exact name, as the REST API does (`automation`, `temp
 | Lists and reports | `list_event_lists`, `get_event_list`, `get_statistics`, `get_age_group_members`, `get_dashboard` | `events:read` (confidential lists: `health:read`; money: `finance:read`; members of age groups: `people:read`) |
 | Invoices | `list_invoices`, `get_invoice` / `record_payment`, `issue_invoice`, `send_invoice`, `cancel_invoice` | `finance:read` / `finance:write` |
 | Payments, refunds, archive | `list_payments`, `list_refunds`, `list_archived_invoices` / `assign_payment`, `mark_refund_done`, `keep_refund_as_credit` | `finance:read` / `finance:write` |
+| Accounting: chart of accounts, cost centres, funds | `list_accounts`, `list_cost_centers`, `list_funds` / `create_account`, `update_account`, `delete_account`, `create_cost_center`, `update_cost_center`, `change_cost_center_kind`, `set_cost_center_active`, `make_default_cost_center`, `delete_cost_center`, `create_fund`, `update_fund`, `transfer_between_funds`, `delete_fund` | `finance:read` / `finance:write` |
+| Accounting: periods, keys, closing | `list_periods`, `get_allocation_keys`, `close_period_preview` / `create_period`, `update_period`, `save_allocation_key`, `close_period`, `reopen_period` | `finance:read` / `finance:write` |
+| Accounting: bookings, reports | `list_bookings`, `get_booking`, `get_report` / `create_booking`, `reverse_booking` | `finance:read` / `finance:write` |
+| Expense claims, advances | `list_expense_claims`, `list_advances` / `create_expense_claim`, `approve_expense_claim`, `reject_expense_claim`, `donate_expense_claim`, `pay_expense_claims`, `create_advance`, `settle_advance` | `finance:read` / `finance:write` |
 | Automations | `list_automations`, `get_automation`, `preview_automation`, `list_approvals`, `get_automation_run` / `create_automation`, `update_automation`, `delete_automation` / `request_automation_run` / `decide_approval` | `automations:read` / `automations:write` / `automations:run` / `approvals:decide` |
 | Imports | `import_preview`, `suggest_import_families`, `import_people`, `list_imports`, `rollback_import` | `import:write` |
 | Forms | `list_forms`, `get_form_definition`, `get_person_forms`, `get_person_form` / `update_person_form` / `save_form_definition` | `people:read` / `people:write` / `settings:write` (confidential answers: `health:read`, `health:write`) |
@@ -401,8 +485,9 @@ destructive, so that an MCP client can ask before it calls them. Optional fields
 
 Not available via MCP, on purpose:
 
-- **Files**: uploading a document of an event, downloading a document and the PDF of an invoice. A tool call
-  carries JSON only; use the admin interface or the REST API.
+- **Files**: uploading a document of an event, downloading a document and the PDF of an invoice, the files of an
+  accounting report (`get_report` answers with the table). A tool call carries JSON only; use the admin interface or the
+  REST API.
 - **Creating a webhook, a new signing secret, a new address of a webhook**: the secret is shown once and belongs
   to the person who sets up the receiving system, and an assistant must not send data of the organisation to an
   address of its choice. `update_webhook` renames, changes the events and switches a webhook on or off.
@@ -441,6 +526,11 @@ These limits apply to MCP only; in the REST API `automations:write`, `settings:w
 - `list_public_submissions` never shows answers to confidential questions, with any setting.
 
 With "All data" the scopes count as in the REST API, and every read of confidential data is recorded in the audit log.
+
+**The accounting asks twice.** `reopen_period` is refused without `confirm` `true` and names the periods that would be
+reopened with it; `delete_cost_center` deletes bookings only with `confirm_count`, the number of these bookings. The
+assistant is told to show the human `close_period_preview` before `close_period` and the lines before `create_booking`;
+`close_period`, `reopen_period`, `reverse_booking` and the deleting tools are marked destructive.
 
 **Things that cannot be undone need their own scope and a human.** `anonymise_person` needs `privacy:write`
 (nothing else includes it), and the assistant is told to call it with `preview` first and to act only after the
@@ -540,6 +630,12 @@ than REST; what REST offers and MCP deliberately does not (files, webhook secret
 | Payments: list, bank import, assign | yes | part (list, assign) | part (as REST) | REST and MCP: bank import, split, use a credit |
 | Refunds, credits | yes | yes | yes | – |
 | Invoice archive | yes | yes (read; import in the interface) | yes (read) | – |
+| Accounting: chart of accounts, cost centres, funds, fund transfers | yes | yes | yes | – |
+| Accounting: periods, allocation keys, closing, reopening | yes | yes | yes | – |
+| Accounting: bookings (type in, reverse), journal | yes | yes (receipt file in the interface) | yes (no receipt file) | REST and MCP: receipt file |
+| Accounting: bank and cash accounts, reports | yes | yes (JSON, CSV, XLSX, PDF) | yes (table) | n/a for MCP: files |
+| Accounting: switches (cost centres, funds) | yes | yes | yes (`update_settings`) | – |
+| Expense claims, advances | yes | yes (no receipt files; SEPA file as text) | yes (no SEPA file, IBAN masked) | MCP: no files |
 | Mail templates: read, preview, change | yes | yes | yes | – |
 | Mail template versions, restore | yes | yes | yes | – |
 | Mailings: create, prepare, release | yes | yes | yes | – |

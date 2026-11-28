@@ -3,12 +3,14 @@
 namespace App\Filament\Resources\MembershipTypes;
 
 use App\Filament\Resources\MembershipTypes\Pages\ManageMembershipTypes;
+use App\Filament\Support\AccountingFields;
 use App\Filament\Support\InArea;
 use App\Filament\Support\Money;
 use App\Models\Invoice;
 use App\Models\MembershipType;
 use App\Models\User;
 use App\Support\Auth\Permissions;
+use App\Support\Settings;
 use BackedEnum;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\TextInput;
@@ -55,6 +57,8 @@ class MembershipTypeResource extends Resource
             TextInput::make('name')->label(__('admin.finance.label_de'))->required(),
             Toggle::make('pays_fee')->label(__('admin.finance.pays_fee'))->live(),
             Money::input('fee_cents', __('admin.finance.yearly_fee'))->visible(fn ($get) => (bool) $get('pays_fee')),
+            AccountingFields::revenueAccount(__('accounting.fields.type_revenue_hint'))->visible(fn ($get) => (bool) $get('pays_fee')),
+            AccountingFields::costCenter(__('accounting.fields.type_cost_center_hint'))->visible(fn ($get) => (bool) $get('pays_fee') && Settings::bool('use_cost_centers')),
         ]);
     }
 

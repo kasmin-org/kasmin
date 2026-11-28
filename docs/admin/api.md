@@ -73,7 +73,8 @@ Scopes `people:read` / `people:write`.
 - Memberships of a person: `GET|POST /people/{id}/memberships` (`type` = key of a membership type, `starts_on`,
   `ends_on`), `PATCH /people/{id}/memberships/{number}` with `ends_on` ends a membership (`null` lets it run
   again). A person has one running membership per type at most.
-- Membership types: `GET|POST /membership-types`, `PATCH /membership-types/{key}` (`name.de`, `name.en`, `pays_fee`, `fee`).
+- Membership types: `GET|POST /membership-types`, `PATCH /membership-types/{key}` (`name.de`, `name.en`, `pays_fee`, `fee`,
+  `revenue_account` and `cost_center`: what the fee is booked on in the accounting, the id or the exact name; `null` empties).
 - Duplicates: `GET /duplicates` lists the pairs that are probably the same person with the reason.
   `POST /duplicates/merge` (`keep`, `duplicate`, and `fields` such as `{"birth_date": "duplicate"}` for the values
   that should come from the duplicate) moves everything to the person to keep and deletes the duplicate – this
@@ -129,10 +130,13 @@ Scopes `events:read` / `events:write`.
   age or date: `role`, `min_age`, `max_age`, `from_date`, `until_date`, `price` – the list replaces the stored
   one) and `installments` (`key`, `label.de`, `label.en`, `kind` = `fixed`, `rest` or `member`, `amount`,
   `due_date`, `due_days`, `membership_type`, `refundable`, `refund_until_days`, `confirms_place`,
-  `paid_add_group`, `paid_remove_group`, `discounts_apply`). Instalments go by key like roles: what is listed is
+  `paid_add_group`, `paid_remove_group`, `discounts_apply`, `revenue_account`, `cost_center`). Instalments go by key like roles: what is listed is
   created or changed, the rest is removed. As in the event form, prices can be changed while invoices exist: invoices
   that are issued stay as they are. An instalment that already has invoices cannot
   be removed (422). The currency is shown but cannot be changed, as in the form.
+- Accounting: `cost_center` of the event and `revenue_account` / `cost_center` of an instalment say what its invoices are
+  booked on (see [Invoices – Bookings](invoices.md)). Send the id or the exact name; `null` empties the field. The answer
+  has the name and the id (`cost_center_id`, `revenue_account_id`). An unknown name is refused (422).
 - Registration rounds: `GET|PUT /events/{id}/rounds`. `PUT` sends `rounds` (`id` for an existing round, `role`,
   `kind` = `returning`, `selection`, `waitlist` or `open`, `mode` = `accept` or `payment`, `opens_at`, `closes_at`,
   `min_events`, `group`) and replaces the list; rounds that are not listed are removed.
@@ -146,7 +150,8 @@ Scopes `events:read` / `events:write`.
   `DELETE /event-templates/{id}`. `POST /events` with `template` (or `copy_of` = an event), `title` and
   `starts_at` creates an event as a copy with everything that is configured and all dates moved, as
   *From a template* and *Copy* do; people, invoices and costs are not copied.
-- Event series: `GET|POST /event-series` (`name`), `PATCH /event-series/{number}`.
+- Event series: `GET|POST /event-series` (`name`, `cost_center` = id or exact name of the cost centre its events are
+  booked on), `PATCH /event-series/{number}`.
 - `GET /events/{id}/participations` (`status`, `role`), `POST /events/{id}/registrations` (`person`, `role`).
 - `PATCH /participations/{number}` changes `status` or `travel` (`bus`, `car`). With `status` `cancelled` an
   optional `reason` is stored; the family is told, the place goes to the waitlist and draft invoices are

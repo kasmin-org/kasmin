@@ -28,6 +28,7 @@ class CreateEventSeries extends ApiTool
     {
         return [
             'name' => $schema->string()->description('name')->required(),
+            'cost_center' => $schema->string()->description('cost centre the invoices of its events are booked on, unless an event has its own: id or exact name'),
         ];
     }
 }

@@ -14,7 +14,7 @@ class EventSchema
     public const CLEARABLE = [
         'series_id', 'location', 'address', 'map_url', 'meeting_point', 'return_point', 'contact_name', 'contact_email', 'contact_phone', 'description',
         'announce_at', 'registration_opens_at', 'registration_closes_at', 'age_reference_date', 'answers_until', 'safety_confirm_days', 'reserve_reminder_on',
-        'bus_seats', 'sibling_cap_position', 'reminder_days_before', 'cancellation_text',
+        'bus_seats', 'sibling_cap_position', 'reminder_days_before', 'cancellation_text', 'cost_center',
     ];
 
     /**
@@ -67,8 +67,9 @@ class EventSchema
             'reminder_days_before' => $schema->array()->items($schema->integer())->description('days before the start on which reminders are sent'),
             'cancellation_fee' => $schema->number()->description('fee for a cancellation'),
             'cancellation_text' => $schema->object()->description('cancellation terms: {"de": "…", "en": "…"}'),
+            'cost_center' => $schema->string()->description('cost centre the invoices of the event are booked on: its id or exact name (empty: the one of the series)'),
             'prices' => $schema->array()->items($schema->object())->description('prices by age or date; the list replaces all stored ones: objects with role, price and optionally min_age, max_age, from_date, until_date'),
-            'installments' => $schema->array()->items($schema->object())->description('the payment plan, by key: listed instalments are created or changed, the others are removed (not once they have invoices). Objects with key, label {"de": "…", "en": "…"}, kind (fixed, rest or member), amount, due_date or due_days, membership_type, refundable, refund_until_days, confirms_place, discounts_apply, paid_add_group, paid_remove_group'),
+            'installments' => $schema->array()->items($schema->object())->description('the payment plan, by key: listed instalments are created or changed, the others are removed (not once they have invoices). Objects with key, label {"de": "…", "en": "…"}, kind (fixed, rest or member), amount, due_date or due_days, membership_type, refundable, refund_until_days, confirms_place, discounts_apply, paid_add_group, paid_remove_group, revenue_account and cost_center (what the instalment is booked on: id or exact name of an income account and of a cost centre)'),
         ];
     }
 }

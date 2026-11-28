@@ -104,12 +104,19 @@ class ExpenseClaims
         $advance = $this->openAdvance($person, $data['advance_id'] ?? null);
         $path = $this->storeReceipt($data['receipt'] ?? null);
 
-        $claim = ExpenseClaim::query()->create([
-            'person_id' => $person->id, 'submitted_by_id' => $by?->id, 'date' => $date->toDateString(), 'amount_cents' => $cents,
-            'purpose' => $purpose, 'account_id' => $account?->id, 'cost_center_id' => $this->costCenterFor($event, $data['cost_center_id'] ?? null, $account),
-            'event_id' => $event?->id, 'receipt_path' => $path, 'flat' => $rate !== null, 'flat_rate' => $rate['name'] ?? null,
-            'advance_id' => $advance?->id, 'waived' => $advance === null && (bool) ($data['waived'] ?? false), 'status' => 'submitted',
-        ]);
+        $claim = DB::transaction(function () use ($person, $by, $date, $cents, $purpose, $account, $event, $data, $path, $rate, $advance) {
+            // A receipt against an advance: the advance is locked, so it cannot be settled at the same moment.
+            if ($advance !== null && Advance::query()->whereKey($advance->id)->lockForUpdate()->value('settled_on') !== null) {
+                throw AccountingException::because('advance_closed');
+            }
+
+            return ExpenseClaim::query()->create([
+                'person_id' => $person->id, 'submitted_by_id' => $by?->id, 'date' => $date->toDateString(), 'amount_cents' => $cents,
+                'purpose' => $purpose, 'account_id' => $account?->id, 'cost_center_id' => $this->costCenterFor($event, $data['cost_center_id'] ?? null, $account),
+                'event_id' => $event?->id, 'receipt_path' => $path, 'flat' => $rate !== null, 'flat_rate' => $rate['name'] ?? null,
+                'advance_id' => $advance?->id, 'waived' => $advance === null && (bool) ($data['waived'] ?? false), 'status' => 'submitted',
+            ]);
+        });
         app(Notifier::class)->event('expense_claims', self::text('notify_submitted', ['name' => $person->fullName(), 'amount' => $claim->amount(), 'purpose' => $claim->purpose]), url('/admin/expense-claims'));
 
         return $claim;
@@ -275,8 +282,12 @@ class ExpenseClaims
             throw AccountingException::because('no_iban', ['names' => $missing->implode(', ')]);
         }
         $sepa = DB::transaction(function () use ($list, $from, $date, $bank, $perPerson, $by) {
+            // All claims locked first, in the order of their ids, then booked: two payouts at once never wait for each other in a
+            // circle, and the second one is refused because the claims are paid already.
+            foreach ($list->sortBy('id') as $claim) {
+                $this->lockAndExpect($claim, ['approved']);
+            }
             foreach ($list as $claim) {
-                $this->lockAndExpect($claim, ['approved']); // two people paying at once: the second one is refused
                 $claim->forceFill(['status' => 'paid', 'paid_on' => $date->toDateString(), 'paid_from_account_id' => $from->id,
                     'iban' => $bank ? Iban::normalise((string) $claim->person->payout_iban) : null, 'account_holder' => $bank ? mb_substr($claim->person->fullName(), 0, 120) : null])->save();
                 $this->journal->post($this->entry($claim, 'expense_payout', $date, 'paid', $by), [

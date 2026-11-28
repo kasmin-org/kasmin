@@ -300,8 +300,8 @@ Scopes `finance:read` / `finance:write`; Begriffe und Regeln stehen unter [Buchh
   Zeilen), `GET /accounting/bookings/{id}` (die `id`, nicht die Buchungsnummer `number`), `POST /accounting/bookings` (`date`,
   `text`, `receipt`, `lines` mit `account`, `debit` oder `credit`, `cost_center`, `fund`, `person` = öffentliche ID, für Forderungen,
   Guthaben, zu erstattende Auslagen und Vorschüsse, `text`),
-  `POST /accounting/bookings/{id}/reverse` storniert (`text`, `date`; Umlagen und Abschlüsse werden nicht storniert, sondern beim
-  Wiedereröffnen entfernt).
+  `POST /accounting/bookings/{id}/reverse` storniert (`text`, `date`; nur eingegebene Buchungen, Umbuchungen zwischen Fonds und
+  Eröffnungsbuchungen – eine Buchung aus einem Beleg wird über den Beleg korrigiert, Umlagen und Abschlüsse durch Wiedereröffnen).
 - **Berichte:** `GET /accounting/reports/{report}` – `balance` (Bilanz, `date`), `income` (Erfolgsrechnung, `period`,
   `cost_center`), `cost_centers` (`period`), `funds` (Fondsspiegel, `period`), `ledger` (Kontoblatt, `account`, `from`, `to`) oder
   `open_items` (offene Posten, `date`); ohne Angabe gelten heute und die aktuelle Periode. Die Antwort enthält `title`, `headers` und

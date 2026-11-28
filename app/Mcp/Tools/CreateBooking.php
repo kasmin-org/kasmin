@@ -30,7 +30,7 @@ class CreateBooking extends ApiTool
             'date' => $schema->string()->description('date (YYYY-MM-DD) in an open period')->required(),
             'text' => $schema->string()->description('text of the booking')->required(),
             'receipt' => $schema->string()->description('receipt number'),
-            'lines' => $schema->array()->items($schema->object())->description('at least two lines: objects with account (id or exact name or account number), debit or credit (amount in the currency of the installation), cost_center and fund (id or exact name, optional), text (optional)')->required(),
+            'lines' => $schema->array()->items($schema->object())->description('at least two lines: objects with account (id or exact name or account number), debit or credit (amount in the currency of the installation), cost_center and fund (id or exact name, optional), person (public id of the person, only on receivables, credits, expenses to pay back and advances, optional), text (optional)')->required(),
         ];
     }
 }

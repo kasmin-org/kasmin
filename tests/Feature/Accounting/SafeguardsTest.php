@@ -139,6 +139,12 @@ class SafeguardsTest extends TestCase
             ['account' => Account::system('funds')->id, 'credit' => 120],
         ]])->assertCreated();
         $this->assertSame($family->id, JournalEntry::query()->latest('id')->firstOrFail()->lines->firstWhere('debit_cents', 12000)?->person_id);
+        // An unknown person, or a person on an account that is not kept per person, is refused on the field.
+        foreach ([[Account::system('receivables')->id, 'nobody'], [Account::system('bank')->id, $family->public_id]] as [$account, $ref]) {
+            $this->withToken($token)->postJson('/api/v1/accounting/bookings', ['date' => '2027-01-02', 'text' => 'Wrong', 'lines' => [
+                ['account' => $account, 'debit' => 1, 'person' => $ref], ['account' => Account::system('funds')->id, 'credit' => 1],
+            ]])->assertUnprocessable()->assertJsonValidationErrors('lines.0.person');
+        }
 
         $pot = Fund::query()->create(['name' => 'Tents']);
         foreach ([[Fund::default()->name, $pot->name], [$pot->name, Fund::default()->name]] as [$from, $to]) {

@@ -48,26 +48,24 @@ class Advances
      */
     public function settle(Advance $advance, int $returned, ?Account $into, \DateTimeInterface|string $on, ?User $by = null): Advance
     {
-        if ($advance->isSettled()) {
-            throw AccountingException::because('advance_closed');
-        }
-        if ($advance->claims()->where('status', 'submitted')->exists()) {
-            throw AccountingException::because('advance_undecided');
-        }
-        $open = $advance->openCents();
-        if ($returned < 0 || $returned !== max(0, $open)) {
-            throw AccountingException::because('advance_rest', ['amount' => Money::format(max(0, $open))]);
-        }
         if ($returned > 0) {
             $this->moneyAccount($into);
         }
         $date = Carbon::parse($on)->startOfDay();
 
-        return DB::transaction(function () use ($advance, $returned, $into, $date, $open, $by) {
-            // Locked and checked again: two people settling at once give one settlement.
+        return DB::transaction(function () use ($advance, $returned, $into, $date, $by) {
+            // Locked first, then checked: two people settling at once, or a receipt submitted at the same moment, cannot
+            // slip through (submitting locks the advance too).
             $fresh = Advance::query()->whereKey($advance->id)->lockForUpdate()->firstOrFail();
             if ($fresh->isSettled()) {
                 throw AccountingException::because('advance_closed');
+            }
+            if ($fresh->claims()->where('status', 'submitted')->exists()) {
+                throw AccountingException::because('advance_undecided');
+            }
+            $open = $fresh->openCents();
+            if ($returned < 0 || $returned !== max(0, $open)) {
+                throw AccountingException::because('advance_rest', ['amount' => Money::format(max(0, $open))]);
             }
             if ($returned > 0 && $into !== null) {
                 $this->journal->post($this->entry($advance, 'advance_return', $date, 'advance_return', $by), [
@@ -78,7 +76,7 @@ class Advances
             if ($open < 0) {
                 $this->claims->restOf($advance, -$open, $date, $by);
             }
-            $advance->forceFill(['returned_cents' => $advance->returned_cents + $returned, 'settled_on' => $date->toDateString()])->save();
+            $advance->forceFill(['returned_cents' => $fresh->returned_cents + $returned, 'settled_on' => $date->toDateString()])->save();
 
             return $advance;
         });

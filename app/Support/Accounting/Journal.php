@@ -76,9 +76,10 @@ class Journal
             }
             // Numbers run over all years and are never given twice, also not after the closing entries of a reopened
             // period were removed: the last number given is kept (locked while the next one is taken).
+            DB::table('system_meta')->insertOrIgnore(['key' => 'journal_last_number', 'value' => '0', 'created_at' => now(), 'updated_at' => now()]); // a row to lock
             $last = (int) DB::table('system_meta')->where('key', 'journal_last_number')->lockForUpdate()->value('value');
             $number = max($last, (int) JournalEntry::query()->max('number')) + 1;
-            DB::table('system_meta')->updateOrInsert(['key' => 'journal_last_number'], ['value' => (string) $number, 'updated_at' => now(), 'created_at' => now()]);
+            DB::table('system_meta')->where('key', 'journal_last_number')->update(['value' => (string) $number, 'updated_at' => now()]);
             $model = JournalEntry::query()->create([
                 'number' => $number, 'date' => $date->toDateString(), 'text' => mb_substr(trim($entry['text']), 0, 250),
                 'receipt' => $entry['receipt'] ?? null, 'receipt_path' => $entry['receipt_path'] ?? null, 'kind' => $kind,

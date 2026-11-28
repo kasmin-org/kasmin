@@ -51,7 +51,9 @@ class Periods
             return $period;
         });
         if ($earliest) {
-            app(DocumentBookings::class)->backfill($start); // the accounting starts (earlier): documents from then on are booked
+            // The accounting starts (earlier): documents from then on are booked – after the commit, never inside a caller's
+            // transaction, so the many bookings do not hold locks for long or roll back with it.
+            DB::afterCommit(fn () => app(DocumentBookings::class)->backfill($start));
         }
 
         return $period;
@@ -124,7 +126,7 @@ class Periods
             Audit::record('period.moved', $period, null, ['from' => $old, 'to' => [$start->toDateString(), $end->toDateString()]]);
         });
         if ($earlier) {
-            app(DocumentBookings::class)->backfill($start); // the accounting starts earlier now
+            DB::afterCommit(fn () => app(DocumentBookings::class)->backfill($start)); // the accounting starts earlier now
         }
 
         return ['moved' => $moved];

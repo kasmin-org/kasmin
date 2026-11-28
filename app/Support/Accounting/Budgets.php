@@ -32,6 +32,7 @@ final class Budgets
     public function save(Period $period, array $amounts): void
     {
         DB::transaction(function () use ($period, $amounts) {
+            Period::query()->whereKey($period->id)->lockForUpdate()->value('id'); // two saves at once give one row per cost centre
             foreach ($amounts as $center => $cents) {
                 $budget = Budget::query()->where('period_id', $period->id)->where('cost_center_id', $center)->whereNull('account_id')->first();
                 if ($cents === 0) {

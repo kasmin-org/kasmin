@@ -44,6 +44,8 @@ class Docs
         'resources.households' => 'admin/registration',
         'resources.people' => 'admin/registration',
         'resources.journal-entries' => 'admin/accounting',
+        'resources.expense-claims' => 'admin/expenses',
+        'resources.advances' => 'admin/expenses',
         'resources.accounts' => 'admin/accounting',
         'resources.cost-centers' => 'admin/accounting',
         'resources.funds' => 'admin/accounting',

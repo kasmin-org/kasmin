@@ -15,14 +15,14 @@ use Illuminate\Support\Carbon;
  */
 class NotificationSubscription extends Model
 {
-    public const TOPICS = ['registrations', 'profile_updates', 'safety_updates', 'waitlist', 'payments', 'bounces', 'approvals', 'deletion_requests', 'automation_errors', 'tasks'];
+    public const TOPICS = ['registrations', 'profile_updates', 'safety_updates', 'waitlist', 'payments', 'bounces', 'approvals', 'deletion_requests', 'automation_errors', 'tasks', 'expense_claims'];
 
     public const FREQUENCIES = ['immediate', 'daily', 'weekly', 'off'];
 
     /** Right somebody needs to get a topic; checked again whenever something is sent. */
     public const AREAS = [
         'registrations' => 'events', 'profile_updates' => 'people', 'safety_updates' => 'safety', 'waitlist' => 'events', 'payments' => 'finance',
-        'bounces' => 'mailings', 'approvals' => 'automations', 'deletion_requests' => 'privacy', 'automation_errors' => 'automations', 'tasks' => 'automations',
+        'bounces' => 'mailings', 'approvals' => 'automations', 'deletion_requests' => 'privacy', 'automation_errors' => 'automations', 'tasks' => 'automations', 'expense_claims' => 'finance',
     ];
 
     /** For administrators who have not chosen anything: nobody should miss a deletion request or a failed automation. */

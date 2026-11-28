@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int|null $discount_position
  * @property int|null $membership_type_id
  * @property int|null $period
+ * @property string|null $kind null for what is charged, cancellation_fee
  */
 class InvoiceLine extends Model
 {

@@ -90,7 +90,7 @@ class Privacy
             DB::table('guardianships')->where('child_id', $person->id)->orWhere('guardian_id', $person->id)->delete(); // also ended ones
             DB::table('group_memberships')->where('person_id', $person->id)->delete(); // also ended ones
             $person->forceFill([
-                'first_name' => __('privacy.anonymous'), 'last_name' => '#'.$person->id, 'gender' => null,
+                'first_name' => __('privacy.anonymous'), 'last_name' => '#'.$person->id, 'gender' => null, 'payout_iban' => null,
                 'birth_date' => $person->birth_date?->copy()->startOfYear(), 'anonymised_at' => now(),
             ])->save();
             Consent::query()->create(['person_id' => $person->id, 'kind' => 'deletion_done', 'granted' => true, 'source' => 'admin']);

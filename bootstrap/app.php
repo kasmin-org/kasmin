@@ -3,6 +3,7 @@
 use App\Http\Middleware\EnsureSchemaIsCompatible;
 use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SetLocale;
+use App\Support\Accounting\AccountingException;
 use App\Support\System\BootCache;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -50,4 +51,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
         );
+        // A booking or change of the accounting that is not allowed: in the API 422 with the reason the admin
+        // interface shows as a message.
+        $exceptions->render(fn (AccountingException $e, Request $request) => $request->is('api/*') ? response()->json(['message' => $e->getMessage()], 422) : null);
     })->create();

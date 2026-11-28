@@ -5,6 +5,7 @@ namespace App\Filament\Pages;
 use App\Filament\Support\InArea;
 use App\Filament\Support\SettingsPage;
 use App\Models\User;
+use App\Support\Accounting\Accounting;
 use App\Support\Auth\Permissions;
 use App\Support\Backup\RemoteBackup;
 use App\Support\Language;
@@ -54,7 +55,7 @@ class GlobalSettingsPage extends SettingsPage
 
     protected static function switches(): array
     {
-        return ['auto_update'];
+        return ['auto_update', 'use_cost_centers', 'use_funds'];
     }
 
     protected static function section(): string
@@ -67,6 +68,23 @@ class GlobalSettingsPage extends SettingsPage
         $hint = fn (string $key) => self::hint($key);
 
         return [
+            Section::make(__('accounting.switch.title'))->description(__('accounting.switch.intro'))->columns(['md' => 2])->schema([
+                Toggle::make('use_cost_centers')->label(__('accounting.switch.cost_centers'))->helperText(__('accounting.switch.cost_centers_hint'))->live()
+                    ->rule(fn () => function (string $attribute, mixed $value, \Closure $fail) {
+                        if (! $value && Accounting::costCenters() && ($why = Accounting::whyCostCentersStay()) !== null) {
+                            $fail($why);
+                        }
+                    }),
+                Toggle::make('use_funds')->label(__('accounting.switch.funds'))->helperText(__('accounting.switch.funds_hint'))
+                    ->disabled(fn ($get) => ! $get('use_cost_centers'))->dehydrated()
+                    ->rule(fn ($get) => function (string $attribute, mixed $value, \Closure $fail) use ($get) {
+                        if ($value && ! $get('use_cost_centers')) {
+                            $fail(__('accounting.switch.cost_centers_first'));
+                        } elseif (! $value && Accounting::funds() && ($why = Accounting::whyFundsStay()) !== null) {
+                            $fail($why);
+                        }
+                    }),
+            ]),
             Section::make(__('admin.settings.system'))->visible(fn () => Permissions::administrator())->columns(3)->schema([
                 Select::make('default_locale')->label(__('admin.settings.language'))->options(['de' => 'Deutsch', 'en' => 'English'])->required()->selectablePlaceholder(false)->hintIcon(...$hint('language')),
                 TextInput::make('public_url')->label(__('admin.settings.public_url'))->url()->maxLength(200)->placeholder((string) config('app.url'))->hintIcon(...$hint('public_url')),

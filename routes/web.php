@@ -5,6 +5,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\StepUpController;
 use App\Http\Controllers\Auth\TwoFactorController;
 use App\Http\Controllers\EventListController;
+use App\Http\Controllers\ExpenseReceiptController;
 use App\Http\Controllers\GuardianController;
 use App\Http\Controllers\InstallController;
 use App\Http\Controllers\InvoicePdfController;
@@ -13,6 +14,7 @@ use App\Http\Controllers\MailPreferencesController;
 use App\Http\Controllers\ParticipationPdfController;
 use App\Http\Controllers\PortalChildController;
 use App\Http\Controllers\PortalController;
+use App\Http\Controllers\PortalExpensesController;
 use App\Http\Controllers\PortalFormController;
 use App\Http\Controllers\PortalProfileController;
 use App\Http\Controllers\PortalTeamController;
@@ -115,6 +117,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/admin/events/{event}/lists/{key}.{format}', [EventListController::class, 'list'])->whereNumber('event')->where('key', '[a-z_]+')->where('format', 'pdf|xlsx|csv')->name('admin.lists.export');
         Route::get('/admin/reports/events/{event}/age-groups.{format}', [StatisticsExportController::class, 'ageGroups'])->whereNumber('event')->where('format', 'pdf|xlsx|csv')->name('admin.reports.age-groups');
         Route::get('/admin/events/{event}/camp-folder/{person?}', [EventListController::class, 'folder'])->whereNumber(['event', 'person'])->name('admin.lists.folder');
+        Route::get('/admin/expense-claims/{claim}/receipt', [ExpenseReceiptController::class, 'show'])->whereNumber('claim')->name('admin.expense-claims.receipt');
     });
     Route::post('/portal/view-as/end', [ViewAsController::class, 'end'])->name('portal.view-as.end');
     Route::middleware([RequireSecondFactor::class, ReadOnlyPortalPreview::class])->prefix('portal')->group(function () {
@@ -130,6 +133,14 @@ Route::middleware('auth')->group(function () {
             Route::get('/export', [PortalProfileController::class, 'export'])->middleware('throttle:login-send')->name('portal.profile.export');
         });
         Route::get('/team/{event}/{list?}', [PortalTeamController::class, 'show'])->middleware(RequireFullLogin::class)->name('portal.team');
+        // Expense claims of team members (E1d.3): money and the IBAN need a full login.
+        Route::middleware(RequireFullLogin::class)->prefix('expenses')->group(function () {
+            Route::get('/', [PortalExpensesController::class, 'index'])->name('portal.expenses');
+            Route::post('/', [PortalExpensesController::class, 'store'])->name('portal.expenses.store');
+            Route::post('/iban', [PortalExpensesController::class, 'saveIban'])->name('portal.expenses.iban');
+            Route::post('/{claim}/waive', [PortalExpensesController::class, 'waive'])->whereNumber('claim')->name('portal.expenses.waive');
+            Route::get('/{claim}/receipt', [PortalExpensesController::class, 'receipt'])->whereNumber('claim')->name('portal.expenses.receipt');
+        });
         Route::get('/mails/{uuid}', [PortalController::class, 'mail'])->name('portal.mail');
         Route::get('/invoices/{invoice}.pdf', [InvoicePdfController::class, 'portal'])->name('portal.invoice.pdf');
         Route::get('/children/{child}/participations/{participation}/confirmation.pdf', [ParticipationPdfController::class, 'portal'])->whereNumber('participation')->name('portal.child.confirmation');

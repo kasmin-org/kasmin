@@ -228,6 +228,14 @@ class GuardiansAndDuplicatesTest extends TestCase
         app(Duplicates::class)->merge($this->child, $double);
     }
 
+    public function test_merging_keeps_the_payout_account_of_expense_claims(): void
+    {
+        $double = $this->person('Kim', 'Ash', '2012-06-01', null);
+        $double->forceFill(['payout_iban' => 'AT611904300234573201'])->save();
+        app(Duplicates::class)->merge($this->child, $double);
+        $this->assertSame('AT611904300234573201', $this->child->fresh()?->payout_iban);
+    }
+
     public function test_duplicates_page(): void
     {
         $double = $this->person('Kim', 'Ash', '2012-06-01', 'kim@example.org');

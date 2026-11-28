@@ -13,6 +13,7 @@ use App\Models\Automation;
 use App\Models\AutomationRun;
 use App\Models\Consent;
 use App\Models\ContactPoint;
+use App\Models\CostCenter;
 use App\Models\Event;
 use App\Models\EventDocument;
 use App\Models\Form;
@@ -24,6 +25,7 @@ use App\Models\MembershipType;
 use App\Models\OutgoingMail;
 use App\Models\Participation;
 use App\Models\Payment;
+use App\Models\Period;
 use App\Models\Person;
 use App\Models\PublicForm;
 use App\Models\PublicSubmission;
@@ -95,6 +97,16 @@ class McpParityTest extends TestCase
         'audit:read,people:read' => ['export_person_data'],
         'events:read,people:read' => ['get_age_group_members'],
         'privacy:write' => ['anonymise_person'],
+    ];
+
+    /**
+     * The tools of the accounting (E1), by the scope they need.
+     */
+    private const ACCOUNTING_TOOLS = [
+        'finance:read' => ['list_accounts', 'list_cost_centers', 'list_funds', 'list_periods', 'get_allocation_keys', 'close_period_preview', 'list_bookings', 'get_booking', 'get_report'],
+        'finance:write' => ['create_account', 'update_account', 'delete_account', 'create_cost_center', 'update_cost_center', 'change_cost_center_kind', 'set_cost_center_active',
+            'make_default_cost_center', 'delete_cost_center', 'create_fund', 'update_fund', 'transfer_between_funds', 'delete_fund', 'create_period', 'update_period',
+            'save_allocation_key', 'close_period', 'reopen_period', 'create_booking', 'reverse_booking'],
     ];
 
     private User $user;
@@ -307,7 +319,7 @@ class McpParityTest extends TestCase
         $new = array_merge(...array_values(self::NEW_TOOLS));
         $this->assertSame([], array_values(array_diff($new, $names)));
         $this->assertCount(88, $new);
-        $this->assertCount(140, $names);
+        $this->assertCount(181, $names);
     }
 
     public function test_new_tools_are_listed_by_scope_and_refused_without_it(): void
@@ -609,6 +621,60 @@ class McpParityTest extends TestCase
         $this->assertSame('OLD-17', $this->tool($token, 'list_archived_invoices', ['search' => 'OLD'])['data'][0]['number'] ?? null);
     }
 
+    public function test_accounting_tools_by_scope_and_a_year_through_them(): void
+    {
+        $reader = $this->token(['finance:read']);
+        $writer = $this->token(['finance:read', 'finance:write']);
+        $none = $this->token(['people:read', 'events:read']);
+        [$forReader, $forWriter, $forNone] = [$this->listed($reader), $this->listed($writer), $this->listed($none)];
+        foreach (self::ACCOUNTING_TOOLS as $scope => $tools) {
+            foreach ($tools as $name) {
+                $this->assertContains($name, $forWriter);
+                $this->assertNotContains($name, $forNone, "{$name} is hidden without {$scope}");
+                $scope === 'finance:read' ? $this->assertContains($name, $forReader) : $this->assertNotContains($name, $forReader, "{$name} needs finance:write");
+                $this->refused($none, $name, ['period' => 1, 'id' => 1, 'cost_center' => 1, 'account' => 1, 'fund' => 1, 'report' => 'balance'], 'refused without its scope');
+            }
+        }
+        $this->assertStringContainsString('not found', $this->refused($reader, 'create_period', ['name' => '2027', 'starts_on' => '2027-01-01', 'ends_on' => '2027-12-31']));
+        $this->assertSame(0, Period::query()->count());
+
+        // A year: period, bookings, preview, closing, reopening with confirmation, reports.
+        Settings::set('use_cost_centers', '1');
+        $period = (int) ($this->tool($writer, 'create_period', ['name' => '2027', 'starts_on' => '2027-01-01', 'ends_on' => '2027-12-31'])['data']['id'] ?? 0);
+        $this->assertSame('Camp', $this->tool($writer, 'create_cost_center', ['name' => 'Camp'])['data']['name'] ?? null);
+        $booked = $this->tool($writer, 'create_booking', ['date' => '2027-04-01', 'text' => 'Donation', 'lines' => [
+            ['account' => 'Bank', 'debit' => 250], ['account' => 'Donations', 'credit' => 250, 'cost_center' => 'Camp'],
+        ]]);
+        $this->assertSame([1, 250], [$booked['data']['number'] ?? null, $booked['data']['total'] ?? null]);
+        $this->assertSame('mcp', AuditEvent::query()->where('action', 'journal.posted')->latest('id')->firstOrFail()->actor_type);
+        $this->assertStringContainsString('HTTP 422', $this->refused($writer, 'create_booking', ['date' => '2027-04-02', 'text' => 'Wrong', 'lines' => [
+            ['account' => 'Bank', 'debit' => 10], ['account' => 'Donations', 'credit' => 9],
+        ]], 'debit and credit must be equal'));
+        $this->assertSame(1, $this->tool($reader, 'list_bookings', ['account' => 'Donations'])['meta']['total'] ?? null);
+        $this->assertSame('Donation', $this->tool($reader, 'get_booking', ['id' => $booked['data']['id']])['data']['text'] ?? null);
+        $this->assertSame(1, $this->tool($writer, 'update_period', ['period' => '2027', 'ends_on' => '2027-03-31', 'dry_run' => true])['moved'] ?? null);
+        $this->assertSame('2027-12-31', Period::query()->findOrFail($period)->ends_on->toDateString());
+
+        $preview = $this->tool($reader, 'close_period_preview', ['period' => '2027']);
+        $this->assertSame([true, 250], [$preview['data']['can_close'] ?? null, $preview['data']['funds'][0]['after'] ?? null]);
+        $this->assertSame('closed', $this->tool($writer, 'close_period', ['period' => $period])['data']['period']['status'] ?? null);
+        $this->assertStringContainsString('confirm', $this->refused($writer, 'reopen_period', ['period' => '2027', 'reason' => 'Late receipt'], 'reopening needs confirm'));
+        $this->assertTrue(Period::query()->findOrFail($period)->isClosed());
+        $this->assertSame(['open'], array_column($this->tool($writer, 'reopen_period', ['period' => '2027', 'reason' => 'Late receipt', 'confirm' => true])['data'] ?? [], 'status'));
+
+        $report = $this->tool($reader, 'get_report', ['report' => 'income', 'period' => '2027', 'format' => 'pdf']);
+        $this->assertSame(['Account', 'Amount'], $report['data']['headers'] ?? null, 'a tool answers with the table, never a file');
+        $this->assertSame('Ledger Bank', $this->tool($reader, 'get_report', ['report' => 'ledger', 'account' => 'Bank'])['data']['title'] ?? null);
+
+        // Deleting a cost centre with bookings needs the number of the bookings.
+        $this->assertStringContainsString('HTTP 422', $this->refused($writer, 'delete_cost_center', ['cost_center' => 'Camp', 'delete_bookings' => true], 'confirm_count is required'));
+        $this->assertStringContainsString('HTTP 422', $this->refused($writer, 'delete_cost_center', ['cost_center' => 'Camp', 'delete_bookings' => true, 'confirm_count' => 2]));
+        $this->assertSame(1, CostCenter::query()->where('name', 'Camp')->count());
+        $this->assertSame(1, $this->tool($reader, 'list_cost_centers')['data'][0]['bookings'] ?? null);
+        $this->tool($writer, 'delete_cost_center', ['cost_center' => 'Camp', 'delete_bookings' => true, 'confirm_count' => 1]);
+        $this->assertSame(0, CostCenter::query()->where('name', 'Camp')->count());
+    }
+
     public function test_own_automations_and_an_assistant_cannot_create_one_without_approval(): void
     {
         $token = $this->token(['automations:read', 'automations:write']);
@@ -776,7 +842,8 @@ class McpParityTest extends TestCase
         ]);
         $ben = $make('Ben');
         $cleo = $make('Cleo');
-        $this->assertContains('team', array_column($this->tool($token, 'list_public_forms')['data'] ?? [], 'slug')); // next to the sign-up form every installation has
+        // Every installation also has the sign-up form (switched off), sorted before "team".
+        $this->assertContains('team', array_column((array) ($this->tool($token, 'list_public_forms')['data'] ?? []), 'slug'));
 
         // Even with health:read and "all data": the answers to confidential questions are not part of the answer.
         $response = $this->callTool($token, 'list_public_submissions', ['status' => 'pending'])->assertOk();

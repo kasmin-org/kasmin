@@ -11,6 +11,8 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $key
  * @property int $fee_cents
  * @property string|null $name
+ * @property int|null $revenue_account_id
+ * @property int|null $cost_center_id
  */
 class MembershipType extends Model
 {

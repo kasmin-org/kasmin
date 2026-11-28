@@ -14,7 +14,7 @@ jedes Token zuletzt verwendet wurde. Jeder schreibende Zugriff über die API ste
 |---|---|
 | `people:read` / `people:write` | Personen, Familien, Kontaktdaten, Erziehungsberechtigte, Mitgliedschaften, Gruppen und Mitgliedsarten lesen / anlegen und ändern; Rollen lesen; doppelte Einträge anführen / zusammenführen; öffentliche Einsendungen lesen / entscheiden |
 | `events:read` / `events:write` | Veranstaltungen, Teilnehmende, Runden, Dokumente, Vorlagen, Listen, Gruppen und Zimmer, Statistik und Dashboard lesen / Veranstaltungen (inkl. Preise und Ratenplan), Reihen, Vorlagen, Runden und Dokumente anlegen und ändern, anmelden, Teilnahmen ändern, Plätze anbieten, Gruppen und Zimmer |
-| `finance:read` / `finance:write` | Rechnungen (inkl. PDF), Zahlungen, Rückzahlungen, das Rechnungsarchiv und die Kosten einer Veranstaltung lesen / Rechnungen ausstellen, senden und stornieren, Zahlungen erfassen und zuordnen, Rückzahlungen erledigen, die Kosten einer Veranstaltung ändern |
+| `finance:read` / `finance:write` | Rechnungen (inkl. PDF), Zahlungen, Rückzahlungen, das Rechnungsarchiv, Auslagen, Vorschüsse und die Kosten einer Veranstaltung lesen; die Buchhaltung lesen (Konten, Kostenstellen, Fonds, Perioden, Buchungen, Berichte) / Rechnungen ausstellen, senden und stornieren, Zahlungen erfassen und zuordnen, Rückzahlungen erledigen, Auslagen eintragen, freigeben, ablehnen und auszahlen, Vorschüsse ausgeben und abrechnen, die Kosten einer Veranstaltung ändern; buchen und stornieren, Perioden abschließen und wiedereröffnen, Kontenplan, Kostenstellen, Fonds und Umlageschlüssel ändern |
 | `mail:read` / `mail:write` | Mailvorlagen und ihre Versionen, Aussendungen, das Mailprotokoll, unzustellbare Adressen und Absenderprofile lesen / Vorlagen ändern und wiederherstellen, Aussendungen anlegen, vorbereiten und freigeben |
 | `automations:read` | Automatisierungen und Läufe lesen, Probeläufe |
 | `automations:write` | Automatisierungen ändern: aktiv, Modus, Auslöser, Einstellungen, Freigebende. Damit lässt sich eine Freigabe abschalten – geben Sie den Scope nur Tokens, über die ein Mensch bestimmt. Über MCP brauchen Änderungen an einer Freigabe zusätzlich `approvals:decide` |
@@ -39,7 +39,7 @@ Basisadresse `https://your-kasmin.example/api/v1`, Header `Authorization: Bearer
 - Alles, was die Verwaltung kann, gibt es auch hier (siehe den [Vergleich](#vergleich-verwaltung-rest-und-mcp)
   am Ende). Ein Endpunkt ruft dieselbe Funktion auf wie die Seite. Mails, Einträge im Audit-Protokoll und Regeln sind also dieselben.
 - Listen, die lang werden können (`/people`, `/households`, `/events`, `/invoices`, `/payments`, `/refunds`,
-  `/invoice-archive`, `/automation-runs`, `/outgoing-mails`, `/public-submissions`, `/consents`), kommen in Seiten:
+  `/invoice-archive`, `/accounting/bookings`, `/automation-runs`, `/outgoing-mails`, `/public-submissions`, `/consents`), kommen in Seiten:
   `page` und `per_page` (Voreinstellung 50, höchstens 200) in der Anfrage und `meta` mit `total`, `page` und `last_page` in
   der Antwort. Sie sind nach dem Neuesten sortiert, Personen und Familien nach Namen.
 - Anlegen antwortet mit `201`. Wo es den Eintrag schon gab (eine Person, die schon Mitglied der Gruppe
@@ -100,7 +100,8 @@ Scopes `people:read` / `people:write`.
   `ends_on`), `PATCH /people/{id}/memberships/{number}` mit `ends_on` beendet eine Mitgliedschaft (`null` lässt sie wieder
   laufen). Eine Person hat pro Art höchstens eine laufende Mitgliedschaft.
 - Mitgliedsarten: `GET|POST /membership-types`, `PATCH /membership-types/{type}` (`{type}` = ID oder Name; `name`,
-  eindeutig, `pays_fee`, `fee`).
+  eindeutig, `pays_fee`, `fee`, `revenue_account` und `cost_center`: worauf der Beitrag in der
+  Buchhaltung gebucht wird, die ID oder der genaue Name; `null` leert).
 - Doppelte Einträge: `GET /duplicates` führt die Paare an, die wahrscheinlich dieselbe Person sind, mit dem Grund.
   `POST /duplicates/merge` (`keep`, `duplicate` und `fields` wie `{"birth_date": "duplicate"}` für die Werte,
   die vom doppelten Eintrag kommen sollen) verschiebt alles zur Person, die bleibt, und löscht den doppelten Eintrag – das
@@ -159,11 +160,15 @@ Scopes `events:read` / `events:write`.
   Alter oder Datum: `role`, `min_age`, `max_age`, `from_date`, `until_date`, `price` – die Liste ersetzt die
   gespeicherte) und `installments` (`id`, `label` = der Name, eindeutig innerhalb der Veranstaltung, `kind` = `fixed`, `rest`
   oder `member`, `amount`, `due_date`, `due_days`, `membership_type` = ID oder Name, `refundable`, `refund_until_days`,
-  `confirms_place`, `paid_add_group`, `paid_remove_group`, `discounts_apply`). Raten werden wie Rollen geführt: Ein Eintrag mit
+  `confirms_place`, `paid_add_group`, `paid_remove_group`, `discounts_apply`, `revenue_account`, `cost_center`). Raten werden wie Rollen geführt: Ein Eintrag mit
   der `id` einer Rate ändert sie, ein Eintrag ohne `id` ändert die Rate mit demselben Namen oder legt eine neue an, und die Raten,
   die nicht angeführt sind, werden entfernt. Wie im Veranstaltungsformular können Preise geändert werden, während es Rechnungen gibt:
   Ausgestellte Rechnungen bleiben, wie sie sind. Eine Rate, zu der es schon Rechnungen gibt, kann nicht
   entfernt werden (422). Die Währung wird angezeigt, kann aber nicht geändert werden, wie im Formular.
+- Buchhaltung: `cost_center` der Veranstaltung und `revenue_account` / `cost_center` einer Rate sagen, worauf ihre
+  Rechnungen gebucht werden (siehe [Rechnungen – Buchungen](invoices.md)). Senden Sie die ID oder den genauen Namen; `null`
+  leert das Feld. Die Antwort hat den Namen und die ID (`cost_center_id`, `revenue_account_id`). Ein unbekannter Name wird
+  abgelehnt (422).
 - Anmelderunden: `GET|PUT /events/{id}/rounds`. `PUT` sendet `rounds` (`id` für eine bestehende Runde, `role`,
   `kind` = `returning`, `selection`, `waitlist` oder `open`, `mode` = `accept` oder `payment`, `opens_at`, `closes_at`,
   `min_events`, `group`) und ersetzt die Liste; Runden, die nicht angeführt sind, werden entfernt.
@@ -177,7 +182,8 @@ Scopes `events:read` / `events:write`.
   `DELETE /event-templates/{id}`. `POST /events` mit `template` (oder `copy_of` = eine Veranstaltung), `title` und
   `starts_at` legt eine Veranstaltung als Kopie an, mit allem, was eingestellt ist, und allen Terminen verschoben, wie es
   *Aus Vorlage* und *Kopieren* tun; Personen, Rechnungen und Kosten werden nicht kopiert.
-- Veranstaltungsreihen: `GET|POST /event-series` (`name`), `PATCH /event-series/{number}`.
+- Veranstaltungsreihen: `GET|POST /event-series` (`name`, `cost_center` = ID oder genauer Name der Kostenstelle, auf die
+  ihre Veranstaltungen gebucht werden), `PATCH /event-series/{number}`.
 - `GET /events/{id}/participations` (`status`, `role`), `POST /events/{id}/registrations` (`person`, `role`).
 - `PATCH /participations/{number}` ändert `status` oder `travel` (`bus`, `car`). Mit `status` `cancelled` wird ein
   optionaler `reason` gespeichert; die Familie wird informiert, der Platz geht an die Warteliste, und Rechnungsentwürfe werden
@@ -244,6 +250,86 @@ Scopes `finance:read` / `finance:write`.
   eine andere Rechnung, der ermäßigte Preis eines Platzes und Einzelrechnungen.
 
 Beispiel: `POST /invoices/{number}/cancel` mit `{"reason": "Lager abgesagt"}`.
+
+### Buchhaltung
+
+Scopes `finance:read` / `finance:write`; Begriffe und Regeln stehen unter [Buchhaltung](accounting.md).
+
+- Konten, Kostenstellen, Fonds und Perioden werden mit ihrer `id` oder ihrem genauen Namen (`name`) angegeben – Konten auch mit
+  ihrer Kontonummer (`number`) –, im Pfad wie im Inhalt; jede Liste enthält beides. Ein Name, der auf zwei Einträge passt (ein
+  doppelt vergebener Periodenname, ein Name, der zugleich die ID eines anderen Eintrags ist), antwortet mit `422`: Nehmen Sie dann
+  die ID. Beträge sind Dezimalzahlen in der Währung der Installation. Was die Verwaltung ablehnt (eine abgeschlossene Periode, Soll
+  und Haben nicht gleich, eine inaktive Kostenstelle …), antwortet mit `422` und derselben `message`.
+- **Kontenplan:** `GET|POST /accounting/accounts` (Filter `type`, `money` = `bank`, `cash` oder `any`, `active`),
+  `PATCH|DELETE /accounting/accounts/{id}` mit `name`, `number`, `type`, `money`, `iban`, `default_cost_center`, `active` und
+  `sort`. Die Liste enthält den Stand von heute, Bank- und Kassakonten auch die Fonds darauf und die Differenz, wie auf der Seite
+  *Bank- und Kassakonten*. Systemkonten behalten ihre Art, ebenso Konten mit Buchungen; nur eigene Konten ohne Buchungen können
+  gelöscht werden (die anderen schalten Sie mit `active` `false` ab).
+- **Kostenstellen:** `GET|POST /accounting/cost-centers` (`name`, `kind` = `carries` (trägt ihr Ergebnis) oder `allocated`
+  (wird umgelegt), `fund`, `sort`; eine neue ist in allen offenen Perioden aktiv), `PATCH /accounting/cost-centers/{id}` (`name`,
+  `fund`, `sort`), `POST /accounting/cost-centers/{id}/kind` (`kind`, `fund`), `PUT /accounting/cost-centers/{id}/periods/{period}`
+  mit `active` `true` oder `false` (die Antwort enthält `warnings`, z. B. Geld, das noch im Fonds liegt),
+  `POST /accounting/cost-centers/{id}/default` macht sie zur Standard-Kostenstelle. `DELETE /accounting/cost-centers/{id}` mit
+  `move_to` (die Kostenstelle, die die Buchungen bekommt) oder mit `delete_bookings` `true` und `confirm_count` – der Zahl ihrer
+  Buchungen (`bookings` in der Liste) statt des Satzes, den man in der Verwaltung eintippt; löschen lassen sich nur eingegebene
+  Buchungen in offenen Perioden, und vorher wird eine Datensicherung erstellt. `cannot_delete` in der Liste nennt die Gründe, warum
+  eine Kostenstelle nicht gelöscht werden kann.
+- **Fonds:** `GET|POST /accounting/funds` (`name`, `account` = ein Bank- oder Kassakonto, `note`, `sort`),
+  `PATCH|DELETE /accounting/funds/{id}`; `POST /accounting/funds/{id}/transfers` (`to`, `amount`, `text` = der Beschluss, `date`)
+  verschiebt Geld in einen anderen Fonds, mit einer Buchung der Art `fund_transfer`. Löschen lässt sich nur ein Fonds, der nichts
+  enthält und den keine Kostenstelle verwendet, nie der Allgemeine Fonds. Kostenstellen und Fonds anlegen geht nur mit den
+  Schaltern unten.
+- **Perioden:** `GET|POST /accounting/periods` (`name`, `starts_on` – nur bei der ersten Periode, später der Tag nach der letzten –,
+  `ends_on`). `PATCH /accounting/periods/{id}` ändert `name`, `starts_on` und `ends_on` einer offenen Periode; `moved` sagt, wie
+  viele Buchungen jetzt zu einer anderen Periode gehören, mit `dry_run` `true` wird nichts gespeichert.
+- **Fehlende Belege:** `POST /accounting/book-documents` bucht jede Rechnung, Gutschrift, Zahlung und Rückzahlung ab dem Beginn der
+  ersten Periode, die noch keine Buchung hat; die Antwort enthält `booked` (wie viele) und `failures`. MCP: `book_documents`.
+- **Budget:** `GET /accounting/periods/{id}/budgets` (das geplante Ergebnis je Kostenstelle) und `PUT /accounting/periods/{id}/budgets`
+  mit `budgets` (`cost_center` = ID oder genauer Name, `amount` = geplantes Ergebnis, Kosten mit Minus; `0` entfernt es). Nicht
+  angeführte Kostenstellen behalten ihr Budget; auch abgeschlossene Perioden lassen sich planen. MCP: `get_budgets`, `save_budgets`.
+- **Umlageschlüssel:** `GET /accounting/periods/{id}/allocation-keys` (einer je umzulegender Kostenstelle),
+  `PUT /accounting/periods/{id}/allocation-keys/{cost_center}` mit `rules` (`target`, `kind` = `fixed`, `percent`, `rest` oder
+  `share`, `amount` bei `fixed`, `percent` bei `percent`) ersetzt den Schlüssel einer umzulegenden Kostenstelle in einer offenen
+  Periode, mit den Prüfungen der Seite; eine leere Liste entfernt ihn.
+- **Abschluss:** `GET /accounting/periods/{id}/closing` ist die Vorschau: `rows` je Kostenstelle (`before`, `allocation`, `after`),
+  `allocations`, `funds` (`before`, `result`, `after`), `warnings`, `errors` und `can_close`. `POST /accounting/periods/{id}/close`
+  schließt ab, wie die Vorschau es zeigt. `POST /accounting/periods/{id}/reopen` mit `reason` und `confirm` `true` öffnet die
+  Periode und jede spätere abgeschlossene wieder; ohne `confirm` antwortet es mit `422` und den Perioden (`periods`), die
+  mitgeöffnet würden.
+- **Buchungen:** `GET /accounting/bookings` (`from`, `to`, `period`, `account`, `cost_center`, `kind`, `search`; in Seiten, mit den
+  Zeilen), `GET /accounting/bookings/{id}` (die `id`, nicht die Buchungsnummer `number`), `POST /accounting/bookings` (`date`,
+  `text`, `receipt`, `lines` mit `account`, `debit` oder `credit`, `cost_center`, `fund`, `person` = öffentliche ID, für Forderungen,
+  Guthaben, zu erstattende Auslagen und Vorschüsse, `text`),
+  `POST /accounting/bookings/{id}/reverse` storniert (`text`, `date`; Umlagen und Abschlüsse werden nicht storniert, sondern beim
+  Wiedereröffnen entfernt).
+- **Berichte:** `GET /accounting/reports/{report}` – `balance` (Bilanz, `date`), `income` (Erfolgsrechnung, `period`,
+  `cost_center`), `cost_centers` (`period`), `funds` (Fondsspiegel, `period`), `ledger` (Kontoblatt, `account`, `from`, `to`) oder
+  `open_items` (offene Posten, `date`); ohne Angabe gelten heute und die aktuelle Periode. Die Antwort enthält `title`, `headers` und
+  `rows` wie auf der Seite; mit `format` `csv`, `xlsx` oder `pdf` ist sie die Datei von *Export* (protokolliert).
+- **Schalter:** `use_cost_centers` und `use_funds` in `GET|PATCH /settings` (`settings:write`), mit den Regeln der globalen
+  Einstellungen.
+- Nur in der Verwaltung: die Belegdatei (Foto oder PDF) einer Buchung; die Antwort sagt `has_receipt_file`.
+
+Beispiel: `POST /accounting/bookings` mit `{"date": "2027-03-01", "text": "Einkauf", "lines": [{"account": "Verpflegung", "debit": 30},
+{"account": "Material", "debit": 12.5}, {"account": "Kasse", "credit": 42.5}]}`.
+
+### Auslagen und Vorschüsse
+
+Scopes `finance:read` / `finance:write`. Siehe [Auslagen und Vorschüsse](expenses.md). IBANs erscheinen nur maskiert.
+
+- `GET /expense-claims` (`status` = `submitted`, `approved`, `rejected`, `paid`, `donated`, `settled`; `person`).
+- `POST /expense-claims` trägt eine Auslage für eine Person ein, wie *Auslage eintragen*: `person`, `date`, `amount` und
+  `purpose`, oder `flat_rate` (Name aus den Einstellungen) mit `quantity`; optional `account`, `cost_center`, `event`,
+  `advance`, `waived` und `iban` (wird für die Erstattungen der Person gespeichert). Belegdateien nur in der Verwaltung.
+- `POST /expense-claims/{id}/approve` (optional `account`, `cost_center`), `POST /expense-claims/{id}/reject` mit
+  `reason` (geht per Mail an die Person), `POST /expense-claims/{id}/donate` (die Person verzichtet auf die Erstattung).
+- `POST /expense-claims/pay` mit `claims` (IDs), `account` (ID oder `bank` / `cash`), `date` und `per_person`: bucht die
+  Auszahlung und schickt den Personen eine Mail. Von einem Bankkonto enthält die Antwort die SEPA-Datei in `sepa_xml`
+  (nicht über MCP).
+- `GET /advances` (`settled`, `person`), `POST /advances` (`person`, `amount`, `account`, `date`, `purpose`),
+  `POST /advances/{id}/settle` (`returned` – genau das, was noch offen ist –, `account`, `date`).
+
+Beispiel: `POST /expense-claims/pay` mit `{"claims": [12, 13], "account": "bank", "date": "2027-07-20"}`.
 
 ### Mail
 
@@ -386,6 +472,10 @@ Automatisierungen über ihre ID oder ihren genauen Namen, wie die REST-API (`aut
 | Listen und Auswertungen | `list_event_lists`, `get_event_list`, `get_statistics`, `get_age_group_members`, `get_dashboard` | `events:read` (vertrauliche Listen: `health:read`; Geld: `finance:read`; Mitglieder der Altersgruppen: `people:read`) |
 | Rechnungen | `list_invoices`, `get_invoice` / `record_payment`, `issue_invoice`, `send_invoice`, `cancel_invoice` | `finance:read` / `finance:write` |
 | Zahlungen, Rückzahlungen, Archiv | `list_payments`, `list_refunds`, `list_archived_invoices` / `assign_payment`, `mark_refund_done`, `keep_refund_as_credit` | `finance:read` / `finance:write` |
+| Buchhaltung: Kontenplan, Kostenstellen, Fonds | `list_accounts`, `list_cost_centers`, `list_funds` / `create_account`, `update_account`, `delete_account`, `create_cost_center`, `update_cost_center`, `change_cost_center_kind`, `set_cost_center_active`, `make_default_cost_center`, `delete_cost_center`, `create_fund`, `update_fund`, `transfer_between_funds`, `delete_fund` | `finance:read` / `finance:write` |
+| Buchhaltung: Perioden, Schlüssel, Abschluss | `list_periods`, `get_allocation_keys`, `close_period_preview` / `create_period`, `update_period`, `save_allocation_key`, `close_period`, `reopen_period` | `finance:read` / `finance:write` |
+| Buchhaltung: Buchungen, Berichte | `list_bookings`, `get_booking`, `get_report` / `create_booking`, `reverse_booking` | `finance:read` / `finance:write` |
+| Auslagen, Vorschüsse | `list_expense_claims`, `list_advances` / `create_expense_claim`, `approve_expense_claim`, `reject_expense_claim`, `donate_expense_claim`, `pay_expense_claims`, `create_advance`, `settle_advance` | `finance:read` / `finance:write` |
 | Automatisierungen | `list_automations`, `get_automation`, `preview_automation`, `list_approvals`, `get_automation_run` / `create_automation`, `update_automation`, `delete_automation` / `request_automation_run` / `decide_approval` | `automations:read` / `automations:write` / `automations:run` / `approvals:decide` |
 | Importe | `import_preview`, `suggest_import_families`, `import_people`, `list_imports`, `rollback_import` | `import:write` |
 | Formulare | `list_forms`, `get_form_definition`, `get_person_forms`, `get_person_form` / `update_person_form` / `save_form_definition` | `people:read` / `people:write` / `settings:write` (vertrauliche Antworten: `health:read`, `health:write`) |
@@ -402,8 +492,9 @@ destruktiv gekennzeichnet. So kann ein MCP-Client nachfragen, bevor er sie aufru
 
 Absichtlich nicht über MCP verfügbar:
 
-- **Dateien**: ein Dokument einer Veranstaltung hochladen, ein Dokument herunterladen und das PDF einer Rechnung. Ein Tool-Aufruf
-  überträgt nur JSON; verwenden Sie die Verwaltung oder die REST-API.
+- **Dateien**: ein Dokument einer Veranstaltung hochladen, ein Dokument herunterladen, das PDF einer Rechnung und die Dateien eines
+  Berichts der Buchhaltung (`get_report` antwortet mit der Tabelle). Ein Tool-Aufruf überträgt nur JSON; verwenden Sie die Verwaltung
+  oder die REST-API.
 - **Einen Webhook anlegen, ein neues Signatur-Geheimnis, eine neue Adresse eines Webhooks**: Das Geheimnis wird einmal angezeigt und gehört
   der Person, die das empfangende System einrichtet, und ein Assistent darf Daten der Organisation nicht an eine
   Adresse seiner Wahl senden. `update_webhook` benennt einen Webhook um, ändert die Ereignisse und schaltet ihn ein oder aus.
@@ -442,6 +533,11 @@ Diese Grenzen gelten nur für MCP; in der REST-API genügen `automations:write`,
 - `list_public_submissions` zeigt nie Antworten auf vertrauliche Fragen, bei jeder Einstellung.
 
 Mit „Alle Daten“ zählen die Scopes wie in der REST-API, und jeder Lesezugriff auf vertrauliche Daten steht im Audit-Protokoll.
+
+**Die Buchhaltung fragt zweimal.** `reopen_period` wird ohne `confirm` `true` abgelehnt und nennt die Perioden, die mitgeöffnet
+würden; `delete_cost_center` löscht Buchungen nur mit `confirm_count`, der Zahl dieser Buchungen. Der Assistent soll dem Menschen
+`close_period_preview` vor `close_period` und die Zeilen vor `create_booking` zeigen; `close_period`, `reopen_period`,
+`reverse_booking` und die Tools zum Löschen sind als destruktiv markiert.
 
 **Was nicht rückgängig gemacht werden kann, braucht einen eigenen Scope und einen Menschen.** `anonymise_person` braucht `privacy:write`
 (nichts anderes schließt es ein), und der Assistent wird angewiesen, es zuerst mit `preview` aufzurufen und erst nach der
@@ -541,6 +637,12 @@ als REST; was REST anbietet und MCP absichtlich nicht (Dateien, Geheimnisse von 
 | Zahlungen: anführen, Bankimport, zuordnen | ja | teils (anführen, zuordnen) | teils (wie REST) | REST und MCP: Bankimport, aufteilen, ein Guthaben verwenden |
 | Rückzahlungen, Guthaben | ja | ja | ja | – |
 | Rechnungsarchiv | ja | ja (lesen; Import in der Verwaltung) | ja (lesen) | – |
+| Buchhaltung: Kontenplan, Kostenstellen, Fonds, Umbuchungen zwischen Fonds | ja | ja | ja | – |
+| Buchhaltung: Perioden, Umlageschlüssel, Abschluss, Wiedereröffnen | ja | ja | ja | – |
+| Buchhaltung: Buchungen (eingeben, stornieren), Journal | ja | ja (Belegdatei in der Verwaltung) | ja (ohne Belegdatei) | REST und MCP: Belegdatei |
+| Buchhaltung: Bank- und Kassakonten, Berichte | ja | ja (JSON, CSV, XLSX, PDF) | ja (Tabelle) | n/a für MCP: Dateien |
+| Buchhaltung: Schalter (Kostenstellen, Fonds) | ja | ja | ja (`update_settings`) | – |
+| Auslagen, Vorschüsse | ja | ja (ohne Belegdateien; SEPA-Datei als Text) | ja (ohne SEPA-Datei, IBAN maskiert) | MCP: keine Dateien |
 | Mailvorlagen: lesen, Vorschau, ändern | ja | ja | ja | – |
 | Versionen von Mailvorlagen, wiederherstellen | ja | ja | ja | – |
 | Aussendungen: anlegen, vorbereiten, freigeben | ja | ja | ja | – |

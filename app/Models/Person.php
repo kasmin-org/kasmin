@@ -23,6 +23,7 @@ use Illuminate\Support\Carbon;
  * @property string $last_name
  * @property Carbon|null $birth_date
  * @property string $locale
+ * @property string|null $payout_iban encrypted; where refunds of expenses go (E1d.3)
  */
 class Person extends Model
 {
@@ -32,6 +33,9 @@ class Person extends Model
     protected $table = 'people';
 
     protected $guarded = ['id', 'public_id'];
+
+    /** The IBAN for refunds is confidential: never in arrays, JSON, the audit log or exports. */
+    protected $hidden = ['payout_iban'];
 
     /** @return list<string> */
     public function uniqueIds(): array
@@ -46,7 +50,7 @@ class Person extends Model
 
     protected function casts(): array
     {
-        return ['birth_date' => 'date', 'anonymised_at' => 'datetime'];
+        return ['birth_date' => 'date', 'anonymised_at' => 'datetime', 'payout_iban' => 'encrypted'];
     }
 
     public function fullName(): string

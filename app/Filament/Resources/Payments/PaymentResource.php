@@ -142,10 +142,7 @@ class PaymentResource extends Resource
                     Action::make('refund')->label(__('admin.finance.propose_refund'))->icon('heroicon-o-arrow-uturn-left')->requiresConfirmation()
                         ->visible(fn (Payment $record) => Money::canManage() && $record->invoice_id === null && in_array($record->match, ['credit', 'unmatched'], true))
                         ->schema([TextInput::make('reason')->label(__('admin.finance.reason'))->required()->maxLength(250)])
-                        ->action(function (Payment $record, array $data) {
-                            $record->forceFill(['match' => 'credit'])->save();
-                            app(Credits::class)->proposeRefund($record, (string) $data['reason']);
-                        }),
+                        ->action(fn (Payment $record, array $data) => app(Credits::class)->makeCredit($record, (string) $data['reason'])),
                     DeleteAction::make()->label(__('admin.finance.ignore'))->visible(fn (Payment $record) => Money::canManage() && $record->invoice_id === null && $record->match === 'unmatched' && $record->parent_id === null),
                 ]),
             ], RecordActionsPosition::BeforeColumns)

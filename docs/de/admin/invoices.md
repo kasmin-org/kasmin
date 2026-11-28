@@ -1,8 +1,8 @@
 # Rechnungen und Zahlungen
 
 Kasmin erstellt Rechnungen pro Familie, sendet sie als PDF mit einem QR-Code für Banking-Apps, importiert Kontoauszüge,
-ordnet Zahlungen zu und sendet Erinnerungen und Zahlungsbestätigungen. Die Buchhaltung (Buchführung, Bilanzen) ist nicht
-Teil von Kasmin.
+ordnet Zahlungen zu und sendet Erinnerungen und Zahlungsbestätigungen. Sobald die Buchhaltung begonnen hat, werden
+Rechnungen, Zahlungen und Rückzahlungen darin von selbst gebucht (Abschnitt 7).
 
 Wer damit arbeiten kann: die Rollen *Administration*, *Vorstand* und *Finanzen*; die *Rechnungsprüfung* kann alles ansehen, aber
 nichts ändern. Erziehungsberechtigte sehen die Rechnungen ihrer Familie im Portal.
@@ -129,9 +129,72 @@ IBAN, Betrag und Referenz automatisch aus.
 Erziehungsberechtigte sehen unter *Rechnungen* alle ausgestellten Rechnungen ihrer Familie mit offenem Betrag, Fälligkeitsdatum, Referenz
 und Status (offen, teilweise bezahlt, bezahlt, überfällig) und können das PDF öffnen.
 
-## 7. Kommandozeile
+## 7. Buchungen
+
+Sobald die Buchhaltung begonnen hat – mit ihrer ersten Periode (*Buchhaltung → Einstellungen → Perioden*) –, bucht
+Kasmin die Belege dieser Seite selbst in der doppelten Buchhaltung. Niemand tippt diese Buchungen, und sie werden nie
+geändert: Was sich später ändert, ist eine eigene Buchung.
+
+| Was passiert | Soll | Haben | Datum |
+|---|---|---|---|
+| Rechnung ausgestellt | *Forderungen* der zahlenden Person: der Gesamtbetrag; *Gewährte Ermäßigungen*: jede Ermäßigung | das Ertragskonto jeder Zeile: der Betrag vor der Ermäßigung | Rechnungsdatum |
+| Gutschrift (Stornierung, Korrektur) | die Konten der Rechnung, umgekehrt | | Datum der Gutschrift |
+| Zahlung einer Rechnung zugeordnet | *Bank* (Barzahlungen: *Kasse*) | *Forderungen* der zahlenden Person | Zahlungstag |
+| Mehr bezahlt als offen | *Bank* | *Forderungen*, der Rest *Guthaben von Familien* | Zahlungstag |
+| Guthaben für eine Rechnung verwendet | *Guthaben von Familien* | *Forderungen* | Tag der Verwendung |
+| Rechnung nach einer Zahlung storniert | *Forderungen* | *Guthaben von Familien* | Datum der Gutschrift |
+| Rückzahlung überwiesen | *Guthaben von Familien* | *Bank* | Tag der Rückzahlung |
+
+**Ertragskonto einer Zeile**: Mahnspesen gehen auf *Mahngebühren*, Stornogebühren auf *Stornogebühren*. Sonst das
+Ertragskonto der Rate (*Veranstaltungen → bearbeiten → Preise, Ratenplan und Geschwisterermäßigung*), wenn eines
+eingestellt ist; Mitgliedsbeiträge – eine Rate der Art *Mitgliedsbeitrag* oder die jährliche Rechnung über den
+Mitgliedsbeitrag – auf das Konto der Mitgliedsart (*Personen → Mitgliedsarten*), sonst *Mitgliedsbeiträge*; andere Zeilen
+einer Veranstaltung auf *Einnahmen aus Veranstaltungen*; Rechnungen ohne Veranstaltung auf *Sonstige Einnahmen*.
+
+**Kostenstelle einer Zeile** (das Feld erscheint, solange *Kostenstellen verwenden* eingeschaltet ist): die der Rate,
+bei Mitgliedsbeiträgen die der Mitgliedsart (z. B. das Lager, wenn der Beitrag ein fixer Teil seiner Kosten ist), die
+der Veranstaltung, die der Veranstaltungsreihe; ohne all das die Standard-Kostenstelle des Kontos, sonst die
+Standard-Kostenstelle.
+
+Gut zu wissen:
+
+- Zahlungen aus dem Bankimport, die **noch nicht zugeordnet sind, werden nicht gebucht**. Sie werden gebucht, sobald Sie
+  sie zuordnen, mit dem Zahlungstag. Ordnen Sie sie zu, bevor Sie eine Periode abschließen.
+- Belege mit einem Datum **vor der ersten Periode** werden nicht gebucht; was dann offen ist (Rechnungen, Guthaben),
+  gehört in die Eröffnungsbuchung.
+- Ein Bankkonto im Kontenplan mit der IBAN oder dem Namen, die der Bankimport nennt, bekommt dessen Zahlungen; alle
+  anderen Überweisungen gehen auf *Bank*.
+- Schlägt eine Buchung fehl – z. B. weil ihre Periode abgeschlossen ist –, wird die Rechnung oder Zahlung trotzdem
+  gespeichert, und die Administration bekommt eine Systemmeldung. Beheben Sie die Ursache und buchen Sie dann mit
+  `php artisan kasmin:book-documents` nach, was fehlt. Derselbe Befehl bucht die Belege der ersten Periode, die
+  entstanden sind, bevor die Buchhaltung begonnen hat. Er bucht jeden Beleg nur einmal und kann daher jederzeit laufen.
+
+Beispiel (erfundene Zahlen): zwei Geschwister, Preis je 450,00, Anzahlung 100,00 schon verrechnet, Geschwisterermäßigung
+20,00 für das zweite Kind; die Veranstaltung hat die Kostenstelle *Lager*. Die Restzahlung ist 350,00 + 330,00 = 680,00:
+
+| Konto | Soll | Haben | Kostenstelle |
+|---|---|---|---|
+| Forderungen (zahlende Person) | 680,00 | | |
+| Einnahmen aus Veranstaltungen | | 350,00 | Lager |
+| Einnahmen aus Veranstaltungen | | 350,00 | Lager |
+| Gewährte Ermäßigungen | 20,00 | | Lager |
+
+Die Familie überweist 700,00; 20,00 sind zu viel und werden ein Guthaben:
+
+| Konto | Soll | Haben |
+|---|---|---|
+| Bank | 700,00 | |
+| Forderungen (zahlende Person) | | 680,00 |
+| Guthaben von Familien | | 20,00 |
+
+Die 20,00 werden zurücküberwiesen: *Guthaben von Familien* 20,00 an *Bank* 20,00. Danach schuldet die Familie nichts mehr
+(Forderungen 0,00), das Guthaben ist 0,00, auf der Bank sind 680,00 mehr, und *Lager* zeigt Erträge von 700,00 abzüglich
+20,00 Ermäßigungen.
+
+## 8. Kommandozeile
 
 | Befehl | Zweck |
 |---|---|
 | `php artisan kasmin:invoices:remind` | stellt alle fälligen Erinnerungen sofort in die Warteschlange, ohne Freigabe (normalerweise macht das die Automatisierung) |
+| `php artisan kasmin:book-documents [--from=2027-01-01]` | bucht die Rechnungen, Gutschriften, Zahlungen und Rückzahlungen, die noch keine Buchung haben (ab der ersten Periode oder ab dem angegebenen Tag) |
 | `php artisan kasmin:login-link <e-mail>` | gibt einen einmaligen Anmeldelink für eine Person aus (für die Unterstützung, oder wenn Mail noch nicht funktioniert) |

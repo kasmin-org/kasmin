@@ -2,9 +2,11 @@
 
 namespace App\Support\Api;
 
+use App\Models\Account;
 use App\Models\Automation;
 use App\Models\AutomationRun;
 use App\Models\ContactPoint;
+use App\Models\CostCenter;
 use App\Models\Event;
 use App\Models\EventInstallment;
 use App\Models\EventPrice;
@@ -80,11 +82,15 @@ class Presenter
                 'counts_as_sibling' => $r->counts_as_sibling, 'waitlist_order' => $r->waitlist_order ?? [],
                 'registration_form' => $r->registration_form_id,
             ])->values()->all();
+            $centers = CostCenter::query()->pluck('name', 'id');
+            $accounts = Account::query()->where('type', 'income')->pluck('name', 'id');
             $data['installments'] = $e->installments->map(fn (EventInstallment $i) => [
                 'id' => (int) $i->getKey(), 'label' => $i->label, 'kind' => $i->kind, 'amount' => $i->amount_cents !== null ? $i->amount_cents / 100 : null, 'due_date' => $i->due_date?->toDateString(),
                 'due_days' => $i->due_days, 'membership_type' => $i->membership_type_id, 'refundable' => $i->refundable,
                 'refund_until_days' => $i->refund_until_days, 'confirms_place' => $i->confirms_place, 'paid_add_group' => $i->paid_add_group_id, 'paid_remove_group' => $i->paid_remove_group_id,
                 'discounts_apply' => $i->discounts_apply,
+                'revenue_account' => $i->revenue_account_id !== null ? $accounts->get($i->revenue_account_id) : null, 'revenue_account_id' => $i->revenue_account_id,
+                'cost_center' => $i->cost_center_id !== null ? $centers->get($i->cost_center_id) : null, 'cost_center_id' => $i->cost_center_id,
             ])->values()->all();
             $data['prices'] = $e->prices->map(fn (EventPrice $p) => [
                 'role' => $p->role_key, 'min_age' => $p->min_age, 'max_age' => $p->max_age, 'from_date' => $p->from_date?->toDateString(), 'until_date' => $p->until_date?->toDateString(), 'price' => $p->price_cents / 100,
@@ -93,6 +99,7 @@ class Presenter
                 'currency' => $e->currency, 'sibling_mode' => $e->sibling_mode, 'sibling_order' => $e->sibling_order, 'sibling_amount' => $e->sibling_amount_cents / 100,
                 'sibling_cap_position' => $e->sibling_cap_position, 'sibling_min_children' => $e->sibling_min_children, 'reminder_days_before' => $e->getAttribute('reminder_days_before'),
                 'cancellation_fee' => ((int) $e->getAttribute('cancellation_fee_cents')) / 100, 'cancellation_text' => $e->getAttribute('cancellation_text'),
+                'cost_center' => $e->cost_center_id !== null ? $centers->get($e->cost_center_id) : null, 'cost_center_id' => $e->cost_center_id,
             ];
         }
 

@@ -1,8 +1,8 @@
 # Invoices and payments
 
 Kasmin creates invoices per family, sends them as PDF with a QR code for banking apps, imports bank statements,
-matches payments and sends reminders and payment confirmations. Accounting (bookkeeping, balance sheets) is not
-part of Kasmin.
+matches payments and sends reminders and payment confirmations. Once the accounting has started, invoices, payments
+and refunds are booked in it by themselves (section 7).
 
 Who can use it: the roles *Administrator*, *Board* and *Treasurer*; *Auditors* can view everything but change
 nothing. Legal guardians see their family's invoices in the portal.
@@ -129,9 +129,70 @@ IBAN, amount and reference automatically.
 Legal guardians see under *Invoices* all issued invoices of their family with open amount, due date, reference
 and status (open, partially paid, paid, overdue) and can open the PDF.
 
-## 7. Command line
+## 7. Bookings
+
+As soon as the accounting has started – with its first period (*Accounting → Settings → Periods*) – Kasmin books
+the documents of this page in the double-entry accounting by itself. Nobody types these bookings, and they are never
+changed: what changes later is a booking of its own.
+
+| What happens | Debit | Credit | Date |
+|---|---|---|---|
+| Invoice issued | *Receivables* of the payer: the total; *Discounts given*: each discount | the income account of each line: the amount before the discount | date of the invoice |
+| Credit note (cancellation, correction) | the accounts of the invoice, the other way round | | date of the credit note |
+| Payment assigned to an invoice | *Bank* (cash payments: *Cash*) | *Receivables* of the payer | day of payment |
+| More paid than open | *Bank* | *Receivables*, the rest *Credits of families* | day of payment |
+| Credit used for an invoice | *Credits of families* | *Receivables* | the day it is used |
+| Invoice cancelled after a payment | *Receivables* | *Credits of families* | date of the credit note |
+| Refund paid back | *Credits of families* | *Bank* | day of the refund |
+
+**Income account of a line**: reminder fees go to *Reminder fees*, cancellation fees to *Cancellation fees*. Otherwise
+the income account of the instalment (*Events → edit → Prices, payment plan and sibling discount*), if one is set;
+membership fees – an instalment of the kind *Membership fee* or the yearly membership fee invoice – go to the account of
+the membership type (*People → Membership types*), otherwise *Membership fees*; other lines of an event to *Income from
+events*; invoices without an event to *Other income*.
+
+**Cost centre of a line** (the field is shown while *Use cost centres* is on): the one of the instalment, for membership
+fees the one of the membership type (e.g. the camp, if the fee is a fixed part of its costs), the one of the event, the
+one of the event series; without any of these the standard cost centre of the account, else the standard cost centre.
+
+Good to know:
+
+- Payments of the bank import that are **not assigned yet are not booked**. They are booked when you assign them, with
+  the day of payment. Assign them before you close a period.
+- Documents dated **before the first period** are not booked; what is open then (invoices, credits) belongs into the
+  opening booking.
+- A bank account of the chart of accounts with the IBAN or the name that the bank import names gets its payments; all
+  other transfers go to *Bank*.
+- If a booking fails – e.g. because its period is closed –, the invoice or payment is saved anyway, and administrators
+  get a system notification. Remove the cause, then book what is missing with `php artisan kasmin:book-documents`. The
+  same command books the documents of the first period that were made before the accounting started. It books every
+  document only once, so it can run at any time.
+
+Example (invented numbers): two siblings, price 450.00 each, deposit 100.00 already invoiced, sibling discount 20.00
+for the second child; the event is on the cost centre *Camp*. The balance invoice is 350.00 + 330.00 = 680.00:
+
+| Account | Debit | Credit | Cost centre |
+|---|---|---|---|
+| Receivables (payer) | 680.00 | | |
+| Income from events | | 350.00 | Camp |
+| Income from events | | 350.00 | Camp |
+| Discounts given | 20.00 | | Camp |
+
+The family transfers 700.00; 20.00 are too much and become a credit:
+
+| Account | Debit | Credit |
+|---|---|---|
+| Bank | 700.00 | |
+| Receivables (payer) | | 680.00 |
+| Credits of families | | 20.00 |
+
+The 20.00 are paid back: *Credits of families* 20.00 to *Bank* 20.00. Afterwards the family owes nothing (receivables
+0.00), the credit is 0.00, the bank has 680.00 more, and *Camp* shows income of 700.00 less 20.00 discounts.
+
+## 8. Command line
 
 | Command | Purpose |
 |---|---|
 | `php artisan kasmin:invoices:remind` | queue all reminders that are due at once, without approval (normally the automation does this) |
+| `php artisan kasmin:book-documents [--from=2027-01-01]` | book the invoices, credit notes, payments and refunds that have no booking yet (from the first period or the given day on) |
 | `php artisan kasmin:login-link <e-mail>` | print a one-time login link for a user (support, or when mail does not work yet) |

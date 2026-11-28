@@ -14,8 +14,11 @@
 **Kids' Summer camp Admin** – open-source management for children's summer camps: families, registrations,
 waitlists, safety sheets, invoices and mailings, with a strong focus on automation.
 
-> **Status: early development (0.x).** Not ready for production use yet. Version 1.0 will follow after thorough
-> testing.
+> [!WARNING]
+> **Kasmin is under development and should not be used yet.** A first version that is suitable for tests and for real
+> use is planned for **January 2027** at the latest. This README will then say explicitly from which version on that is
+> the case. Until then, every version may change or drop data structures without a way to upgrade. Version 1.0 will
+> follow after a full year of real use and thorough testing.
 
 ## What Kasmin is meant to do
 

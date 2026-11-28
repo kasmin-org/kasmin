@@ -6,6 +6,11 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ## [Unreleased]
 
+### Changed
+
+- **Notice: Kasmin is under development and should not be used yet.** README, documentation and website say so; a first
+  version for tests and real use is planned for January 2027 at the latest, and the README will name it.
+
 ## [0.32.1] - 2026-11-28
 
 ### Fixed

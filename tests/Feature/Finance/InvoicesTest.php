@@ -151,6 +151,15 @@ class InvoicesTest extends TestCase
         $html = view('pdf.invoice', ['invoice' => $old->fresh('lines'), 'paid' => false, 'qr' => null, 'org' => InvoicePdf::organisation(), 'locale' => 'en'])->render();
         $this->assertStringNotContainsString('<tr class="discount">', $html);
         $this->assertStringContainsString(e(__('finance.discount')), $html);
+
+        // Also without any discount: every invoice made before the update keeps the column it was issued with.
+        $plain = $balance->replicate(['number', 'reference']);
+        $plain->save();
+        $plain->lines()->create(['description' => 'Balance Ann', 'amount_cents' => 35000, 'discount_cents' => 0, 'sort' => 0]);
+        $render = fn () => view('pdf.invoice', ['invoice' => $plain->fresh('lines'), 'paid' => false, 'qr' => null, 'org' => InvoicePdf::organisation(), 'locale' => 'en'])->render();
+        $this->assertStringNotContainsString('<th class="r">'.e(__('finance.discount')).'</th>', $render());
+        Settings::set('invoice_discount_lines_from', (string) ($plain->id + 1)); // as if the update came after it
+        $this->assertStringContainsString('<th class="r">'.e(__('finance.discount')).'</th>', $render());
     }
 
     public function test_the_confirmation_of_participation_counts_what_was_paid_after_the_discount(): void

@@ -27,6 +27,7 @@ return [
     'guardians' => 'Legal guardians',
     'no_family' => 'No family is linked to your account yet.',
     'add_child' => 'Add a child',
+    'add_child_closed' => 'A new family cannot be created here at the moment. Please contact the organisation.',
     'child_added' => 'The child has been added.',
     'save' => 'Save',
     'registrations' => 'Registrations',

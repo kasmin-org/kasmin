@@ -6,6 +6,28 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ## [Unreleased]
 
+## [0.31.1] - 2026-11-28
+
+### Security
+
+- **Login:** five wrong codes made the link in the same login mail unusable as well, so anyone who knew an address could
+  lock the person out. Wrong codes are still counted per person (the code entry closes for 30 minutes); the link of the
+  mail keeps working.
+- **Sign-up switched off means switched off:** a pending sign-up is confirmed only while its form is switched on, and in
+  the portal someone without a family of their own (for example after a “stay informed” form) can add a child – which
+  creates a family – only while a sign-up form is switched on.
+
+### Fixed
+
+- The **sign-up form** of an existing German installation was created in English when the language was set only in the
+  configuration (`APP_LOCALE`). The update now uses that language, and a form that is still unchanged is translated.
+- **Invoices issued before 0.31** keep the discount column also when they have no discount (issued invoices never change
+  their look).
+- The **portal copy of a mail** showed the placeholder of the link date instead of leaving the sentence out.
+- **Public forms:** the address preview says when the address still forwards to another form (it then opens the new one).
+- **REST and MCP:** a number is looked for as a name when no record has that id (e.g. a membership type named `2027`); a
+  text that is the name of one record and the old key of another is refused instead of silently taking the name.
+
 ## [0.31.0] - 2026-11-28
 
 ### Changed
@@ -701,7 +723,8 @@ First public pre-release for testing. Not ready for production use.
 - Docker image: system packages updated and build packages removed after compiling the PHP extensions – the
   container scan reports no high or critical findings any more (previously 75 in Debian packages).
 
-[Unreleased]: https://github.com/kasmin-org/kasmin/compare/v0.31.0...develop
+[Unreleased]: https://github.com/kasmin-org/kasmin/compare/v0.31.1...develop
+[0.31.1]: https://github.com/kasmin-org/kasmin/releases/tag/v0.31.1
 [0.31.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.31.0
 [0.30.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.30.0
 [0.29.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.29.0

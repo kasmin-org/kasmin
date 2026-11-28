@@ -18,6 +18,7 @@ return [
     'slug_preview' => 'Adresse des Formulars:', 'slug_empty' => 'Bitte eine Adresse aus Buchstaben oder Ziffern angeben.',
     'slug_taken' => 'Die Adresse „:slug“ hat schon ein anderes Formular.',
     'slug_moved' => 'Nach dem Speichern leitet die bisherige Adresse :old hierher weiter. Links auf Websites besser trotzdem ändern.',
+    'slug_takes_forward' => 'Diese Adresse leitet bisher auf das Formular „:title“ weiter. Nach dem Speichern öffnet sie stattdessen dieses Formular.',
     'copy' => 'Kopieren', 'copied' => 'Kopiert',
     'questions' => 'Fragen', 'group' => 'Zu Gruppe hinzufügen', 'submission' => 'Einsendung', 'submissions' => 'Einsendungen', 'approve' => 'Annehmen', 'decline' => 'Ablehnen', 'answers' => 'Anzeigen',
     'statuses' => ['pending' => 'Wartet', 'done' => 'Erledigt', 'declined' => 'Abgelehnt', 'failed' => 'Fehlgeschlagen'],

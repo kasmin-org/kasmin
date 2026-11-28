@@ -92,5 +92,10 @@ class PublicFormAddressTest extends TestCase
         $this->assertStringNotContainsString('Copy', (string) PublicFormResource::addressPreview('!!!', null));
         $form = PublicForm::query()->create(['slug' => 'old', 'kind' => 'interest', 'title' => 'T']);
         $this->assertStringContainsString(e(url('/f/old')), (string) PublicFormResource::addressPreview('new', $form));
+
+        // The earlier address of another form may be taken, but the preview says that it stops forwarding there.
+        $form->update(['slug' => 'newer']);
+        $this->assertStringContainsString(e(__('public.slug_takes_forward', ['title' => 'T'])), (string) PublicFormResource::addressPreview('old', null));
+        $this->assertStringNotContainsString(e(__('public.slug_takes_forward', ['title' => 'T'])), (string) PublicFormResource::addressPreview('old', $form));
     }
 }

@@ -14,6 +14,7 @@ use App\Models\JournalEntry;
 use App\Models\Person;
 use App\Models\Role;
 use App\Models\User;
+use App\Support\Accounting\Balances;
 use App\Support\Accounting\CostCenters;
 use App\Support\Accounting\Journal;
 use App\Support\Accounting\Periods;
@@ -76,7 +77,7 @@ class AccountingAdminTest extends TestCase
         app(Journal::class)->post(['date' => '2027-05-01', 'text' => 'Donation'], [['account' => 'bank', 'debit' => 10000], ['account' => 'donations', 'credit' => 10000]]);
         Livewire::test(ManagePeriods::class)->callTableAction('close', $period);
         $this->assertTrue($period->refresh()->isClosed());
-        $this->assertSame(10000, app(\App\Support\Accounting\Balances::class)->fund(Fund::default(), '2027-12-31'));
+        $this->assertSame(10000, app(Balances::class)->fund(Fund::default(), '2027-12-31'));
         Livewire::test(ManagePeriods::class)->callTableAction('reopen', $period, ['reason' => 'Late receipt']);
         $this->assertFalse($period->refresh()->isClosed());
     }

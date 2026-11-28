@@ -6,7 +6,6 @@ use App\Models\Account;
 use App\Models\CostCenter;
 use App\Models\Fund;
 use App\Models\JournalEntry;
-use App\Models\JournalLine;
 use App\Models\Period;
 use App\Support\Audit\Audit;
 use Illuminate\Database\Eloquent\Model;

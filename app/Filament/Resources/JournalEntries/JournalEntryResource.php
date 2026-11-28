@@ -19,11 +19,13 @@ use App\Support\Accounting\Money;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Field;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Component;
 use Filament\Schemas\Components\Text;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
@@ -74,7 +76,7 @@ class JournalEntryResource extends Resource
     /**
      * The form of a typed-in booking.
      *
-     * @return list<\Filament\Schemas\Components\Component|\Filament\Forms\Components\Field>
+     * @return list<Component|Field>
      */
     public static function entrySchema(): array
     {

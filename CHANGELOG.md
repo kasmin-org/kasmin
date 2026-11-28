@@ -6,6 +6,10 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ## [Unreleased]
 
+### Added
+
+- **Accounting** (double-entry): chart of accounts in the language of the installation, bookings with any number of lines (typed in, with receipt) that are reversed instead of changed, numbers over all years; **periods** as date ranges that can be changed while open (bookings move along) and are closed in order and reopened together with all later ones; **cost centres** (one over all years, active per period; "carries its result" or "is allocated") and **funds** (reserves, pots of the equity, optionally assigned to a bank or cash account) – both switchable in the global settings; **allocation keys** per period with fixed amounts (cut in proportion when the costs are smaller), percentages, rest and share of income; **closing** with a preview that allocates, carries the results into the funds and locks the period; bank and cash accounts with a check against the statement; reports: balance sheet, income statement, cost centres with budget, statement of funds, ledger and open items, as Excel, CSV or PDF. See the new documentation page *Accounting*.
+
 ### Changed
 
 - **Navigation in five areas.** The admin interface has the areas *People*, *Events*, *Communication*, *Accounting* and *Administration* at the top next to the logo; the navigation on the left shows only the pages of the open area, the logo or *Dashboard* opens the start page, and *My notifications* moved to the user menu. Areas without any page a person may open are not shown. The settings are split into *Organisation* and *Global settings* (Administration, the latter for administrators only) and *Invoice settings* (Accounting, also for finance roles); *System status*, *Backups* and *Update* are separate pages.

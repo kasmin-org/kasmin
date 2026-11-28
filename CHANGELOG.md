@@ -6,6 +6,8 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ## [Unreleased]
 
+## [0.31.1] - 2026-11-28
+
 ### Security
 
 - **Login:** five wrong codes made the link in the same login mail unusable as well, so anyone who knew an address could
@@ -721,7 +723,8 @@ First public pre-release for testing. Not ready for production use.
 - Docker image: system packages updated and build packages removed after compiling the PHP extensions – the
   container scan reports no high or critical findings any more (previously 75 in Debian packages).
 
-[Unreleased]: https://github.com/kasmin-org/kasmin/compare/v0.31.0...develop
+[Unreleased]: https://github.com/kasmin-org/kasmin/compare/v0.31.1...develop
+[0.31.1]: https://github.com/kasmin-org/kasmin/releases/tag/v0.31.1
 [0.31.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.31.0
 [0.30.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.30.0
 [0.29.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.29.0

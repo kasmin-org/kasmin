@@ -12,7 +12,7 @@ use Laravel\Mcp\Server\Attributes\Description;
 use Laravel\Mcp\Server\Attributes\Name;
 
 #[Name('update_event')]
-#[Description('Changes an event with the fields of the event form (basic data, bus, roles, discounts, prices, payment plan); only the fields that are sent change. With roles, the listed roles are created or changed and roles that are not listed are removed (a role with registrations cannot be removed) – send all roles of get_event that should stay. prices replaces all prices by age or date; installments works like roles, by key. Changed prices and instalments change draft invoices and future invoices. Changing status, dates or the registration window has effect on the registration of families: ask the human first.')]
+#[Description('Changes an event with the fields of the event form (basic data, bus, roles, discounts, prices, payment plan); only the fields that are sent change. With roles, the listed roles are created or changed and roles that are not listed are removed (a role with registrations cannot be removed) – send all roles of get_event that should stay. prices replaces all prices by age or date; installments works like roles: an instalment is found by its id (or by its exact label), the others are removed. Changed prices and instalments change draft invoices and future invoices. Changing status, dates or the registration window has effect on the registration of families: ask the human first.')]
 class UpdateEvent extends ApiTool
 {
     public const ENDPOINT = ['PATCH', '/events/{event}'];

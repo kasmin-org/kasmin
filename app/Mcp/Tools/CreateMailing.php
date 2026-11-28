@@ -31,7 +31,7 @@ class CreateMailing extends ApiTool
     {
         return [
             'name' => $schema->string()->description('name')->required(),
-            'template' => $schema->string()->description('template key')->required(),
+            'template' => $schema->string()->description('id or exact name of the mail template, see list_mail_templates')->required(),
             'event' => $schema->string()->description('event id'),
             'groups' => $schema->array()->description('group ids'),
             'people' => $schema->array()->description('person ids'),

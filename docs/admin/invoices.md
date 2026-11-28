@@ -9,7 +9,7 @@ nothing. Legal guardians see their family's invoices in the portal.
 
 ## 1. Organisation data
 
-*Settings → Organisation and invoices*:
+*Accounting → Invoice settings*:
 
 | Setting | Meaning |
 |---|---|
@@ -34,8 +34,9 @@ nothing. Legal guardians see their family's invoices in the portal.
   counts as a sibling, so younger siblings keep their position.
 - **Counts as sibling**: whether registrations in this role count for the sibling discount (usually yes for
   children and junior counsellors, no for staff).
-- **Payment plan** (*Prices, payment plan and sibling discount*): any number of instalments, each either a
-  **fixed amount** (e.g. deposit 100 €) or the **remaining amount** (price minus all fixed instalments). Each
+- **Payment plan** (*Prices, payment plan and sibling discount*): any number of instalments, each with a name that is
+  unique within the event, either a **fixed amount** (e.g. deposit 100 €) or the **remaining amount** (price minus all
+  fixed instalments). Each
   instalment has a fixed due date or "due after … days", can be marked refundable, and has the switch *Apply
   discounts* – usually discounts are applied to the balance only, not to the deposit.
 - **Sibling discount**:
@@ -47,6 +48,10 @@ nothing. Legal guardians see their family's invoices in the portal.
 
 Example: price 420 €, deposit 100 € (no discounts), balance = 320 €, staggered 25 € with cap 3. Three siblings pay
 deposits of 3 × 100 € and balances of 320 €, 295 € and 270 €.
+
+On the invoice, every discount is **its own position** below the line it belongs to – e.g. *Balance Ben 320.00* and
+below it *Sibling discount (2nd child) −25.00* –, so nobody has to work out the amount, and the statistics count the
+discounts by kind. Invoices issued before version 0.31 keep their old look (discount in the same line).
 
 - **Prices by age or registration date**: e.g. a lower price for younger children, early bird until a date or a late
   price from a date on. The first line that fits counts; without a fitting line the price of the role.
@@ -65,12 +70,12 @@ a refundable instalment is refunded.
 
 ### Membership fees per year
 
-*People → Membership types* holds the yearly fee per type. The automation *Membership fees* creates one invoice
+*People → Membership types* holds the name (unique) and the yearly fee per type. The automation *Membership fees* creates one invoice
 per family; fees already invoiced as an instalment of an event of the same year are skipped.
 
 ## 3. Invoice run
 
-*Finance → Invoices → Invoice run*: choose the event and the instalment. Kasmin creates one **draft** per family
+*Accounting → Invoices → Invoice run*: choose the event and the instalment. Kasmin creates one **draft** per family
 (all registered, confirmed or offered participants; waitlist entries are not invoiced). The payer is the family's
 invoice recipient, otherwise the first legal guardian. Running it again only adds families that have no invoice
 for this instalment yet.
@@ -85,7 +90,7 @@ IBAN, amount and reference automatically.
 ## 4. Payments and bank import
 
 - **Record payment** on an invoice for cash or single transfers (partial payments possible).
-- **Bank import** (*Finance → Payments → Bank import*): upload the CSV or Excel (XLSX) export of your bank account
+- **Bank import** (*Accounting → Payments → Bank import*): upload the CSV or Excel (XLSX) export of your bank account
   and enter which column holds date, amount, reference and (optional) name and IBAN. The mapping is remembered.
   Only incoming payments are imported; the same row imported twice is detected. The file is deleted afterwards.
 - Matching:
@@ -98,7 +103,7 @@ IBAN, amount and reference automatically.
   otherwise use *Split*. What is left stays unassigned.
 - **Too much paid**: the rest becomes a **credit** of the family with a refund proposal. Use it for another
   invoice or pay it back.
-- **Refunds** (*Finance → Refunds*): amount, payer, IBAN and reason. Make the bank transfer, then mark it as
+- **Refunds** (*Accounting → Refunds*): amount, payer, IBAN and reason. Make the bank transfer, then mark it as
   *Paid back* – or *Keep as credit*. Kasmin never transfers money itself.
 - When an invoice is paid in full, the payer gets the **payment confirmation** (template *Payment confirmation*,
   optionally with the paid invoice attached), and subscribers of the notification topic *payments* are informed.

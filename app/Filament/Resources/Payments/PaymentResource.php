@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Payments;
 
 use App\Filament\Resources\Invoices\InvoiceResource;
 use App\Filament\Resources\Payments\Pages\ListPayments;
+use App\Filament\Support\InArea;
 use App\Filament\Support\Money;
 use App\Models\Invoice;
 use App\Models\Payment;
@@ -32,11 +33,11 @@ use Illuminate\Database\Eloquent\Collection;
  */
 class PaymentResource extends Resource
 {
+    use InArea;
+
     protected static ?string $model = Payment::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBanknotes;
-
-    protected static ?int $navigationSort = 20;
 
     public static function getModelLabel(): string
     {
@@ -46,11 +47,6 @@ class PaymentResource extends Resource
     public static function getPluralModelLabel(): string
     {
         return __('admin.finance.payments');
-    }
-
-    public static function getNavigationGroup(): ?string
-    {
-        return __('admin.nav.finance');
     }
 
     public static function getNavigationBadge(): ?string

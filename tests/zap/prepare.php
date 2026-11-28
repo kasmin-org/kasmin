@@ -15,6 +15,7 @@ $forms = [
 if ($role !== null) {
     $forms[] = ['slug' => 'zap-event', 'kind' => 'event', 'title' => ['en' => 'Registration', 'de' => 'Anmeldung'], 'event_id' => $event->id, 'role_key' => $role->role_key];
 }
+PublicForm::query()->where('kind', 'signup')->update(['active' => true]);
 $paths = ['/login', '/register', '/up', '/docs/api', '/events/'.$event->public_id, '/events/'.$event->public_id.'?embed=1', '/api/v1/public/events'];
 foreach ($forms as $form) {
     PublicForm::query()->updateOrCreate(['slug' => $form['slug']], $form + ['active' => true]);

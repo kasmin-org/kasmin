@@ -2,7 +2,7 @@
 
 namespace Tests\Feature\Auth;
 
-use App\Filament\Pages\OrganisationSettingsPage;
+use App\Filament\Pages\InvoiceSettingsPage;
 use App\Filament\Resources\Automations\Pages\ListAutomations;
 use App\Filament\Resources\Events\Pages\EditEvent;
 use App\Filament\Resources\Events\RelationManagers\ParticipationsRelationManager;
@@ -57,12 +57,12 @@ class PermissionsTest extends TestCase
     public static function pages(): array
     {
         $all = ['people', 'people/create', 'households', 'groups', 'membership-types', 'duplicates', 'import/people', 'events', 'events/create', 'event-series', 'event-templates', 'lists', 'forms', 'forms/create', 'public-forms', 'public-submissions',
-            'invoices', 'payments', 'refunds', 'mailings', 'mail-templates', 'outgoing-mails', 'mail-accounts/create', 'automations', 'automation-runs', 'settings/organisation', 'privacy', 'consents', 'audit-events', 'api-tokens', 'webhooks', 'roles', 'reports', 'system'];
+            'invoices', 'payments', 'refunds', 'mailings', 'mail-templates', 'outgoing-mails', 'mail-accounts/create', 'automations', 'automation-runs', 'settings/organisation', 'settings/invoices', 'settings/global', 'privacy', 'consents', 'audit-events', 'api-tokens', 'webhooks', 'roles', 'reports', 'system', 'backups', 'updates'];
 
         return [
             'administrator' => ['administrator', $all],
-            'board' => ['board', array_values(array_diff($all, ['mail-accounts/create', 'audit-events', 'api-tokens', 'webhooks', 'roles', 'system']))],
-            'treasurer' => ['treasurer', ['people', 'households', 'groups', 'membership-types', 'events', 'invoices', 'payments', 'refunds', 'settings/organisation', 'reports']],
+            'board' => ['board', array_values(array_diff($all, ['mail-accounts/create', 'audit-events', 'api-tokens', 'webhooks', 'roles', 'system', 'backups', 'updates', 'settings/global']))],
+            'treasurer' => ['treasurer', ['people', 'households', 'groups', 'membership-types', 'events', 'invoices', 'payments', 'refunds', 'settings/invoices', 'reports']],
             'safety_officer' => ['safety_officer', ['people', 'households', 'groups', 'events', 'event-series', 'event-templates', 'lists', 'reports']],
             'camp_leader' => ['camp_leader', []], // without own events; with own events: OwnEventsTest
             'auditor' => ['auditor', ['events', 'invoices', 'payments', 'refunds', 'consents', 'audit-events', 'reports']],
@@ -182,8 +182,11 @@ class PermissionsTest extends TestCase
         $this->assertSame(1, $event->roles()->count());
         Livewire::test(ParticipationsRelationManager::class, ['ownerRecord' => $event, 'pageClass' => EditEvent::class])
             ->assertTableActionHidden('cancel', $p)->assertTableActionHidden('edit', $p)->assertTableActionVisible('price', $p);
-        Livewire::test(OrganisationSettingsPage::class)->set('data.public_url', 'https://attacker.example.org')->set('data.ai_processing', 'all')->fillForm(['organisation_name' => 'Our camp'])->call('save')->assertHasNoFormErrors();
-        $this->assertSame(['https://real.example.org', 'Our camp', 'none'], [Settings::get('public_url'), Settings::get('organisation_name'), Settings::get('ai_processing')]);
+        // The treasurer has the invoice settings, not the organisation or the global settings (B11).
+        $this->get('/admin/settings/organisation')->assertForbidden();
+        $this->get('/admin/settings/global')->assertForbidden();
+        Livewire::test(InvoiceSettingsPage::class)->set('data.public_url', 'https://attacker.example.org')->set('data.ai_processing', 'all')->fillForm(['organisation_bank' => 'Our bank'])->call('save')->assertHasNoFormErrors();
+        $this->assertSame(['https://real.example.org', 'Our bank', 'none'], [Settings::get('public_url'), Settings::get('organisation_bank'), Settings::get('ai_processing')]);
     }
 
     public function test_view_permission_allows_no_actions(): void

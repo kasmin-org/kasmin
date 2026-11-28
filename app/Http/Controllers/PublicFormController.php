@@ -9,6 +9,7 @@ use App\Support\Events\Guests;
 use App\Support\Events\PublicForms;
 use App\Support\Events\RegistrationException;
 use App\Support\Forms\RegistrationAnswers;
+use App\Support\People\SignUps;
 use App\Support\Settings;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -23,13 +24,32 @@ class PublicFormController extends Controller
 {
     public function __construct(private readonly PublicForms $forms, private readonly Guests $guests, private readonly RegistrationAnswers $answers) {}
 
-    public function show(string $slug): View
+    public function show(string $slug): View|RedirectResponse
     {
+        // An address in other spelling (upper case, underscore) or an earlier address of the form forwards (B15).
+        // Compared in PHP: MariaDB and MySQL compare text without regard to case, so the query alone finds "Sommer-Lager".
+        $exact = PublicForm::query()->where('slug', $slug)->where('active', true)->value('slug') === $slug;
+        if (! $exact) {
+            $normal = PublicForm::slugFrom($slug);
+            $moved = PublicForm::query()->where('active', true)->where(fn ($q) => $q->where('slug', $normal)->orWhereJsonContains('old_slugs', $slug))->value('slug');
+            if (is_string($moved) && $moved !== $slug) {
+                return redirect()->to(route('public.form', $moved).(request()->getQueryString() !== null ? '?'.request()->getQueryString() : ''), 301);
+            }
+        }
+
         return $this->page($this->form($slug));
     }
 
     private function page(PublicForm $form, bool $sent = false): View
     {
+        if ($form->kind === 'signup') {
+            return view('register', [
+                'title' => $form->titleText(), 'intro' => $form->introText() ?? __('portal.register_intro'), 'state' => $form->state(), 'form' => $form,
+                'action' => route('public.form.store', [$form->slug] + (request()->boolean('embed') ? ['embed' => 1] : [])),
+                'askNewsletter' => $form->ask_newsletter && Settings::bool('newsletter_ask'),
+            ]);
+        }
+
         return view('public.form', [
             'sent' => $sent || session('sent') === true,
             'title' => $form->titleText(), 'intro' => $form->introText(), 'state' => $form->state(), 'form' => $form,
@@ -42,6 +62,9 @@ class PublicFormController extends Controller
     public function store(Request $request, string $slug): View|RedirectResponse
     {
         $form = $this->form($slug);
+        if ($form->kind === 'signup') {
+            return app(SignUps::class)->fromRequest($form, $request);
+        }
         // Bots fill every field: the same answer, but nothing is sent.
         if ((string) $request->input('website') === '') {
             abort_unless($form->state() === 'open', 403);

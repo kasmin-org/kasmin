@@ -8,6 +8,7 @@ use App\Models\Person;
 use App\Models\Role;
 use App\Models\SystemNotification;
 use App\Models\User;
+use App\Support\Backup\DatabaseRestore;
 use App\Support\Install\Defaults;
 use App\Support\Install\Requirements;
 use App\Support\Mail\MailDns;
@@ -149,7 +150,12 @@ class SystemStatusTest extends TestCase
         $this->withoutMiddleware(AuthenticateSession::class);
         $this->actingAs($this->user('administrator', 'admin@example.org'))->withSession(['two_factor_passed' => true])->get('/admin/system')->assertOk()
             ->assertSee('data-requirements', false)->assertSee('pdo_mysql')->assertSee('exact amounts of money')
-            ->assertSee('<strong>restore</strong>', false)->assertSee(route('admin.phpinfo'), false);
+            ->assertSee(route('admin.phpinfo'), false);
+        // Backups have their own page since B11.
+        $backups = $this->withSession(['two_factor_passed' => true])->get('/admin/backups')->assertOk()->assertSee('data-backups', false);
+        if (DatabaseRestore::available()) { // only on MariaDB/MySQL
+            $backups->assertSee('<strong>restore</strong>', false);
+        }
     }
 
     public function test_phpinfo_only_for_administrators_and_without_the_environment(): void

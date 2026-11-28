@@ -5,6 +5,7 @@ namespace Tests\Feature\Forms;
 use App\Models\AuditEvent;
 use App\Models\Event;
 use App\Models\Form;
+use App\Models\FormField;
 use App\Models\Household;
 use App\Models\Participation;
 use App\Models\Person;
@@ -13,6 +14,8 @@ use App\Models\User;
 use App\Support\Install\Defaults;
 use App\Support\Lists\EventLists;
 use App\Support\Mail\Placeholders;
+use App\Support\Mail\TemplateCatalogue;
+use App\Support\Mail\TemplateRenderer;
 use App\Support\Privacy\Privacy;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
@@ -134,6 +137,33 @@ class RegistrationAnswersTest extends TestCase
         $context = app(Placeholders::class)->for($this->user->person ?? $this->ann, 'en', ['event' => $this->event, 'participation' => Participation::query()->with('event', 'person')->sole()]);
         $this->assertSame('Yes', $context['registration']['answers']['bus']);
         $this->assertArrayNotHasKey('wish', $context['registration']['answers']);
+    }
+
+    public function test_answers_are_offered_by_their_label_and_keep_working_when_the_label_changes(): void
+    {
+        // The template editor lists the questions by label; the internal key of the field is in the placeholder (B8).
+        $offered = array_merge(...array_values(TemplateCatalogue::placeholders('registration')));
+        $this->assertSame('Answer: Bus', $offered["{{ registration.answers.bus|default('') }}"] ?? null);
+        $this->assertArrayNotHasKey("{{ registration.answers.wish|default('') }}", $offered, 'confidential questions are never offered');
+        $this->assertContains('Answer: Bus', array_merge(...array_values(TemplateCatalogue::fields('registration'))));
+        $renderer = app(TemplateRenderer::class);
+        $html = "<p>Bus: {{ registration.answers.bus|default('') }}</p>{% if registration.answers.bus|default('') == 'Yes' %}<p>Seat booked</p>{% endif %}";
+        $this->assertSame([], $renderer->validate('Hello', $html, null, 'registration'));
+        $this->assertNotSame([], $renderer->validate('Hello', '<p>{{ registration.answers.shoe_size }}</p>', null, 'registration'), 'a question no form has');
+
+        // A new label keeps the key, so the placeholder of a template keeps working.
+        FormField::query()->where('key', 'bus')->firstOrFail()->update(['label' => 'Travel by bus']);
+        $this->assertSame('Answer: Travel by bus', array_merge(...array_values(TemplateCatalogue::placeholders('registration')))["{{ registration.answers.bus|default('') }}"] ?? null);
+        $this->register($this->ann, ['bus' => 'yes', 'heard' => 'friends', 'terms' => 'yes']);
+        $context = app(Placeholders::class)->for($this->user->person ?? $this->ann, 'en', ['event' => $this->event, 'participation' => Participation::query()->with('event', 'person')->sole()]);
+        $this->assertSame('<p>Bus: Yes</p><p>Seat booked</p>', $renderer->renderStrings('Hello', $html, null, $context)['html']);
+        // An event without this question: the mail is sent without the answer.
+        $this->event->roles()->update(['registration_form_id' => null]);
+        $context = app(Placeholders::class)->for($this->user->person ?? $this->ann, 'en', ['event' => $this->event, 'participation' => Participation::query()->with('event', 'person')->sole()]);
+        $this->assertSame('<p>Bus: </p>', $renderer->renderStrings('Hello', $html, null, $context)['html']);
+        // A field added later gets its own key from its label, even with the same label.
+        $form = Form::query()->where('key', 'camp_questions')->firstOrFail();
+        $this->assertSame(['travel_by_bus', 'travel_by_bus_2'], [$form->fields()->create(['type' => 'text', 'label' => 'Travel by bus'])->key, $form->fields()->create(['type' => 'text', 'label' => 'Travel by bus'])->key]);
     }
 
     public function test_anonymising_deletes_the_answers(): void

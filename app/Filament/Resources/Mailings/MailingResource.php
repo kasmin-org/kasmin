@@ -9,6 +9,7 @@ use App\Filament\Resources\Mailings\Pages\ReviewMailing;
 use App\Filament\Resources\Mailings\Schemas\MailingForm;
 use App\Filament\Resources\Mailings\Tables\MailingsTable;
 use App\Filament\Support\AreaAccess;
+use App\Filament\Support\InArea;
 use App\Models\Mailing;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -19,6 +20,7 @@ use Filament\Tables\Table;
 class MailingResource extends Resource
 {
     use AreaAccess;
+    use InArea;
 
     public static function area(): string
     {
@@ -35,11 +37,6 @@ class MailingResource extends Resource
     public static function getPluralModelLabel(): string
     {
         return __('admin.mail.mailing_plural');
-    }
-
-    public static function getNavigationGroup(): ?string
-    {
-        return __('admin.nav.communication');
     }
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedPaperAirplane;

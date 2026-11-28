@@ -8,6 +8,7 @@ use App\Filament\Resources\Households\Pages\ListHouseholds;
 use App\Filament\Resources\Households\Schemas\HouseholdForm;
 use App\Filament\Resources\Households\Tables\HouseholdsTable;
 use App\Filament\Support\AreaAccess;
+use App\Filament\Support\InArea;
 use App\Models\Household;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -18,6 +19,7 @@ use Filament\Tables\Table;
 class HouseholdResource extends Resource
 {
     use AreaAccess;
+    use InArea;
 
     public static function area(): string
     {
@@ -42,11 +44,6 @@ class HouseholdResource extends Resource
     public static function getPluralModelLabel(): string
     {
         return __('admin.household.plural');
-    }
-
-    public static function getNavigationGroup(): ?string
-    {
-        return __('admin.nav.people');
     }
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedHome;

@@ -22,9 +22,9 @@ class GetMailTemplate extends ApiTool
 
     public function handle(Request $request): Response
     {
-        $args = $this->args($request);
-        $path = '/mail-templates/'.rawurlencode((string) ($args['key'] ?? ''));
-        unset($args['key']);
+        $args = $this->withRecord($this->args($request), 'template');
+        $path = '/mail-templates/'.rawurlencode((string) ($args['template'] ?? ''));
+        unset($args['template']);
 
         return $this->call('GET', $path, $args);
     }
@@ -33,7 +33,7 @@ class GetMailTemplate extends ApiTool
     public function schema(JsonSchema $schema): array
     {
         return [
-            'key' => $schema->string()->description('template key')->required(),
+            'template' => $schema->string()->description('id or exact name of the mail template, see list_mail_templates')->required(),
         ];
     }
 }

@@ -5,10 +5,20 @@
 @section('content')
     <h1 class="mb-2 text-2xl font-semibold">{{ $organisation }}</h1>
     <p class="mb-6 text-kasmin-700">{{ __('start.text') }}</p>
-    <div class="grid gap-3 sm:grid-cols-2" data-start>
+    <div class="grid gap-3 @if ($signUp) sm:grid-cols-2 @endif" data-start>
         <a href="{{ route('login') }}" class="block rounded-lg bg-kasmin-600 px-4 py-3 text-center font-semibold text-white hover:bg-kasmin-700">{{ __('start.login') }}</a>
-        <a href="{{ route('register') }}" class="block rounded-lg bg-white px-4 py-3 text-center font-semibold ring-1 ring-kasmin-200">{{ __('start.register') }}</a>
+        @if ($signUp)
+            <a href="{{ $signUp->url() }}" class="block rounded-lg bg-white px-4 py-3 text-center font-semibold ring-1 ring-kasmin-200">{{ __('start.register') }}</a>
+        @endif
     </div>
+    @if ($forms->isNotEmpty())
+        <h2 class="mb-2 mt-8 text-lg font-semibold">{{ __('start.forms') }}</h2>
+        <ul class="text-sm" data-start-forms>
+            @foreach ($forms as $form)
+                <li class="border-b border-kasmin-100 py-2"><a class="underline" href="{{ $form->url() }}">{{ $form->titleText() }}</a></li>
+            @endforeach
+        </ul>
+    @endif
     @if ($events->isNotEmpty())
         <h2 class="mb-2 mt-8 text-lg font-semibold">{{ __('start.events') }}</h2>
         <ul class="text-sm">

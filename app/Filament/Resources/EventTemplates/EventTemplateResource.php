@@ -7,6 +7,7 @@ use App\Filament\Resources\EventTemplates\Pages\CreateEventTemplate;
 use App\Filament\Resources\EventTemplates\Pages\EditEventTemplate;
 use App\Filament\Resources\EventTemplates\Pages\ListEventTemplates;
 use App\Filament\Support\AreaAccess;
+use App\Filament\Support\InArea;
 use App\Models\EventTemplate;
 use BackedEnum;
 use Filament\Actions\EditAction;
@@ -22,6 +23,7 @@ use Filament\Tables\Table;
 class EventTemplateResource extends Resource
 {
     use AreaAccess;
+    use InArea;
 
     public static function area(): string
     {
@@ -32,8 +34,6 @@ class EventTemplateResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBookmarkSquare;
 
-    protected static ?int $navigationSort = 40;
-
     public static function getModelLabel(): string
     {
         return __('admin.event.template');
@@ -42,11 +42,6 @@ class EventTemplateResource extends Resource
     public static function getPluralModelLabel(): string
     {
         return __('admin.event.templates');
-    }
-
-    public static function getNavigationGroup(): ?string
-    {
-        return __('admin.nav.events');
     }
 
     public static function form(Schema $schema): Schema

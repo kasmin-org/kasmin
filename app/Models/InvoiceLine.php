@@ -13,6 +13,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $amount_cents
  * @property int $discount_cents
  * @property string|null $discount_kind
+ * @property string|null $discount_label
+ * @property int|null $discount_position
  * @property int|null $membership_type_id
  * @property int|null $period
  */
@@ -30,6 +32,18 @@ class InvoiceLine extends Model
         };
         static::saving($guard);
         static::deleting($guard);
+    }
+
+    /** What is charged before the discount. */
+    public function grossCents(): int
+    {
+        return $this->amount_cents + $this->discount_cents;
+    }
+
+    /** The discount as its own position (B10); false for lines made before, which show it in the same line. */
+    public function hasOwnDiscountLine(): bool
+    {
+        return $this->discount_cents > 0 && $this->discount_label !== null;
     }
 
     /** @return BelongsTo<Invoice, $this> */

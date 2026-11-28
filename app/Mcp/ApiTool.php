@@ -66,6 +66,26 @@ abstract class ApiTool extends Tool
     }
 
     /**
+     * Records are named by their id or exact name in the argument $name (B8); clients of older versions sent their key
+     * in the argument "key", which is still understood.
+     *
+     * @param  array<string, mixed>  $args
+     * @return array<string, mixed>
+     */
+    protected function withRecord(array $args, string $name): array
+    {
+        if (! array_key_exists($name, $args) && array_key_exists('key', $args)) {
+            $args[$name] = $args['key'];
+        }
+        unset($args['key']);
+        if (is_int($args[$name] ?? null)) {
+            $args[$name] = (string) $args[$name];
+        }
+
+        return $args;
+    }
+
+    /**
      * The arguments, with the optional fields named in "clear" set to null: empty values are left out of the
      * arguments, so a field is emptied by name.
      *

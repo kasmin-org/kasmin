@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Support\InArea;
 use App\Models\Person;
 use App\Models\User;
 use App\Support\Auth\Permissions;
@@ -18,6 +19,8 @@ use Filament\Support\Icons\Heroicon;
  */
 class PrivacyPage extends Page
 {
+    use InArea;
+
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedShieldCheck;
 
     protected static ?string $slug = 'privacy';
@@ -27,11 +30,6 @@ class PrivacyPage extends Page
     public ?int $reviewing = null;
 
     public string $reason = '';
-
-    public static function getNavigationGroup(): ?string
-    {
-        return __('admin.nav.privacy');
-    }
 
     public static function getNavigationLabel(): string
     {

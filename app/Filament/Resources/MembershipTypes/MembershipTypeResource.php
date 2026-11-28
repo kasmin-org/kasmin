@@ -3,11 +3,13 @@
 namespace App\Filament\Resources\MembershipTypes;
 
 use App\Filament\Resources\MembershipTypes\Pages\ManageMembershipTypes;
+use App\Filament\Support\InArea;
 use App\Filament\Support\Money;
 use App\Models\Invoice;
 use App\Models\MembershipType;
 use App\Models\User;
 use App\Support\Auth\Permissions;
+use App\Support\Records\UniqueName;
 use BackedEnum;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\TextInput;
@@ -24,11 +26,11 @@ use Filament\Tables\Table;
  */
 class MembershipTypeResource extends Resource
 {
+    use InArea;
+
     protected static ?string $model = MembershipType::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedIdentification;
-
-    protected static ?int $navigationSort = 60;
 
     public static function getModelLabel(): string
     {
@@ -38,11 +40,6 @@ class MembershipTypeResource extends Resource
     public static function getPluralModelLabel(): string
     {
         return __('admin.finance.membership_types');
-    }
-
-    public static function getNavigationGroup(): ?string
-    {
-        return __('admin.nav.people');
     }
 
     public static function canViewAny(): bool
@@ -55,8 +52,7 @@ class MembershipTypeResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
-            TextInput::make('key')->label(__('admin.finance.installment_key'))->required()->alphaDash()->maxLength(64)->unique(ignoreRecord: true)->disabledOn('edit'),
-            TextInput::make('name')->label(__('admin.finance.label_de'))->required(),
+            TextInput::make('name')->label(__('admin.form.name'))->required()->maxLength(150)->rule(fn (?MembershipType $record) => new UniqueName(MembershipType::query(), $record?->getKey())),
             Toggle::make('pays_fee')->label(__('admin.finance.pays_fee'))->live(),
             Money::input('fee_cents', __('admin.finance.yearly_fee'))->visible(fn ($get) => (bool) $get('pays_fee')),
         ]);

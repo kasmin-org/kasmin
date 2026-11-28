@@ -28,7 +28,6 @@ class CreateEventSeries extends ApiTool
     {
         return [
             'name' => $schema->string()->description('name')->required(),
-            'type' => $schema->string()->description('camp (default), alumni, meeting or other'),
         ];
     }
 }

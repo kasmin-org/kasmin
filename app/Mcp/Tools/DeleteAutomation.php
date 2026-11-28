@@ -22,14 +22,14 @@ class DeleteAutomation extends ApiTool
 
     public function handle(Request $request): Response
     {
-        return $this->callEndpoint($this->args($request), ['automation' => 'key']);
+        return $this->callEndpoint($this->withRecord($this->args($request), 'automation'));
     }
 
     /** @return array<string, Type> */
     public function schema(JsonSchema $schema): array
     {
         return [
-            'key' => $schema->string()->description('automation key')->required(),
+            'automation' => $schema->string()->description('id or exact name of the automation, see list_automations')->required(),
         ];
     }
 }

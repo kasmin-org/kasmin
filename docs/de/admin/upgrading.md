@@ -2,7 +2,7 @@
 
 Kasmin geht nur auf neuere Versionen; ein Zurück auf ältere gibt es nicht.
 
-1. Installieren Sie die neue Version (*System → Systemstatus → Aktualisierung*, das ZIP der Version über den Installer oder ein neues Tag des Docker-Images).
+1. Installieren Sie die neue Version (*Administration → System → Aktualisierung*, das ZIP der Version über den Installer oder ein neues Tag des Docker-Images).
 2. Bis die Datenbank aktualisiert ist, zeigt die Anmeldeseite einen Hinweis, und **nur Administratorinnen und Administratoren können sich anmelden**. Alles andere wartet.
 3. Melden Sie sich mit einem neuen Anmeldelink als Administratorin oder Administrator an und drücken Sie **Jetzt aktualisieren**. Kasmin schreibt zuerst eine komprimierte Sicherung der Datenbank nach
    `storage/app/private/backups`, aktualisiert dann die Datenbank und hält die neue Version fest. Das kann einige Minuten dauern; es läuft immer nur ein
@@ -16,7 +16,7 @@ Versionen, und Skripte für die Bereitstellung können `POST /system/hooks/upgra
 
 ## Automatische Updates
 
-*Einstellungen → Organisation und Rechnungen → Automatische Updates* (Administratorinnen und Administratoren, nicht in Docker; **standardmäßig ein**, kann abgeschaltet werden): Eine neue Version wird vom
+*Administration → Globale Einstellungen → Automatische Updates* (Administratorinnen und Administratoren, nicht in Docker; **standardmäßig ein**, kann abgeschaltet werden): Eine neue Version wird vom
 Cronjob installiert, sobald sie die eingestellte Zahl von Tagen veröffentlicht ist (Voreinstellung 10), zur eingestellten Uhrzeit (Voreinstellung 04:00, in der Zeitzone
 der Einstellungen). Zuerst wird eine Sicherung der Datenbank und der Programmdateien erstellt.
 
@@ -36,18 +36,18 @@ Version“. Installieren Sie die neuere Version wieder. Befehle, die das Schema 
 ## Datensicherungen
 
 Kasmin schreibt jede Nacht (02:30, braucht den Cronjob) eine Sicherung der Datenbank nach `storage/app/private/backups` und behält die letzten 7 täglichen
-(*Einstellungen → Tägliche Sicherungen behalten (Tage)*); Sicherungen vor Upgrades bleiben erhalten. *System → Systemstatus* zeigt die letzte. `php artisan kasmin:backup`
+(*Administration → Globale Einstellungen → Tägliche Sicherungen behalten (Tage)*); Sicherungen vor Upgrades bleiben erhalten. *Administration → System → Systemstatus* zeigt die letzte. `php artisan kasmin:backup`
 erstellt sofort eine. **Kopieren Sie die Sicherungen auch an einen anderen Ort**: Sie liegen auf demselben Server, und sie enthalten personenbezogene Daten. Hochgeladene Dateien
 und die Datei `.env` mit dem `APP_KEY` sind nicht enthalten; ohne diesen Schlüssel können verschlüsselte Daten wie Sicherheitsblätter nicht gelesen werden.
 
 ### Datensicherungen im Browser
 
-*System → Systemstatus → Datensicherungen* (Administratorinnen und Administratoren): **Jetzt sichern**, eine Sicherung **Herunterladen** und – sobald eine Passphrase gesetzt ist –
+*Administration → System → Datensicherungen* (Administratorinnen und Administratoren): **Jetzt sichern**, eine Sicherung **Herunterladen** und – sobald eine Passphrase gesetzt ist –
 **Verschlüsselt herunterladen**. Jeder Download steht im Audit-Protokoll.
 
 ### Eine Kopie außerhalb des Servers
 
-Eine Sicherung auf demselben Server hilft nicht, wenn der Server verloren geht. *Einstellungen → Organisation und Rechnungen → Sicherung außerhalb des Servers*:
+Eine Sicherung auf demselben Server hilft nicht, wenn der Server verloren geht. *Administration → Globale Einstellungen → Sicherung außerhalb des Servers*:
 
 | Einstellung | Bedeutung |
 |---|---|
@@ -64,7 +64,7 @@ wieder angezeigt.
 
 ### Eine Sicherung wiederherstellen
 
-**Im Browser** (Administratorinnen und Administratoren, MySQL und MariaDB): *System → Systemstatus → Datensicherungen → Sicherung wiederherstellen*. Wählen Sie eine Sicherung des
+**Im Browser** (Administratorinnen und Administratoren, MySQL und MariaDB): *Administration → System → Datensicherungen → Sicherung wiederherstellen*. Wählen Sie eine Sicherung des
 Servers oder laden Sie eine Datei hoch (`.sql.gz` oder eine verschlüsselte `.enc` mit ihrer Passphrase), tippen Sie das angezeigte Wort und bestätigen Sie. Kasmin prüft, ob die
 Datei eine vollständige Sicherung derselben Art von Datenbank ist, speichert den aktuellen Stand als Sicherung mit dem Namen `before-restore`, ersetzt alles in
 der Datenbank und bittet alle, sich neu anzumelden. Ist die Sicherung älter als die installierte Version, erscheint der Hinweis auf das Upgrade, und eine

@@ -2,12 +2,13 @@
 
 ## Questions of an event
 
-1. *Forms → New*: kind **Questions of an event**. Each question is asked *per participant* or *once per family*; consents that
+1. *Events → Forms → New*: kind **Questions of an event**. Each question is asked *per participant* or *once per family*; consents that
    are marked required must be given.
 2. *Events → edit → Roles*: choose the form under **Questions when registering**. Every role can have its own form.
 
 Answers can be changed until **Answers can be changed until** (default: start of the event). They appear on the list
-*Answers*, at the participant (*Answers*) and in mails as `{{ registration.answers.<key> }}`. Fields with the sensitivity
+*Answers*, at the participant (*Answers*) and in mails: *Insert placeholder* in the template editor lists every question
+by its label (*Answer: …*) and inserts it in the right form. Fields with the sensitivity
 *health* or *identity* are encrypted, visible only to the safety role and never part of mails or of that list. The text of
 a consent is stored as it was shown.
 
@@ -15,13 +16,28 @@ Before registering, legal guardians see places, price, instalments and cancellat
 
 ## Public forms
 
-*Forms → Public forms*: address `/f/<name>`, title and text, opening and closing time.
+*Events → Forms → Public forms*: address `/f/<name>`, title and text, opening and closing time.
+
+**Address.** The field *Address* is the last part of the web address. Below it, the full address appears while you type
+(with a button to copy it), exactly as it will be saved: Kasmin suggests it from the title, writes everything in lower case,
+spells out umlauts (ä → ae, ß → ss), drops other accents and turns spaces and other characters into a hyphen – so
+*Anmeldung für Kinder* becomes `/f/anmeldung-fuer-kinder`. Each address belongs to one form. If you change the address of a
+published form, the old one keeps forwarding to it; still change the links on your website.
 
 | Kind | After the confirmation |
 |---|---|
 | Register for an event | the person is registered in the chosen role (age rule, places and waitlist apply) |
-| Application | waits under *Forms → Submissions*; after approval: membership, group and welcome mail. Without approval it is done at once |
+| Application | waits under *Events → Forms → Submissions*; after approval: membership, group and welcome mail. Without approval it is done at once |
 | Stay informed | newsletter consent, optionally a group |
+| Sign-up (family account) | a legal guardian creates the family account (name, e-mail, consent); after the confirmation the family exists and the person is logged in, optionally in a group. Children are added in the portal |
+
+**Signing up** is only possible through a form of the kind *Sign-up (family account)*. Every installation has one, and it
+is **switched off** – also after the update from an older version, where everybody could sign up before. Switch it on (and
+set opening and closing times if you like): only while it is switched on and open, the start page shows *Sign up for the
+first time*, and the old address `/register` forwards to it; otherwise it says that signing up is not possible at the
+moment.
+
+**Start page.** *Show on the start page* lists a form there (while it is switched on and open), below the public events.
 
 Nothing happens before the link in the mail is opened **and** confirmed with the button (valid 3 days). Known people are
 recognised by address **and** name; their data is never overwritten. The page never shows whether an address is known.
@@ -34,7 +50,7 @@ participant can invite that many guests: each gets a personal link, registers pe
 
 ## Families
 
-*Settings → Organisation and invoices → Families*:
+*Administration → Organisation → Families*:
 
 | Setting | Default |
 |---|---|
@@ -71,7 +87,7 @@ instead of asking for a family.
 ### Gender of a child
 
 When legal guardians add a child, they must choose the gender: female, male or diverse – rooms are planned with it, so "not specified" is
-not offered there. *Settings → Organisation and invoices → Families* holds an optional note per gender that appears below the choice as soon as this
+not offered there. *Administration → Organisation → Families* holds an optional note per gender that appears below the choice as soon as this
 gender is picked. Female and male have none by default; diverse has this one, which you can change or empty:
 
 > We separate the children by gender per room. Please contact us directly and tell us in which room the child wants to sleep, so that we

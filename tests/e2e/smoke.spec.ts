@@ -19,7 +19,8 @@ test('start page shows the logo, fits the screen and leads to the login and to t
     await expect(page.locator('input[type=email]')).toBeVisible();
     await page.goto('/');
     await page.locator('[data-start] a').nth(1).click();
-    await expect(page).toHaveURL(/\/register$/);
+    // The sign-up is a public form (B16); the demo data switches it on.
+    await expect(page).toHaveURL(/\/f\/[a-z0-9-]+$/);
     await expect(page.locator('input[name=first_name]')).toBeVisible();
 });
 

@@ -4,6 +4,7 @@ namespace App\Filament\Resources\PublicSubmissions;
 
 use App\Filament\Resources\PublicSubmissions\Pages\ListPublicSubmissions;
 use App\Filament\Support\AreaAccess;
+use App\Filament\Support\InArea;
 use App\Models\FormField;
 use App\Models\PublicSubmission;
 use App\Models\User;
@@ -30,6 +31,7 @@ use Illuminate\Database\Eloquent\Builder;
 class PublicSubmissionResource extends Resource
 {
     use AreaAccess;
+    use InArea;
 
     public static function area(): string
     {
@@ -42,8 +44,6 @@ class PublicSubmissionResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedInboxArrowDown;
 
-    protected static ?int $navigationSort = 30;
-
     public static function getModelLabel(): string
     {
         return __('public.submission');
@@ -52,11 +52,6 @@ class PublicSubmissionResource extends Resource
     public static function getPluralModelLabel(): string
     {
         return __('public.submissions');
-    }
-
-    public static function getNavigationGroup(): ?string
-    {
-        return __('admin.nav.forms');
     }
 
     public static function getNavigationBadge(): ?string

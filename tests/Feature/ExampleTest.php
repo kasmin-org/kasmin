@@ -28,8 +28,10 @@ class ExampleTest extends TestCase
         Event::query()->create(['title' => 'Internal meeting', 'starts_at' => now()->addMonth(), 'ends_at' => now()->addMonth()->addDay(), 'status' => 'open']);
         Event::query()->create(['title' => 'Last year', 'starts_at' => now()->subYear(), 'ends_at' => now()->subYear()->addWeek(), 'status' => 'finished', 'public_page' => true]);
 
+        $this->get('/')->assertOk()->assertDontSee(__('start.register'));
+        $form = $this->openSignUp();
         $this->get('/')->assertOk()
-            ->assertSee('Example Camp')->assertSee('href="'.route('login').'"', false)->assertSee('href="'.route('register').'"', false)
+            ->assertSee('Example Camp')->assertSee('href="'.route('login').'"', false)->assertSee('href="'.$form->url().'"', false)
             ->assertSee('Summer camp')->assertDontSee('Internal meeting')->assertDontSee('Last year')
             ->assertDontSee('next versions')->assertDontSee('Version');
     }

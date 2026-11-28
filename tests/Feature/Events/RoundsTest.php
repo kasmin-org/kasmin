@@ -43,7 +43,7 @@ class RoundsTest extends TestCase
         $this->travelTo(Carbon::parse('2027-01-10 12:00'));
         app(Defaults::class)->install('en');
         app()->setLocale('en');
-        $this->series = EventSeries::query()->create(['name' => 'Camp', 'type' => 'camp']);
+        $this->series = EventSeries::query()->create(['name' => 'Camp']);
         foreach ([2024, 2025, 2026] as $year) {
             $this->past[$year] = Event::query()->create(['title' => 'Camp '.$year, 'event_series_id' => $this->series->id, 'starts_at' => $year.'-08-01', 'ends_at' => $year.'-08-08', 'status' => 'finished']);
         }

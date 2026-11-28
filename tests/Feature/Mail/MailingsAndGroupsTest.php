@@ -138,7 +138,7 @@ class MailingsAndGroupsTest extends TestCase
 
     public function test_dynamic_groups(): void
     {
-        $series = EventSeries::query()->create(['name' => 'Camp', 'type' => 'camp']);
+        $series = EventSeries::query()->create(['name' => 'Camp']);
         $next = Event::query()->create(['title' => '2027', 'event_series_id' => $series->id, 'starts_at' => '2027-08-01', 'ends_at' => '2027-08-08', 'status' => 'open']);
         $past = Event::query()->create(['title' => '2026', 'event_series_id' => $series->id, 'starts_at' => '2026-08-01', 'ends_at' => '2026-08-08', 'status' => 'finished']);
         $fits = $this->person('Fits', '2013-07-31');     // 14 at the camp, still 13 today

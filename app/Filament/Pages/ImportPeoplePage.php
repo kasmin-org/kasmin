@@ -4,6 +4,7 @@ namespace App\Filament\Pages;
 
 use App\Console\Commands\ImportPeopleCommand;
 use App\Filament\Resources\ImportBatches\ImportBatchResource;
+use App\Filament\Support\InArea;
 use App\Models\User;
 use App\Support\Auth\Permissions;
 use App\Support\Import\PeopleImporter;
@@ -32,6 +33,8 @@ use Livewire\Attributes\Locked;
  */
 class ImportPeoplePage extends Page
 {
+    use InArea;
+
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedArrowUpTray;
 
     protected static ?string $slug = 'import/people';
@@ -49,11 +52,6 @@ class ImportPeoplePage extends Page
 
     #[Locked]
     public string $cacheKey = '';
-
-    public static function getNavigationGroup(): ?string
-    {
-        return __('admin.nav.people');
-    }
 
     public static function getNavigationLabel(): string
     {

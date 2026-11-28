@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'nav' => ['people' => 'People', 'events' => 'Events', 'forms' => 'Forms', 'finance' => 'Finance', 'settings' => 'Settings', 'automations' => 'Automations', 'privacy' => 'Data protection', 'reports' => 'Reports', 'communication' => 'Communication', 'system' => 'System'],
+    'nav' => ['people_care' => 'Maintenance', 'event_templates' => 'Templates', 'finance_settings' => 'Settings', 'people' => 'People', 'events' => 'Events', 'forms' => 'Forms', 'finance' => 'Finance', 'settings' => 'Settings', 'automations' => 'Automations', 'privacy' => 'Data protection', 'reports' => 'Reports', 'communication' => 'Communication', 'system' => 'System'],
     'finance' => [
         'single_invoice' => 'Single invoice',
         'proposed_on' => 'Proposed on',
@@ -19,6 +19,7 @@ return [
         'sibling_cap' => 'Cap from child no.', 'sibling_cap_hint' => 'From this child on the discount does not grow any more (e.g. 3 = the same from the 3rd child on).',
         'sibling_min' => 'Minimum number of children', 'reminder_days' => 'Reminder … days before due date', 'reminder_days_hint' => 'Empty = global setting (default 3 days). Several values possible.',
         'installments' => 'Payment plan', 'add_installment' => 'Add instalment', 'installment' => 'Instalment', 'installment_key' => 'Key', 'installment_kind' => 'Kind',
+        'installment_name_taken' => 'Two instalments of the payment plan cannot have the same name.',
         'label_de' => 'Label', 'amount' => 'Amount', 'due_date' => 'Due on', 'due_date_hint' => 'Fixed date; empty = days from the invoice date.',
         'due_days' => 'Due after … days', 'refundable' => 'Refundable', 'discounts_apply' => 'Apply discounts', 'discounts_apply_hint' => 'Usual: discounts only on the balance, not on the deposit.',
         'number' => 'Number', 'type' => 'Type', 'payer' => 'Payer', 'lines' => 'Lines', 'payments' => 'Payments', 'payment' => 'Payment',
@@ -35,7 +36,7 @@ return [
     ],
     'settings' => [
         'mail_layout' => 'Look of the e-mails', 'mail_logo' => 'Logo (PNG, JPG, GIF)', 'mail_color' => 'Colour', 'mail_footer' => 'Footer of the e-mails', 'mail_footer_hint' => 'Shown in every e-mail, e.g. name, address, registration number.', 'audit_ip_days' => 'Audit log: shorten IP address and browser after (days)', 'audit_ip_days_hint' => '0 = never. Afterwards only the network part of the address and the kind of browser are kept.', 'retention_audit_years' => 'Audit log: years', 'retention_audit_years_hint' => '0 = entries are kept for good.', 'search' => 'Search in the settings …', 'own_event_days' => 'Own events: days of access after the end', 'own_event_days_hint' => 'Camp leaders and counsellors with a role for their own events keep access to an event (participants, lists) this many days after it ended, e.g. for closing work. Then it disappears from their view.', 'approval_summary_time' => 'Approvals: summary by e-mail at', 'approval_summary_time_hint' => 'Approvers get one e-mail with everything that came in since the last summary, at this time of day. Several times with commas (07:00, 17:00). Empty: every request is sent at once in an e-mail of its own.', 'retention_mail_years' => 'Mail log: years', 'retention_mail_years_hint' => '0 = as long as the person exists. Mails with invoices stay at least as long as the invoices.',
-        'organisation' => 'Organisation and invoices', 'name' => 'Name of the organisation', 'email' => 'E-mail address', 'address' => 'Postal address', 'website' => 'Website',
+        'organisation_page' => 'Organisation', 'invoices_page' => 'Invoice settings', 'global_page' => 'Global settings', 'organisation' => 'Organisation and invoices', 'name' => 'Name of the organisation', 'email' => 'E-mail address', 'address' => 'Postal address', 'website' => 'Website',
         'legal_footer' => 'Footer (legal notice)', 'legal_footer_hint' => 'Shown on every invoice, e.g. register number, seat, contact.',
         'bank' => 'Bank account', 'bank_name' => 'Bank', 'bic_hint' => 'Optional; included in the QR code.', 'iban_invalid' => 'The IBAN is not valid.',
         'invoices' => 'Invoices', 'number_format' => 'Number format', 'number_format_hint' => '{number} = sequential number, {year} = year, e.g. R{number} or {year}-{number}.',
@@ -94,7 +95,9 @@ return [
     'group' => ['changes' => 'Last 30 days', 'singular' => 'Group', 'plural' => 'Groups', 'parent' => 'Belongs to', 'members' => 'Members', 'kinds' => ['manual' => 'By hand', 'dynamic' => 'By rules', 'event' => 'Participants of an event'], 'event_hint' => 'Ages count at this event, and only events of its series are counted. Empty = today, all events.', 'rules' => 'Rules', 'match' => 'People must fit', 'matches' => ['all' => 'all rules', 'any' => 'at least one rule'], 'add_rule' => 'Add rule', 'field' => 'Field', 'fields' => ['age' => 'Age', 'membership' => 'Membership', 'role' => 'Role', 'group' => 'Member of group', 'events' => 'Number of past events'], 'value' => 'Value', 'min' => 'From', 'max' => 'To', 'not' => 'Not', 'source' => 'Source', 'update' => 'Recalculate', 'add' => 'Add person', 'remove' => 'Remove'],
     'form' => [
         'kind' => 'Kind', 'kinds' => ['person' => 'Person (kept for all events)', 'registration' => 'Questions of an event'], 'scope' => 'Asked', 'scopes' => ['participant' => 'per participant', 'family' => 'once per family'],
-        'singular' => 'Form', 'plural' => 'Forms', 'key' => 'Key', 'active' => 'Active', 'name' => 'Name', 'description' => 'Description',
+        'singular' => 'Form', 'plural' => 'Forms', 'key' => 'Key', 'name_taken' => 'This name is already taken. Please choose another one.',
+        'import_hint_name' => 'Import a form from a file. A form that was exported from the same form, or that has the same name, gets a new version; fields that are not in the file are removed.',
+        'active' => 'Active', 'name' => 'Name', 'description' => 'Description',
         'applies_until_age' => 'Applies until age', 'confirm_every_days' => 'Confirm every … days', 'family_emergency_contacts' => 'Show the family\'s emergency contacts',
         'version' => 'Version', 'fields' => 'Fields', 'add_field' => 'Add field', 'type' => 'Type', 'label' => 'Label', 'help' => 'Help text (tooltip)',
         'sensitivity' => 'Confidentiality', 'list_use' => 'Used in lists', 'required' => 'Required', 'carry_over' => 'Carry over to next year',
@@ -171,4 +174,5 @@ return [
     'help' => ['title' => 'Opens the documentation of this version in a new tab', 'link' => 'Help for this page'],
     'overview' => ['title' => 'Overview', 'roles' => 'Roles', 'memberships' => 'Memberships', 'login' => 'Login', 'last_login' => 'last login', 'never' => 'never', 'second_factor' => 'second factor', 'yes' => 'yes', 'no' => 'no', 'no_login' => 'No login yet', 'mails' => 'Mails to the family', 'invoice_recipient' => 'Invoices go to', 'invoice_recipient_auto' => 'first legal guardian'],
     'bulk' => ['add_to_group' => 'Add to a group', 'remove_from_group' => 'Remove from a group', 'manual_only' => 'Only groups that are filled by hand. Groups by rules and of events fill themselves.', 'added' => '{0} Everybody was in the group already.|{1} One person added.|[2,*] :count people added.', 'removed' => '{0} Nobody was in the group.|{1} One person removed.|[2,*] :count people removed.', 'mailing' => 'Write to the selected', 'mailing_hint' => 'Creates a mailing as a draft for the selected people. You see the preview and send it there; rules for approvals apply.', 'selection' => 'Selection of :date', 'status' => 'Change the status', 'status_hint' => 'Cancellations are not done here: they need a reason and inform the family.', 'status_done' => '{0} Nothing changed.|{1} One registration changed.|[2,*] :count registrations changed.'],
+    'areas' => ['label' => 'Areas', 'dashboard' => 'Dashboard', 'people' => 'People', 'events' => 'Events', 'communication' => 'Communication', 'finance' => 'Accounting', 'administration' => 'Administration'],
 ];

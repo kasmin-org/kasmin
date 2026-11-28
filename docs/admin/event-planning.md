@@ -22,7 +22,7 @@ the public page. People on the waitlist do not see them. Files are stored privat
 *Public page* shows `/events/<id>`: dates, place, prices, places, public documents and the registration buttons. Drafts and
 archived events are never shown.
 
-To show the page or a public form on your website, add the website under *Settings → Organisation and invoices → Websites that
+To show the page or a public form on your website, add the website under *Administration → Global settings → Websites that
 may embed public pages* and use `?embed=1`:
 
 ```html

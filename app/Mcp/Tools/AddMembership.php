@@ -28,7 +28,7 @@ class AddMembership extends ApiTool
     {
         return [
             'person' => $schema->string()->description('person id')->required(),
-            'type' => $schema->string()->description('key of the membership type, see list_membership_types')->required(),
+            'type' => $schema->string()->description('id or exact name of the membership type, see list_membership_types')->required(),
             'starts_on' => $schema->string()->description('first day YYYY-MM-DD, default today'),
             'ends_on' => $schema->string()->description('last day YYYY-MM-DD'),
         ];

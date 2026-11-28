@@ -16,6 +16,8 @@ use Illuminate\Support\Carbon;
  * @property Carbon $expires_at
  * @property Carbon|null $used_at
  * @property int $failed_attempts
+ * @property int|null $event_id
+ * @property Carbon $created_at
  */
 class LoginToken extends Model
 {

@@ -26,9 +26,10 @@ class NotificationsPage extends Page
     /** @var array<string, string> */
     public array $choices = [];
 
-    public static function getNavigationGroup(): ?string
+    /** In the user menu (top right), not in an area (B11). */
+    public static function shouldRegisterNavigation(): bool
     {
-        return __('admin.nav.system');
+        return false;
     }
 
     public static function getNavigationLabel(): string

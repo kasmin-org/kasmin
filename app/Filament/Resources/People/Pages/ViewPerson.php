@@ -57,6 +57,16 @@ class ViewPerson extends ViewRecord
                         Notification::make()->title(__('people.login_link_sent'))->success()->send();
                     }
                 }),
+            Action::make('revoke_links')->label(__('people.revoke_links'))->icon('heroicon-o-link-slash')->color('gray')->requiresConfirmation()
+                ->modalDescription(__('people.revoke_links_hint'))
+                ->visible(fn () => Permissions::current('people', 'edit') && $this->person()->user !== null)
+                ->action(function () {
+                    $user = $this->person()->user;
+                    if ($user !== null) {
+                        $count = app(LoginLinks::class)->revokeMailLinks($user);
+                        Notification::make()->title(trans_choice('portal.mail_links_ended', $count, ['count' => $count]))->success()->send();
+                    }
+                }),
             Action::make('export')->label(__('portal.export'))->icon('heroicon-o-arrow-down-tray')->color('gray')->requiresConfirmation()
                 ->visible(fn () => Permissions::administrator() && $this->person()->getAttribute('anonymised_at') === null)
                 ->action(function () {

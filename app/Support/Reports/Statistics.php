@@ -172,7 +172,7 @@ class Statistics
             ->where('discount_cents', '>', 0)->get();
         $sibling = [];
         foreach ($lines->where('discount_kind', 'sibling') as $line) {
-            $position = preg_match('/(\d+)\./', $line->description, $m) === 1 ? (int) $m[1] : (preg_match('/no\. (\d+)/', $line->description, $m) === 1 ? (int) $m[1] : 0);
+            $position = $line->discount_position ?? (preg_match('/(\d+)\./', $line->description, $m) === 1 ? (int) $m[1] : (preg_match('/no\. (\d+)/', $line->description, $m) === 1 ? (int) $m[1] : 0));
             $sibling[$position]['count'] = ($sibling[$position]['count'] ?? 0) + 1;
             $sibling[$position]['cents'] = ($sibling[$position]['cents'] ?? 0) + $line->discount_cents;
         }

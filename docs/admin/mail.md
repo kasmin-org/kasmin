@@ -2,7 +2,7 @@
 
 ## Sending: mail account and sender
 
-*Communication → E-mail sending* is one page for the whole installation:
+*Administration → E-mail sending* is one page for the whole installation:
 
 - **Sender**: the name and the address every mail goes out with, and optionally a reply-to address for the answers.
   There is one sender. Templates and mailings do not choose one.
@@ -21,7 +21,8 @@ installation that had several keeps using its standard account and the first sen
 
 *Communication → Mail templates*: one text per template, edited in a formatted editor; every save is a new
 version. A template has no versions per language – an installation works in one language (see
-[System](system.md#language)), and the text is simply what you wrote.
+[System](system.md#language)), and the text is simply what you wrote. Every template has a name of its own: two
+templates cannot have the same name.
 
 Every template belongs to a **group** that says what the mail is about – because that decides which placeholders
 exist. A mail to everybody knows no invoice number:
@@ -80,7 +81,7 @@ Allowed: `{% if %}`, `{% for %}`, `{% set %}` and the filters `upper`, `lower`, 
 
 ## Look
 
-*Settings → Organisation and invoices → Look of the e-mails*: logo, colour and footer of all mails.
+*Administration → Organisation → Look of the e-mails*: logo, colour and footer of all mails.
 
 ## Mailings
 
@@ -100,7 +101,7 @@ Mailings leave them out; invoices and other single mails are still tried. The ma
 
 ## Retention
 
-*Settings → Retention → Mail log*: years after which finished mails are deleted (0 = as long as the person exists). Mails with
+*Administration → Organisation → Retention → Mail log*: years after which finished mails are deleted (0 = as long as the person exists). Mails with
 invoices stay at least as long as the invoices.
 
 ## Sending
@@ -118,7 +119,7 @@ requests are not executed automatically – administrators are notified and deci
 
 ## Notifications for administrators
 
-*System → My notifications*: everyone with access to the admin interface chooses per topic. Only topics with the needed rights are
+*My notifications* in the user menu (top right): everyone with access to the admin interface chooses per topic. Only topics with the needed rights are
 offered, and the rights are checked again whenever something is sent. Administrators who have not chosen anything get deletion requests
 immediately and errors of automations once a day. The page also shows the latest notifications.
 
@@ -128,7 +129,7 @@ contain confidential values.
 
 ## Test mode
 
-*Settings → Organisation and invoices → Mail test mode* (administrators; `KASMIN_MAIL_TEST_ADDRESS` for Docker): **every** mail goes to
+*Administration → Global settings → Mail test mode* (administrators; `KASMIN_MAIL_TEST_ADDRESS` for Docker): **every** mail goes to
 this address, also login links. The subject shows the real recipient, and the admin interface shows a notice. Make sure you can read
 that mailbox, otherwise nobody can log in.
 

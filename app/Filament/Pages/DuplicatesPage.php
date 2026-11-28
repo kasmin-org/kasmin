@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Support\InArea;
 use App\Models\Person;
 use App\Models\User;
 use App\Support\Auth\Permissions;
@@ -19,18 +20,13 @@ use RuntimeException;
  */
 class DuplicatesPage extends Page
 {
+    use InArea;
+
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUsers;
 
     protected static ?string $slug = 'duplicates';
 
-    protected static ?int $navigationSort = 70;
-
     protected string $view = 'filament.pages.duplicates';
-
-    public static function getNavigationGroup(): ?string
-    {
-        return __('admin.nav.people');
-    }
 
     public static function getNavigationLabel(): string
     {

@@ -2,11 +2,9 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Support\InArea;
 use App\Models\SystemNotification;
 use App\Models\User;
-use App\Support\Backup\Backups;
-use App\Support\Backup\DatabaseRestore;
-use App\Support\Backup\RemoteBackup;
 use App\Support\Mail\MailDns;
 use App\Support\System\SystemNotifications;
 use App\Support\System\SystemStatus;
@@ -15,20 +13,18 @@ use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
 
 /**
- * System status for administrators (ST01, ST02): checks, mail DNS records, system notifications, update.
+ * System status for administrators (ST01, ST02): checks, PHP configuration, mail DNS records, system notifications.
+ * Backups and the update have their own pages since B11.
  */
 class SystemStatusPage extends Page
 {
+    use InArea;
+
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedHeart;
 
     protected static ?string $slug = 'system';
 
     protected string $view = 'filament.pages.system-status';
-
-    public static function getNavigationGroup(): ?string
-    {
-        return __('admin.nav.system');
-    }
 
     public static function getNavigationLabel(): string
     {
@@ -57,11 +53,6 @@ class SystemStatusPage extends Page
             'checks' => $status->checks(),
             'dns' => app(MailDns::class)->report(),
             'notifications' => SystemNotification::query()->whereNull('resolved_at')->orderByDesc('id')->get(),
-            'docker' => SystemStatus::runsInDocker(),
-            'backups' => array_slice(app(Backups::class)->all(), 0, 12),
-            'remote' => RemoteBackup::configured() ? RemoteBackup::state() : null,
-            'passphrase' => RemoteBackup::secret('backup_passphrase') !== '',
-            'restore' => DatabaseRestore::available(),
             'cronDocs' => SystemStatus::docsUrl('admin/hosting'),
         ];
     }

@@ -15,8 +15,7 @@ class EventSeriesTable
         return $table
             ->columns([
                 TextColumn::make('name')
-                    ->searchable(),
-                TextColumn::make('type')
+                    ->label(__('admin.form.name'))
                     ->searchable(),
                 TextColumn::make('created_at')
                     ->dateTime()

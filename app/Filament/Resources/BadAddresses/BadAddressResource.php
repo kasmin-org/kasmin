@@ -5,6 +5,7 @@ namespace App\Filament\Resources\BadAddresses;
 use App\Filament\Resources\BadAddresses\Pages\ListBadAddresses;
 use App\Filament\Resources\People\PersonResource;
 use App\Filament\Support\AreaAccess;
+use App\Filament\Support\InArea;
 use App\Models\ContactPoint;
 use App\Support\Auth\Permissions;
 use App\Support\Mail\BadAddresses;
@@ -23,6 +24,7 @@ use Illuminate\Database\Eloquent\Builder;
 class BadAddressResource extends Resource
 {
     use AreaAccess;
+    use InArea;
 
     public static function area(): string
     {
@@ -43,11 +45,6 @@ class BadAddressResource extends Resource
     public static function getPluralModelLabel(): string
     {
         return __('admin.mail.bad_addresses');
-    }
-
-    public static function getNavigationGroup(): ?string
-    {
-        return __('admin.nav.communication');
     }
 
     public static function canCreate(): bool

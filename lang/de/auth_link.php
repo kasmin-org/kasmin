@@ -15,6 +15,8 @@ return [
     'link_intro' => 'Tippen Sie auf „Weiter“, um sich anzumelden.',
     'invalid_title' => 'Link nicht mehr gültig',
     'invalid' => 'Dieser Anmeldelink ist abgelaufen oder wurde schon verwendet.',
+    'code_hint' => 'Klicken Sie auf den Link in der E-Mail oder geben Sie hier den Code aus der E-Mail ein (sechs Zeichen, z. B. K7M-2QX).',
+    'code_refused' => 'Der Code ist falsch oder abgelaufen. Nach fünf falschen Versuchen ist die Eingabe eines Codes für 30 Minuten gesperrt – der Link in der E-Mail funktioniert weiter.',
     'wrong_code' => 'Der Code ist falsch oder abgelaufen.',
     'mail_subject' => 'Ihr Anmeldelink für :app',
     'mail_greeting' => 'Guten Tag :name,',

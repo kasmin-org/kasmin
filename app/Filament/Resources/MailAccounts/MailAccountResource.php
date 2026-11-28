@@ -7,6 +7,7 @@ use App\Filament\Resources\MailAccounts\Pages\EditMailAccount;
 use App\Filament\Resources\MailAccounts\Pages\ListMailAccounts;
 use App\Filament\Resources\MailAccounts\Schemas\MailAccountForm;
 use App\Filament\Support\AreaAccess;
+use App\Filament\Support\InArea;
 use App\Models\MailAccount;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -16,6 +17,7 @@ use Filament\Support\Icons\Heroicon;
 class MailAccountResource extends Resource
 {
     use AreaAccess;
+    use InArea;
 
     public static function area(): string
     {
@@ -37,11 +39,6 @@ class MailAccountResource extends Resource
     public static function getNavigationLabel(): string
     {
         return __('admin.mail.sending');
-    }
-
-    public static function getNavigationGroup(): ?string
-    {
-        return __('admin.nav.communication');
     }
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedServerStack;

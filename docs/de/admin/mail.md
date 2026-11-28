@@ -2,7 +2,7 @@
 
 ## Versand: Mailkonto und Absender
 
-*Kommunikation → E-Mail-Versand* ist eine Seite für die ganze Installation:
+*Administration → E-Mail-Versand* ist eine Seite für die ganze Installation:
 
 - **Absender**: der Name und die Adresse, mit denen jede Mail hinausgeht, und auf Wunsch eine Antwortadresse für die Antworten.
   Es gibt einen Absender. Vorlagen und Aussendungen wählen keinen aus.
@@ -21,7 +21,8 @@ Installation, die mehrere hatte, verwendet weiter ihr Standardkonto und dessen e
 
 *Kommunikation → Mailvorlagen*: ein Text pro Vorlage, bearbeitet in einem Editor mit Formatierung; jedes Speichern ist eine neue
 Version. Eine Vorlage hat keine Fassungen pro Sprache – eine Installation arbeitet in einer Sprache (siehe
-[System](system.md#sprache)), und der Text ist einfach das, was Sie geschrieben haben.
+[System](system.md#sprache)), und der Text ist einfach das, was Sie geschrieben haben. Jede Vorlage hat einen eigenen Namen:
+Zwei Vorlagen können nicht denselben Namen haben.
 
 Jede Vorlage gehört zu einer **Gruppe**, die sagt, worum es in der Mail geht – denn davon hängt ab, welche Platzhalter
 es gibt. Eine Mail an alle kennt keine Rechnungsnummer:
@@ -80,7 +81,7 @@ Erlaubt sind `{% if %}`, `{% for %}`, `{% set %}` und die Filter `upper`, `lower
 
 ## Aussehen
 
-*Einstellungen → Organisation und Rechnungen → Aussehen der E-Mails*: Logo, Farbe und Fußzeile aller Mails.
+*Administration → Organisation → Aussehen der E-Mails*: Logo, Farbe und Fußzeile aller Mails.
 
 ## Aussendungen
 
@@ -100,7 +101,7 @@ Aussendungen lassen sie aus; Rechnungen und andere Einzelmails werden trotzdem v
 
 ## Aufbewahrung
 
-*Einstellungen → Aufbewahrung → Mailprotokoll: Jahre*: Jahre, nach denen erledigte Mails gelöscht werden (0 = solange es die Person gibt). Mails mit
+*Administration → Organisation → Aufbewahrung → Mailprotokoll: Jahre*: Jahre, nach denen erledigte Mails gelöscht werden (0 = solange es die Person gibt). Mails mit
 Rechnungen bleiben mindestens so lange wie die Rechnungen.
 
 ## Versand
@@ -118,7 +119,7 @@ werden nicht automatisch ausgeführt – Administratorinnen und Administratoren 
 
 ## Benachrichtigungen für die Verwaltung
 
-*System → Meine Benachrichtigungen*: Alle mit Zugang zur Verwaltung wählen pro Thema. Angeboten werden nur Themen, für die die nötigen Rechte da sind,
+*Meine Benachrichtigungen* im Benutzermenü (oben rechts): Alle mit Zugang zur Verwaltung wählen pro Thema. Angeboten werden nur Themen, für die die nötigen Rechte da sind,
 und die Rechte werden bei jedem Senden noch einmal geprüft. Administratorinnen und Administratoren, die nichts gewählt haben, bekommen Löschanträge
 sofort und Fehler in Automatisierungen einmal am Tag. Die Seite zeigt auch die letzten Benachrichtigungen.
 
@@ -128,7 +129,7 @@ vertrauliche Werte.
 
 ## Testmodus
 
-*Einstellungen → Organisation und Rechnungen → Mail-Testmodus: alles senden an* (Administratorinnen und Administratoren; `KASMIN_MAIL_TEST_ADDRESS` für Docker): **Jede** Mail geht an
+*Administration → Globale Einstellungen → Mail-Testmodus: alles senden an* (Administratorinnen und Administratoren; `KASMIN_MAIL_TEST_ADDRESS` für Docker): **Jede** Mail geht an
 diese Adresse, auch Anmeldelinks. Der Betreff zeigt die echte Empfängeradresse, und die Verwaltung zeigt einen Hinweis. Stellen Sie sicher, dass Sie
 dieses Postfach lesen können, sonst kann sich niemand anmelden.
 

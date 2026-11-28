@@ -71,7 +71,7 @@ class ReviewMailing extends Page
         return [
             'mailing' => $mailing, 'counts' => $counts, 'total' => array_sum($counts),
             'done' => array_sum(array_intersect_key($counts, array_flip(['sent', 'failed', 'bounced', 'cancelled']))),
-            'mail' => $mail, 'frame' => $mail instanceof OutgoingMail ? PreviewFrame::make(MailLinks::replace($mail->html, '#'), $mail->subject, 520) : null,
+            'mail' => $mail, 'frame' => $mail instanceof OutgoingMail ? PreviewFrame::make(MailLinks::preview($mail->html, '#'), $mail->subject, 520) : null,
             'attachments' => $mail instanceof OutgoingMail ? array_values(array_filter(array_map(fn (array $a) => $a['name'] ?? (isset($a['document_id']) ? __('admin.event.document') : null), $mail->attachments ?? []))) : [],
             'excluded' => in_array($mailing->status, ['draft', 'prepared', 'waiting'], true) ? app(Mailings::class)->plan($mailing)['excluded'] : [],
             'mayEdit' => Permissions::current('mailings', 'edit'),

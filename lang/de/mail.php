@@ -34,7 +34,7 @@ return [
     'notifications' => 'Meine Benachrichtigungen', 'notifications_by_mail' => 'Per E-Mail', 'notifications_hint' => 'Nur Themen, für die Sie die Rechte haben. Zusammenfassungen kommen um 07:00 (oder zur Zeit in den Einstellungen), wöchentliche am Montag. Sie enthalten nie vertrauliche Werte.', 'notifications_latest' => 'Letzte Benachrichtigungen',
     'frequencies' => ['immediate' => 'sofort', 'daily' => 'tägliche Zusammenfassung', 'weekly' => 'wöchentliche Zusammenfassung', 'off' => 'aus'],
     'placeholders' => [
-        'and' => 'und', 'example' => 'z. B. :value', 'first_child' => 'Erstes Kind', 'children_names' => 'Vornamen aller Kinder („Kim, Robin und Sam“)', 'children_count' => 'Anzahl der Kinder', 'present' => ':what ist vorhanden',
+        'answer' => 'Antwort: :field', 'and' => 'und', 'example' => 'z. B. :value', 'first_child' => 'Erstes Kind', 'children_names' => 'Vornamen aller Kinder („Kim, Robin und Sam“)', 'children_count' => 'Anzahl der Kinder', 'present' => ':what ist vorhanden',
         'of_group' => 'Angeboten werden nur die Platzhalter der Gruppe „:group“.', 'insert' => 'Platzhalter einfügen', 'placeholder' => 'Platzhalter', 'insert_condition' => 'Bedingung einfügen', 'condition' => 'Bedingung', 'field' => 'Wenn', 'operator' => 'ist', 'value' => 'Wert', 'then' => 'dann dieser Text', 'otherwise' => 'sonst dieser Text (optional)',
         'condition_hint' => 'Der Text darf Platzhalter enthalten. Kasmin schreibt die Bedingung in der richtigen Schreibweise in die Vorlage.',
         'operators' => ['filled' => 'ausgefüllt / ja', 'empty' => 'leer / nein', 'equals' => 'gleich', 'not_equals' => 'ungleich', 'greater' => 'größer als', 'less' => 'kleiner als'],
@@ -62,4 +62,6 @@ return [
         'unknown_field' => 'Unbekanntes Feld „:name“. Möglich sind hier: :known.',
         'not_allowed' => '„:name“ steht in Vorlagen nicht zur Verfügung.',
     ],
+    'link_valid_until' => 'Der persönliche Link in dieser E-Mail gilt bis :date.',
+    'link_valid_until_preview' => '(Datum wird beim Versand eingesetzt)',
 ];

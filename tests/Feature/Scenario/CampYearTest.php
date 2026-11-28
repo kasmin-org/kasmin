@@ -447,6 +447,7 @@ class CampYearTest extends TestCase
     /** A legal guardian signs up on the public page, confirms the address and is logged in by the link. */
     private function signUp(string $first, string $last, string $email): void
     {
+        $this->openSignUp();
         $this->post('/register', ['first_name' => $first, 'last_name' => $last, 'email' => $email, 'locale' => 'en', 'privacy' => '1'])->assertSessionHasNoErrors()->assertRedirect('/login/code');
         $token = '';
         Mail::assertSent(ConfirmSignUpMail::class, function (ConfirmSignUpMail $mail) use (&$token, $email) {

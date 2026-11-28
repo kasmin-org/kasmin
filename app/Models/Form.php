@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Casts\OneText;
 use App\Models\Concerns\Auditable;
+use App\Models\Concerns\HasInternalKey;
 use App\Support\Forms\SensitivityGuard;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -24,6 +25,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Form extends Model
 {
     use Auditable;
+    use HasInternalKey;
 
     protected $guarded = ['id'];
 
@@ -44,6 +46,12 @@ class Form extends Model
     public function fields(): HasMany
     {
         return $this->hasMany(FormField::class)->orderBy('sort');
+    }
+
+    /** Own records never take a key that a later version might ship. */
+    protected function internalKeyPrefix(): string
+    {
+        return 'own_';
     }
 
     public function label(): string

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Casts\OneText;
 use App\Models\Concerns\Auditable;
+use App\Models\Concerns\HasInternalKey;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -17,6 +18,7 @@ use Illuminate\Database\Eloquent\Model;
 class Role extends Model
 {
     use Auditable;
+    use HasInternalKey;
 
     /** Built-in roles; names and permissions are configurable. */
     public const BUILT_IN = ['administrator', 'board', 'treasurer', 'safety_officer', 'camp_leader', 'counsellor', 'auditor'];
@@ -32,6 +34,12 @@ class Role extends Model
     public function ownEventsOnly(): bool
     {
         return $this->scope === 'own' && $this->key !== 'administrator';
+    }
+
+    /** Own records never take a key that a later version might ship. */
+    protected function internalKeyPrefix(): string
+    {
+        return 'own_';
     }
 
     public function label(): string

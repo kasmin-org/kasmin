@@ -10,7 +10,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * Events of the same kind over the years, e.g. the camp series or the alumni-event series (ET03).
  *
  * @property string $name
- * @property string $type
  */
 class EventSeries extends Model
 {

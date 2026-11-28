@@ -67,6 +67,12 @@
         @endif
     @endif
 
+    <h2 class="mb-2 text-lg font-semibold">{{ __('portal.mail_links') }}</h2>
+    <p class="mb-2 text-sm">{{ __('portal.mail_links_hint') }}</p>
+    <form method="post" action="{{ route('portal.profile.links') }}" class="mb-6" onsubmit="return confirm(this.dataset.confirm)" data-confirm="{{ __('portal.mail_links_confirm') }}">@csrf
+        <button class="rounded-lg bg-white px-4 py-2 text-sm font-semibold ring-1 ring-kasmin-200">{{ __('portal.mail_links_end') }}</button>
+    </form>
+
     <h2 class="mb-2 text-lg font-semibold">{{ __('portal.my_data') }}</h2>
     <p class="mb-2 text-sm">{{ __('portal.export_hint') }}</p>
     <a class="inline-block rounded-lg bg-white px-4 py-2 text-sm font-semibold ring-1 ring-kasmin-200" href="{{ route('portal.profile.export') }}">{{ __('portal.export') }}</a>

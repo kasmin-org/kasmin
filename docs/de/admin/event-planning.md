@@ -24,8 +24,8 @@ der öffentlichen Seite. Personen auf der Warteliste sehen sie nicht. Die Dateie
 *Öffentliche Seite* zeigt `/events/<id>`: Termine, Ort, Preise, Plätze, öffentliche Dokumente und die Schaltflächen zur Anmeldung.
 Entwürfe und archivierte Veranstaltungen werden nie angezeigt.
 
-Um die Seite oder ein öffentliches Formular auf Ihrer Website zu zeigen, tragen Sie die Website unter *Einstellungen → Organisation
-und Rechnungen → Websites, die öffentliche Seiten einbetten dürfen* ein und verwenden Sie `?embed=1`:
+Um die Seite oder ein öffentliches Formular auf Ihrer Website zu zeigen, tragen Sie die Website unter *Administration → Globale Einstellungen →
+Websites, die öffentliche Seiten einbetten dürfen* ein und verwenden Sie `?embed=1`:
 
 ```html
 <iframe src="https://camp.example.org/f/alumni?embed=1" style="width:100%;height:900px;border:0"></iframe>

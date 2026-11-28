@@ -4,5 +4,5 @@
 <main style="max-width:32rem;margin:0 auto;background:#fff;border-radius:1rem;padding:1.5rem">
 <img src="/brand/kasmin-logo-horizontal.svg" alt="Kasmin" style="height:2.5rem">
 <h1>{{ __('system.update.done', ['version' => $version]) }}</h1>
-<p><a href="/admin/system">{{ __('system.update.back') }}</a></p>
+<p><a href="/admin/updates">{{ __('system.update.back') }}</a></p>
 </main></body></html>

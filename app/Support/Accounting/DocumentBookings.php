@@ -90,11 +90,16 @@ class DocumentBookings
             ->lazy(200)->each(fn (Payment $p) => $count($this->safely($this->describe($p), fn () => $this->bookPayment($p))));
         Refund::query()->where('status', 'done')->whereDate('done_on', '>=', $start->toDateString())->orderBy('done_on')->orderBy('id')
             ->lazy(200)->each(fn (Refund $r) => $count($this->safely($this->describe($r), fn () => $this->bookRefund($r))));
-        if ($this->failures === []) {
+        if (! $this->hasFailures()) {
             app(SystemNotifications::class)->resolve(self::NOTIFICATION);
         }
 
         return $made;
+    }
+
+    private function hasFailures(): bool
+    {
+        return $this->failures !== [];
     }
 
     /** Books an issued invoice or credit note; null if there is nothing to book (draft, before the first period, 0). */
@@ -150,7 +155,7 @@ class DocumentBookings
         // Money that comes in is booked on the day it was paid; a move between receivables and credits on its own day.
         $receipt = array_key_exists($money->id.':', $delta);
         $date = $receipt ? $root->paid_on : Carbon::today()->max($root->paid_on);
-        $payer = $root->payer_name ?? $rows->first(fn (Payment $p) => $p->invoice !== null)?->invoice?->payer_name ?? '–';
+        $payer = $root->payer_name ?? $rows->first(fn (Payment $p) => $p->invoice !== null)->invoice->payer_name ?? '–';
         $what = $this->what($rows);
         $text = $receipt ? __('accounting.bookings.payment', ['payer' => $payer, 'what' => $what])
             : __('accounting.bookings.moved', ['date' => $root->paid_on->isoFormat('L'), 'payer' => $payer, 'what' => $what]);
@@ -182,7 +187,7 @@ class DocumentBookings
         // Refunds are bank transfers: from the bank account of the payment, else the standard bank.
         $money = $this->bookedMoney($lines);
         $money = $money !== null && $money->money === 'bank' ? $money : Account::system('bank');
-        $person = $lines->firstWhere('account_id', Account::system('credits')->id)?->person_id ?? $refund->payer_id;
+        $person = $lines->firstWhere('account_id', Account::system('credits')->id)->person_id ?? $refund->payer_id;
 
         return $this->journal->post([
             'date' => $refund->done_on, 'text' => (string) __('accounting.bookings.refund', ['payer' => $refund->payer_name ?? '–']), 'kind' => 'refund', 'source' => $refund,
@@ -227,8 +232,8 @@ class DocumentBookings
     {
         $event = $invoice->event ?? $feeFor?->event;
         // Membership fees can belong to a project, e.g. as a fixed part of the costs of the camp (E1a, E1d.5).
-        $center = $installment?->cost_center_id ?? $type?->cost_center_id ?? $event?->cost_center_id ?? $event?->series?->cost_center_id;
-        $configured = $installment?->revenue_account_id ?? $type?->revenue_account_id;
+        $center = $installment->cost_center_id ?? $type->cost_center_id ?? $event->cost_center_id ?? $event?->series?->cost_center_id;
+        $configured = $installment->revenue_account_id ?? $type?->revenue_account_id;
         $configured = $configured !== null ? Account::query()->find($configured) : null;
         $account = match (true) {
             $invoice->fee_for_id !== null => Account::system('reminder_fees'),
@@ -253,9 +258,9 @@ class DocumentBookings
         $original = $credit->corrects_id !== null ? Invoice::query()->with('lines', 'event.series', 'event.installments')->find($credit->corrects_id) : null;
         $entry = $original !== null ? $this->booked($original, 'invoice') : null;
         if ($entry !== null) {
-            return $entry->lines->map(fn (JournalLine $l) => [
+            return array_values($entry->lines->map(fn (JournalLine $l) => [
                 'account' => $l->account_id, 'debit' => $l->credit_cents, 'credit' => $l->debit_cents, 'cost_center' => $l->cost_center_id, 'person_id' => $l->person_id, 'text' => $l->text,
-            ])->values()->all();
+            ])->all());
         }
         if ($original === null) {
             return $this->invoiceLines($credit); // its lines are negative: already the mirror
@@ -278,7 +283,7 @@ class DocumentBookings
         $wanted = [];
         foreach ($rows as $row) {
             if ($row->invoice_id !== null) {
-                $key = $receivables.':'.($row->invoice?->payer_id ?? '');
+                $key = $receivables.':'.($row->invoice->payer_id ?? '');
             } elseif (in_array($row->match, ['credit', 'refunded'], true)) {
                 $key = $credits; // a refunded credit leaves with the refund
             } else {
@@ -374,8 +379,8 @@ class DocumentBookings
      */
     private function creditPerson(Collection $booked, Collection $rows): ?int
     {
-        return $booked->first(fn (JournalLine $l) => $l->account_id === Account::system('credits')->id && $l->person_id !== null)?->person_id
-            ?? $booked->first(fn (JournalLine $l) => $l->account_id === Account::system('receivables')->id && $l->person_id !== null)?->person_id
+        return $booked->first(fn (JournalLine $l) => $l->account_id === Account::system('credits')->id && $l->person_id !== null)->person_id
+            ?? $booked->first(fn (JournalLine $l) => $l->account_id === Account::system('receivables')->id && $l->person_id !== null)->person_id
             ?? Refund::query()->whereIn('payment_id', $rows->pluck('id')->all())->whereNotNull('payer_id')->orderByDesc('id')->value('payer_id')
             ?? $rows->first(fn (Payment $p) => $p->invoice?->payer_id !== null)?->invoice?->payer_id;
     }
@@ -385,8 +390,8 @@ class DocumentBookings
     {
         $numbers = $rows->map(fn (Payment $p) => $p->invoice?->number)->filter()->unique()->implode(', ');
         $parts = array_filter([
-            $numbers !== '' ? __('accounting.bookings.what_invoices', ['numbers' => $numbers]) : null,
-            $rows->contains(fn (Payment $p) => $p->invoice_id === null && in_array($p->match, ['credit', 'refunded'], true)) ? __('accounting.bookings.what_credit') : null,
+            $numbers !== '' ? (string) __('accounting.bookings.what_invoices', ['numbers' => $numbers]) : null,
+            $rows->contains(fn (Payment $p) => $p->invoice_id === null && in_array($p->match, ['credit', 'refunded'], true)) ? (string) __('accounting.bookings.what_credit') : null,
         ]);
 
         return $parts === [] ? (string) __('accounting.bookings.what_nothing') : implode(', ', $parts);

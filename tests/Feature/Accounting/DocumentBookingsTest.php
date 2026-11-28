@@ -99,12 +99,12 @@ class DocumentBookingsTest extends TestCase
      */
     private function lines(JournalEntry $entry): array
     {
-        return $entry->lines->map(function (JournalLine $l) {
+        return array_values($entry->lines->map(function (JournalLine $l) {
             $account = Account::query()->findOrFail($l->account_id);
             $center = $l->cost_center_id !== null ? ' ['.CostCenter::query()->whereKey($l->cost_center_id)->value('name').']' : '';
 
             return ($account->system_key ?? $account->name).': '.($l->debit_cents > 0 ? '+'.$l->debit_cents : '-'.$l->credit_cents).$center;
-        })->all();
+        })->all());
     }
 
     private function balance(string $key, ?int $costCenter = null): int
@@ -293,7 +293,7 @@ class DocumentBookingsTest extends TestCase
         $this->assertSame(0, JournalEntry::query()->count());
 
         app(Periods::class)->move($period, '2027-01-01', '2027-12-31');
-        $this->artisan('kasmin:book-documents')->expectsOutputToContain('3 bookings made.')->assertSuccessful();
+        $this->artisan('kasmin:book-documents')->expectsOutputToContain('3 bookings made.')->assertSuccessful(); // @phpstan-ignore method.nonObject
         $this->assertSame(['invoice', 'invoice', 'payment'], JournalEntry::query()->orderBy('number')->pluck('kind')->all());
         $root = Payment::query()->whereNull('parent_id')->sole();
         $this->assertSame(['bank: +25000', 'receivables: -20000', 'credits: -5000'], $this->lines($this->entry($root, 'payment')));

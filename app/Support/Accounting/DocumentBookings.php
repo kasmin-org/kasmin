@@ -13,6 +13,7 @@ use App\Models\MembershipType;
 use App\Models\Payment;
 use App\Models\Period;
 use App\Models\Refund;
+use App\Support\Settings;
 use App\Support\System\SystemNotifications;
 use Closure;
 use Illuminate\Database\Eloquent\Model;
@@ -118,10 +119,10 @@ class DocumentBookings
             return null; // e.g. everything was discounted
         }
         $text = $kind === 'credit_note'
-            ? __('accounting.bookings.credit_note', ['number' => $invoice->number, 'invoice' => Invoice::query()->whereKey((int) $invoice->corrects_id)->value('number') ?? '–', 'payer' => $invoice->payer_name ?? '–'])
-            : __('accounting.bookings.invoice', ['number' => $invoice->number, 'payer' => $invoice->payer_name ?? '–']);
+            ? $this->text('credit_note', ['number' => $invoice->number, 'invoice' => Invoice::query()->whereKey((int) $invoice->corrects_id)->value('number') ?? '–', 'payer' => $invoice->payer_name ?? '–'])
+            : $this->text('invoice', ['number' => $invoice->number, 'payer' => $invoice->payer_name ?? '–']);
 
-        return $this->journal->post(['date' => $invoice->issued_on, 'text' => (string) $text, 'receipt' => $invoice->number, 'kind' => $kind, 'source' => $invoice], $lines);
+        return $this->journal->post(['date' => $invoice->issued_on, 'text' => $text, 'receipt' => $invoice->number, 'kind' => $kind, 'source' => $invoice], $lines);
     }
 
     /**
@@ -132,18 +133,35 @@ class DocumentBookings
     public function bookPayment(Payment $payment): ?JournalEntry
     {
         $rootId = $payment->parent_id ?? $payment->id;
-        $rows = Payment::query()->where(fn ($q) => $q->whereKey($rootId)->orWhere('parent_id', $rootId))->with('invoice')->get();
-        $root = $rows->firstWhere('id', $rootId);
-        if (! $root instanceof Payment || ! $this->started($root->paid_on)) {
-            return null;
-        }
-        $booked = $this->paymentLines($root);
-        $money = $this->bookedMoney($booked) ?? $this->moneyAccount($root);
-        $delta = $this->subtract($this->wanted($rows, $money), $this->balances($booked));
-        if ($delta === []) {
-            return null;
-        }
-        $creditPerson = $this->creditPerson($booked, $rows);
+
+        // One booking at a time per payment: what is missing is worked out from what is booked.
+        return DB::transaction(function () use ($rootId) {
+            Payment::query()->whereKey($rootId)->lockForUpdate()->value('id');
+            $rows = Payment::query()->where(fn ($q) => $q->whereKey($rootId)->orWhere('parent_id', $rootId))->with('invoice')->get();
+            $root = $rows->firstWhere('id', $rootId);
+            if (! $root instanceof Payment || ! $this->started($root->paid_on)) {
+                return null;
+            }
+            $booked = $this->paymentLines($root);
+            $money = $this->bookedMoney($booked) ?? $this->moneyAccount($root);
+            $delta = $this->subtract($this->wanted($rows, $money), $this->balances($booked));
+            if ($delta === []) {
+                return null;
+            }
+
+            return $this->postPayment($root, $rows, $delta, $money, $this->creditPerson($booked, $rows));
+        });
+    }
+
+    /**
+     * The entry for what is missing: money that comes in is booked on the day it was paid, a move between the
+     * receivables and the credits on the day it happens.
+     *
+     * @param  Collection<int, Payment>  $rows
+     * @param  array<string, int>  $delta
+     */
+    private function postPayment(Payment $root, Collection $rows, array $delta, Account $money, ?int $creditPerson): JournalEntry
+    {
         $lines = [];
         // Debit before credit, as an entry is read ("bank to receivables").
         foreach ([...array_filter($delta, fn (int $c) => $c > 0), ...array_filter($delta, fn (int $c) => $c < 0)] as $key => $cents) {
@@ -152,17 +170,16 @@ class DocumentBookings
                 $person === 'c' => $creditPerson, $person !== '' => (int) $person, default => null,
             }];
         }
-        // Money that comes in is booked on the day it was paid; a move between receivables and credits on its own day.
         $receipt = array_key_exists($money->id.':', $delta);
-        $date = $receipt ? $root->paid_on : Carbon::today()->max($root->paid_on);
         $payer = $root->payer_name ?? $rows->first(fn (Payment $p) => $p->invoice !== null)->invoice->payer_name ?? '–';
         $what = $this->what($rows);
-        $text = $receipt ? __('accounting.bookings.payment', ['payer' => $payer, 'what' => $what])
-            : __('accounting.bookings.moved', ['date' => $root->paid_on->isoFormat('L'), 'payer' => $payer, 'what' => $what]);
+        $paidOn = $root->paid_on->copy();
+        $paidOn->locale($this->locale());
+        $text = $receipt ? $this->text('payment', ['payer' => $payer, 'what' => $what]) : $this->text('moved', ['date' => $paidOn->isoFormat('L'), 'payer' => $payer, 'what' => $what]);
         $numbers = $rows->map(fn (Payment $p) => $p->invoice?->number)->filter()->unique()->implode(', ');
 
         return $this->journal->post([
-            'date' => $date, 'text' => (string) $text, 'receipt' => $numbers !== '' ? mb_substr($numbers, 0, 120) : null,
+            'date' => $receipt ? $root->paid_on : Carbon::today()->max($root->paid_on), 'text' => $text, 'receipt' => $numbers !== '' ? mb_substr($numbers, 0, 120) : null,
             'kind' => $receipt ? 'payment' : 'credit', 'source' => $root, 'once' => false,
         ], $lines);
     }
@@ -190,7 +207,7 @@ class DocumentBookings
         $person = $lines->firstWhere('account_id', Account::system('credits')->id)->person_id ?? $refund->payer_id;
 
         return $this->journal->post([
-            'date' => $refund->done_on, 'text' => (string) __('accounting.bookings.refund', ['payer' => $refund->payer_name ?? '–']), 'kind' => 'refund', 'source' => $refund,
+            'date' => $refund->done_on, 'text' => $this->text('refund', ['payer' => $refund->payer_name ?? '–']), 'kind' => 'refund', 'source' => $refund,
         ], [
             ['account' => Account::system('credits'), 'debit' => $refund->amount_cents, 'person_id' => $person, 'text' => mb_substr($refund->reason, 0, 250)],
             ['account' => $money, 'credit' => $refund->amount_cents],
@@ -390,11 +407,28 @@ class DocumentBookings
     {
         $numbers = $rows->map(fn (Payment $p) => $p->invoice?->number)->filter()->unique()->implode(', ');
         $parts = array_filter([
-            $numbers !== '' ? (string) __('accounting.bookings.what_invoices', ['numbers' => $numbers]) : null,
-            $rows->contains(fn (Payment $p) => $p->invoice_id === null && in_array($p->match, ['credit', 'refunded'], true)) ? (string) __('accounting.bookings.what_credit') : null,
+            $numbers !== '' ? $this->text('what_invoices', ['numbers' => $numbers]) : null,
+            $rows->contains(fn (Payment $p) => $p->invoice_id === null && in_array($p->match, ['credit', 'refunded'], true)) ? $this->text('what_credit') : null,
         ]);
 
-        return $parts === [] ? (string) __('accounting.bookings.what_nothing') : implode(', ', $parts);
+        return $parts === [] ? $this->text('what_nothing') : implode(', ', $parts);
+    }
+
+    /**
+     * Texts of the journal are in the language of the installation, whoever caused the booking.
+     *
+     * @param  array<string, string|int|null>  $values
+     */
+    private function text(string $key, array $values = []): string
+    {
+        return (string) trans('accounting.bookings.'.$key, $values, $this->locale());
+    }
+
+    private function locale(): string
+    {
+        $locale = Settings::get('default_locale');
+
+        return in_array($locale, ['de', 'en'], true) ? $locale : app()->getLocale();
     }
 
     /** @return array{account: Account|int, debit?: int, credit?: int} a positive amount on the debit side, a negative one on the credit side */

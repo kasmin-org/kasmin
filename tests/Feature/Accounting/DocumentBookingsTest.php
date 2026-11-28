@@ -130,7 +130,7 @@ class DocumentBookingsTest extends TestCase
         $this->assertSame(68000, $balance->total_cents, '350 + 350 − 20');
 
         $entry = $this->entry($balance, 'invoice');
-        $this->assertSame('2027-01-15', $entry->date->toDateString());
+        $this->assertSame(['2027-01-15', 'Invoice '.$balance->number.' – Alex Ash'], [$entry->date->toDateString(), $entry->text]);
         $this->assertSame($balance->number, $entry->receipt);
         $this->assertSame(['receivables: +68000', 'event_income: -35000 [Camp]', 'event_income: -35000 [Camp]', 'discounts: +2000 [Camp]'], $this->lines($entry));
         $this->assertSame($this->guardian->id, $entry->lines->first()?->person_id, 'the receivable is the payer’s');
@@ -188,8 +188,10 @@ class DocumentBookingsTest extends TestCase
         $ann = $this->child('Ann', '2014-01-01');
         Person::query()->findOrFail($ann->person_id)->memberships()->create(['membership_type_id' => $type->id, 'starts_on' => '2027-01-01']);
         $fees = app(MembershipFees::class);
+        Settings::set('default_locale', 'de'); // the journal speaks the language of the installation
         $membership = app(Invoices::class)->issue($fees->draft(2027, $fees->pending(2027)->first() ?? collect()));
         $this->assertSame(['receivables: +5000', 'membership_fees: -5000 [Camp]'], $this->lines($this->entry($membership, 'invoice')));
+        $this->assertSame('Rechnung '.$membership->number.' – Alex Ash', $this->entry($membership, 'invoice')->text);
 
         $fee = Invoice::query()->create(['payer_id' => $this->guardian->id, 'payer_name' => 'Alex Ash', 'total_cents' => 500, 'fee_for_id' => $membership->id]);
         $fee->lines()->create(['description' => 'Reminder fee', 'amount_cents' => 500, 'discount_cents' => 0]);

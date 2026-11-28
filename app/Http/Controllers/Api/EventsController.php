@@ -374,13 +374,8 @@ class EventsController extends ApiController
             $data['cost_center_id'] = $this->costCenterRef($data['cost_center'], 'cost_center');
             unset($data['cost_center']);
         }
-        // What the instalments are booked on (E1): id or exact name.
-        foreach ($installments ?? [] as $i => $installment) {
-            foreach (['revenue_account' => 'revenue_account_id', 'cost_center' => 'cost_center_id'] as $key => $column) {
-                if (array_key_exists($key, $installment)) {
-                    $installments[$i][$column] = $key === 'cost_center' ? $this->costCenterRef($installment[$key], "installments.{$i}.cost_center") : $this->revenueAccountRef($installment[$key], "installments.{$i}.revenue_account");
-                }
-            }
+        if ($installments !== null) {
+            $installments = array_map(fn (array $item, int $i) => $this->bookedOn($item, $i), $installments, array_keys($installments));
         }
         // The same rules between two dates as in the form, also when only one of them is sent.
         $date = fn (string $key) => array_key_exists($key, $data) ? ($data[$key] !== null ? Carbon::parse((string) $data[$key]) : null) : $event?->getAttribute($key);
@@ -423,6 +418,24 @@ class EventsController extends ApiController
         }
 
         return ['event' => $data, 'roles' => $roles, 'prices' => $prices, 'installments' => $installments];
+    }
+
+    /**
+     * What an instalment is booked on (E1): income account and cost centre, each by id or exact name.
+     *
+     * @param  array<string, mixed>  $item
+     * @return array<string, mixed>
+     */
+    private function bookedOn(array $item, int $i): array
+    {
+        if (array_key_exists('revenue_account', $item)) {
+            $item['revenue_account_id'] = $this->revenueAccountRef($item['revenue_account'], "installments.{$i}.revenue_account");
+        }
+        if (array_key_exists('cost_center', $item)) {
+            $item['cost_center_id'] = $this->costCenterRef($item['cost_center'], "installments.{$i}.cost_center");
+        }
+
+        return $item;
     }
 
     /**

@@ -112,6 +112,7 @@ class PeriodResource extends Resource
         $sources = fn () => CostCenter::query()->where('carries', false)->orderBy('name')->get();
 
         return Action::make('keys')->label(__('accounting.periods.keys'))->icon('heroicon-o-scale')->color('gray')
+            ->modalSubmitActionLabel(__('filament-actions::edit.single.modal.actions.save.label'))
             ->visible(fn (Period $record) => self::canCreate() && ! $record->isClosed() && $sources()->isNotEmpty())
             ->fillForm(fn (Period $record) => $sources()->mapWithKeys(fn (CostCenter $s) => ['k'.$s->id => $record->allocationRules()->where('source_cost_center_id', $s->id)->get()
                 ->map(fn (AllocationRule $r) => ['target' => $r->target_cost_center_id, 'kind' => $r->kind, 'amount' => $r->kind === 'fixed' ? $r->value : null, 'percent' => $r->kind === 'percent' ? $r->value / 100 : null])->all()])->all())
@@ -155,6 +156,7 @@ class PeriodResource extends Resource
         $centers = fn (Period $record) => $record->costCenters()->orderBy('sort')->orderBy('name')->get();
 
         return Action::make('budget')->label(__('accounting.periods.budget'))->icon('heroicon-o-chart-bar')->color('gray')
+            ->modalSubmitActionLabel(__('filament-actions::edit.single.modal.actions.save.label'))
             ->visible(fn () => self::canCreate())
             ->fillForm(fn (Period $record) => collect(app(Budgets::class)->of($record))->mapWithKeys(fn (int $cents, int $center) => ['c'.$center => $cents])->all())
             ->schema(fn (Period $record) => [

@@ -8,7 +8,8 @@ cannot be removed.
 
 ## Permissions
 
-*Settings → Roles* (administrators only): access per area – none, view or edit – and own roles. Defaults:
+*Settings → Roles* (administrators only): access per area – none, view or edit – and own roles, each with a name of
+its own (two roles cannot have the same name). Defaults:
 
 | Area | Administrator | Board | Treasurer | Safety officer | Camp leader | Auditor |
 |---|---|---|---|---|---|---|

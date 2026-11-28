@@ -34,9 +34,15 @@ weniger vertraulich machen oder das Sicherheitsblatt löschen. Das Recht für Fo
 
 ## Export und Import
 
-*Formulare → Exportieren* speichert die Definition eines Formulars als JSON-Datei (ohne Antworten), *Importieren* liest sie ein. Ein Formular mit demselben
-Schlüssel bekommt eine neue Version; Felder, die nicht in der Datei stehen, werden entfernt, Antworten bleiben. Dasselbe Format gilt für die API
-(`GET`/`PUT /api/v1/forms/{key}/definition`) und MCP (`get_form_definition`, `save_form_definition`).
+*Formulare → Exportieren* speichert die Definition eines Formulars als JSON-Datei (ohne Antworten), *Importieren* liest sie ein. Die Datei
+enthält einen internen Schlüssel des Formulars und jedes Felds, den Kasmin einmal aus dem Namen oder der Bezeichnung bildet und nie anzeigt;
+IDs sind in jeder Installation andere, die Schlüssel bleiben gleich. Ein Formular, das aus demselben Formular exportiert wurde – oder, wenn es
+keines gibt, das Formular mit demselben Namen –, bekommt eine neue Version; Felder werden über ihren Schlüssel zugeordnet, Felder, die nicht in
+der Datei stehen, werden entfernt, Antworten bleiben. Dasselbe Format gilt für die API (`GET`/`PUT /api/v1/forms/{form}/definition`,
+`{form}` = ID oder Name) und MCP (`get_form_definition`, `save_form_definition`).
+
+Formulare haben eindeutige Namen. Ein Feld behält seinen internen Schlüssel, wenn sich seine Bezeichnung ändert. Früher gegebene Antworten und
+Platzhalter in Mailvorlagen funktionieren also weiter.
 
 ## Notfallkontakte
 

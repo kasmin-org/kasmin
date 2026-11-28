@@ -21,7 +21,8 @@ Installation, die mehrere hatte, verwendet weiter ihr Standardkonto und dessen e
 
 *Kommunikation → Mailvorlagen*: ein Text pro Vorlage, bearbeitet in einem Editor mit Formatierung; jedes Speichern ist eine neue
 Version. Eine Vorlage hat keine Fassungen pro Sprache – eine Installation arbeitet in einer Sprache (siehe
-[System](system.md#sprache)), und der Text ist einfach das, was Sie geschrieben haben.
+[System](system.md#sprache)), und der Text ist einfach das, was Sie geschrieben haben. Jede Vorlage hat einen eigenen Namen:
+Zwei Vorlagen können nicht denselben Namen haben.
 
 Jede Vorlage gehört zu einer **Gruppe**, die sagt, worum es in der Mail geht – denn davon hängt ab, welche Platzhalter
 es gibt. Eine Mail an alle kennt keine Rechnungsnummer:

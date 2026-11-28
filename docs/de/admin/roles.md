@@ -9,7 +9,7 @@ nicht von einer Person abhängt. Die letzte Administration kann nicht entfernt w
 ## Rechte
 
 *Einstellungen → Rollen* (nur Administratorinnen und Administratoren): Zugriff pro Bereich – kein Zugriff, ansehen oder bearbeiten –
-und eigene Rollen. Voreinstellung:
+und eigene Rollen, jede mit einem eigenen Namen (zwei Rollen können nicht denselben Namen haben). Voreinstellung:
 
 | Bereich | Administration | Vorstand | Finanzen | Sicherheitsdaten | Lagerleitung | Rechnungsprüfung |
 |---|---|---|---|---|---|---|

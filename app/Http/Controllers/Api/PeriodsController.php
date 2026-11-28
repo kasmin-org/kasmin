@@ -10,6 +10,7 @@ use App\Support\Accounting\AccountingException;
 use App\Support\Accounting\Allocation;
 use App\Support\Accounting\Budgets;
 use App\Support\Accounting\Closing;
+use App\Support\Accounting\DocumentBookings;
 use App\Support\Accounting\Periods;
 use App\Support\Api\AccountingPresenter;
 use Illuminate\Http\JsonResponse;
@@ -137,6 +138,19 @@ class PeriodsController extends AccountingController
         });
 
         return response()->json(['data' => $this->key($model, $source)]);
+    }
+
+    /**
+     * Books every invoice, credit note, payment and refund from the start of the first period on that has no booking
+     * yet (e.g. after a booking failed); bookings that exist stay. Answers how many were made and what failed.
+     */
+    public function bookDocuments(): JsonResponse
+    {
+        $this->scope('finance:write');
+        $bookings = app(DocumentBookings::class);
+        $made = $bookings->backfill();
+
+        return response()->json(['data' => ['booked' => $made, 'failures' => $bookings->failures]]);
     }
 
     /** The budget of a period: the planned result per cost centre (income minus costs, negative for planned costs). */

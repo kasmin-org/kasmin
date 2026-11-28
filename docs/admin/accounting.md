@@ -36,6 +36,16 @@ year of the next summer camp. *Accounting → Settings → Periods → New perio
 further one follows the one before without a gap and takes over its active cost centres and allocation keys. Documents
 after the last period make the next one by themselves (at most two years ahead).
 
+When the first period is created – or its start is moved earlier – Kasmin books every invoice, credit note, payment and refund
+dated from its start on. *Book missing documents* on the same page does this again at any time (e.g. after a booking failed
+because its period was closed); Kasmin also tries every night. Documents from **before the start** are not booked: what is open
+at the start (receivables and credits per family, expenses to pay back) goes into an **opening booking** typed in with the person
+on each line. Payments made before the start that move later (e.g. to a credit after a cancellation) are not booked either –
+check open items after such a change and correct them with a typed booking for the person.
+
+The first period cannot start after its first booking, nor the last one end before its last booking: no booking may be left
+without a period. A period before a closed one can only be added after reopening it.
+
 The dates of an **open** period can be changed later (*Change name and dates*): bookings belong to a period by their date, so they
 move along, and the neighbouring period moves with it. Kasmin shows beforehand how many bookings will belong to another
 period. Opening values are never stored but computed, so they are always right.

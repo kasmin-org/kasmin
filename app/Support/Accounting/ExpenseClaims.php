@@ -209,6 +209,7 @@ class ExpenseClaims
         $against = $claim->advance_id !== null ? 'advances' : 'open_expenses';
 
         DB::transaction(function () use ($claim, $by, $account, $center, $against) {
+            $this->lockAndExpect($claim, ['submitted']);
             $claim->forceFill(['account_id' => $account->id, 'cost_center_id' => $center, 'status' => $against === 'advances' ? 'settled' : 'approved', 'decided_by_id' => $by->id, 'decided_at' => now()])->save();
             $this->journal->post($this->entry($claim, 'expense', $this->bookingDate($claim->date), 'approved', $by), [
                 ['account' => $account, 'debit' => $claim->amount_cents, 'cost_center' => $center, 'text' => $claim->purpose],
@@ -223,6 +224,19 @@ class ExpenseClaims
         return $claim;
     }
 
+    /**
+     * Inside a transaction: the claim read again and locked, so that two people cannot decide, pay or waive it at the
+     * same time (the second one gets the new status and is refused).
+     *
+     * @param  list<string>  $statuses
+     */
+    private function lockAndExpect(ExpenseClaim $claim, array $statuses): void
+    {
+        $fresh = ExpenseClaim::query()->whereKey($claim->id)->lockForUpdate()->firstOrFail();
+        $claim->setRawAttributes($fresh->getAttributes(), true);
+        $this->expect($claim, $statuses);
+    }
+
     public function reject(ExpenseClaim $claim, User $by, string $reason): ExpenseClaim
     {
         $this->expect($claim, ['submitted']);
@@ -230,7 +244,10 @@ class ExpenseClaims
         if ($reason === '') {
             throw AccountingException::because('reason');
         }
-        $claim->forceFill(['status' => 'rejected', 'reason' => mb_substr($reason, 0, 1000), 'decided_by_id' => $by->id, 'decided_at' => now()])->save();
+        DB::transaction(function () use ($claim, $by, $reason) {
+            $this->lockAndExpect($claim, ['submitted']);
+            $claim->forceFill(['status' => 'rejected', 'reason' => mb_substr($reason, 0, 1000), 'decided_by_id' => $by->id, 'decided_at' => now()])->save();
+        });
         $this->mail($claim, 'rejected');
 
         return $claim;
@@ -259,6 +276,7 @@ class ExpenseClaims
         }
         $sepa = DB::transaction(function () use ($list, $from, $date, $bank, $perPerson, $by) {
             foreach ($list as $claim) {
+                $this->lockAndExpect($claim, ['approved']); // two people paying at once: the second one is refused
                 $claim->forceFill(['status' => 'paid', 'paid_on' => $date->toDateString(), 'paid_from_account_id' => $from->id,
                     'iban' => $bank ? Iban::normalise((string) $claim->person->payout_iban) : null, 'account_holder' => $bank ? mb_substr($claim->person->fullName(), 0, 120) : null])->save();
                 $this->journal->post($this->entry($claim, 'expense_payout', $date, 'paid', $by), [
@@ -281,6 +299,7 @@ class ExpenseClaims
         $this->expect($claim, ['approved']);
         $date = $this->bookingDate(today());
         DB::transaction(function () use ($claim, $by, $date) {
+            $this->lockAndExpect($claim, ['approved']);
             $claim->forceFill(['status' => 'donated', 'paid_on' => $date->toDateString(), 'waived' => true])->save();
             $this->journal->post($this->entry($claim, 'donation', $date, 'donated', $by), [
                 ['account' => 'open_expenses', 'debit' => $claim->amount_cents, 'person_id' => $claim->person_id],
@@ -296,9 +315,18 @@ class ExpenseClaims
     public function waive(ExpenseClaim $claim, User $by): ExpenseClaim
     {
         if ($claim->status === 'submitted' && $claim->advance_id === null) {
-            $claim->forceFill(['waived' => true])->save();
+            $marked = DB::transaction(function () use ($claim) {
+                $this->lockAndExpect($claim, ['submitted', 'approved']);
+                if ($claim->status !== 'submitted') {
+                    return false; // approved in the meantime: the donation is booked below
+                }
+                $claim->forceFill(['waived' => true])->save();
 
-            return $claim;
+                return true;
+            });
+            if ($marked) {
+                return $claim;
+            }
         }
 
         return $this->donate($claim, $by);

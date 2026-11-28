@@ -78,7 +78,7 @@ class AccountingApiTest extends TestCase
                 }
             }
         }
-        $this->assertCount(31, $routes);
+        $this->assertCount(32, $routes);
         foreach ($routes as [$method, $path]) {
             $this->withToken($none)->json($method, $path)->assertForbidden();
             if ($method !== 'GET') {

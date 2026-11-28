@@ -280,6 +280,8 @@ Scopes `finance:read` / `finance:write`; Begriffe und Regeln stehen unter [Buchh
 - **Perioden:** `GET|POST /accounting/periods` (`name`, `starts_on` – nur bei der ersten Periode, später der Tag nach der letzten –,
   `ends_on`). `PATCH /accounting/periods/{id}` ändert `name`, `starts_on` und `ends_on` einer offenen Periode; `moved` sagt, wie
   viele Buchungen jetzt zu einer anderen Periode gehören, mit `dry_run` `true` wird nichts gespeichert.
+- **Fehlende Belege:** `POST /accounting/book-documents` bucht jede Rechnung, Gutschrift, Zahlung und Rückzahlung ab dem Beginn der
+  ersten Periode, die noch keine Buchung hat; die Antwort enthält `booked` (wie viele) und `failures`. MCP: `book_documents`.
 - **Budget:** `GET /accounting/periods/{id}/budgets` (das geplante Ergebnis je Kostenstelle) und `PUT /accounting/periods/{id}/budgets`
   mit `budgets` (`cost_center` = ID oder genauer Name, `amount` = geplantes Ergebnis, Kosten mit Minus; `0` entfernt es). Nicht
   angeführte Kostenstellen behalten ihr Budget; auch abgeschlossene Perioden lassen sich planen. MCP: `get_budgets`, `save_budgets`.
@@ -294,7 +296,8 @@ Scopes `finance:read` / `finance:write`; Begriffe und Regeln stehen unter [Buchh
   mitgeöffnet würden.
 - **Buchungen:** `GET /accounting/bookings` (`from`, `to`, `period`, `account`, `cost_center`, `kind`, `search`; in Seiten, mit den
   Zeilen), `GET /accounting/bookings/{id}` (die `id`, nicht die Buchungsnummer `number`), `POST /accounting/bookings` (`date`,
-  `text`, `receipt`, `lines` mit `account`, `debit` oder `credit`, `cost_center`, `fund`, `text`),
+  `text`, `receipt`, `lines` mit `account`, `debit` oder `credit`, `cost_center`, `fund`, `person` = öffentliche ID, für Forderungen,
+  Guthaben, zu erstattende Auslagen und Vorschüsse, `text`),
   `POST /accounting/bookings/{id}/reverse` storniert (`text`, `date`; Umlagen und Abschlüsse werden nicht storniert, sondern beim
   Wiedereröffnen entfernt).
 - **Berichte:** `GET /accounting/reports/{report}` – `balance` (Bilanz, `date`), `income` (Erfolgsrechnung, `period`,

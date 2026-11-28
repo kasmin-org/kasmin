@@ -16,6 +16,7 @@ Schedule::command('kasmin:system:check')->everyMinute()->when(fn () => DueOnce::
 Schedule::command('kasmin:backup')->everyMinute()->when(fn () => DueOnce::day('kasmin:backup', '02:30'))->withoutOverlapping();
 Schedule::command('kasmin:groups:update')->everyMinute()->when(fn () => DueOnce::hour('kasmin:groups:update'))->withoutOverlapping();
 Schedule::command('kasmin:events:status')->everyMinute()->withoutOverlapping();
+Schedule::command('kasmin:book-documents')->everyMinute()->when(fn () => DueOnce::day('kasmin:book-documents', '03:15'))->withoutOverlapping();
 Schedule::command('kasmin:automations:run')->everyMinute()->when(fn () => DueOnce::hour('kasmin:automations:run'))->withoutOverlapping();
 Schedule::command('kasmin:webhooks:deliver')->everyMinute()->withoutOverlapping();
 Schedule::command('kasmin:privacy:retention')->everyMinute()->when(fn () => DueOnce::day('kasmin:privacy:retention', '03:30'));

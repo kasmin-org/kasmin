@@ -19,7 +19,7 @@ class ManageJournalEntries extends ManageRecords
                 ->modalWidth('6xl')->schema(JournalEntryResource::entrySchema())
                 ->action(function (array $data) {
                     $lines = array_map(fn (array $l) => ['account' => (int) $l['account'], 'debit' => (int) ($l['debit'] ?? 0), 'credit' => (int) ($l['credit'] ?? 0),
-                        'cost_center' => $l['cost_center'] ?? null, 'fund' => $l['fund'] ?? null, 'text' => $l['text'] ?? null], array_values($data['lines'] ?? []));
+                        'cost_center' => $l['cost_center'] ?? null, 'fund' => $l['fund'] ?? null, 'person_id' => isset($l['person_id']) ? (int) $l['person_id'] : null, 'text' => $l['text'] ?? null], array_values($data['lines'] ?? []));
                     CostCenterResource::attempt(fn () => app(Journal::class)->post(['date' => $data['date'], 'text' => $data['text'], 'receipt' => $data['receipt'] ?? null, 'receipt_path' => $data['receipt_path'] ?? null], $lines));
                 }),
         ];

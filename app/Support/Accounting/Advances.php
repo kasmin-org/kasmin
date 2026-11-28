@@ -64,6 +64,11 @@ class Advances
         $date = Carbon::parse($on)->startOfDay();
 
         return DB::transaction(function () use ($advance, $returned, $into, $date, $open, $by) {
+            // Locked and checked again: two people settling at once give one settlement.
+            $fresh = Advance::query()->whereKey($advance->id)->lockForUpdate()->firstOrFail();
+            if ($fresh->isSettled()) {
+                throw AccountingException::because('advance_closed');
+            }
             if ($returned > 0 && $into !== null) {
                 $this->journal->post($this->entry($advance, 'advance_return', $date, 'advance_return', $by), [
                     ['account' => $into, 'debit' => $returned],

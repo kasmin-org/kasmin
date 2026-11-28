@@ -10,6 +10,7 @@ use App\Filament\Support\InArea;
 use App\Filament\Support\Money as MoneyInput;
 use App\Models\Account;
 use App\Models\Fund;
+use App\Models\JournalLine;
 use App\Support\Accounting\Accounting;
 use App\Support\Accounting\Balances;
 use App\Support\Accounting\Journal;
@@ -65,7 +66,8 @@ class FundResource extends Resource
     public static function canDelete(Model $record): bool
     {
         return parent::canDelete($record) && $record instanceof Fund && ! $record->is_default
-            && app(Balances::class)->fund($record, '9999-12-31') === 0 && ! $record->costCenters()->exists();
+            && app(Balances::class)->fund($record, '9999-12-31') === 0 && ! $record->costCenters()->exists()
+            && ! JournalLine::query()->where('fund_id', $record->id)->exists(); // its bookings stay part of the history
     }
 
     public static function form(Schema $schema): Schema

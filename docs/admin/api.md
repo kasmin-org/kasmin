@@ -276,6 +276,8 @@ Scopes `finance:read` / `finance:write`; see [Accounting](accounting.md) for the
 - **Periods:** `GET|POST /accounting/periods` (`name`, `starts_on` – only for the first period, later the day after the last –,
   `ends_on`). `PATCH /accounting/periods/{id}` changes `name`, `starts_on` and `ends_on` of an open period; `moved` says how
   many bookings now belong to another period, with `dry_run` `true` nothing is saved.
+- **Missing documents:** `POST /accounting/book-documents` books every invoice, credit note, payment and refund from the start of
+  the first period on that has no booking yet; the answer has `booked` (how many) and `failures`. MCP: `book_documents`.
 - **Budget:** `GET /accounting/periods/{id}/budgets` (the planned result per cost centre) and `PUT /accounting/periods/{id}/budgets`
   with `budgets` (`cost_center` = id or exact name, `amount` = planned result, negative for costs; `0` removes it). Cost centres that
   are not listed keep their budget; closed periods can be planned too. MCP: `get_budgets`, `save_budgets`.
@@ -289,7 +291,8 @@ Scopes `finance:read` / `finance:write`; see [Accounting](accounting.md) for the
   every later closed one; without `confirm` the answer is `422` with the `periods` that would be reopened.
 - **Bookings:** `GET /accounting/bookings` (`from`, `to`, `period`, `account`, `cost_center`, `kind`, `search`; in pages, with
   the lines), `GET /accounting/bookings/{id}` (the `id`, not the booking `number`), `POST /accounting/bookings` (`date`,
-  `text`, `receipt`, `lines` with `account`, `debit` or `credit`, `cost_center`, `fund`, `text`),
+  `text`, `receipt`, `lines` with `account`, `debit` or `credit`, `cost_center`, `fund`, `person` = public id, for receivables,
+  credits, expenses to pay back and advances, `text`),
   `POST /accounting/bookings/{id}/reverse` (`text`, `date`; allocations and closings are not reversed but removed by reopening).
 - **Reports:** `GET /accounting/reports/{report}` – `balance` (`date`), `income` (`period`, `cost_center`), `cost_centers`
   (`period`), `funds` (`period`), `ledger` (`account`, `from`, `to`) or `open_items` (`date`); the date is today and the period

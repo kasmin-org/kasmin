@@ -13,6 +13,7 @@ use App\Models\Fund;
 use App\Models\JournalEntry;
 use App\Models\JournalLine;
 use App\Models\Period;
+use App\Models\Person;
 use App\Support\Accounting\Accounting;
 use App\Support\Accounting\Journal;
 use App\Support\Accounting\Money;
@@ -83,6 +84,7 @@ class JournalEntryResource extends Resource
         $accounts = fn () => Account::query()->where('active', true)->orderBy('sort')->get()->mapWithKeys(fn (Account $a) => [$a->id => $a->label()])->all();
         $isResult = fn ($get) => in_array(Account::query()->whereKey((int) $get('account'))->value('type'), ['income', 'expense'], true);
         $isFund = fn ($get) => Account::query()->whereKey((int) $get('account'))->value('system_key') === 'funds';
+        $isPersonal = fn ($get) => in_array(Account::query()->whereKey((int) $get('account'))->value('system_key'), Journal::PERSONAL, true);
 
         return [
             DatePicker::make('date')->label(__('accounting.date'))->required()->default(now()),
@@ -99,6 +101,9 @@ class JournalEntryResource extends Resource
                     ->placeholder(__('accounting.cost_centers.default_placeholder')),
                 Select::make('fund')->label(__('accounting.fund'))->visible(fn ($get) => Accounting::funds() && $isFund($get))
                     ->options(fn () => Fund::query()->orderByDesc('is_default')->orderBy('name')->pluck('name', 'id')->all()),
+                Select::make('person_id')->label(__('accounting.reports.person'))->visible($isPersonal)->searchable()
+                    ->getSearchResultsUsing(fn (string $search) => Person::query()->whereNull('anonymised_at')->where(fn ($query) => $query->where('last_name', 'like', "%{$search}%")->orWhere('first_name', 'like', "%{$search}%"))->limit(30)->get()->mapWithKeys(fn (Person $p) => [$p->id => $p->fullName()])->all())
+                    ->getOptionLabelUsing(fn ($value) => Person::query()->whereKey((int) $value)->first()?->fullName()),
                 TextInput::make('text')->label(__('accounting.line_text'))->maxLength(250)->columnSpan(['md' => 2]),
             ]),
             Text::make(__('accounting.entry_hint')),

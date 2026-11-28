@@ -29,6 +29,9 @@ class Journal
      */
     public const REVERSIBLE = ['manual', 'fund_transfer', 'opening'];
 
+    /** Accounts kept per person (open items): receivables, credits, expenses to pay back, advances. */
+    public const PERSONAL = ['receivables', 'credits', 'open_expenses', 'advances'];
+
     /** Whether the booking can be reversed in the journal now. */
     public static function reversible(JournalEntry $entry): bool
     {
@@ -38,7 +41,7 @@ class Journal
     public function __construct(private readonly Periods $periods) {}
 
     /**
-     * @param  array{date: \DateTimeInterface|string, text: string, receipt?: string|null, receipt_path?: string|null, kind?: string, source?: Model|null, once?: bool, period_closing_id?: int|null, created_by_id?: int|null}  $entry  once: false for a document that gets several entries of a kind (the money of a payment moving between receivables and credits)
+     * @param  array{date: \DateTimeInterface|string, text: string, receipt?: string|null, receipt_path?: string|null, kind?: string, source?: Model|null, once?: bool, reversal?: bool, period_closing_id?: int|null, created_by_id?: int|null}  $entry  once: false for a document that gets several entries of a kind (the money of a payment moving between receivables and credits); reversal: the counter-entry of a booking, which may use accounts and cost centres that are no longer active
      * @param  list<array{account: Account|string|int, debit?: int, credit?: int, cost_center?: CostCenter|int|null, fund?: Fund|int|null, person_id?: int|null, text?: string|null}>  $lines
      */
     public function post(array $entry, array $lines, bool $closing = false): JournalEntry
@@ -46,15 +49,17 @@ class Journal
         $kind = $entry['kind'] ?? 'manual';
         $date = Carbon::parse($entry['date'])->startOfDay();
         $source = $entry['source'] ?? null;
-        if ($source !== null && ($entry['once'] ?? true)) {
-            $existing = JournalEntry::query()->where('kind', $kind)->where('source_type', $source->getMorphClass())->where('source_id', $source->getKey())
-                ->whereDoesntHave('reversal')->first();
-            if ($existing !== null) {
-                return $existing; // already booked (documents are booked once)
-            }
-        }
 
         return DB::transaction(function () use ($entry, $lines, $kind, $date, $source, $closing) {
+            if ($source !== null && ($entry['once'] ?? true)) {
+                // Locked, so that two requests booking the same document at once cannot both find it unbooked.
+                $source->newQuery()->whereKey($source->getKey())->lockForUpdate()->first();
+                $existing = JournalEntry::query()->where('kind', $kind)->where('source_type', $source->getMorphClass())->where('source_id', $source->getKey())
+                    ->whereDoesntHave('reversal')->first();
+                if ($existing !== null) {
+                    return $existing; // already booked (documents are booked once)
+                }
+            }
             // Documents may open the next period by themselves; what people type in (bookings, fund transfers) needs one.
             $period = in_array($kind, self::TYPED, true) ? Period::of($date) : $this->periods->ensureFor($date);
             if ($period === null) {
@@ -63,13 +68,17 @@ class Journal
             if ($period->isClosed() && ! $closing) {
                 throw AccountingException::because('closed', ['period' => $period->name]);
             }
-            $rows = $this->lines($lines, $period, $kind === 'manual');
+            $rows = $this->lines($lines, $period, $kind === 'manual' && ! ($entry['reversal'] ?? false));
             $debit = array_sum(array_column($rows, 'debit_cents'));
             $credit = array_sum(array_column($rows, 'credit_cents'));
             if (count($rows) < 2 || $debit !== $credit || $debit <= 0) {
                 throw AccountingException::because('unbalanced', ['debit' => Money::format($debit), 'credit' => Money::format($credit)]);
             }
-            $number = (int) JournalEntry::query()->lockForUpdate()->max('number') + 1;
+            // Numbers run over all years and are never given twice, also not after the closing entries of a reopened
+            // period were removed: the last number given is kept (locked while the next one is taken).
+            $last = (int) DB::table('system_meta')->where('key', 'journal_last_number')->lockForUpdate()->value('value');
+            $number = max($last, (int) JournalEntry::query()->max('number')) + 1;
+            DB::table('system_meta')->updateOrInsert(['key' => 'journal_last_number'], ['value' => (string) $number, 'updated_at' => now(), 'created_at' => now()]);
             $model = JournalEntry::query()->create([
                 'number' => $number, 'date' => $date->toDateString(), 'text' => mb_substr(trim($entry['text']), 0, 250),
                 'receipt' => $entry['receipt'] ?? null, 'receipt_path' => $entry['receipt_path'] ?? null, 'kind' => $kind,
@@ -90,9 +99,6 @@ class Journal
     /** A counter-entry with the opposite sides; dated on the original date while its period is open, else today. */
     public function reverse(JournalEntry $entry, ?string $text = null, \DateTimeInterface|string|null $date = null): JournalEntry
     {
-        if ($entry->reverses_id !== null || $entry->reversal()->exists()) {
-            throw AccountingException::because('reversed');
-        }
         if (! in_array($entry->kind, self::REVERSIBLE, true)) {
             throw AccountingException::because('not_reversible');
         }
@@ -105,8 +111,13 @@ class Journal
                 'fund' => $l->fund_id, 'person_id' => $l->person_id, 'text' => $l->text];
         }
         $reversal = DB::transaction(function () use ($entry, $text, $date, $lines) {
+            // Locked and checked again inside the transaction: two clicks at once give one reversal.
+            $locked = JournalEntry::query()->whereKey($entry->id)->lockForUpdate()->firstOrFail();
+            if ($locked->reverses_id !== null || $locked->reversal()->exists()) {
+                throw AccountingException::because('reversed');
+            }
             $reversal = $this->post(['date' => $date, 'text' => $text ?? __('accounting.reversal_of', ['number' => $entry->number, 'text' => $entry->text]),
-                'kind' => $entry->kind === 'manual' ? 'manual' : $entry->kind], $lines);
+                'kind' => $entry->kind, 'reversal' => true], $lines);
             $reversal->forceFill(['reverses_id' => $entry->id])->save();
 
             return $reversal;

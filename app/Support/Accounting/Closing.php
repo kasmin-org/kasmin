@@ -122,6 +122,10 @@ class Closing
             throw new AccountingException(implode(' ', $preview['errors']));
         }
         DB::transaction(function () use ($period, $preview) {
+            // Locked and checked again: a closing sent twice (e.g. retried after a timeout) books only once.
+            if (Period::query()->whereKey($period->id)->lockForUpdate()->value('status') === 'closed') {
+                throw AccountingException::because('already_closed');
+            }
             $allocations = Account::system('allocations');
             foreach ($preview['allocations'] as $sourceId => $allocation) {
                 if ($allocation['cost'] === 0) {

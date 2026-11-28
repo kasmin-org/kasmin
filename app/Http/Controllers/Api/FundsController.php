@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Models\Account;
 use App\Models\Fund;
+use App\Models\JournalLine;
 use App\Support\Accounting\Accounting;
 use App\Support\Accounting\Balances;
 use App\Support\Accounting\Journal;
@@ -66,13 +67,14 @@ class FundsController extends AccountingController
         return response()->json(['data' => AccountingPresenter::booking($entry->load(AccountingPresenter::BOOKING_WITH), true)], 201);
     }
 
-    /** Deletes a fund that holds nothing and no cost centre uses; never the general fund. */
+    /** Deletes a fund that has no bookings and no cost centre uses; never the general fund. */
     public function destroy(string $fund): JsonResponse
     {
         $this->scope('finance:write');
         $model = $this->find(Fund::class, $fund, 'fund', true);
         abort_if($model->is_default, 422, 'The general fund cannot be deleted.');
-        abort_if(app(Balances::class)->fund($model, '9999-12-31') !== 0 || $model->costCenters()->exists(), 422, 'Only a fund that holds nothing and that no cost centre uses can be deleted.');
+        abort_if(app(Balances::class)->fund($model, '9999-12-31') !== 0 || $model->costCenters()->exists() || JournalLine::query()->where('fund_id', $model->id)->exists(), 422,
+            'Only a fund without bookings that no cost centre uses can be deleted.');
         $model->delete();
 
         return response()->json(['data' => null]);

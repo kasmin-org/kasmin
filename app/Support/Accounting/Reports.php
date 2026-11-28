@@ -44,6 +44,14 @@ class Reports
                 $sum['equity'] += $balance;
             }
         }
+        // Other equity accounts (e.g. one typed in for an opening): everything but the funds account, which the funds show.
+        foreach (Account::query()->where('type', 'equity')->where(fn ($query) => $query->whereNull('system_key')->orWhere('system_key', '!=', 'funds'))->orderBy('sort')->get() as $account) {
+            $balance = -$this->balances->account($account, $day);
+            if ($balance !== 0) {
+                $rows[] = ['  '.$account->label(), Money::format($balance)];
+                $sum['equity'] += $balance;
+            }
+        }
         $open = $this->openResult($day);
         if ($open !== 0) {
             $rows[] = ['  '.__('accounting.reports.open_result'), Money::format($open)];

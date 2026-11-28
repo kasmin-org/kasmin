@@ -60,7 +60,7 @@ class KasminServer extends Server
         Tools\ListCostCenters::class, Tools\CreateCostCenter::class, Tools\UpdateCostCenter::class, Tools\ChangeCostCenterKind::class, Tools\SetCostCenterActive::class,
         Tools\MakeDefaultCostCenter::class, Tools\DeleteCostCenter::class,
         Tools\ListFunds::class, Tools\CreateFund::class, Tools\UpdateFund::class, Tools\TransferBetweenFunds::class, Tools\DeleteFund::class,
-        Tools\ListPeriods::class, Tools\CreatePeriod::class, Tools\UpdatePeriod::class, Tools\GetAllocationKeys::class, Tools\SaveAllocationKey::class, Tools\GetBudgets::class, Tools\SaveBudgets::class,
+        Tools\ListPeriods::class, Tools\CreatePeriod::class, Tools\UpdatePeriod::class, Tools\GetAllocationKeys::class, Tools\SaveAllocationKey::class, Tools\GetBudgets::class, Tools\SaveBudgets::class, Tools\BookDocuments::class,
         Tools\ClosePeriodPreview::class, Tools\ClosePeriod::class, Tools\ReopenPeriod::class,
         Tools\ListBookings::class, Tools\GetBooking::class, Tools\CreateBooking::class, Tools\ReverseBooking::class, Tools\GetReport::class,
         Tools\ListExpenseClaims::class, Tools\CreateExpenseClaim::class, Tools\ApproveExpenseClaim::class, Tools\RejectExpenseClaim::class, Tools\DonateExpenseClaim::class, Tools\PayExpenseClaims::class,

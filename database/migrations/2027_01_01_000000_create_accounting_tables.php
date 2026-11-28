@@ -103,7 +103,7 @@ return new class extends Migration
                 $table->string('kind', 16)->default('manual');
                 $table->string('source_type', 40)->nullable();
                 $table->unsignedBigInteger('source_id')->nullable();
-                $table->foreignId('reverses_id')->nullable()->constrained('journal_entries')->nullOnDelete();
+                $table->foreignId('reverses_id')->nullable()->unique()->constrained('journal_entries')->nullOnDelete(); // one reversal per booking
                 $table->foreignId('period_closing_id')->nullable()->constrained('periods')->nullOnDelete();
                 $table->foreignId('created_by_id')->nullable()->constrained('users')->nullOnDelete();
                 $table->timestamps();

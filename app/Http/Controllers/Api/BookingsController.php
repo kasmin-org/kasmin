@@ -69,6 +69,7 @@ class BookingsController extends AccountingController
             'lines' => ['required', 'array', 'min:2', 'max:200'], 'lines.*.account' => ['required'],
             'lines.*.debit' => ['nullable', 'numeric', 'min:0', 'max:100000000'], 'lines.*.credit' => ['nullable', 'numeric', 'min:0', 'max:100000000'],
             'lines.*.cost_center' => ['nullable'], 'lines.*.fund' => ['nullable'], 'lines.*.text' => ['nullable', 'string', 'max:250'],
+            'lines.*.person' => ['nullable', 'string', 'max:40'],
         ]);
         $lines = [];
         foreach (array_values($data['lines']) as $i => $line) {
@@ -77,6 +78,7 @@ class BookingsController extends AccountingController
                 'debit' => $this->cents($line['debit'] ?? 0), 'credit' => $this->cents($line['credit'] ?? 0),
                 'cost_center' => $this->findOptional(CostCenter::class, $line['cost_center'] ?? null, "lines.{$i}.cost_center"),
                 'fund' => $this->findOptional(Fund::class, $line['fund'] ?? null, "lines.{$i}.fund"),
+                'person_id' => filled($line['person'] ?? null) ? $this->person((string) $line['person'])->id : null, // the public id, as everywhere in the API
                 'text' => $line['text'] ?? null,
             ];
         }

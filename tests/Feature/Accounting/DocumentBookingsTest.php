@@ -320,8 +320,9 @@ class DocumentBookingsTest extends TestCase
         $this->assertSame(0, app(DocumentBookings::class)->backfill());
         $this->assertSame(0, JournalEntry::query()->count());
 
+        // Moving the start earlier books what is now inside at once; the command (and the nightly run) finds nothing left.
         app(Periods::class)->move($period, '2027-01-01', '2027-12-31');
-        $this->artisan('kasmin:book-documents')->expectsOutputToContain('3 bookings made.')->assertSuccessful(); // @phpstan-ignore method.nonObject
+        $this->artisan('kasmin:book-documents')->expectsOutputToContain('0 bookings made.')->assertSuccessful(); // @phpstan-ignore method.nonObject
         $this->assertSame(['invoice', 'invoice', 'payment'], JournalEntry::query()->orderBy('number')->pluck('kind')->all());
         $root = Payment::query()->whereNull('parent_id')->sole();
         $this->assertSame(['bank: +25000', 'receivables: -20000', 'credits: -5000'], $this->lines($this->entry($root, 'payment')));

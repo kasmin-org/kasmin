@@ -35,6 +35,17 @@ nächsten Sommerlagers gehört. *Buchhaltung → Einstellungen → Buchungsperio
 Buchhaltung; jede weitere folgt lückenlos auf die vorige und übernimmt deren aktive Kostenstellen und Umlageschlüssel. Belege nach
 der letzten Periode legen die nächste selbst an (höchstens zwei Jahre im Voraus).
 
+Wird die erste Periode angelegt – oder ihr Beginn nach vorne verschoben –, bucht Kasmin jede Rechnung, Gutschrift, Zahlung und
+Rückzahlung ab ihrem Beginn. *Fehlende Belege buchen* auf derselben Seite macht das jederzeit noch einmal (z. B. nachdem eine Buchung
+fehlgeschlagen ist, weil ihre Periode abgeschlossen war); Kasmin versucht es außerdem jede Nacht. Belege von **vor dem Start** werden
+nicht gebucht: Was zum Start offen ist (Forderungen und Guthaben je Familie, noch zu erstattende Auslagen), kommt in eine
+**Eröffnungsbuchung**, eingegeben mit der Person in jeder Zeile. Auch Zahlungen von vor dem Start, die später umgebucht werden (z. B. auf
+ein Guthaben nach einer Stornierung), werden nicht gebucht – prüfen Sie danach die offenen Posten und korrigieren Sie sie mit einer
+eingegebenen Buchung für die Person.
+
+Die erste Periode kann nicht nach ihrer ersten Buchung beginnen und die letzte nicht vor ihrer letzten Buchung enden: Keine Buchung
+darf ohne Periode bleiben. Eine Periode vor einer abgeschlossenen lässt sich erst nach deren Wiedereröffnung anlegen.
+
 Die Daten einer **offenen** Periode lassen sich nachträglich ändern (*Name und Daten ändern*): Buchungen gehören über ihr Datum zu
 einer Periode, also wandern sie mit, und die Nachbarperiode zieht mit. Kasmin zeigt vorher, wie viele Buchungen danach zu einer
 anderen Periode gehören. Eröffnungswerte werden nie gespeichert, sondern berechnet – sie stimmen daher immer.

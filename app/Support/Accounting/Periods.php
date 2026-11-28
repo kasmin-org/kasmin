@@ -31,8 +31,13 @@ class Periods
         if ($last !== null && $first !== null && ! $start->equalTo($last->ends_on->copy()->addDay()) && ! $end->equalTo($first->starts_on->copy()->subDay())) {
             throw AccountingException::because('period_gap', ['date' => $last->ends_on->copy()->addDay()->isoFormat('L')]);
         }
+        $earliest = $first === null || $start->lt($first->starts_on);
+        if ($first !== null && $earliest && $first->isClosed()) {
+            // Bookings before a closed period would change its opening values without reopening it (E1g).
+            throw AccountingException::because('before_closed', ['period' => $first->name]);
+        }
 
-        return DB::transaction(function () use ($name, $start, $end, $last) {
+        $period = DB::transaction(function () use ($name, $start, $end, $last) {
             $period = Period::query()->create(['name' => trim($name), 'starts_on' => $start->toDateString(), 'ends_on' => $end->toDateString(), 'status' => 'open']);
             $previous = $last !== null && $start->greaterThan($last->ends_on) ? $last : null;
             // The active cost centres and the keys of the period before (as they were set, not as cut at the closing).
@@ -45,6 +50,11 @@ class Periods
 
             return $period;
         });
+        if ($earliest) {
+            app(DocumentBookings::class)->backfill($start); // the accounting starts (earlier): documents from then on are booked
+        }
+
+        return $period;
     }
 
     /**
@@ -91,7 +101,14 @@ class Periods
         if ($affected->contains(fn (Period $p) => $p->isClosed())) {
             throw AccountingException::because('closed', ['period' => $affected->first(fn (Period $p) => $p->isClosed())?->name]);
         }
+        // The first period cannot start later, nor the last one end earlier, than a booking in it: it would be in no period.
+        $orphans = ($before === null && $start->gt($period->starts_on) && JournalEntry::query()->whereDate('date', '>=', $period->starts_on->toDateString())->whereDate('date', '<', $start->toDateString())->exists())
+            || ($after === null && $end->lt($period->ends_on) && JournalEntry::query()->whereDate('date', '>', $end->toDateString())->whereDate('date', '<=', $period->ends_on->toDateString())->exists());
+        if ($orphans) {
+            throw AccountingException::because('period_orphans');
+        }
         $moved = $this->movingEntries($period, $start, $end)->count();
+        $earlier = $before === null && $start->lt($period->starts_on);
 
         DB::transaction(function () use ($period, $start, $end, $before, $after) {
             $old = [$period->starts_on->toDateString(), $period->ends_on->toDateString()];
@@ -106,6 +123,9 @@ class Periods
             $period->forceFill(['starts_on' => $start->toDateString(), 'ends_on' => $end->toDateString()])->save();
             Audit::record('period.moved', $period, null, ['from' => $old, 'to' => [$start->toDateString(), $end->toDateString()]]);
         });
+        if ($earlier) {
+            app(DocumentBookings::class)->backfill($start); // the accounting starts earlier now
+        }
 
         return ['moved' => $moved];
     }

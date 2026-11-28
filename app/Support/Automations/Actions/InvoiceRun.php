@@ -6,11 +6,12 @@ use App\Models\Automation;
 use App\Models\Event;
 use App\Support\Automations\Action;
 use App\Support\Automations\Families;
+use App\Support\Automations\InstallmentPosition;
 use App\Support\Finance\Invoices;
 
 /**
- * A02/A07: invoices for one instalment (config: installment, e.g. "deposit" or "balance") per family, issued and
- * sent with the PDF.
+ * A02/A07: invoices for one instalment per family, issued and sent with the PDF. The setting "installment" is the
+ * position of the instalment in the payment plan of the event (pos:1, pos:2 … pos:last, see InstallmentPosition).
  */
 class InvoiceRun implements Action
 {
@@ -18,7 +19,7 @@ class InvoiceRun implements Action
 
     public function plan(Automation $automation, ?Event $event): array
     {
-        $installment = $event?->installments()->where('key', (string) $automation->setting('installment', 'deposit'))->first();
+        $installment = InstallmentPosition::resolve($event, $automation->setting('installment'));
         if ($event === null || $installment === null) {
             return [];
         }
@@ -32,7 +33,7 @@ class InvoiceRun implements Action
 
     public function execute(Automation $automation, array $item, ?Event $event): string
     {
-        $installment = $event?->installments()->where('key', (string) $automation->setting('installment', 'deposit'))->first();
+        $installment = InstallmentPosition::resolve($event, $automation->setting('installment'));
         if ($event === null || $installment === null) {
             return 'skipped: no instalment';
         }

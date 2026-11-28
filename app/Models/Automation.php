@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Casts\OneText;
 use App\Models\Concerns\Auditable;
+use App\Models\Concerns\HasInternalKey;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
@@ -28,6 +29,7 @@ use Illuminate\Support\Carbon;
 class Automation extends Model
 {
     use Auditable;
+    use HasInternalKey;
 
     public const MODES = ['automatic', 'confirm', 'manual'];
 
@@ -56,6 +58,12 @@ class Automation extends Model
     public function runs(): HasMany
     {
         return $this->hasMany(AutomationRun::class);
+    }
+
+    /** Own records never take a key that a later version might ship. */
+    protected function internalKeyPrefix(): string
+    {
+        return 'own_';
     }
 
     public function label(?string $locale = null): string

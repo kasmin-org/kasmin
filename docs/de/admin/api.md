@@ -48,8 +48,32 @@ Basisadresse `https://your-kasmin.example/api/v1`, Header `Authorization: Bearer
 - Die API ist nur für die Verwaltung gedacht: Ein Token handelt immer für eine Administratorin oder einen Administrator, und es gibt keine API für
   Familien oder andere Personen im Portal.
 - IDs von Personen, Familien und Veranstaltungen sind ihre öffentlichen IDs (ULIDs), keine Nummern der Datenbank. Alles andere
-  (Teilnahmen, Rechnungen, Zahlungen, Gruppen, Einteilungen, Einheiten …) hat eine Nummer.
+  (Teilnahmen, Rechnungen, Zahlungen, Gruppen, Einteilungen, Einheiten, Mitgliedsarten, Rollen, Formulare, Mailvorlagen,
+  Automatisierungen, Raten …) hat eine Nummer – siehe [IDs und Namen](#ids-und-namen).
 - `GET /me` zeigt das verwendete Token: Name, Scopes, Ablauf und die Person, für die es handelt.
+
+### IDs und Namen
+
+Mitgliedsarten, Rollen, Formulare, Mailvorlagen, Automatisierungen und die Raten eines Ratenplans haben einen **Namen**,
+der pro Art eindeutig ist (Raten: pro Veranstaltung), und werden über ihre **Datenbank-ID** angesprochen. Jede Liste liefert
+`id` und `name` (Raten: `id` und `label`).
+
+- Wo ein solcher Eintrag angesprochen wird – im Pfad (`/membership-types/{type}`, `/forms/{form}`,
+  `/mail-templates/{template}`, `/automations/{automation}`) oder in einem Feld (`type` einer Mitgliedschaft, `role`,
+  `template` einer Aussendung, `registration_form`, `membership_type`, die Mailvorlagen, das Formular und `approver_roles`
+  einer Automatisierung) –, senden Sie die **ID** oder den **genauen Namen**. Groß- und Kleinschreibung sowie Leerzeichen am
+  Anfang und Ende spielen keine Rolle. Eine Zahl gilt immer als ID.
+- Einen Namen, den mehrere Einträge haben, lehnt die API mit `422` und dem Hinweis ab, dass der Name nicht eindeutig ist;
+  verwenden Sie dann die ID. Nichts gefunden: `404` im Pfad, `422` in einem Feld.
+- Bis 0.30 hatten diese Einträge einen sichtbaren Schlüssel (`deposit`, `safety_sheet` …). Ein solcher Schlüssel wird weiter
+  angenommen, wo eine ID oder ein Name steht, ist aber in keiner Antwort mehr enthalten – außer in den Dateien von
+  Formulardefinitionen (siehe unten) und von `kasmin:config:export`, die von einer Installation zur anderen gehen, wo die
+  IDs andere sind.
+- Einen Eintrag mit einem Namen anzulegen oder umzubenennen, der schon vergeben ist, lehnt die API ab (`422`), wie die Verwaltung.
+- Felder eines Formulars behalten ihren Schlüssel: Die Antworten einer Person (`values`) und die Platzhalter von Mailvorlagen
+  beziehen sich darauf. Er entsteht aus der Bezeichnung, wenn das Feld hinzugefügt wird, und ändert sich nicht, wenn die
+  Bezeichnung geändert wird. `GET /forms` führt die Felder mit `id`, `key` und `label` an; `values` kann ein Feld über seinen
+  Schlüssel oder seine ID nennen.
 
 ```
 curl -H "Authorization: Bearer kas_…" https://your-kasmin.example/api/v1/events
@@ -70,21 +94,25 @@ Scopes `people:read` / `people:write`.
 - Erziehungsberechtigte: `GET|POST /people/{id}/guardians` (`guardian` = ID der Person),
   `DELETE /people/{id}/guardians/{guardian id}` beendet die Erziehungsberechtigung. Die Einstellung *Erziehungsberechtigte pro Familie (höchstens)*
   gilt auch hier; Familien werden nicht geändert.
-- Mitgliedschaften einer Person: `GET|POST /people/{id}/memberships` (`type` = Schlüssel einer Mitgliedsart, `starts_on`,
+- Mitgliedschaften einer Person: `GET|POST /people/{id}/memberships` (`type` = ID oder Name einer Mitgliedsart, `starts_on`,
   `ends_on`), `PATCH /people/{id}/memberships/{number}` mit `ends_on` beendet eine Mitgliedschaft (`null` lässt sie wieder
   laufen). Eine Person hat pro Art höchstens eine laufende Mitgliedschaft.
-- Mitgliedsarten: `GET|POST /membership-types`, `PATCH /membership-types/{key}` (`name.de`, `name.en`, `pays_fee`, `fee`,
-  `revenue_account` und `cost_center`: worauf der Beitrag in der Buchhaltung gebucht wird, die ID oder der genaue Name; `null` leert).
+- Mitgliedsarten: `GET|POST /membership-types`, `PATCH /membership-types/{type}` (`{type}` = ID oder Name; `name`,
+  eindeutig, `pays_fee`, `fee`, `revenue_account` und `cost_center`: worauf der Beitrag in der
+  Buchhaltung gebucht wird, die ID oder der genaue Name; `null` leert).
 - Doppelte Einträge: `GET /duplicates` führt die Paare an, die wahrscheinlich dieselbe Person sind, mit dem Grund.
   `POST /duplicates/merge` (`keep`, `duplicate` und `fields` wie `{"birth_date": "duplicate"}` für die Werte,
   die vom doppelten Eintrag kommen sollen) verschiebt alles zur Person, die bleibt, und löscht den doppelten Eintrag – das
   kann nicht rückgängig gemacht werden. Es wird abgelehnt, wenn das Zusammenführen jemandem mehr Rechte gäbe oder beide eine verrechnete
   Anmeldung zur selben Veranstaltung haben. `POST /duplicates/dismiss` (`first`, `second`) markiert zwei Personen als verschieden.
-- Formulare: `GET /forms`, `GET /people/{id}/forms`, `GET|PATCH /people/{id}/forms/{form}`. Vertrauliche Werte brauchen
-  `health:read` / `health:write`. `GET|PUT /forms/{form}/definition` liest und ersetzt die Definition eines Formulars
-  (`settings:write` zum Ersetzen).
+- Formulare: `GET /forms`, `GET /people/{id}/forms`, `GET|PATCH /people/{id}/forms/{form}` (`{form}` = ID oder Name).
+  Vertrauliche Werte brauchen `health:read` / `health:write`. `GET|PUT /forms/{form}/definition` liest und ersetzt die
+  Definition eines Formulars (`settings:write` zum Ersetzen); `PUT` mit einem Namen, den kein Formular hat, legt ein neues
+  Formular an. Die Definition ist dieselbe Datei wie *Exportieren* in der Verwaltung: Sie enthält die internen Schlüssel
+  des Formulars und seiner Felder, damit sie in eine andere Installation passt. Ein Feld ohne `key` ist ein neues Feld.
 
-Beispiel: `POST /people/{id}/memberships` mit `{"type": "member", "starts_on": "2027-01-01"}`.
+Beispiel: `POST /people/{id}/memberships` mit `{"type": "Ordentliches Mitglied (Team, Vorstand)", "starts_on": "2027-01-01"}`
+(oder der `id` aus `GET /membership-types`).
 
 ### Familien
 
@@ -107,7 +135,7 @@ Lesen mit `people:read`, Ändern mit dem eigenen Scope `roles:write`.
 
 - `GET /roles` – alle Rollen; `admin` sagt, ob die Rolle Zugang zur Verwaltung hat.
 - `GET /people/{id}/roles` – die Rollen einer Person mit ihrem Zeitraum.
-- `POST /people/{id}/roles` (`role` = Schlüssel, `event` nur bei Rollen, die für die eigenen Veranstaltungen gelten, `starts_on`,
+- `POST /people/{id}/roles` (`role` = ID oder Name, `event` nur bei Rollen, die für die eigenen Veranstaltungen gelten, `starts_on`,
   `ends_on`) und `DELETE /people/{id}/roles/{number}`.
 - **Ein Token kann die Rolle `administrator` nie geben oder nehmen** (403). In der Verwaltung dürfen nur Administratorinnen und Administratoren
   Rollen ändern; ein Token ist kein Mensch, deshalb bleibt diese Rolle dort bei einem Menschen. Die letzte Administration
@@ -121,17 +149,18 @@ Scopes `events:read` / `events:write`.
 
 - `GET|POST /events`, `GET|PATCH /events/{id}` mit den Feldern des Veranstaltungsformulars: Grunddaten (Titel, Termine,
   Status, `series_id`, Anmeldezeitraum, Ort, Kontakt, `bus_booked`, `bus_seats`) und `roles` (`role`,
-  `capacity`, `reserve_places`, `min_age`, `max_age`, `price`, `registration_form` = Schlüssel eines Formulars mit Fragen einer Veranstaltung …).
+  `capacity`, `reserve_places`, `min_age`, `max_age`, `price`, `registration_form` = ID oder Name eines Formulars mit Fragen einer Veranstaltung …).
   Ein gebuchter Bus braucht die Zahl seiner Sitzplätze. Die Antwort hat `bus` mit `riders`, `cars`, `free`, `over`,
   `adults_on_bus` und `children_by_car`. Das Bild wird in der Verwaltung gesetzt.
 - Preise und Ratenplan, in denselben Anfragen: `sibling_mode` (`none`, `staggered`, `all`), `sibling_order`
   (`oldest`, `highest_price`, `registration`), `sibling_amount`, `sibling_cap_position`, `sibling_min_children`,
   `cancellation_fee`, `cancellation_text.de` / `.en`, `reminder_days_before` (Liste von Tagen), `prices` (Preise nach
   Alter oder Datum: `role`, `min_age`, `max_age`, `from_date`, `until_date`, `price` – die Liste ersetzt die
-  gespeicherte) und `installments` (`key`, `label.de`, `label.en`, `kind` = `fixed`, `rest` oder `member`, `amount`,
-  `due_date`, `due_days`, `membership_type`, `refundable`, `refund_until_days`, `confirms_place`,
-  `paid_add_group`, `paid_remove_group`, `discounts_apply`, `revenue_account`, `cost_center`). Raten werden wie Rollen über den Schlüssel geführt: Was angeführt ist, wird
-  angelegt oder geändert, der Rest wird entfernt. Wie im Veranstaltungsformular können Preise geändert werden, während es Rechnungen gibt:
+  gespeicherte) und `installments` (`id`, `label` = der Name, eindeutig innerhalb der Veranstaltung, `kind` = `fixed`, `rest`
+  oder `member`, `amount`, `due_date`, `due_days`, `membership_type` = ID oder Name, `refundable`, `refund_until_days`,
+  `confirms_place`, `paid_add_group`, `paid_remove_group`, `discounts_apply`, `revenue_account`, `cost_center`). Raten werden wie Rollen geführt: Ein Eintrag mit
+  der `id` einer Rate ändert sie, ein Eintrag ohne `id` ändert die Rate mit demselben Namen oder legt eine neue an, und die Raten,
+  die nicht angeführt sind, werden entfernt. Wie im Veranstaltungsformular können Preise geändert werden, während es Rechnungen gibt:
   Ausgestellte Rechnungen bleiben, wie sie sind. Eine Rate, zu der es schon Rechnungen gibt, kann nicht
   entfernt werden (422). Die Währung wird angezeigt, kann aber nicht geändert werden, wie im Formular.
 - Buchhaltung: `cost_center` der Veranstaltung und `revenue_account` / `cost_center` einer Rate sagen, worauf ihre
@@ -199,7 +228,8 @@ Scopes `people:read` / `people:write`: `GET|POST /groups`, `GET|PATCH /groups/{n
 
 Scopes `finance:read` / `finance:write`.
 
-- `GET /invoices` (`status`, `event`), `GET /invoices/{number}`, `GET /invoices/{number}/pdf`.
+- `GET /invoices` (`status`, `event`), `GET /invoices/{number}`, `GET /invoices/{number}/pdf`. `installment` ist die
+  ID der Rate aus dem Ratenplan (`null` bei Einzelrechnungen und Mitgliedsbeiträgen), `installment_name` das, wofür sie ist.
 - `POST /invoices/{number}/issue` stellt einen Entwurf aus (Nummer, Referenz, Fälligkeitsdatum) und sendet ihn an die zahlungspflichtige Person, wie
   *Ausstellen und senden*; mit `send` `false` wird er nur ausgestellt. `POST /invoices/{number}/send` sendet eine ausgestellte
   Rechnung noch einmal. Nur Entwürfe können ausgestellt werden, und Entwürfe können nicht gesendet werden.
@@ -279,15 +309,15 @@ Beispiel: `POST /accounting/bookings` mit `{"date": "2027-03-01", "text": "Einka
 
 Scopes `mail:read` / `mail:write`.
 
-- `GET /mail-templates`, `GET|PATCH /mail-templates/{key}`, `POST /mail-templates/{key}/preview`. Eine Vorlage hat einen
-  Text: `subject`, `html` und optional `text`.
+- `GET /mail-templates`, `GET|PATCH /mail-templates/{template}`, `POST /mail-templates/{template}/preview`
+  (`{template}` = ID oder Name). Eine Vorlage hat einen Text: `subject`, `html` und optional `text`.
 - **Texte sind einzelne Werte.** Namen, Bezeichnungen und Texte (Formulare mit ihren Feldern und Auswahlmöglichkeiten, Mitgliedsarten,
   Automatisierungen, Bezeichnungen von Raten, Stornobedingungen, Mailvorlagen) sind einfache Zeichenketten. Bis 0.27 waren
   sie Objekte mit einem Text pro Sprache (`{"de": …, "en": …}`); solche Eingaben werden weiter angenommen, und es wird der Text in
   der Sprache der Installation genommen. Personen und Familien haben kein `locale` mehr.
-- Versionen: `GET /mail-templates/{key}/versions` und `POST /mail-templates/{key}/versions/{version}/restore`.
+- Versionen: `GET /mail-templates/{template}/versions` und `POST /mail-templates/{template}/versions/{version}/restore`.
   Das Wiederherstellen erzeugt eine neue Version; nichts geht verloren.
-- `GET|POST /mailings`, `GET /mailings/{number}`, `POST /mailings/{number}/prepare`,
+- `GET|POST /mailings` (`template` = ID oder Name der Vorlage), `GET /mailings/{number}`, `POST /mailings/{number}/prepare`,
   `POST /mailings/{number}/release` (bittet um die Freigabe, außer das Token hat `approvals:decide`).
 - `GET /outgoing-mails` (`status`, `person`) – das Mailprotokoll mit dem gespeicherten Text. **Persönliche Links zur Anmeldung und zur
   Freigabe sind nie Teil der Antwort**: Gespeicherte Mails enthalten einen Platzhalter, der Link entsteht erst beim Senden einer Mail.
@@ -336,17 +366,23 @@ Lesen mit `audit:read`, Anonymisieren mit dem eigenen Scope `privacy:write`.
 
 ### Automatisierungen
 
-- `GET /automations`, `GET|PATCH /automations/{key}` für `active`, `mode`, `trigger`, `trigger_config`, `config`,
-  `approver_roles`, `approvals_needed`, `max_items` und `name`, mit den Prüfungen des Formulars der Automatisierung.
-  `trigger_config` und `config` ersetzen das gespeicherte Objekt. Schlüssel und Aktion können nicht geändert werden.
-  `approver_roles_default` ist `true`, solange keine Freigebenden gespeichert sind: `approver_roles` zeigt dann die voreingestellten Rollen.
-  Eine leere Liste für `approver_roles` stellt die Voreinstellung wieder her.
-- Eigene Automatisierungen (`automations:write`): `POST /automations` mit `name.de`, `name.en`, `trigger` und `config`
+- `GET /automations`, `GET|PATCH /automations/{automation}` (ID oder Name) für `active`, `mode`, `trigger`, `trigger_config`,
+  `config`, `approver_roles`, `approvals_needed`, `max_items` und `name`, mit den Prüfungen des Formulars der Automatisierung.
+  `trigger_config` und `config` ersetzen das gespeicherte Objekt. Die Aktion kann nicht geändert werden. `approver_roles` sind
+  IDs von Rollen (in einer Anfrage IDs oder Namen); `approver_roles_default` ist `true`, solange keine Freigebenden gespeichert
+  sind: `approver_roles` zeigt dann die voreingestellten Rollen. Eine leere Liste für `approver_roles` stellt die Voreinstellung
+  wieder her.
+- In `config` sind Mailvorlagen (`template`, `steps[].template`) und das Formular der Erinnerung an das Sicherheitsblatt
+  (`form`) in der Antwort IDs; eine Anfrage kann IDs oder Namen senden. Die Rate eines Rechnungslaufs (`installment`) ist ihre
+  Stelle im Ratenplan der Veranstaltung, für die die Automatisierung läuft: `pos:1`, `pos:2`, `pos:3` … oder `pos:last`. Ein
+  Schlüssel einer Rate aus früheren Versionen (z. B. `deposit`) funktioniert weiter.
+- Eigene Automatisierungen (`automations:write`): `POST /automations` mit `name` (eindeutig), `trigger` und `config`
   (`target`, `conditions`, `steps`) legt eine mit der Aktion `custom` an; sie wird ausgeschaltet angelegt, wie in der
-  Verwaltung. `DELETE /automations/{key}` löscht eine eigene Automatisierung. **Standard-Automatisierungen können nicht
+  Verwaltung. `DELETE /automations/{automation}` löscht eine eigene Automatisierung. **Standard-Automatisierungen können nicht
   gelöscht werden** (403); schalten Sie sie stattdessen aus.
-- `POST /automations/{key}/preview` (Probelauf), `POST /automations/{key}/run`, `GET /automation-runs`,
-  `GET /automation-runs/{number}`, `POST /automation-runs/{number}/decision`.
+- `POST /automations/{automation}/preview` (Probelauf), `POST /automations/{automation}/run`, `GET /automation-runs`,
+  `GET /automation-runs/{number}`, `POST /automation-runs/{number}/decision`. Ein Lauf nennt seine Automatisierung mit
+  `automation` (ID) und `automation_name`.
 
 ### Import, Einstellungen und Audit-Protokoll
 
@@ -387,7 +423,8 @@ Kasmin hat einen eingebauten MCP-Server (Model Context Protocol, Streamable HTTP
 Er bietet die REST-API als Tools an, mit demselben Token und denselben Scopes. Ein Tool ruft den REST-Endpunkt auf. Es gelten also dieselben
 Prüfungen, und das Audit-Protokoll zeigt die Änderung mit „mcp“. Jeder Endpunkt für die Verwaltung hat genau ein Tool
 (die Teilnahme hat zwei, für Status und Anreise); ein Test geht die Routen der API durch und schlägt fehl, wenn eine
-vergessen wurde (`tests/Feature/Api/McpParityTest.php`).
+vergessen wurde (`tests/Feature/Api/McpParityTest.php`). Tools nennen Mitgliedsarten, Rollen, Formulare, Mailvorlagen und
+Automatisierungen über ihre ID oder ihren genauen Namen, wie die REST-API (`automation`, `template`, `type`, `form`, `role`).
 
 | Bereich | Tools | Scopes |
 |---|---|---|
@@ -537,6 +574,8 @@ php artisan kasmin:config:import kasmin-config.json [--update]
 
 Der Import legt an, was fehlt, und lässt bestehende Einträge in Ruhe, außer `--update` ist angegeben (Vorlagen bekommen dann eine
 neue Version). Vorlagen werden zuerst in der abgeschotteten Umgebung für Vorlagen geprüft; importierte Automatisierungen sind ausgeschaltet.
+Die Datei ordnet Vorlagen und Automatisierungen über ihren internen Schlüssel zu, der bei den Standard-Einträgen in jeder
+Installation gleich ist und in der Verwaltung nie angezeigt wird.
 
 ## Vergleich: Verwaltung, REST und MCP
 

@@ -217,7 +217,7 @@ class DocumentBookings
      */
     private function invoiceLines(Invoice $invoice): array
     {
-        $installment = $invoice->event?->installments->firstWhere('key', $invoice->installment_key);
+        $installment = $invoice->event !== null ? $invoice->installmentAmong($invoice->event->installments) : null;
         $types = MembershipType::query()->whereIn('id', $invoice->lines->pluck('membership_type_id')->filter()->unique()->all())->get()->keyBy('id');
         // A reminder fee belongs to the event of the invoice it is for.
         $feeFor = $invoice->fee_for_id !== null ? Invoice::query()->with('event.series')->find($invoice->fee_for_id) : null;

@@ -11,7 +11,7 @@ use Laravel\Mcp\Server\Attributes\Description;
 use Laravel\Mcp\Server\Attributes\Name;
 
 #[Name('create_membership_type')]
-#[Description('Creates a membership type. The key cannot be changed later.')]
+#[Description('Creates a membership type. Its name must be unique; the answer has its id.')]
 class CreateMembershipType extends ApiTool
 {
     public const ENDPOINT = ['POST', '/membership-types'];
@@ -30,8 +30,7 @@ class CreateMembershipType extends ApiTool
     public function schema(JsonSchema $schema): array
     {
         return [
-            'key' => $schema->string()->description('short key: letters, digits, dashes, underscores')->required(),
-            'name' => $schema->string()->description('name')->required(),
+            'name' => $schema->string()->description('name, unique among the membership types')->required(),
             'pays_fee' => $schema->boolean()->description('whether members of this type pay the yearly fee'),
             'fee' => $schema->number()->description('yearly fee in the invoice currency'),
             'revenue_account' => $schema->string()->description('income account the fees are booked on: id or exact name (empty: membership fees)'),

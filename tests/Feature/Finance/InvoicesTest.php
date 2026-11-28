@@ -164,6 +164,14 @@ class InvoicesTest extends TestCase
         $this->assertSame(33000, ParticipationConfirmation::paidCents($ben));
     }
 
+    public function test_an_invoiced_instalment_cannot_be_deleted(): void
+    {
+        $this->child('Ann', '2014-01-01');
+        $this->draftRun('deposit');
+        $this->expectException(\RuntimeException::class);
+        $this->event->installments()->where('key', 'deposit')->firstOrFail()->delete();
+    }
+
     public function test_issue_assigns_number_and_valid_rf_reference(): void
     {
         $this->child('Ann', '2014-01-01');

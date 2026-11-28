@@ -4,7 +4,6 @@ namespace App\Filament\Resources\Automations\Pages;
 
 use App\Filament\Resources\Automations\AutomationResource;
 use Filament\Resources\Pages\CreateRecord;
-use Illuminate\Support\Str;
 
 /**
  * Own automation (AT01, X09): always switched off at first and with approval, so it can be checked with a dry run.
@@ -15,7 +14,7 @@ class CreateAutomation extends CreateRecord
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
-        return ['key' => 'own_'.Str::lower(Str::random(10)), 'action' => 'custom', 'is_standard' => false, 'active' => false] + $data;
+        return ['action' => 'custom', 'is_standard' => false, 'active' => false] + $data; // the internal key is made from the name
     }
 
     protected function getRedirectUrl(): string

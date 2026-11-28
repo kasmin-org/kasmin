@@ -34,9 +34,15 @@ them less confidential, or delete the safety sheet. Form rights alone never open
 
 ## Export and import
 
-*Events → Forms → Export* saves the definition of a form as a JSON file (no answers), *Import* reads it. A form with the same
-key gets a new version; fields that are not in the file are removed, answers stay. The same format works with the API
-(`GET`/`PUT /api/v1/forms/{key}/definition`) and MCP (`get_form_definition`, `save_form_definition`).
+*Events → Forms → Export* saves the definition of a form as a JSON file (no answers), *Import* reads it. The file holds an
+internal key of the form and of each field, which Kasmin makes once from the name or label and never shows; ids are
+different in every installation, the keys stay the same. A form that was exported from the same form – or, without
+such a form, the form with the same name – gets a new version; fields are matched by their key, fields that are not in
+the file are removed, answers stay. The same format works with the API (`GET`/`PUT /api/v1/forms/{form}/definition`,
+`{form}` = id or name) and MCP (`get_form_definition`, `save_form_definition`).
+
+Forms have unique names. A field keeps its internal key when its label changes, so answers given before and
+placeholders in mail templates keep working.
 
 ## Emergency contacts
 

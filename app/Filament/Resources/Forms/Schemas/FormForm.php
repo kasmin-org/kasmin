@@ -3,9 +3,11 @@
 namespace App\Filament\Resources\Forms\Schemas;
 
 use App\Casts\OneText;
+use App\Models\Form;
 use App\Models\FormField;
 use App\Support\Forms\ChoiceLists;
 use App\Support\Forms\Formats;
+use App\Support\Records\UniqueName;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
@@ -17,8 +19,9 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
 /**
- * Form builder (SF01–SF09, FB06–FB08): fields with type, labels and help texts in German and English, sensitivity,
- * carry-over and list use.
+ * Form builder (SF01–SF09, FB06–FB08): fields with type, label and help text, sensitivity, carry-over and list use. A
+ * field gets its internal key from the label when it is added (B8); answers and placeholders refer to it, so it does
+ * not change when the label changes.
  */
 class FormForm
 {
@@ -28,10 +31,9 @@ class FormForm
 
         return $schema->components([
             Section::make(__('admin.form.singular'))->columnSpanFull()->columns(['md' => 2])->schema([
-                TextInput::make('key')->label(__('admin.form.key'))->required()->alphaDash()->maxLength(64)->unique(ignoreRecord: true),
                 Toggle::make('active')->label(__('admin.form.active'))->default(true),
                 Select::make('kind')->label(__('admin.form.kind'))->options(__('admin.form.kinds'))->default('person')->required()->live()->disabledOn('edit')->hintIcon(...$hint('kind')),
-                TextInput::make('name')->label(__('admin.form.name'))->required(),
+                TextInput::make('name')->label(__('admin.form.name'))->required()->maxLength(200)->rule(fn (?Form $record) => new UniqueName(Form::query(), $record?->getKey())),
                 Textarea::make('description')->label(__('admin.form.description')),
                 TextInput::make('applies_until_age')->label(__('admin.form.applies_until_age'))->numeric()->minValue(1)->maxValue(120)->visible(fn ($get) => $get('kind') !== 'registration')
                     ->hintIcon(...$hint('applies_until_age')),
@@ -43,13 +45,12 @@ class FormForm
             ]),
             Section::make(__('admin.form.fields'))->columnSpanFull()->schema([
                 Repeater::make('fields')->relationship()->orderColumn('sort')->label(__('admin.form.fields'))->hiddenLabel()->collapsible()->cloneable()
-                    ->itemLabel(fn (array $state) => (OneText::of($state['label'] ?? null) ?: ($state['key'] ?? '')).' · '.($state['type'] ?? ''))
+                    ->itemLabel(fn (array $state) => (OneText::of($state['label'] ?? null) ?: '…').' · '.__('admin.form.types.'.($state['type'] ?? 'text')))
                     ->addActionLabel(__('admin.form.add_field'))->columns(['md' => 2])
                     ->mutateRelationshipDataBeforeFillUsing(fn (array $data) => self::toRows($data))
                     ->mutateRelationshipDataBeforeSaveUsing(fn (array $data) => self::fromRows($data))
                     ->mutateRelationshipDataBeforeCreateUsing(fn (array $data) => self::fromRows($data))
                     ->schema([
-                        TextInput::make('key')->label(__('admin.form.key'))->required()->alphaDash()->maxLength(64)->distinct(),
                         Select::make('type')->label(__('admin.form.type'))->options(__('admin.form.types'))->required()->live(),
                         TextInput::make('label')->label(__('admin.form.label'))->required(),
                         TextInput::make('help')->label(__('admin.form.help')),

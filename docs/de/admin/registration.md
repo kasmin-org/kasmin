@@ -8,7 +8,8 @@
    Jede Rolle kann ihr eigenes Formular haben.
 
 Antworten können bis **Antworten änderbar bis** geändert werden (Voreinstellung: Beginn der Veranstaltung). Sie erscheinen auf der Liste
-*Antworten*, bei der teilnehmenden Person (*Antworten*) und in Mails als `{{ registration.answers.<key> }}`. Felder mit der
+*Antworten*, bei der teilnehmenden Person (*Antworten*) und in Mails: *Platzhalter einfügen* im Editor der Vorlagen führt jede Frage mit
+ihrer Bezeichnung an (*Antwort: …*) und fügt sie richtig geschrieben ein. Felder mit der
 Vertraulichkeit *Gesundheit* oder *Ausweis-/Versicherungsnummer* werden verschlüsselt. Nur die Rolle Sicherheitsdaten sieht sie, und
 sie kommen nie in Mails oder auf diese Liste. Der Text einer Einwilligung wird so gespeichert, wie er angezeigt wurde.
 

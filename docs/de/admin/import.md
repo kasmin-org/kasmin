@@ -37,7 +37,7 @@ Gesundheits- und Sicherheitsdaten werden auf diesem Weg nicht importiert.
 | `guardian2_…` | zweite erziehungsberechtigte Person, dieselben Felder |
 | `family` | optionaler Schlüssel der Familie: Zeilen mit demselben Schlüssel bilden eine Familie |
 | `groups` | Namen von Gruppen, durch Beistriche getrennt (werden angelegt, wenn sie fehlen) |
-| `membership_type`, `membership_start`, `membership_end` | Mitgliedschaft (Schlüssel der Art, z. B. `child`) |
+| `membership_type`, `membership_start`, `membership_end` | Mitgliedschaft (der Name der Mitgliedsart wie unter *Personen → Mitgliedsarten*, z. B. `Kind (außerordentliches Mitglied)`) |
 | `participations` | frühere Teilnahmen: `Titel der Veranstaltung:role:status;…`, z. B. `Summer camp 2026:child:attended` (die Veranstaltung muss es geben) |
 
 ## Familien bilden

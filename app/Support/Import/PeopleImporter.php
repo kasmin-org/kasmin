@@ -13,11 +13,13 @@ use App\Models\User;
 use App\Support\Api\ApiContext;
 use App\Support\Audit\Audit;
 use App\Support\Automations\Triggers;
+use App\Support\Records\Records;
 use App\Support\Webhooks\Webhooks;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use RuntimeException;
 
 /**
@@ -305,7 +307,11 @@ class PeopleImporter
     /** @param  array<string, mixed>  $row */
     private function membership(Person $person, array $row): void
     {
-        $type = ! empty($row['membership_type']) ? MembershipType::query()->where('key', (string) $row['membership_type'])->first() : null;
+        try {
+            $type = self::membershipType($row['membership_type'] ?? null);
+        } catch (ValidationException) {
+            return; // reported by the check of the row
+        }
         if ($type === null || $person->memberships()->where('membership_type_id', $type->id)->exists()) {
             return;
         }
@@ -399,8 +405,14 @@ class PeopleImporter
                 $messages[] = "{$field} is not an e-mail address";
             }
         }
-        if (! empty($row['membership_type']) && ! MembershipType::query()->where('key', (string) $row['membership_type'])->exists()) {
-            $messages[] = 'unknown membership_type '.$row['membership_type'];
+        if (! empty($row['membership_type'])) {
+            try {
+                if (self::membershipType($row['membership_type']) === null) {
+                    $messages[] = 'unknown membership_type '.$row['membership_type'];
+                }
+            } catch (ValidationException) {
+                $messages[] = 'membership_type '.$row['membership_type'].' is the name of several membership types';
+            }
         }
 
         return $messages;
@@ -466,5 +478,16 @@ class PeopleImporter
         }
 
         return $type::query()->find($id);
+    }
+
+    /**
+     * The membership type of a row: its name (exact, upper and lower case do not matter), its id, or the key of older
+     * versions (B8).
+     *
+     * @throws ValidationException when several types have the name
+     */
+    private static function membershipType(mixed $value): ?MembershipType
+    {
+        return is_scalar($value) && trim((string) $value) !== '' ? Records::find(MembershipType::query(), trim((string) $value), 'membership_type') : null;
     }
 }

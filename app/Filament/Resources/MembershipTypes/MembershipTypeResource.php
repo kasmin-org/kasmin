@@ -10,6 +10,7 @@ use App\Models\Invoice;
 use App\Models\MembershipType;
 use App\Models\User;
 use App\Support\Auth\Permissions;
+use App\Support\Records\UniqueName;
 use App\Support\Settings;
 use BackedEnum;
 use Filament\Actions\EditAction;
@@ -53,8 +54,7 @@ class MembershipTypeResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
-            TextInput::make('key')->label(__('admin.finance.installment_key'))->required()->alphaDash()->maxLength(64)->unique(ignoreRecord: true)->disabledOn('edit'),
-            TextInput::make('name')->label(__('admin.finance.label_de'))->required(),
+            TextInput::make('name')->label(__('admin.form.name'))->required()->maxLength(150)->rule(fn (?MembershipType $record) => new UniqueName(MembershipType::query(), $record?->getKey())),
             Toggle::make('pays_fee')->label(__('admin.finance.pays_fee'))->live(),
             Money::input('fee_cents', __('admin.finance.yearly_fee'))->visible(fn ($get) => (bool) $get('pays_fee')),
             AccountingFields::revenueAccount(__('accounting.fields.type_revenue_hint'))->visible(fn ($get) => (bool) $get('pays_fee')),

@@ -48,8 +48,30 @@ Base URL `https://your-kasmin.example/api/v1`, header `Authorization: Bearer kas
 - The API is for administrative use only: a token always acts for an administrator, and there is no API for
   families or other portal users.
 - Ids of people, families and events are their public ids (ULIDs), not database numbers. Everything else
-  (participations, invoices, payments, groups, divisions, units …) has a number.
+  (participations, invoices, payments, groups, divisions, units, membership types, roles, forms, mail templates,
+  automations, instalments …) has a number – see [Ids and names](#ids-and-names).
 - `GET /me` shows the token in use: name, scopes, expiry and the user it acts for.
+
+### Ids and names
+
+Membership types, roles, forms, mail templates, automations and the instalments of a payment plan have a **name**
+that is unique per type (instalments: per event), and are referred to by their **database id**. Every list returns
+`id` and `name` (instalments: `id` and `label`).
+
+- Where such a record is addressed – in the path (`/membership-types/{type}`, `/forms/{form}`,
+  `/mail-templates/{template}`, `/automations/{automation}`) or in a field (`type` of a membership, `role`,
+  `template` of a mailing, `registration_form`, `membership_type`, the mail templates, the form and `approver_roles`
+  of an automation) – send the **id** or the **exact name**. Upper and lower case and spaces at the start and end do
+  not matter. A number is always taken as an id.
+- A name that several records have is refused with `422` and the message that the name is not unique; use the id
+  then. Nothing found: `404` in the path, `422` in a field.
+- Up to 0.30 these records had a visible key (`deposit`, `safety_sheet` …). Such a key is still accepted where an id
+  or name is, but it is no longer part of any answer, except in the files of form definitions (see below) and of
+  `kasmin:config:export`, which go from one installation to another, where ids differ.
+- Creating or renaming a record with a name that is taken is refused (`422`), as in the admin interface.
+- Fields of a form keep their key: the answers of a person (`values`) and the placeholders of mail templates refer
+  to it. It is made from the label when the field is added and does not change when the label changes. `GET /forms`
+  lists the fields with `id`, `key` and `label`; `values` may name a field by its key or its id.
 
 ```
 curl -H "Authorization: Bearer kas_…" https://your-kasmin.example/api/v1/events
@@ -70,21 +92,25 @@ Scopes `people:read` / `people:write`.
 - Legal guardians: `GET|POST /people/{id}/guardians` (`guardian` = id of the person),
   `DELETE /people/{id}/guardians/{guardian id}` ends the guardianship. The setting *Legal guardians per family (at most)*
   also applies here; families are not changed.
-- Memberships of a person: `GET|POST /people/{id}/memberships` (`type` = key of a membership type, `starts_on`,
+- Memberships of a person: `GET|POST /people/{id}/memberships` (`type` = id or name of a membership type, `starts_on`,
   `ends_on`), `PATCH /people/{id}/memberships/{number}` with `ends_on` ends a membership (`null` lets it run
   again). A person has one running membership per type at most.
-- Membership types: `GET|POST /membership-types`, `PATCH /membership-types/{key}` (`name.de`, `name.en`, `pays_fee`, `fee`,
-  `revenue_account` and `cost_center`: what the fee is booked on in the accounting, the id or the exact name; `null` empties).
+- Membership types: `GET|POST /membership-types`, `PATCH /membership-types/{type}` (`{type}` = id or name; `name`,
+  unique, `pays_fee`, `fee`, `revenue_account` and `cost_center`: what the fee is booked on in the
+  accounting, the id or the exact name; `null` empties).
 - Duplicates: `GET /duplicates` lists the pairs that are probably the same person with the reason.
   `POST /duplicates/merge` (`keep`, `duplicate`, and `fields` such as `{"birth_date": "duplicate"}` for the values
   that should come from the duplicate) moves everything to the person to keep and deletes the duplicate – this
   cannot be undone. It is refused when the merge would give somebody more rights or both have an invoiced
   registration for the same event. `POST /duplicates/dismiss` (`first`, `second`) marks two people as different.
-- Forms: `GET /forms`, `GET /people/{id}/forms`, `GET|PATCH /people/{id}/forms/{form}`. Confidential values need
-  `health:read` / `health:write`. `GET|PUT /forms/{form}/definition` reads and replaces the definition of a form
-  (`settings:write` to replace).
+- Forms: `GET /forms`, `GET /people/{id}/forms`, `GET|PATCH /people/{id}/forms/{form}` (`{form}` = id or name).
+  Confidential values need `health:read` / `health:write`. `GET|PUT /forms/{form}/definition` reads and replaces
+  the definition of a form (`settings:write` to replace); `PUT` with a name that no form has creates a new form. The
+  definition is the same file as *Export* in the admin interface: it holds the internal keys of the form and of its
+  fields, so that it fits another installation. A field without `key` is a new field.
 
-Example: `POST /people/{id}/memberships` with `{"type": "member", "starts_on": "2027-01-01"}`.
+Example: `POST /people/{id}/memberships` with `{"type": "Regular member (team, board)", "starts_on": "2027-01-01"}`
+(or the `id` from `GET /membership-types`).
 
 ### Families
 
@@ -107,7 +133,7 @@ Reading with `people:read`, changing with the own scope `roles:write`.
 
 - `GET /roles` – all roles; `admin` says whether the role may use the admin interface.
 - `GET /people/{id}/roles` – the roles of a person with their period.
-- `POST /people/{id}/roles` (`role` = key, `event` only for roles that count for the own events, `starts_on`,
+- `POST /people/{id}/roles` (`role` = id or name, `event` only for roles that count for the own events, `starts_on`,
   `ends_on`) and `DELETE /people/{id}/roles/{number}`.
 - **A token can never give or take the role `administrator`** (403). In the admin interface only administrators
   may change roles; a token is not a person, so this role stays with a person there. The last administrator
@@ -121,17 +147,18 @@ Scopes `events:read` / `events:write`.
 
 - `GET|POST /events`, `GET|PATCH /events/{id}` with the fields of the event form: basic data (title, dates,
   status, `series_id`, registration window, place, contact, `bus_booked`, `bus_seats`) and `roles` (`role`,
-  `capacity`, `reserve_places`, `min_age`, `max_age`, `price`, `registration_form` = key of a registration form …).
+  `capacity`, `reserve_places`, `min_age`, `max_age`, `price`, `registration_form` = id or name of a form with questions …).
   A booked bus needs its number of seats. The answer has `bus` with `riders`, `cars`, `free`, `over`,
   `adults_on_bus` and `children_by_car`. The image is set in the admin interface.
 - Prices and payment plan, in the same requests: `sibling_mode` (`none`, `staggered`, `all`), `sibling_order`
   (`oldest`, `highest_price`, `registration`), `sibling_amount`, `sibling_cap_position`, `sibling_min_children`,
   `cancellation_fee`, `cancellation_text.de` / `.en`, `reminder_days_before` (list of days), `prices` (prices by
   age or date: `role`, `min_age`, `max_age`, `from_date`, `until_date`, `price` – the list replaces the stored
-  one) and `installments` (`key`, `label.de`, `label.en`, `kind` = `fixed`, `rest` or `member`, `amount`,
-  `due_date`, `due_days`, `membership_type`, `refundable`, `refund_until_days`, `confirms_place`,
-  `paid_add_group`, `paid_remove_group`, `discounts_apply`, `revenue_account`, `cost_center`). Instalments go by key like roles: what is listed is
-  created or changed, the rest is removed. As in the event form, prices can be changed while invoices exist: invoices
+  one) and `installments` (`id`, `label` = the name, unique within the event, `kind` = `fixed`, `rest` or `member`,
+  `amount`, `due_date`, `due_days`, `membership_type` = id or name, `refundable`, `refund_until_days`,
+  `confirms_place`, `paid_add_group`, `paid_remove_group`, `discounts_apply`, `revenue_account`, `cost_center`). Instalments go like roles: an entry
+  with the `id` of an instalment changes it, an entry without `id` changes the instalment with the same name or
+  creates a new one, and the instalments that are not listed are removed. As in the event form, prices can be changed while invoices exist: invoices
   that are issued stay as they are. An instalment that already has invoices cannot
   be removed (422). The currency is shown but cannot be changed, as in the form.
 - Accounting: `cost_center` of the event and `revenue_account` / `cost_center` of an instalment say what its invoices are
@@ -198,7 +225,9 @@ Scopes `people:read` / `people:write`: `GET|POST /groups`, `GET|PATCH /groups/{n
 
 Scopes `finance:read` / `finance:write`.
 
-- `GET /invoices` (`status`, `event`), `GET /invoices/{number}`, `GET /invoices/{number}/pdf`.
+- `GET /invoices` (`status`, `event`), `GET /invoices/{number}`, `GET /invoices/{number}/pdf`. `installment` is the
+  id of the instalment of the payment plan (`null` for single invoices and membership fees), `installment_name`
+  what it is for.
 - `POST /invoices/{number}/issue` issues a draft (number, reference, due date) and sends it to the payer, as
   *Issue and send* does; with `send` `false` it is only issued. `POST /invoices/{number}/send` sends an issued
   invoice again. Only drafts can be issued, and drafts cannot be sent.
@@ -274,15 +303,15 @@ Example: `POST /accounting/bookings` with `{"date": "2027-03-01", "text": "Shop"
 
 Scopes `mail:read` / `mail:write`.
 
-- `GET /mail-templates`, `GET|PATCH /mail-templates/{key}`, `POST /mail-templates/{key}/preview`. A template has one
-  text: `subject`, `html` and optionally `text`.
+- `GET /mail-templates`, `GET|PATCH /mail-templates/{template}`, `POST /mail-templates/{template}/preview`
+  (`{template}` = id or name). A template has one text: `subject`, `html` and optionally `text`.
 - **Texts are single values.** Names, labels and texts (forms and their fields and choices, membership types,
   automations, labels of instalments, cancellation conditions, mail templates) are plain strings. Up to 0.27 they
   were objects with one text per language (`{"de": …, "en": …}`); such input is still accepted and the text in
   the language of the installation is taken. People and families have no `locale` any more.
-- Versions: `GET /mail-templates/{key}/versions` and `POST /mail-templates/{key}/versions/{version}/restore`.
+- Versions: `GET /mail-templates/{template}/versions` and `POST /mail-templates/{template}/versions/{version}/restore`.
   Restoring makes a new version; nothing is lost.
-- `GET|POST /mailings`, `GET /mailings/{number}`, `POST /mailings/{number}/prepare`,
+- `GET|POST /mailings` (`template` = id or name of the template), `GET /mailings/{number}`, `POST /mailings/{number}/prepare`,
   `POST /mailings/{number}/release` (asks for the approval unless the token has `approvals:decide`).
 - `GET /outgoing-mails` (`status`, `person`) – the mail log with the stored text. **Personal login and approval
   links are never part of the answer**: stored mails hold a placeholder, the link is only made when a mail is sent.
@@ -331,17 +360,23 @@ Reading with `audit:read`, anonymising with the own scope `privacy:write`.
 
 ### Automations
 
-- `GET /automations`, `GET|PATCH /automations/{key}` for `active`, `mode`, `trigger`, `trigger_config`, `config`,
-  `approver_roles`, `approvals_needed`, `max_items` and `name`, with the checks of the automation form.
-  `trigger_config` and `config` replace the stored object. Key and action cannot be changed.
-  `approver_roles_default` is `true` while no approvers are stored: `approver_roles` then shows the default roles.
-  An empty list for `approver_roles` goes back to the default.
-- Own automations (`automations:write`): `POST /automations` with `name.de`, `name.en`, `trigger` and `config`
+- `GET /automations`, `GET|PATCH /automations/{automation}` (id or name) for `active`, `mode`, `trigger`,
+  `trigger_config`, `config`, `approver_roles`, `approvals_needed`, `max_items` and `name`, with the checks of the
+  automation form. `trigger_config` and `config` replace the stored object. The action cannot be changed.
+  `approver_roles` are ids of roles (ids or names in a request); `approver_roles_default` is `true` while no
+  approvers are stored: `approver_roles` then shows the default roles. An empty list for `approver_roles` goes back
+  to the default.
+- In `config`, mail templates (`template`, `steps[].template`) and the form of the safety sheet reminder (`form`) are
+  ids in the answer; a request may send ids or names. The instalment of an invoice run (`installment`) is its
+  position in the payment plan of the event the automation runs for: `pos:1`, `pos:2`, `pos:3` … or `pos:last`. An
+  instalment key of older versions (e.g. `deposit`) still works.
+- Own automations (`automations:write`): `POST /automations` with `name` (unique), `trigger` and `config`
   (`target`, `conditions`, `steps`) creates one with the action `custom`; it is created switched off, as in the
-  admin interface. `DELETE /automations/{key}` deletes an own automation. **Standard automations cannot be
+  admin interface. `DELETE /automations/{automation}` deletes an own automation. **Standard automations cannot be
   deleted** (403); switch them off instead.
-- `POST /automations/{key}/preview` (dry run), `POST /automations/{key}/run`, `GET /automation-runs`,
-  `GET /automation-runs/{number}`, `POST /automation-runs/{number}/decision`.
+- `POST /automations/{automation}/preview` (dry run), `POST /automations/{automation}/run`, `GET /automation-runs`,
+  `GET /automation-runs/{number}`, `POST /automation-runs/{number}/decision`. A run names its automation by
+  `automation` (id) and `automation_name`.
 
 ### Import, settings and audit log
 
@@ -382,7 +417,8 @@ Kasmin has a built-in MCP server (Model Context Protocol, streamable HTTP) at `h
 It offers the REST API as tools with the same token and scopes. A tool calls the REST endpoint, so the same checks
 apply and the audit log shows the change with "mcp". Every endpoint for administrative use has exactly one tool
 (the participation has two, for status and travel); a test walks the routes of the API and fails when one is
-forgotten (`tests/Feature/Api/McpParityTest.php`).
+forgotten (`tests/Feature/Api/McpParityTest.php`). Tools name membership types, roles, forms, mail templates and
+automations by their id or exact name, as the REST API does (`automation`, `template`, `type`, `form`, `role`).
 
 | Area | Tools | Scopes |
 |---|---|---|
@@ -531,7 +567,9 @@ php artisan kasmin:config:import kasmin-config.json [--update]
 ```
 
 Import creates what is missing and leaves existing entries alone unless `--update` is given (templates then get a
-new version). Templates are checked with the template sandbox first; imported automations are switched off.
+new version). Templates are checked with the template sandbox first; imported automations are switched off. The file
+matches templates and automations by their internal key, which is the same in every installation for the standard
+ones and is never shown in the admin interface.
 
 ## Parity: interface, REST and MCP
 

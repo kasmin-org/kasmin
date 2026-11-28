@@ -20,14 +20,14 @@ class RestoreMailTemplateVersion extends ApiTool
 
     public function handle(Request $request): Response
     {
-        return $this->callEndpoint($this->args($request), ['template' => 'key']);
+        return $this->callEndpoint($this->withRecord($this->args($request), 'template'));
     }
 
     /** @return array<string, Type> */
     public function schema(JsonSchema $schema): array
     {
         return [
-            'key' => $schema->string()->description('template key')->required(),
+            'template' => $schema->string()->description('id or exact name of the mail template, see list_mail_templates')->required(),
             'version' => $schema->integer()->description('number of the version from list_mail_template_versions')->required(),
         ];
     }

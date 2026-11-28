@@ -34,8 +34,9 @@ nothing. Legal guardians see their family's invoices in the portal.
   counts as a sibling, so younger siblings keep their position.
 - **Counts as sibling**: whether registrations in this role count for the sibling discount (usually yes for
   children and junior counsellors, no for staff).
-- **Payment plan** (*Prices, payment plan and sibling discount*): any number of instalments, each either a
-  **fixed amount** (e.g. deposit 100 €) or the **remaining amount** (price minus all fixed instalments). Each
+- **Payment plan** (*Prices, payment plan and sibling discount*): any number of instalments, each with a name that is
+  unique within the event, either a **fixed amount** (e.g. deposit 100 €) or the **remaining amount** (price minus all
+  fixed instalments). Each
   instalment has a fixed due date or "due after … days", can be marked refundable, and has the switch *Apply
   discounts* – usually discounts are applied to the balance only, not to the deposit.
 - **Sibling discount**:
@@ -69,7 +70,7 @@ a refundable instalment is refunded.
 
 ### Membership fees per year
 
-*People → Membership types* holds the yearly fee per type. The automation *Membership fees* creates one invoice
+*People → Membership types* holds the name (unique) and the yearly fee per type. The automation *Membership fees* creates one invoice
 per family; fees already invoiced as an instalment of an event of the same year are skipped.
 
 ## 3. Invoice run

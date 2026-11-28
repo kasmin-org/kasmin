@@ -19,6 +19,7 @@ return [
         'sibling_cap' => 'Cap from child no.', 'sibling_cap_hint' => 'From this child on the discount does not grow any more (e.g. 3 = the same from the 3rd child on).',
         'sibling_min' => 'Minimum number of children', 'reminder_days' => 'Reminder … days before due date', 'reminder_days_hint' => 'Empty = global setting (default 3 days). Several values possible.',
         'installments' => 'Payment plan', 'add_installment' => 'Add instalment', 'installment' => 'Instalment', 'installment_key' => 'Key', 'installment_kind' => 'Kind',
+        'installment_name_taken' => 'Two instalments of the payment plan cannot have the same name.',
         'label_de' => 'Label', 'amount' => 'Amount', 'due_date' => 'Due on', 'due_date_hint' => 'Fixed date; empty = days from the invoice date.',
         'due_days' => 'Due after … days', 'refundable' => 'Refundable', 'discounts_apply' => 'Apply discounts', 'discounts_apply_hint' => 'Usual: discounts only on the balance, not on the deposit.',
         'number' => 'Number', 'type' => 'Type', 'payer' => 'Payer', 'lines' => 'Lines', 'payments' => 'Payments', 'payment' => 'Payment',
@@ -94,7 +95,9 @@ return [
     'group' => ['changes' => 'Last 30 days', 'singular' => 'Group', 'plural' => 'Groups', 'parent' => 'Belongs to', 'members' => 'Members', 'kinds' => ['manual' => 'By hand', 'dynamic' => 'By rules', 'event' => 'Participants of an event'], 'event_hint' => 'Ages count at this event, and only events of its series are counted. Empty = today, all events.', 'rules' => 'Rules', 'match' => 'People must fit', 'matches' => ['all' => 'all rules', 'any' => 'at least one rule'], 'add_rule' => 'Add rule', 'field' => 'Field', 'fields' => ['age' => 'Age', 'membership' => 'Membership', 'role' => 'Role', 'group' => 'Member of group', 'events' => 'Number of past events'], 'value' => 'Value', 'min' => 'From', 'max' => 'To', 'not' => 'Not', 'source' => 'Source', 'update' => 'Recalculate', 'add' => 'Add person', 'remove' => 'Remove'],
     'form' => [
         'kind' => 'Kind', 'kinds' => ['person' => 'Person (kept for all events)', 'registration' => 'Questions of an event'], 'scope' => 'Asked', 'scopes' => ['participant' => 'per participant', 'family' => 'once per family'],
-        'singular' => 'Form', 'plural' => 'Forms', 'key' => 'Key', 'active' => 'Active', 'name' => 'Name', 'description' => 'Description',
+        'singular' => 'Form', 'plural' => 'Forms', 'key' => 'Key', 'name_taken' => 'This name is already taken. Please choose another one.',
+        'import_hint_name' => 'Import a form from a file. A form that was exported from the same form, or that has the same name, gets a new version; fields that are not in the file are removed.',
+        'active' => 'Active', 'name' => 'Name', 'description' => 'Description',
         'applies_until_age' => 'Applies until age', 'confirm_every_days' => 'Confirm every … days', 'family_emergency_contacts' => 'Show the family\'s emergency contacts',
         'version' => 'Version', 'fields' => 'Fields', 'add_field' => 'Add field', 'type' => 'Type', 'label' => 'Label', 'help' => 'Help text (tooltip)',
         'sensitivity' => 'Confidentiality', 'list_use' => 'Used in lists', 'required' => 'Required', 'carry_over' => 'Carry over to next year',

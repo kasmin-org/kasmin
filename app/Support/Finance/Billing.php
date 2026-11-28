@@ -150,7 +150,7 @@ class Billing
     private function billedLine(Event $event, EventInstallment $installment, Participation $p): ?InvoiceLine
     {
         return InvoiceLine::query()->where('participation_id', $p->id)
-            ->whereHas('invoice', fn ($q) => $q->where('event_id', $event->id)->where('installment_key', $installment->key)->where('type', 'invoice')->whereNotIn('status', ['cancelled', 'corrected']))
+            ->whereHas('invoice', fn ($q) => $q->where('event_id', $event->id)->forInstallment($installment)->where('type', 'invoice')->whereNotIn('status', ['cancelled', 'corrected']))
             ->latest('id')->first();
     }
 

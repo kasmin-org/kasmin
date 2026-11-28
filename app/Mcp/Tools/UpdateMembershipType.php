@@ -11,7 +11,7 @@ use Laravel\Mcp\Server\Attributes\Description;
 use Laravel\Mcp\Server\Attributes\Name;
 
 #[Name('update_membership_type')]
-#[Description('Changes the names, whether the type pays a fee, the yearly fee, or the income account and cost centre the fee is booked on of a membership type.')]
+#[Description('Changes the name, whether the type pays a fee, the yearly fee, or the income account and cost centre the fee is booked on of a membership type.')]
 class UpdateMembershipType extends ApiTool
 {
     public const ENDPOINT = ['PATCH', '/membership-types/{type}'];
@@ -20,9 +20,9 @@ class UpdateMembershipType extends ApiTool
 
     public function handle(Request $request): Response
     {
-        $args = $this->args($request);
-        $path = '/membership-types/'.rawurlencode((string) ($args['key'] ?? ''));
-        unset($args['key']);
+        $args = $this->withRecord($this->args($request), 'type');
+        $path = '/membership-types/'.rawurlencode((string) ($args['type'] ?? ''));
+        unset($args['type']);
 
         return $this->call('PATCH', $path, $args);
     }
@@ -31,8 +31,8 @@ class UpdateMembershipType extends ApiTool
     public function schema(JsonSchema $schema): array
     {
         return [
-            'key' => $schema->string()->description('key of the membership type')->required(),
-            'name' => $schema->string()->description('name'),
+            'type' => $schema->string()->description('id or exact name of the membership type, see list_membership_types')->required(),
+            'name' => $schema->string()->description('new name, unique among the membership types'),
             'pays_fee' => $schema->boolean()->description('whether members of this type pay the yearly fee'),
             'fee' => $schema->number()->description('yearly fee in the invoice currency'),
             'revenue_account' => $schema->string()->description('income account the fees are booked on: id or exact name (empty: membership fees)'),

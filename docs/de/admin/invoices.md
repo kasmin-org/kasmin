@@ -34,8 +34,9 @@ nichts ändern. Erziehungsberechtigte sehen die Rechnungen ihrer Familie im Port
   zählt weiter als Geschwisterkind. Jüngere Geschwister behalten also ihre Stufe.
 - **Zählt als Geschwisterkind**: ob Anmeldungen in dieser Rolle bei der Geschwisterermäßigung mitgezählt werden (meist ja bei
   Kindern und Nachwuchs-Betreuung, nein beim Team).
-- **Ratenplan** (*Preise, Ratenplan und Geschwisterermäßigung*): beliebig viele Raten, jede entweder ein
-  **fester Betrag** (z. B. Anzahlung 100 €) oder der **Restbetrag** (Preis minus alle festen Raten). Jede
+- **Ratenplan** (*Preise, Ratenplan und Geschwisterermäßigung*): beliebig viele Raten, jede mit einem Namen, der innerhalb der
+  Veranstaltung eindeutig ist, und entweder ein **fester Betrag** (z. B. Anzahlung 100 €) oder der **Restbetrag** (Preis minus alle
+  festen Raten). Jede
   Rate hat ein festes Fälligkeitsdatum oder „Fällig nach … Tagen“, kann als erstattbar markiert werden und hat den Schalter
   *Ermäßigungen anwenden* – üblich sind Ermäßigungen nur beim Restbetrag, nicht bei der Anzahlung.
 - **Geschwisterermäßigung**:
@@ -69,7 +70,7 @@ verrechnet, wenn eine erstattbare Rate erstattet wird.
 
 ### Mitgliedsbeiträge pro Jahr
 
-*Personen → Mitgliedsarten* enthält den Jahresbeitrag pro Art. Die Automatisierung *Mitgliedsbeiträge* erstellt eine Rechnung
+*Personen → Mitgliedsarten* enthält den Namen (eindeutig) und den Jahresbeitrag pro Art. Die Automatisierung *Mitgliedsbeiträge* erstellt eine Rechnung
 pro Familie; Beiträge, die schon als Rate einer Veranstaltung desselben Jahres verrechnet wurden, werden übersprungen.
 
 ## 3. Rechnungslauf

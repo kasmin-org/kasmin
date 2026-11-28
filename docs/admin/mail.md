@@ -21,7 +21,8 @@ installation that had several keeps using its standard account and the first sen
 
 *Communication → Mail templates*: one text per template, edited in a formatted editor; every save is a new
 version. A template has no versions per language – an installation works in one language (see
-[System](system.md#language)), and the text is simply what you wrote.
+[System](system.md#language)), and the text is simply what you wrote. Every template has a name of its own: two
+templates cannot have the same name.
 
 Every template belongs to a **group** that says what the mail is about – because that decides which placeholders
 exist. A mail to everybody knows no invoice number:

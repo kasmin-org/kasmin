@@ -6,17 +6,25 @@ use App\Casts\OneText;
 use App\Models\Form;
 use App\Models\FormField;
 use App\Support\Audit\Audit;
+use App\Support\Records\Records;
+use App\Support\Records\UniqueName;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 /**
  * Form definitions as JSON, for exchange between installations and editing by API and MCP (SF09). Contains no answers.
+ *
+ * The file carries the internal keys of the form and its fields (B8): ids differ between installations, the keys stay
+ * the same. On import a form is found by its key, otherwise by its exact name; fields are found by their key, a field
+ * without a key is new (its key is made from the label).
  */
 class FormDefinitions
 {
     public const FORMAT = 'kasmin-form/1';
 
     private const FORM = ['key', 'kind', 'name', 'description', 'applies_until_age', 'confirm_every_days', 'family_emergency_contacts', 'active'];
+
+    private const KEY = '/^[A-Za-z0-9_-]+$/';
 
     private const FIELD = ['key', 'type', 'label', 'help', 'options', 'required', 'scope', 'sensitivity', 'carry_over', 'list_use'];
 
@@ -27,31 +35,36 @@ class FormDefinitions
     }
 
     /**
-     * Creates the form or replaces the definition of the form with the same key (new version; answers stay). Fields that
-     * are not in the definition are removed.
+     * Creates the form or replaces the definition of the form (new version; answers stay): $into, else the form with the
+     * key of the file, else the form with its exact name. Fields that are not in the definition are removed.
      *
      * @param  array<string, mixed>  $definition
+     * @param  string|null  $keyForNew  key of a new form when the file has none (the address of older API clients)
      */
-    public function import(array $definition): Form
+    public function import(array $definition, ?Form $into = null, ?string $keyForNew = null): Form
     {
         $definition = OneText::collapse($definition, ['name', 'description', 'fields.*.label', 'fields.*.help', 'fields.*.options.choices.*', 'fields.*.options.fields.*']);
         $data = validator($definition, $this->rules())->validate();
+        $form = $into ?? (isset($data['key']) ? Form::query()->where('key', $data['key'])->first() : null)
+            ?? Records::findByName(Form::query()->where('kind', $data['kind']), (string) $data['name'], 'name');
+        validator(['name' => $data['name']], ['name' => [new UniqueName(Form::query(), $form?->getKey())]])->validate();
 
-        return DB::transaction(function () use ($data) {
-            $form = Form::query()->where('key', $data['key'])->first();
+        return DB::transaction(function () use ($data, $form, $keyForNew) {
             $attributes = array_intersect_key($data, array_flip(self::FORM));
+            unset($attributes['key']); // the key of a form never changes
             if ($form === null) {
-                $form = Form::query()->create($attributes + ['sort' => (int) Form::query()->max('sort') + 10]);
+                $key = $data['key'] ?? ($keyForNew !== null && preg_match(self::KEY, $keyForNew) === 1 ? $keyForNew : null);
+                $form = Form::query()->create($attributes + ['key' => $key !== null && Form::query()->where('key', $key)->doesntExist() ? $key : null, 'sort' => (int) Form::query()->max('sort') + 10]);
             } else {
                 unset($attributes['kind']); // answers of one kind cannot become answers of another kind
                 $form->update($attributes + ['version' => $form->version + 1]);
             }
-            foreach ($form->fields()->whereNotIn('key', array_column($data['fields'], 'key'))->get() as $removed) {
+            foreach ($form->fields()->whereNotIn('key', array_values(array_filter(array_column($data['fields'], 'key'))))->get() as $removed) {
                 $removed->delete();
             }
             foreach (array_values($data['fields']) as $i => $field) {
                 $values = array_intersect_key($field, array_flip(self::FIELD)) + ['options' => null, 'help' => null, 'list_use' => null];
-                $existing = $form->fields()->where('key', $field['key'])->first();
+                $existing = isset($field['key']) ? $form->fields()->where('key', $field['key'])->first() : null;
                 $existing === null ? $form->fields()->create($values + ['sort' => ($i + 1) * 10]) : $existing->update($values + ['sort' => ($i + 1) * 10]);
             }
             Audit::record('form.definition_imported', $form, null, ['fields' => count($data['fields'])]);
@@ -63,7 +76,7 @@ class FormDefinitions
     /** @return array<string, mixed> */
     private function rules(): array
     {
-        $key = ['required', 'string', 'max:64', 'regex:/^[A-Za-z0-9_-]+$/'];
+        $key = ['sometimes', 'nullable', 'string', 'max:64', 'regex:'.self::KEY];
 
         return [
             'format' => ['required', Rule::in([self::FORMAT])],

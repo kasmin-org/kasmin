@@ -34,7 +34,7 @@ return [
     'notifications' => 'My notifications', 'notifications_by_mail' => 'By e-mail', 'notifications_hint' => 'Only topics you have the rights for. Digests are sent at 07:00 (or the time in the settings), weekly ones on Mondays. They never contain confidential values.', 'notifications_latest' => 'Latest notifications',
     'frequencies' => ['immediate' => 'immediately', 'daily' => 'daily digest', 'weekly' => 'weekly digest', 'off' => 'off'],
     'placeholders' => [
-        'and' => 'and', 'example' => 'e.g. :value', 'first_child' => 'First child', 'children_names' => 'First names of all children ("Kim, Robin and Sam")', 'children_count' => 'Number of children', 'present' => ':what is there',
+        'answer' => 'Answer: :field', 'and' => 'and', 'example' => 'e.g. :value', 'first_child' => 'First child', 'children_names' => 'First names of all children ("Kim, Robin and Sam")', 'children_count' => 'Number of children', 'present' => ':what is there',
         'of_group' => 'Only the placeholders of the group ":group" are offered.', 'insert' => 'Insert placeholder', 'placeholder' => 'Placeholder', 'insert_condition' => 'Insert condition', 'condition' => 'Condition', 'field' => 'If', 'operator' => 'is', 'value' => 'Value', 'then' => 'then this text', 'otherwise' => 'otherwise this text (optional)',
         'condition_hint' => 'The text may contain placeholders. Kasmin writes the condition into the template in the right syntax.',
         'operators' => ['filled' => 'filled in / yes', 'empty' => 'empty / no', 'equals' => 'equal to', 'not_equals' => 'not equal to', 'greater' => 'greater than', 'less' => 'less than'],

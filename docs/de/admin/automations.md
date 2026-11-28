@@ -100,7 +100,7 @@ Sie werden mit den Standardinhalten angelegt und sind **ausgeschaltet**, außer 
 | Warteliste täglich prüfen | dasselbe, z. B. nachdem die Zahl der Plätze erhöht wurde | täglich 08:00 · Freigabe |
 | Unbeantwortete Angebote verfallen lassen | nach der Frist gilt das Angebot als abgesagt, und der Platz geht an die nächste Person | täglich 07:30 · automatisch |
 | Saison starten | Kinder der vorigen Veranstaltung derselben Reihe werden angemeldet, wenn ihr Alter noch passt; wer zu alt ist, wird für die nächste Rolle (z. B. Nachwuchs-Betreuung) oder zum Ausscheiden vorgeschlagen – als Hinweis an das Team. Kinder auf der Warteliste der vorigen Veranstaltung bleiben auf der Warteliste der neuen, mit dem Datum ihrer ersten Anmeldung. So verliert niemand den Platz | per Schaltfläche · manuell |
-| Anzahlungsrechnungen / Restzahlungsrechnungen | Rechnungen der Rate `deposit` / `balance` pro Familie, ausgestellt und gesendet ([Rechnungen](invoices.md)) | per Schaltfläche / 90 Tage davor · Freigabe |
+| Anzahlungsrechnungen / Restzahlungsrechnungen | Rechnungen der ersten / letzten Rate des Ratenplans pro Familie, ausgestellt und gesendet ([Rechnungen](invoices.md)) | per Schaltfläche / 90 Tage davor · Freigabe |
 | Anmelderunden | Angebote in den Runden einer Veranstaltung ([Veranstaltungen planen](event-planning.md)); **aktiv** | täglich · Freigabe |
 | Zahlungserinnerungen | Erinnerungen vor und Mahnungen nach der Fälligkeit, wie unter *Rechnungseinstellungen* eingestellt ([Rechnungen](invoices.md)); **aktiv** | täglich · Freigabe |
 | Rechnungen korrigieren | Gutschrift und neue Rechnung, wo eine ausgestellte Rechnung nicht mehr passt; **aktiv** | täglich · Freigabe |
@@ -110,6 +110,12 @@ Sie werden mit den Standardinhalten angelegt und sind **ausgeschaltet**, außer 
 | Informationen vor der Veranstaltung | Vorlage *Informationen zur Veranstaltung* an alle Familien | 14 Tage davor · Freigabe |
 | Veranstaltung abschließen | angemeldete Teilnehmende werden zu „Teilgenommen“ | 1 Tag danach · Freigabe |
 | Hinweis: Kind wird 14 | eine Benachrichtigung pro Kind an das Team | täglich 07:00 · automatisch |
+
+Ein Rechnungslauf nennt keine bestimmte Rate, denn er läuft für die Veranstaltung, mit der er gestartet wird: Seine Einstellung
+*Rate* ist die Stelle im Ratenplan dieser Veranstaltung – *1. Rate*, *2. Rate*, *3. Rate* oder *Letzte Rate*, in der Reihenfolge des
+Plans. Installationen von vor 0.31 behalten ihre Einstellung (den Schlüssel einer Rate, z. B. `deposit`), und sie funktioniert weiter;
+sie wird als *Bisherige Einstellung* angeboten, bis Sie eine Stelle wählen. Die Erinnerungen an das Sicherheitsblatt wählen ihr Formular
+über den Namen.
 
 ## Angebote im Portal
 

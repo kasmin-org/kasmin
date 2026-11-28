@@ -10,6 +10,7 @@ use App\Models\SenderProfile;
 use App\Support\Language;
 use App\Support\Mail\BadAddresses;
 use App\Support\Mail\MailLinks;
+use App\Support\Records\Records;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -50,7 +51,7 @@ class MailLogController extends ApiController
         $model->refresh();
 
         return response()->json(['data' => [
-            'key' => $model->key, 'name' => $model->name, 'version' => $model->version, 'restored' => $version,
+            'id' => (int) $model->getKey(), 'name' => $model->label(), 'version' => $model->version, 'restored' => $version,
             'subject' => $model->contents()->value('subject'), 'html' => $model->contents()->value('html'), 'text' => $model->contents()->value('text'),
         ]]);
     }
@@ -138,9 +139,9 @@ class MailLogController extends ApiController
         return (string) preg_replace('#/(login/link|approvals)/(?!'.preg_quote(MailLinks::PLACEHOLDER, '#').'(?![A-Za-z0-9_-]))[^\s"\'<>)\]]+#', '/$1/'.MailLinks::PLACEHOLDER, $text);
     }
 
-    private function template(string $key): MailTemplate
+    private function template(string $template): MailTemplate
     {
-        return MailTemplate::query()->where('key', $key)->firstOrFail();
+        return Records::findOrFail(MailTemplate::query(), $template, 'template');
     }
 
     /** @return array<string, mixed> */

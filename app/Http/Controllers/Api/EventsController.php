@@ -412,9 +412,14 @@ class EventsController extends ApiController
             }
         }
         $names = [];
+        $ids = [];
         foreach ($installments ?? [] as $i => $installment) {
             $known = $this->knownInstallment($event, $installment, $i);
             $installments[$i]['id'] = $known?->id;
+            if ($known !== null && in_array($known->id, $ids, true)) {
+                $errors["installments.{$i}"][] = 'Two entries mean the same instalment.';
+            }
+            $ids[] = $known?->id;
             if ($known === null && ! isset($installment['label'])) {
                 $errors["installments.{$i}.label"][] = 'A new instalment needs its name (label).';
             }

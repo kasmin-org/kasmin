@@ -647,7 +647,7 @@ class McpParityTest extends TestCase
         $this->assertFalse(AutomationRun::query()->whereKey($run->id)->exists());
         $this->assertStringContainsString('HTTP 403', $this->refused($token, 'create_automation', $own + ['mode' => 'automatic'], 'delete and create again is no way to run without approval'));
         // An automation that runs without approval and was created by a person cannot be switched on by the assistant.
-        $again = Automation::query()->findOrFail($this->tool($token, 'create_automation', $own)['data']['id'] ?? 0);
+        $again = Automation::query()->findOrFail((int) ($this->tool($token, 'create_automation', $own)['data']['id'] ?? 0));
         $again->update(['mode' => 'automatic']);
         $this->assertStringContainsString('HTTP 403', $this->refused($token, 'update_automation', ['automation' => (string) $again->label(), 'active' => true]));
 

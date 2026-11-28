@@ -226,6 +226,7 @@ class ApiParityTest extends TestCase
 
         // PATCH: prices are replaced, instalments go by id (or name); an instalment with invoices cannot be removed.
         $this->withToken($token)->patchJson("/api/v1/events/$id", ['installments' => [['id' => 999999]]])->assertUnprocessable()->assertJsonValidationErrors('installments.0.id');
+        $this->withToken($token)->patchJson("/api/v1/events/$id", ['installments' => [['id' => $plan['Deposit'], 'label' => 'First'], ['label' => 'Deposit']]])->assertUnprocessable()->assertJsonValidationErrors('installments.1');
         $this->withToken($token)->patchJson("/api/v1/events/$id", ['prices' => [['role' => 'child', 'price' => 390]], 'reminder_days_before' => [], 'roles' => [['role' => 'child', 'registration_form' => null]],
             'installments' => [['id' => $plan['Deposit'], 'amount' => 120], ['label' => 'BALANCE']]])
             ->assertOk()->assertJsonCount(1, 'data.prices')->assertJsonPath('data.reminder_days_before', null)->assertJsonPath('data.roles.0.registration_form', null)->assertJsonPath('data.roles.0.capacity', 20)
@@ -716,7 +717,7 @@ class ApiParityTest extends TestCase
         $created = $this->withToken($token)->postJson('/api/v1/automations', $own)->assertCreated()->assertJsonPath('data.action', 'custom')->assertJsonPath('data.standard', false)
             ->assertJsonPath('data.active', false)->assertJsonPath('data.mode', 'confirm')->assertJsonPath('data.trigger_config.days', 2)->json('data');
         $this->assertArrayNotHasKey('key', $created);
-        $this->assertSame('own_thanks_to_the_team', Automation::query()->findOrFail($created['id'])->key); // internal, made from the name
+        $this->assertSame('own_thanks_to_the_team', Automation::query()->findOrFail((int) $created['id'])->key); // internal, made from the name
         $this->withToken($token)->postJson('/api/v1/automations', $own)->assertUnprocessable()->assertJsonValidationErrors('name'); // names are unique
         $this->withToken($token)->patchJson('/api/v1/automations/'.rawurlencode('thanks to the TEAM'), ['active' => true])->assertOk()->assertJsonPath('data.active', true)->assertJsonPath('data.id', $created['id']);
         $this->withToken($token)->patchJson("/api/v1/automations/{$created['id']}", ['name' => 'Deposit invoices'])->assertUnprocessable()->assertJsonValidationErrors('name');

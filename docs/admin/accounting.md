@@ -114,6 +114,13 @@ shows the difference. A fund can be deleted when it holds nothing and no cost ce
 Amounts are whole cents; what is left over by rounding goes to the largest share, so the sum is always exact. These examples are
 tests of Kasmin.
 
+## Budget
+
+*Periods → Budget* takes the planned result of every cost centre that is active in the period: income minus costs, so planned costs
+are negative. Example: the summer camp plans 1,500.00 surplus, the administration −300.00. The report *Cost centres* shows the budget
+next to the result after the allocation and the difference (result − budget; positive = better than planned). A budget books nothing,
+so it can be changed at any time, also in a closed period. An empty field means no budget.
+
 ## Closing
 
 *Periods → Close* first shows a preview: per cost centre the result, the allocation and the result after it; per fund the value

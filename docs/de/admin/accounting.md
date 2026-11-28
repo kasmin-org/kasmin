@@ -115,6 +115,13 @@ verwendet.
 Beträge sind ganze Cent; was beim Runden übrig bleibt, geht an den größten Anteil, so stimmt die Summe immer genau. Diese Beispiele sind
 Tests von Kasmin.
 
+## Budget
+
+*Buchungsperioden → Budget* nimmt das geplante Ergebnis jeder Kostenstelle auf, die in der Periode aktiv ist: Erträge minus Kosten,
+geplante Kosten also mit Minus. Beispiel: Das Sommerlager plant 1.500,00 Überschuss, die Verwaltung −300,00. Der Bericht *Kostenstellen*
+zeigt das Budget neben dem Ergebnis nach der Umlage und die Differenz (Ergebnis − Budget; positiv = besser als geplant). Ein Budget bucht
+nichts, darum lässt es sich jederzeit ändern, auch in einer abgeschlossenen Periode. Ein leeres Feld heißt: kein Budget.
+
 ## Abschluss
 
 *Buchungsperioden → Abschließen* zeigt zuerst eine Vorschau: je Kostenstelle das Ergebnis, die Umlage und das Ergebnis danach; je Fonds

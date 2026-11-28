@@ -11,6 +11,7 @@ use App\Models\AllocationRule;
 use App\Models\CostCenter;
 use App\Models\Period;
 use App\Support\Accounting\Allocation;
+use App\Support\Accounting\Budgets;
 use App\Support\Accounting\Closing;
 use App\Support\Accounting\Periods;
 use BackedEnum;
@@ -66,7 +67,7 @@ class PeriodResource extends Resource
             TextColumn::make('ends_on')->label(__('accounting.periods.to'))->date(),
             TextColumn::make('status')->label(__('admin.event.status'))->badge()->formatStateUsing(fn (string $state) => __('accounting.periods.statuses.'.$state))
                 ->color(fn (string $state) => $state === 'closed' ? 'gray' : 'success'),
-        ])->recordActions([self::moveAction(), self::keysAction(), self::closeAction(), self::reopenAction()]);
+        ])->recordActions([self::moveAction(), self::keysAction(), self::budgetAction(), self::closeAction(), self::reopenAction()]);
     }
 
     /** First period, or the next one after the last. */
@@ -145,6 +146,24 @@ class PeriodResource extends Resource
                         AllocationRule::query()->create(['period_id' => $record->id, 'source_cost_center_id' => $source->id, 'target_cost_center_id' => $rule['target'], 'kind' => $rule['kind'], 'value' => $rule['value']]);
                     }
                 }
+            });
+    }
+
+    /** The planned result per cost centre that is active in the period; a plan books nothing, so also when closed. */
+    private static function budgetAction(): Action
+    {
+        $centers = fn (Period $record) => $record->costCenters()->orderBy('sort')->orderBy('name')->get();
+
+        return Action::make('budget')->label(__('accounting.periods.budget'))->icon('heroicon-o-chart-bar')->color('gray')
+            ->visible(fn () => self::canCreate())
+            ->fillForm(fn (Period $record) => collect(app(Budgets::class)->of($record))->mapWithKeys(fn (int $cents, int $center) => ['c'.$center => $cents])->all())
+            ->schema(fn (Period $record) => [
+                Text::make(__('accounting.periods.budget_hint')),
+                ...$centers($record)->map(fn (CostCenter $center) => MoneyInput::input('c'.$center->id, $center->name)->minValue(-1000000)->maxValue(1000000))->all(),
+            ])
+            ->action(function (Period $record, array $data) use ($centers) {
+                app(Budgets::class)->save($record, $centers($record)->mapWithKeys(fn (CostCenter $center) => [$center->id => (int) ($data['c'.$center->id] ?? 0)])->all());
+                Notification::make()->title(__('accounting.periods.budget_saved'))->success()->send();
             });
     }
 

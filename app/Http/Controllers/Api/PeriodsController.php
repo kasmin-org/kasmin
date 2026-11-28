@@ -8,6 +8,7 @@ use App\Models\JournalEntry;
 use App\Models\Period;
 use App\Support\Accounting\AccountingException;
 use App\Support\Accounting\Allocation;
+use App\Support\Accounting\Budgets;
 use App\Support\Accounting\Closing;
 use App\Support\Accounting\Periods;
 use App\Support\Api\AccountingPresenter;
@@ -136,6 +137,47 @@ class PeriodsController extends AccountingController
         });
 
         return response()->json(['data' => $this->key($model, $source)]);
+    }
+
+    /** The budget of a period: the planned result per cost centre (income minus costs, negative for planned costs). */
+    public function budgets(string $period): JsonResponse
+    {
+        $this->scope('finance:read');
+
+        return response()->json(['data' => $this->budgetList($this->find(Period::class, $period, 'period', true))]);
+    }
+
+    /**
+     * Sets the planned result of the listed cost centres; amount 0 removes it, cost centres that are not listed keep
+     * theirs. A budget books nothing, so closed periods can be planned too.
+     */
+    public function saveBudgets(Request $request, string $period): JsonResponse
+    {
+        $this->scope('finance:write');
+        $model = $this->find(Period::class, $period, 'period', true);
+        $data = $request->validate([
+            'budgets' => ['required', 'array', 'max:500'], 'budgets.*.cost_center' => ['required'],
+            'budgets.*.amount' => ['required', 'numeric', 'min:-1000000', 'max:1000000'],
+        ]);
+        $amounts = [];
+        foreach (array_values($data['budgets']) as $i => $item) {
+            $amounts[(int) $this->find(CostCenter::class, $item['cost_center'], "budgets.{$i}.cost_center")->getKey()] = $this->cents($item['amount']);
+        }
+        app(Budgets::class)->save($model, $amounts);
+
+        return response()->json(['data' => $this->budgetList($model)]);
+    }
+
+    /** @return list<array{cost_center: array{id: int, name: string}|null, amount: float|int}> */
+    private function budgetList(Period $period): array
+    {
+        $budgets = app(Budgets::class)->of($period);
+        $list = [];
+        foreach (CostCenter::query()->whereIn('id', array_keys($budgets))->orderBy('sort')->orderBy('name')->get() as $center) {
+            $list[] = ['cost_center' => AccountingPresenter::ref($center), 'amount' => AccountingPresenter::amount($budgets[$center->id])];
+        }
+
+        return $list;
     }
 
     /**

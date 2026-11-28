@@ -112,6 +112,8 @@ return [
         'close' => 'Close', 'close_heading' => 'Close :name', 'close_confirm' => 'Close the period', 'closed' => ':name is closed.',
         'reopen' => 'Reopen', 'reopen_list' => 'These periods will be reopened:', 'reopen_hint' => 'Their closing bookings are removed; the opening values of later periods are computed again.',
         'reason' => 'Reason',
+        'budget' => 'Budget', 'budget_saved' => 'Budget saved.',
+        'budget_hint' => 'The planned result per cost centre: income minus costs, so planned costs are negative (e.g. administration −300.00). The report “Cost centres” compares it with the result. A budget books nothing; empty means no budget.',
     ],
     'switch' => [
         'title' => 'Accounting', 'intro' => 'Cost centres show what a booking was for; funds keep the results of projects over the years.',

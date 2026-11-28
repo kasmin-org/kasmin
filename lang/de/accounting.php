@@ -112,6 +112,8 @@ return [
         'close' => 'Abschließen', 'close_heading' => ':name abschließen', 'close_confirm' => 'Periode abschließen', 'closed' => ':name ist abgeschlossen.',
         'reopen' => 'Wiedereröffnen', 'reopen_list' => 'Diese Perioden werden wiedereröffnet:', 'reopen_hint' => 'Ihre Abschlussbuchungen werden entfernt; die Eröffnungswerte späterer Perioden werden neu berechnet.',
         'reason' => 'Begründung',
+        'budget' => 'Budget', 'budget_saved' => 'Budget gespeichert.',
+        'budget_hint' => 'Das geplante Ergebnis je Kostenstelle: Erträge minus Kosten, geplante Kosten also mit Minus (z. B. Verwaltung −300,00). Der Bericht „Kostenstellen“ vergleicht es mit dem Ergebnis. Ein Budget bucht nichts; leer heißt kein Budget.',
     ],
     'switch' => [
         'title' => 'Buchhaltung', 'intro' => 'Kostenstellen zeigen, wofür eine Buchung war; Fonds bewahren die Ergebnisse von Projekten über die Jahre.',

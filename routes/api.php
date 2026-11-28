@@ -157,6 +157,8 @@ Route::prefix('v1')->middleware([AuthenticateApiToken::class, 'throttle:api', Id
         Route::patch('/periods/{period}', [PeriodsController::class, 'update']);
         Route::get('/periods/{period}/allocation-keys', [PeriodsController::class, 'keys']);
         Route::put('/periods/{period}/allocation-keys/{center}', [PeriodsController::class, 'saveKey']);
+        Route::get('/periods/{period}/budgets', [PeriodsController::class, 'budgets']);
+        Route::put('/periods/{period}/budgets', [PeriodsController::class, 'saveBudgets']);
         Route::get('/periods/{period}/closing', [PeriodsController::class, 'closing']);
         Route::post('/periods/{period}/close', [PeriodsController::class, 'close']);
         Route::post('/periods/{period}/reopen', [PeriodsController::class, 'reopen']);

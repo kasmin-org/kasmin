@@ -276,6 +276,9 @@ Scopes `finance:read` / `finance:write`; see [Accounting](accounting.md) for the
 - **Periods:** `GET|POST /accounting/periods` (`name`, `starts_on` – only for the first period, later the day after the last –,
   `ends_on`). `PATCH /accounting/periods/{id}` changes `name`, `starts_on` and `ends_on` of an open period; `moved` says how
   many bookings now belong to another period, with `dry_run` `true` nothing is saved.
+- **Budget:** `GET /accounting/periods/{id}/budgets` (the planned result per cost centre) and `PUT /accounting/periods/{id}/budgets`
+  with `budgets` (`cost_center` = id or exact name, `amount` = planned result, negative for costs; `0` removes it). Cost centres that
+  are not listed keep their budget; closed periods can be planned too. MCP: `get_budgets`, `save_budgets`.
 - **Allocation keys:** `GET /accounting/periods/{id}/allocation-keys` (one per allocated cost centre),
   `PUT /accounting/periods/{id}/allocation-keys/{cost_center}` with `rules` (`target`, `kind` = `fixed`, `percent`, `rest` or
   `share`, `amount` for `fixed`, `percent` for `percent`) replaces the key of one allocated cost centre in an open period, with the

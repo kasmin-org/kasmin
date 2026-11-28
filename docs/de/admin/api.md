@@ -280,6 +280,9 @@ Scopes `finance:read` / `finance:write`; Begriffe und Regeln stehen unter [Buchh
 - **Perioden:** `GET|POST /accounting/periods` (`name`, `starts_on` – nur bei der ersten Periode, später der Tag nach der letzten –,
   `ends_on`). `PATCH /accounting/periods/{id}` ändert `name`, `starts_on` und `ends_on` einer offenen Periode; `moved` sagt, wie
   viele Buchungen jetzt zu einer anderen Periode gehören, mit `dry_run` `true` wird nichts gespeichert.
+- **Budget:** `GET /accounting/periods/{id}/budgets` (das geplante Ergebnis je Kostenstelle) und `PUT /accounting/periods/{id}/budgets`
+  mit `budgets` (`cost_center` = ID oder genauer Name, `amount` = geplantes Ergebnis, Kosten mit Minus; `0` entfernt es). Nicht
+  angeführte Kostenstellen behalten ihr Budget; auch abgeschlossene Perioden lassen sich planen. MCP: `get_budgets`, `save_budgets`.
 - **Umlageschlüssel:** `GET /accounting/periods/{id}/allocation-keys` (einer je umzulegender Kostenstelle),
   `PUT /accounting/periods/{id}/allocation-keys/{cost_center}` mit `rules` (`target`, `kind` = `fixed`, `percent`, `rest` oder
   `share`, `amount` bei `fixed`, `percent` bei `percent`) ersetzt den Schlüssel einer umzulegenden Kostenstelle in einer offenen

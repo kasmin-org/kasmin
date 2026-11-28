@@ -98,11 +98,6 @@ class DocumentBookings
         return $made;
     }
 
-    private function hasFailures(): bool
-    {
-        return $this->failures !== [];
-    }
-
     /** Books an issued invoice or credit note; null if there is nothing to book (draft, before the first period, 0). */
     public function bookInvoice(Invoice $invoice): ?JournalEntry
     {
@@ -116,7 +111,7 @@ class DocumentBookings
         }
         $lines = $kind === 'credit_note' ? $this->creditNoteLines($invoice) : $this->invoiceLines($invoice);
         if (! $this->hasAmounts($lines)) {
-            return null; // e.g. everything was discounted
+            return null; // only lines of 0, e.g. a free place
         }
         $text = $kind === 'credit_note'
             ? $this->text('credit_note', ['number' => $invoice->number, 'invoice' => Invoice::query()->whereKey((int) $invoice->corrects_id)->value('number') ?? '–', 'payer' => $invoice->payer_name ?? '–'])
@@ -455,6 +450,11 @@ class DocumentBookings
         $first = Period::query()->min('starts_on');
 
         return $first !== null && Carbon::parse($date)->toDateString() >= Carbon::parse((string) $first)->toDateString();
+    }
+
+    private function hasFailures(): bool
+    {
+        return $this->failures !== [];
     }
 
     private function booked(Model $source, string $kind): ?JournalEntry

@@ -90,7 +90,7 @@ class Advances
     private function entry(Advance $advance, string $kind, Carbon $date, string $text, ?User $by): array
     {
         return [
-            'date' => $date, 'text' => (string) __('accounting.expenses.entry.'.$text, ['name' => $advance->person->fullName(), 'purpose' => (string) $advance->purpose]),
+            'date' => $date, 'text' => ExpenseClaims::text('entry.'.$text, ['name' => $advance->person->fullName(), 'purpose' => (string) $advance->purpose]),
             'kind' => $kind, 'source' => $advance, 'created_by_id' => $by->id ?? (auth()->id() !== null ? (int) auth()->id() : null),
         ];
     }

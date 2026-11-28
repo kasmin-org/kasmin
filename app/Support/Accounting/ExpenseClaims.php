@@ -110,7 +110,7 @@ class ExpenseClaims
             'event_id' => $event?->id, 'receipt_path' => $path, 'flat' => $rate !== null, 'flat_rate' => $rate['name'] ?? null,
             'advance_id' => $advance?->id, 'waived' => $advance === null && (bool) ($data['waived'] ?? false), 'status' => 'submitted',
         ]);
-        app(Notifier::class)->event('expense_claims', (string) __('accounting.expenses.notify_submitted', ['name' => $person->fullName(), 'amount' => $claim->amount(), 'purpose' => $claim->purpose]), url('/admin/expense-claims'));
+        app(Notifier::class)->event('expense_claims', self::text('notify_submitted', ['name' => $person->fullName(), 'amount' => $claim->amount(), 'purpose' => $claim->purpose]), url('/admin/expense-claims'));
 
         return $claim;
     }
@@ -313,7 +313,7 @@ class ExpenseClaims
         $center = $advance->claims()->where('status', 'settled')->latest('id')->value('cost_center_id');
         $claim = ExpenseClaim::query()->create([
             'person_id' => $advance->person_id, 'submitted_by_id' => $by?->id, 'date' => $date->toDateString(), 'amount_cents' => $cents,
-            'purpose' => mb_substr((string) __('accounting.expenses.rest_purpose', ['date' => $advance->paid_on->isoFormat('L'), 'purpose' => (string) $advance->purpose]), 0, 250),
+            'purpose' => mb_substr(self::text('rest_purpose', ['date' => $advance->paid_on->isoFormat('L'), 'purpose' => (string) $advance->purpose]), 0, 250),
             'cost_center_id' => $center ?? CostCenter::default()->id, 'advance_id' => $advance->id, 'advance_rest' => true,
             'status' => 'approved', 'decided_by_id' => $by?->id, 'decided_at' => now(),
         ]);
@@ -347,6 +347,18 @@ class ExpenseClaims
         $person->forceFill(['payout_iban' => $iban === '' ? null : $iban])->save();
     }
 
+    /**
+     * Texts of bookings, transfers and notifications are in the language of the installation, whoever triggers them.
+     *
+     * @param  array<string, string|int|null>  $values
+     */
+    public static function text(string $key, array $values = []): string
+    {
+        $locale = Settings::get('default_locale');
+
+        return (string) trans('accounting.expenses.'.$key, $values, in_array($locale, ['de', 'en'], true) ? $locale : app()->getLocale());
+    }
+
     /** @param  list<string>  $statuses */
     private function expect(ExpenseClaim $claim, array $statuses): void
     {
@@ -371,15 +383,15 @@ class ExpenseClaims
     private function entry(ExpenseClaim $claim, string $kind, Carbon $date, string $text, ?User $by): array
     {
         return [
-            'date' => $date, 'text' => (string) __('accounting.expenses.entry.'.$text, ['name' => $claim->person->fullName(), 'purpose' => $claim->purpose]),
-            'receipt' => (string) __('accounting.expenses.receipt_number', ['id' => $claim->id]), 'receipt_path' => $claim->receipt_path,
+            'date' => $date, 'text' => self::text('entry.'.$text, ['name' => $claim->person->fullName(), 'purpose' => $claim->purpose]),
+            'receipt' => self::text('receipt_number', ['id' => $claim->id]), 'receipt_path' => $claim->receipt_path,
             'kind' => $kind, 'source' => $claim, 'created_by_id' => $by->id ?? (auth()->id() !== null ? (int) auth()->id() : null),
         ];
     }
 
     private function transferText(string $purpose): string
     {
-        return (string) __('accounting.expenses.transfer_text', ['purpose' => $purpose]);
+        return self::text('transfer_text', ['purpose' => $purpose]);
     }
 
     /** @param  Collection<int, ExpenseClaim>  $claims */

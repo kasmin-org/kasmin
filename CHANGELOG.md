@@ -6,6 +6,13 @@ All notable changes to Kasmin are documented in this file. The format is based o
 
 ## [Unreleased]
 
+## [0.32.2] - 2026-11-28
+
+### Changed
+
+- **Notice: Kasmin is under development and should not be used yet.** README, documentation and website say so; a first
+  version for tests and real use is planned for January 2027 at the latest, and the README will name it.
+
 ## [0.32.1] - 2026-11-28
 
 ### Fixed
@@ -743,7 +750,8 @@ First public pre-release for testing. Not ready for production use.
 - Docker image: system packages updated and build packages removed after compiling the PHP extensions – the
   container scan reports no high or critical findings any more (previously 75 in Debian packages).
 
-[Unreleased]: https://github.com/kasmin-org/kasmin/compare/v0.32.1...develop
+[Unreleased]: https://github.com/kasmin-org/kasmin/compare/v0.32.2...develop
+[0.32.2]: https://github.com/kasmin-org/kasmin/releases/tag/v0.32.2
 [0.32.1]: https://github.com/kasmin-org/kasmin/releases/tag/v0.32.1
 [0.32.0]: https://github.com/kasmin-org/kasmin/releases/tag/v0.32.0
 [0.31.1]: https://github.com/kasmin-org/kasmin/releases/tag/v0.31.1

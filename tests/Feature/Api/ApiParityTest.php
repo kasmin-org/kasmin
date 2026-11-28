@@ -185,7 +185,7 @@ class ApiParityTest extends TestCase
 
         $schedule = $this->withToken($token)->getJson("/api/v1/events/$id/schedule")->assertOk()->json('data');
         $this->assertContains('date', array_column($schedule, 'kind'));
-        $this->assertNotEmpty(array_filter($schedule, fn (array $i) => $i['kind'] === 'automation' && is_string($i['automation'])));
+        $this->assertNotEmpty(array_filter($schedule, fn (array $i) => $i['kind'] === 'automation' && is_int($i['automation'])));
     }
 
     public function test_event_prices_payment_plan_rounds_costs_documents_and_templates(): void
@@ -198,37 +198,45 @@ class ApiParityTest extends TestCase
         $this->withToken($token)->postJson('/api/v1/events', $base + ['sibling_mode' => 'half'])->assertUnprocessable()->assertJsonValidationErrors('sibling_mode');
         $this->withToken($token)->postJson('/api/v1/events', $base + ['currency' => 'USD'])->assertUnprocessable()->assertJsonValidationErrors('currency');
         $this->withToken($token)->postJson('/api/v1/events', $base + ['prices' => [['role' => 'child', 'min_age' => 12, 'max_age' => 8, 'price' => 300]]])->assertUnprocessable()->assertJsonValidationErrors('prices.0.max_age');
-        $this->withToken($token)->postJson('/api/v1/events', $base + ['installments' => [['key' => 'deposit', 'amount' => 100]]])->assertUnprocessable()->assertJsonValidationErrors('installments.0.label');
-        $this->withToken($token)->postJson('/api/v1/events', $base + ['installments' => [['key' => 'fee', 'label' => ['de' => 'Beitrag', 'en' => 'Fee'], 'kind' => 'member']]])->assertUnprocessable()->assertJsonValidationErrors('installments.0.membership_type');
+        $this->withToken($token)->postJson('/api/v1/events', $base + ['installments' => [['amount' => 100]]])->assertUnprocessable()->assertJsonValidationErrors('installments.0.label');
+        $this->withToken($token)->postJson('/api/v1/events', $base + ['installments' => [['label' => 'Fee', 'kind' => 'member']]])->assertUnprocessable()->assertJsonValidationErrors('installments.0.membership_type');
+        $this->withToken($token)->postJson('/api/v1/events', $base + ['installments' => [['label' => 'Fee', 'kind' => 'member', 'membership_type' => 'Nobody has this name']]])->assertUnprocessable()->assertJsonValidationErrors('installments.0.membership_type');
+        $this->withToken($token)->postJson('/api/v1/events', $base + ['installments' => [['label' => 'Deposit', 'amount' => 100], ['label' => ' deposit ', 'kind' => 'rest']]])->assertUnprocessable()->assertJsonValidationErrors('installments.1.label'); // names are unique in the plan
         $this->withToken($token)->postJson('/api/v1/events', $base + ['roles' => [['role' => 'child', 'registration_form' => 'safety_sheet']]])->assertUnprocessable()->assertJsonValidationErrors('roles.0.registration_form');
-        $id = $this->withToken($token)->postJson('/api/v1/events', $base + [
-            'roles' => [['role' => 'child', 'capacity' => 20, 'price' => 400, 'registration_form' => 'camp_questions']],
+        $created = $this->withToken($token)->postJson('/api/v1/events', $base + [
+            'roles' => [['role' => 'child', 'capacity' => 20, 'price' => 400, 'registration_form' => 'Camp questions']],
             'sibling_mode' => 'staggered', 'sibling_order' => 'registration', 'sibling_amount' => 25.5, 'sibling_cap_position' => 3, 'reminder_days_before' => [7, 2],
             'cancellation_fee' => 50, 'cancellation_text' => ['de' => 'Storno bis Mai kostenlos.', 'en' => 'Free until May.'],
             'prices' => [['role' => 'child', 'max_age' => 9, 'price' => 350], ['role' => 'child', 'until_date' => '2027-03-01', 'price' => 380]],
             'installments' => [
-                ['key' => 'deposit', 'label' => ['de' => 'Anzahlung', 'en' => 'Deposit'], 'kind' => 'fixed', 'amount' => 100, 'due_days' => 14, 'refundable' => true, 'refund_until_days' => 30, 'confirms_place' => true],
-                ['key' => 'fee', 'label' => ['de' => 'Beitrag', 'en' => 'Fee'], 'kind' => 'member', 'membership_type' => $type->key],
-                ['key' => 'rest', 'label' => ['de' => 'Rest', 'en' => 'Balance'], 'kind' => 'rest', 'due_date' => '2027-06-01', 'discounts_apply' => true],
+                ['label' => ['de' => 'Anzahlung', 'en' => 'Deposit'], 'kind' => 'fixed', 'amount' => 100, 'due_days' => 14, 'refundable' => true, 'refund_until_days' => 30, 'confirms_place' => true],
+                ['label' => 'Fee', 'kind' => 'member', 'membership_type' => $type->label()],
+                ['label' => 'Balance', 'kind' => 'rest', 'due_date' => '2027-06-01', 'discounts_apply' => true],
             ],
         ])->assertCreated()->assertJsonPath('data.currency', 'EUR')->assertJsonPath('data.sibling_mode', 'staggered')->assertJsonPath('data.sibling_amount', 25.5)->assertJsonPath('data.sibling_cap_position', 3)
             ->assertJsonPath('data.reminder_days_before', [7, 2])->assertJsonPath('data.cancellation_fee', 50)->assertJsonPath('data.cancellation_text', 'Free until May.')
-            ->assertJsonPath('data.roles.0.registration_form', 'camp_questions')->assertJsonCount(2, 'data.prices')->assertJsonPath('data.prices.0.max_age', 9)->assertJsonPath('data.prices.1.until_date', '2027-03-01')
+            ->assertJsonPath('data.roles.0.registration_form', $form->id)->assertJsonCount(2, 'data.prices')->assertJsonPath('data.prices.0.max_age', 9)->assertJsonPath('data.prices.1.until_date', '2027-03-01')
             ->assertJsonCount(3, 'data.installments')->assertJsonPath('data.installments.0.confirms_place', true)->assertJsonPath('data.installments.0.refund_until_days', 30)
-            ->assertJsonPath('data.installments.1.membership_type', $type->key)->assertJsonPath('data.installments.2.due_date', '2027-06-01')->json('data.id');
+            ->assertJsonPath('data.installments.1.membership_type', $type->id)->assertJsonPath('data.installments.2.due_date', '2027-06-01')->assertJsonMissingPath('data.installments.0.key')->json('data');
+        [$id, $plan] = [$created['id'], array_column($created['installments'], 'id', 'label')];
         $event = Event::query()->where('public_id', $id)->firstOrFail();
+        $this->assertSame(['deposit', 'fee', 'balance'], $event->installments()->pluck('key')->all()); // internal keys from the names
         $this->assertSame($form->id, $event->roles()->value('registration_form_id'));
         $this->assertSame(2550, $event->sibling_amount_cents);
 
-        // PATCH: prices are replaced, instalments go by key; an instalment with invoices cannot be removed.
+        // PATCH: prices are replaced, instalments go by id (or name); an instalment with invoices cannot be removed.
+        $this->withToken($token)->patchJson("/api/v1/events/$id", ['installments' => [['id' => 999999]]])->assertUnprocessable()->assertJsonValidationErrors('installments.0.id');
         $this->withToken($token)->patchJson("/api/v1/events/$id", ['prices' => [['role' => 'child', 'price' => 390]], 'reminder_days_before' => [], 'roles' => [['role' => 'child', 'registration_form' => null]],
-            'installments' => [['key' => 'deposit', 'amount' => 120], ['key' => 'rest']]])
+            'installments' => [['id' => $plan['Deposit'], 'amount' => 120], ['label' => 'BALANCE']]])
             ->assertOk()->assertJsonCount(1, 'data.prices')->assertJsonPath('data.reminder_days_before', null)->assertJsonPath('data.roles.0.registration_form', null)->assertJsonPath('data.roles.0.capacity', 20)
             ->assertJsonCount(2, 'data.installments')->assertJsonPath('data.installments.0.amount', 120)->assertJsonPath('data.installments.0.label', 'Deposit')->assertJsonPath('data.installments.0.confirms_place', true);
-        Invoice::query()->create(['event_id' => $event->id, 'installment_key' => 'deposit', 'payer_name' => 'Alex Ash', 'total_cents' => 12000]);
-        $this->withToken($token)->patchJson("/api/v1/events/$id", ['installments' => [['key' => 'rest']]])->assertUnprocessable()->assertJsonValidationErrors('installments');
+        $this->assertSame([$plan['Deposit'], $plan['Balance']], $event->installments()->pluck('id')->all());
+        Invoice::query()->create(['event_id' => $event->id, 'installment_id' => $plan['Deposit'], 'installment_key' => 'deposit', 'payer_name' => 'Alex Ash', 'total_cents' => 12000]);
+        $this->withToken($token)->patchJson("/api/v1/events/$id", ['installments' => [['id' => $plan['Balance']]]])->assertUnprocessable()->assertJsonValidationErrors('installments');
         $this->assertSame(2, $event->installments()->count());
-        $this->withToken($token)->patchJson("/api/v1/events/$id", ['installments' => [['key' => 'deposit', 'amount' => 150], ['key' => 'rest']]])->assertOk()->assertJsonPath('data.installments.0.amount', 150); // as in the form
+        // The key of older clients still finds the instalment.
+        $this->withToken($token)->patchJson("/api/v1/events/$id", ['installments' => [['key' => 'deposit', 'amount' => 150], ['id' => $plan['Balance'], 'label' => 'Rest']]])->assertOk()
+            ->assertJsonPath('data.installments.0.amount', 150)->assertJsonPath('data.installments.0.id', $plan['Deposit'])->assertJsonPath('data.installments.1.label', 'Rest'); // as in the form
 
         // Registration rounds.
         $rounds = "/api/v1/events/$id/rounds";
@@ -411,8 +419,9 @@ class ApiParityTest extends TestCase
         $type = MembershipType::query()->orderBy('id')->firstOrFail();
         $url = "/api/v1/people/{$ann->public_id}/memberships";
         $this->withToken($token)->postJson($url, ['type' => 'no-such-type'])->assertUnprocessable()->assertJsonValidationErrors('type');
-        $id = $this->withToken($token)->postJson($url, ['type' => $type->key, 'starts_on' => '2026-01-01'])->assertCreated()->assertJsonPath('data.0.type', $type->key)->assertJsonPath('data.0.ends_on', null)->json('data.0.id');
-        $this->withToken($token)->postJson($url, ['type' => $type->key])->assertUnprocessable()->assertJsonValidationErrors('type'); // one running membership per type
+        $id = $this->withToken($token)->postJson($url, ['type' => mb_strtoupper((string) $type->label()), 'starts_on' => '2026-01-01'])->assertCreated()->assertJsonPath('data.0.type', $type->id)
+            ->assertJsonPath('data.0.name', $type->label())->assertJsonPath('data.0.ends_on', null)->json('data.0.id');
+        $this->withToken($token)->postJson($url, ['type' => $type->id])->assertUnprocessable()->assertJsonValidationErrors('type'); // one running membership per type
         $this->withToken($token)->patchJson("$url/$id", ['ends_on' => '2025-12-31'])->assertUnprocessable()->assertJsonValidationErrors('ends_on');
         $this->withToken($token)->patchJson("$url/$id", ['ends_on' => '2026-12-31'])->assertOk()->assertJsonPath('data.0.ends_on', '2026-12-31');
         $this->withToken($token)->postJson($url, ['type' => $type->key])->assertCreated()->assertJsonCount(2, 'data');
@@ -441,28 +450,28 @@ class ApiParityTest extends TestCase
         $token = $this->token(['people:read', 'roles:write']);
         $ann = $this->person('Ann', 'Ash', 30);
         $event = $this->event();
-        $roles = array_column((array) $this->withToken($token)->getJson('/api/v1/roles')->assertOk()->json('data'), null, 'key');
-        $this->assertFalse($roles['administrator']['assignable']);
-        $this->assertTrue($roles['counsellor']['assignable']);
+        $roles = array_column((array) $this->withToken($token)->getJson('/api/v1/roles')->assertOk()->assertJsonMissingPath('data.0.key')->json('data'), null, 'id');
+        $id = fn (string $key) => (int) Role::query()->where('key', $key)->value('id');
+        $this->assertFalse($roles[$id('administrator')]['assignable']);
+        $this->assertTrue($roles[$id('counsellor')]['assignable']);
         $url = "/api/v1/people/{$ann->public_id}/roles";
         $this->withToken($token)->postJson($url, ['role' => 'emperor'])->assertUnprocessable()->assertJsonValidationErrors('role');
-        $this->withToken($token)->postJson($url, ['role' => 'administrator'])->assertForbidden();
+        $this->withToken($token)->postJson($url, ['role' => $id('administrator')])->assertForbidden();
+        $this->withToken($token)->postJson($url, ['role' => 'administrator'])->assertForbidden(); // the key of older versions
         $this->assertSame([], $ann->activeRoleKeys());
 
-        $own = Role::query()->where('scope', 'own')->where('key', '!=', 'administrator')->value('key');
-        $all = Role::query()->where(fn ($q) => $q->whereNull('scope')->orWhere('scope', '!=', 'own'))->where('key', '!=', 'administrator')->value('key');
-        $this->assertNotNull($own);
-        $this->assertNotNull($all);
-        $this->withToken($token)->postJson($url, ['role' => $all, 'event' => $event->public_id])->assertUnprocessable()->assertJsonValidationErrors('event');
-        $id = $this->withToken($token)->postJson($url, ['role' => $own, 'event' => $event->public_id, 'ends_on' => now()->addYear()->toDateString()])
-            ->assertCreated()->assertJsonPath('data.0.role', $own)->assertJsonPath('data.0.event', $event->public_id)->assertJsonPath('data.0.starts_on', now()->toDateString())->json('data.0.id');
-        $this->assertSame([$own], $ann->activeRoleKeys());
+        $own = Role::query()->where('scope', 'own')->where('key', '!=', 'administrator')->firstOrFail();
+        $all = Role::query()->where(fn ($q) => $q->whereNull('scope')->orWhere('scope', '!=', 'own'))->where('key', '!=', 'administrator')->firstOrFail();
+        $this->withToken($token)->postJson($url, ['role' => $all->id, 'event' => $event->public_id])->assertUnprocessable()->assertJsonValidationErrors('event');
+        $id = $this->withToken($token)->postJson($url, ['role' => $own->label(), 'event' => $event->public_id, 'ends_on' => now()->addYear()->toDateString()])
+            ->assertCreated()->assertJsonPath('data.0.role', $own->id)->assertJsonPath('data.0.name', $own->label())->assertJsonPath('data.0.event', $event->public_id)->assertJsonPath('data.0.starts_on', now()->toDateString())->json('data.0.id');
+        $this->assertSame([$own->key], $ann->activeRoleKeys());
         $this->withToken($token)->getJson($url)->assertOk()->assertJsonCount(1, 'data');
         $this->withToken($token)->deleteJson("$url/$id")->assertOk()->assertJsonCount(0, 'data');
 
         // The administrator role of somebody cannot be taken either.
         $owner = "/api/v1/people/{$this->owner->public_id}/roles";
-        $assignment = $this->withToken($token)->getJson($owner)->assertOk()->assertJsonPath('data.0.role', 'administrator')->json('data.0.id');
+        $assignment = $this->withToken($token)->getJson($owner)->assertOk()->assertJsonPath('data.0.role', Role::query()->where('key', 'administrator')->value('id'))->json('data.0.id');
         $this->withToken($token)->deleteJson("$owner/$assignment")->assertForbidden();
         $this->assertSame(['administrator'], $this->owner->activeRoleKeys());
     }
@@ -706,14 +715,18 @@ class ApiParityTest extends TestCase
         $this->withToken($token)->postJson('/api/v1/automations', ['config' => ['target' => ['source' => 'event'], 'steps' => [['type' => 'invoice', 'description' => 'Fee', 'amount' => 5]]]] + $own)->assertUnprocessable(); // needs finance:write
         $created = $this->withToken($token)->postJson('/api/v1/automations', $own)->assertCreated()->assertJsonPath('data.action', 'custom')->assertJsonPath('data.standard', false)
             ->assertJsonPath('data.active', false)->assertJsonPath('data.mode', 'confirm')->assertJsonPath('data.trigger_config.days', 2)->json('data');
-        $this->assertStringStartsWith('own_', $created['key']);
-        $this->withToken($token)->patchJson("/api/v1/automations/{$created['key']}", ['active' => true])->assertOk()->assertJsonPath('data.active', true);
+        $this->assertArrayNotHasKey('key', $created);
+        $this->assertSame('own_thanks_to_the_team', Automation::query()->findOrFail($created['id'])->key); // internal, made from the name
+        $this->withToken($token)->postJson('/api/v1/automations', $own)->assertUnprocessable()->assertJsonValidationErrors('name'); // names are unique
+        $this->withToken($token)->patchJson('/api/v1/automations/'.rawurlencode('thanks to the TEAM'), ['active' => true])->assertOk()->assertJsonPath('data.active', true)->assertJsonPath('data.id', $created['id']);
+        $this->withToken($token)->patchJson("/api/v1/automations/{$created['id']}", ['name' => 'Deposit invoices'])->assertUnprocessable()->assertJsonValidationErrors('name');
 
-        $this->withToken($token)->deleteJson('/api/v1/automations/deposit_invoices')->assertForbidden();
+        $this->withToken($token)->deleteJson('/api/v1/automations/'.rawurlencode('Deposit invoices'))->assertForbidden();
+        $this->withToken($token)->deleteJson('/api/v1/automations/deposit_invoices')->assertForbidden(); // the key of older versions
         $this->assertTrue(Automation::query()->where('key', 'deposit_invoices')->exists());
-        $this->withToken($token)->deleteJson("/api/v1/automations/{$created['key']}")->assertOk();
-        $this->assertFalse(Automation::query()->where('key', $created['key'])->exists());
-        $this->withToken($token)->deleteJson("/api/v1/automations/{$created['key']}")->assertNotFound();
+        $this->withToken($token)->deleteJson("/api/v1/automations/{$created['id']}")->assertOk();
+        $this->assertNull(Automation::query()->find($created['id']));
+        $this->withToken($token)->deleteJson("/api/v1/automations/{$created['id']}")->assertNotFound();
         $this->assertSame(0, Automation::query()->where('is_standard', false)->count());
     }
 

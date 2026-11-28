@@ -19,6 +19,7 @@ use App\Models\Form;
 use App\Models\Household;
 use App\Models\Invoice;
 use App\Models\MailAccount;
+use App\Models\MailTemplate;
 use App\Models\MembershipType;
 use App\Models\OutgoingMail;
 use App\Models\Participation;
@@ -389,9 +390,10 @@ class McpParityTest extends TestCase
 
         // Memberships: give, end, let run again.
         $type = MembershipType::query()->orderBy('id')->firstOrFail();
-        $given = $this->tool($token, 'add_membership', ['person' => $robin->public_id, 'type' => $type->key]);
+        $given = $this->tool($token, 'add_membership', ['person' => $robin->public_id, 'type' => (string) $type->label()]);
         $membership = (int) ($given['data'][0]['id'] ?? 0);
-        $this->assertStringContainsString('HTTP 422', $this->refused($token, 'add_membership', ['person' => $robin->public_id, 'type' => $type->key], 'one running membership per type'));
+        $this->assertSame($type->id, $given['data'][0]['type'] ?? null);
+        $this->assertStringContainsString('HTTP 422', $this->refused($token, 'add_membership', ['person' => $robin->public_id, 'type' => (string) $type->id], 'one running membership per type'));
         $ended = $this->tool($token, 'update_membership', ['person' => $robin->public_id, 'id' => $membership, 'ends_on' => now()->addMonth()->toDateString()]);
         $this->assertSame(now()->addMonth()->toDateString(), $ended['data'][0]['ends_on'] ?? null);
         $this->assertNull($this->tool($token, 'update_membership', ['person' => $robin->public_id, 'id' => $membership])['data'][0]['ends_on'] ?? null);
@@ -415,7 +417,8 @@ class McpParityTest extends TestCase
         $robin = $this->person('Robin', 'Birch', 40);
         $robin->contactPoints()->create(['type' => 'email', 'value' => 'robin@example.org', 'is_primary' => true]);
         $reader = $this->token(['people:read']);
-        $this->assertContains('treasurer', array_column($this->tool($reader, 'list_roles')['data'] ?? [], 'key'));
+        $treasurer = Role::query()->where('key', 'treasurer')->firstOrFail();
+        $this->assertContains($treasurer->label(), array_column($this->tool($reader, 'list_roles')['data'] ?? [], 'name', 'id'));
         $this->assertSame([], $this->tool($reader, 'list_person_roles', ['person' => $robin->public_id])['data'] ?? null);
 
         // roles:write alone is enough for REST, not for an AI assistant: a role can make somebody an approver.
@@ -442,8 +445,8 @@ class McpParityTest extends TestCase
         $this->assertSame(0, $robin->roleAssignments()->count());
 
         $decider = $this->token(['people:read', 'roles:write', 'approvals:decide']);
-        $given = $this->tool($decider, 'assign_role', ['person' => $robin->public_id, 'role' => 'treasurer']);
-        $this->assertSame('treasurer', $given['data'][0]['role'] ?? null);
+        $given = $this->tool($decider, 'assign_role', ['person' => $robin->public_id, 'role' => (string) $treasurer->label()]);
+        $this->assertSame($treasurer->id, $given['data'][0]['role'] ?? null);
         $this->assertSame('mcp', AuditEvent::query()->where('action', 'RoleAssignment.created')->latest('id')->firstOrFail()->actor_type);
         $error = $this->refused($decider, 'assign_role', ['person' => $robin->public_id, 'role' => 'administrator'], 'never the administrator');
         $this->assertStringContainsString('HTTP 403', $error);
@@ -624,31 +627,34 @@ class McpParityTest extends TestCase
         $this->assertSame($before, Automation::query()->count());
 
         $created = $this->tool($token, 'create_automation', $own);
-        $key = (string) ($created['data']['key'] ?? '');
+        $id = (string) ($created['data']['id'] ?? '');
+        $key = (string) Automation::query()->whereKey($id)->value('key');
         $this->assertSame(['custom', false, 'confirm'], [$created['data']['action'] ?? null, $created['data']['active'], $created['data']['mode']], 'off, and the approvers decide about every run');
         $this->assertSame('mcp', AuditEvent::query()->where('action', 'Automation.created')->latest('id')->firstOrFail()->actor_type);
         // Switching it on keeps the approval; weakening it afterwards is refused as for every automation.
-        $this->assertTrue($this->tool($token, 'update_automation', ['key' => $key, 'active' => true])['data']['active'] ?? null);
-        $this->assertStringContainsString('HTTP 403', $this->refused($token, 'update_automation', ['key' => $key, 'mode' => 'automatic']));
+        $this->assertTrue($this->tool($token, 'update_automation', ['automation' => $id, 'active' => true])['data']['active'] ?? null);
+        $this->assertStringContainsString('HTTP 403', $this->refused($token, 'update_automation', ['automation' => $id, 'mode' => 'automatic']));
 
         $run = AutomationRun::query()->create(['automation_id' => Automation::query()->where('key', $key)->value('id'), 'status' => 'pending_approval', 'trigger' => 'mcp', 'plan' => [], 'expires_at' => now()->addWeek()]);
         $this->assertSame('pending_approval', $this->tool($token, 'get_automation_run', ['id' => $run->id])['data']['status'] ?? null);
 
         // Deleting removes the automation with its runs; it is not a way around the approval: a new one starts with the approval again.
-        $this->assertStringContainsString('HTTP 403', $this->refused($token, 'delete_automation', ['key' => 'mailing_release'], 'standard automations stay'));
+        $this->assertStringContainsString('HTTP 403', $this->refused($token, 'delete_automation', ['automation' => (string) Automation::query()->where('key', 'mailing_release')->value('id')], 'standard automations stay'));
+        $this->assertStringContainsString('HTTP 403', $this->refused($token, 'delete_automation', ['key' => 'mailing_release'], 'also by the key of older versions'));
         $this->assertTrue(Automation::query()->where('key', 'mailing_release')->exists());
-        $this->assertNull($this->tool($token, 'delete_automation', ['key' => $key])['data'] ?? null);
+        $this->assertNull($this->tool($token, 'delete_automation', ['automation' => $id])['data'] ?? null);
         $this->assertFalse(Automation::query()->where('key', $key)->exists());
         $this->assertFalse(AutomationRun::query()->whereKey($run->id)->exists());
         $this->assertStringContainsString('HTTP 403', $this->refused($token, 'create_automation', $own + ['mode' => 'automatic'], 'delete and create again is no way to run without approval'));
         // An automation that runs without approval and was created by a person cannot be switched on by the assistant.
-        $again = Automation::query()->where('key', $this->tool($token, 'create_automation', $own)['data']['key'] ?? '')->firstOrFail();
+        $again = Automation::query()->findOrFail($this->tool($token, 'create_automation', $own)['data']['id'] ?? 0);
         $again->update(['mode' => 'automatic']);
-        $this->assertStringContainsString('HTTP 403', $this->refused($token, 'update_automation', ['key' => $again->key, 'active' => true]));
+        $this->assertStringContainsString('HTTP 403', $this->refused($token, 'update_automation', ['automation' => (string) $again->label(), 'active' => true]));
 
         // With approvals:decide the token of a person who may decide can choose the approval.
         $decider = $this->token(['automations:read', 'automations:write', 'approvals:decide']);
-        $free = $this->tool($decider, 'create_automation', $own + ['mode' => 'automatic', 'max_items' => 10]);
+        $this->assertStringContainsString('HTTP 422', $this->refused($decider, 'create_automation', $own, 'names are unique'));
+        $free = $this->tool($decider, 'create_automation', ['name' => 'Thanks without approval'] + $own + ['mode' => 'automatic', 'max_items' => 10]);
         $this->assertSame(['automatic', 10, false], [$free['data']['mode'] ?? null, $free['data']['max_items'], $free['data']['active']]);
     }
 
@@ -674,7 +680,7 @@ class McpParityTest extends TestCase
         $this->assertContains('allergies', $shown['data']['hidden']);
         $this->assertArrayNotHasKey('allergies', $shown['data']['values']);
         $saved = $this->tool($token, 'update_person_form', $arguments + ['values' => ['swimmer' => 'no']]);
-        $this->assertSame('safety_sheet', $saved['data']['form'] ?? null);
+        $this->assertSame([$form->id, $form->label()], [$saved['data']['form'] ?? null, $saved['data']['name'] ?? null]);
         $error = $this->refused($token, 'update_person_form', $arguments + ['values' => ['allergies' => 'None']], 'health data cannot be written');
         $this->assertStringContainsString('HTTP 403', $error);
         $current = app(Forms::class)->current($form, $ann);
@@ -723,16 +729,17 @@ class McpParityTest extends TestCase
     public function test_mail_templates_log_bad_addresses_and_sender_profiles(): void
     {
         $token = $this->token(['mail:read', 'mail:write', 'settings:write']);
-        $contents = fn (string $subject) => ['key' => 'invoice', 'subject' => $subject, 'html' => '<p>Hello</p>'];
+        $invoice = MailTemplate::query()->where('key', 'invoice')->firstOrFail();
+        $contents = fn (string $subject) => ['template' => (string) $invoice->id, 'subject' => $subject, 'html' => '<p>Hello</p>'];
         $this->tool($token, 'update_mail_template', $contents('First change'));
         $second = $this->tool($token, 'update_mail_template', $contents('Second change'));
         $this->assertSame('Second change', $this->subject($second));
-        $this->assertStringContainsString('HTTP 422', $this->refused($token, 'update_mail_template', ['key' => 'invoice', 'subject' => 'x', 'html' => '{{ unknown.placeholder|raw }}{% include "x" %}'], 'checked by the template sandbox'));
-        $versions = $this->tool($token, 'list_mail_template_versions', ['key' => 'invoice'])['data'] ?? [];
+        $this->assertStringContainsString('HTTP 422', $this->refused($token, 'update_mail_template', ['template' => (string) $invoice->label(), 'subject' => 'x', 'html' => '{{ unknown.placeholder|raw }}{% include "x" %}'], 'checked by the template sandbox'));
+        $versions = $this->tool($token, 'list_mail_template_versions', ['template' => (string) $invoice->label()])['data'] ?? [];
         $this->assertCount(3, $versions);
         $restored = $this->tool($token, 'restore_mail_template_version', ['key' => 'invoice', 'version' => 2]);
         $this->assertSame([2, 'First change'], [$restored['data']['restored'] ?? null, $this->subject($restored)]);
-        $this->assertCount(4, $this->tool($token, 'list_mail_template_versions', ['key' => 'invoice'])['data'] ?? [], 'restoring is a new version');
+        $this->assertCount(4, $this->tool($token, 'list_mail_template_versions', ['key' => 'invoice'])['data'] ?? [], 'restoring is a new version; the argument of older versions still works');
 
         $robin = $this->person('Robin', 'Birch', 40);
         $point = $robin->contactPoints()->create(['type' => 'email', 'value' => 'robin@example.org', 'is_primary' => true]);
@@ -769,7 +776,7 @@ class McpParityTest extends TestCase
         ]);
         $ben = $make('Ben');
         $cleo = $make('Cleo');
-        $this->assertSame('team', $this->tool($token, 'list_public_forms')['data'][0]['slug'] ?? null);
+        $this->assertContains('team', array_column($this->tool($token, 'list_public_forms')['data'] ?? [], 'slug')); // next to the sign-up form every installation has
 
         // Even with health:read and "all data": the answers to confidential questions are not part of the answer.
         $response = $this->callTool($token, 'list_public_submissions', ['status' => 'pending'])->assertOk();

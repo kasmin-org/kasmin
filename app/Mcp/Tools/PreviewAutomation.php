@@ -22,9 +22,9 @@ class PreviewAutomation extends ApiTool
 
     public function handle(Request $request): Response
     {
-        $args = $this->args($request);
-        $path = '/automations/'.rawurlencode((string) ($args['key'] ?? '')).'/preview';
-        unset($args['key']);
+        $args = $this->withRecord($this->args($request), 'automation');
+        $path = '/automations/'.rawurlencode((string) ($args['automation'] ?? '')).'/preview';
+        unset($args['automation']);
 
         return $this->call('POST', $path, $args);
     }
@@ -33,7 +33,7 @@ class PreviewAutomation extends ApiTool
     public function schema(JsonSchema $schema): array
     {
         return [
-            'key' => $schema->string()->description('automation key')->required(),
+            'automation' => $schema->string()->description('id or exact name of the automation, see list_automations')->required(),
             'event' => $schema->string()->description('event id, for automations that work on one event'),
         ];
     }

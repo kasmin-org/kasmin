@@ -22,14 +22,14 @@ class UpdateMailTemplate extends ApiTool
 
     public function handle(Request $request): Response
     {
-        return $this->callEndpoint($this->args($request), ['template' => 'key']);
+        return $this->callEndpoint($this->withRecord($this->args($request), 'template'));
     }
 
     /** @return array<string, Type> */
     public function schema(JsonSchema $schema): array
     {
         return [
-            'key' => $schema->string()->description('template key')->required(),
+            'template' => $schema->string()->description('id or exact name of the mail template, see list_mail_templates')->required(),
             'subject' => $schema->string()->description('subject')->required(),
             'html' => $schema->string()->description('text of the mail as HTML with placeholders')->required(),
             'text' => $schema->string()->description('plain text part; made from the HTML if empty'),

@@ -79,10 +79,10 @@ class Journal
         }
         $original = Period::of($entry->date);
         $date ??= $original !== null && ! $original->isClosed() ? $entry->date : now();
-        $lines = $entry->lines->map(fn (JournalLine $l) => [
+        $lines = array_values($entry->lines->map(fn (JournalLine $l) => [
             'account' => $l->account_id, 'debit' => $l->credit_cents, 'credit' => $l->debit_cents, 'cost_center' => $l->cost_center_id,
             'fund' => $l->fund_id, 'person_id' => $l->person_id, 'text' => $l->text,
-        ])->all();
+        ])->all());
         $reversal = DB::transaction(function () use ($entry, $text, $date, $lines) {
             $reversal = $this->post(['date' => $date, 'text' => $text ?? __('accounting.reversal_of', ['number' => $entry->number, 'text' => $entry->text]),
                 'kind' => $entry->kind === 'manual' ? 'manual' : $entry->kind], $lines);

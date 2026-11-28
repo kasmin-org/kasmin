@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\EventListsController;
 use App\Http\Controllers\Api\EventPartsController;
 use App\Http\Controllers\Api\EventsController;
 use App\Http\Controllers\Api\EventSeriesController;
+use App\Http\Controllers\Api\ExpensesController;
 use App\Http\Controllers\Api\FinanceController;
 use App\Http\Controllers\Api\FormsController;
 use App\Http\Controllers\Api\FundsController;
@@ -133,6 +134,15 @@ Route::prefix('v1')->middleware([AuthenticateApiToken::class, 'throttle:api', Id
     Route::post('/refunds/{refund}/done', [FinanceController::class, 'refundDone'])->whereNumber('refund');
     Route::post('/refunds/{refund}/keep', [FinanceController::class, 'refundKeep'])->whereNumber('refund');
     Route::get('/invoice-archive', [FinanceController::class, 'archive']);
+    Route::get('/expense-claims', [ExpensesController::class, 'index']);
+    Route::post('/expense-claims', [ExpensesController::class, 'store']);
+    Route::post('/expense-claims/pay', [ExpensesController::class, 'pay']);
+    Route::post('/expense-claims/{claim}/approve', [ExpensesController::class, 'approve'])->whereNumber('claim');
+    Route::post('/expense-claims/{claim}/reject', [ExpensesController::class, 'reject'])->whereNumber('claim');
+    Route::post('/expense-claims/{claim}/donate', [ExpensesController::class, 'donate'])->whereNumber('claim');
+    Route::get('/advances', [ExpensesController::class, 'advances']);
+    Route::post('/advances', [ExpensesController::class, 'storeAdvance']);
+    Route::post('/advances/{advance}/settle', [ExpensesController::class, 'settleAdvance'])->whereNumber('advance');
 
     // Accounting (E1): references by id or exact name, amounts as decimals.
     Route::prefix('accounting')->group(function () {

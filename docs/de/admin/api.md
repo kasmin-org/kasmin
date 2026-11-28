@@ -14,7 +14,7 @@ jedes Token zuletzt verwendet wurde. Jeder schreibende Zugriff über die API ste
 |---|---|
 | `people:read` / `people:write` | Personen, Familien, Kontaktdaten, Erziehungsberechtigte, Mitgliedschaften, Gruppen und Mitgliedsarten lesen / anlegen und ändern; Rollen lesen; doppelte Einträge anführen / zusammenführen; öffentliche Einsendungen lesen / entscheiden |
 | `events:read` / `events:write` | Veranstaltungen, Teilnehmende, Runden, Dokumente, Vorlagen, Listen, Gruppen und Zimmer, Statistik und Dashboard lesen / Veranstaltungen (inkl. Preise und Ratenplan), Reihen, Vorlagen, Runden und Dokumente anlegen und ändern, anmelden, Teilnahmen ändern, Plätze anbieten, Gruppen und Zimmer |
-| `finance:read` / `finance:write` | Rechnungen (inkl. PDF), Zahlungen, Rückzahlungen, das Rechnungsarchiv und die Kosten einer Veranstaltung lesen; die Buchhaltung lesen (Konten, Kostenstellen, Fonds, Perioden, Buchungen, Berichte) / Rechnungen ausstellen, senden und stornieren, Zahlungen erfassen und zuordnen, Rückzahlungen erledigen, die Kosten einer Veranstaltung ändern; buchen und stornieren, Perioden abschließen und wiedereröffnen, Kontenplan, Kostenstellen, Fonds und Umlageschlüssel ändern |
+| `finance:read` / `finance:write` | Rechnungen (inkl. PDF), Zahlungen, Rückzahlungen, das Rechnungsarchiv, Auslagen, Vorschüsse und die Kosten einer Veranstaltung lesen; die Buchhaltung lesen (Konten, Kostenstellen, Fonds, Perioden, Buchungen, Berichte) / Rechnungen ausstellen, senden und stornieren, Zahlungen erfassen und zuordnen, Rückzahlungen erledigen, Auslagen eintragen, freigeben, ablehnen und auszahlen, Vorschüsse ausgeben und abrechnen, die Kosten einer Veranstaltung ändern; buchen und stornieren, Perioden abschließen und wiedereröffnen, Kontenplan, Kostenstellen, Fonds und Umlageschlüssel ändern |
 | `mail:read` / `mail:write` | Mailvorlagen und ihre Versionen, Aussendungen, das Mailprotokoll, unzustellbare Adressen und Absenderprofile lesen / Vorlagen ändern und wiederherstellen, Aussendungen anlegen, vorbereiten und freigeben |
 | `automations:read` | Automatisierungen und Läufe lesen, Probeläufe |
 | `automations:write` | Automatisierungen ändern: aktiv, Modus, Auslöser, Einstellungen, Freigebende. Damit lässt sich eine Freigabe abschalten – geben Sie den Scope nur Tokens, über die ein Mensch bestimmt. Über MCP brauchen Änderungen an einer Freigabe zusätzlich `approvals:decide` |
@@ -275,6 +275,24 @@ Scopes `finance:read` / `finance:write`; Begriffe und Regeln stehen unter [Buchh
 Beispiel: `POST /accounting/bookings` mit `{"date": "2027-03-01", "text": "Einkauf", "lines": [{"account": "Verpflegung", "debit": 30},
 {"account": "Material", "debit": 12.5}, {"account": "Kasse", "credit": 42.5}]}`.
 
+### Auslagen und Vorschüsse
+
+Scopes `finance:read` / `finance:write`. Siehe [Auslagen und Vorschüsse](expenses.md). IBANs erscheinen nur maskiert.
+
+- `GET /expense-claims` (`status` = `submitted`, `approved`, `rejected`, `paid`, `donated`, `settled`; `person`).
+- `POST /expense-claims` trägt eine Auslage für eine Person ein, wie *Auslage eintragen*: `person`, `date`, `amount` und
+  `purpose`, oder `flat_rate` (Name aus den Einstellungen) mit `quantity`; optional `account`, `cost_center`, `event`,
+  `advance`, `waived` und `iban` (wird für die Erstattungen der Person gespeichert). Belegdateien nur in der Verwaltung.
+- `POST /expense-claims/{id}/approve` (optional `account`, `cost_center`), `POST /expense-claims/{id}/reject` mit
+  `reason` (geht per Mail an die Person), `POST /expense-claims/{id}/donate` (die Person verzichtet auf die Erstattung).
+- `POST /expense-claims/pay` mit `claims` (IDs), `account` (ID oder `bank` / `cash`), `date` und `per_person`: bucht die
+  Auszahlung und schickt den Personen eine Mail. Von einem Bankkonto enthält die Antwort die SEPA-Datei in `sepa_xml`
+  (nicht über MCP).
+- `GET /advances` (`settled`, `person`), `POST /advances` (`person`, `amount`, `account`, `date`, `purpose`),
+  `POST /advances/{id}/settle` (`returned` – genau das, was noch offen ist –, `account`, `date`).
+
+Beispiel: `POST /expense-claims/pay` mit `{"claims": [12, 13], "account": "bank", "date": "2027-07-20"}`.
+
 ### Mail
 
 Scopes `mail:read` / `mail:write`.
@@ -412,6 +430,7 @@ vergessen wurde (`tests/Feature/Api/McpParityTest.php`).
 | Buchhaltung: Kontenplan, Kostenstellen, Fonds | `list_accounts`, `list_cost_centers`, `list_funds` / `create_account`, `update_account`, `delete_account`, `create_cost_center`, `update_cost_center`, `change_cost_center_kind`, `set_cost_center_active`, `make_default_cost_center`, `delete_cost_center`, `create_fund`, `update_fund`, `transfer_between_funds`, `delete_fund` | `finance:read` / `finance:write` |
 | Buchhaltung: Perioden, Schlüssel, Abschluss | `list_periods`, `get_allocation_keys`, `close_period_preview` / `create_period`, `update_period`, `save_allocation_key`, `close_period`, `reopen_period` | `finance:read` / `finance:write` |
 | Buchhaltung: Buchungen, Berichte | `list_bookings`, `get_booking`, `get_report` / `create_booking`, `reverse_booking` | `finance:read` / `finance:write` |
+| Auslagen, Vorschüsse | `list_expense_claims`, `list_advances` / `create_expense_claim`, `approve_expense_claim`, `reject_expense_claim`, `donate_expense_claim`, `pay_expense_claims`, `create_advance`, `settle_advance` | `finance:read` / `finance:write` |
 | Automatisierungen | `list_automations`, `get_automation`, `preview_automation`, `list_approvals`, `get_automation_run` / `create_automation`, `update_automation`, `delete_automation` / `request_automation_run` / `decide_approval` | `automations:read` / `automations:write` / `automations:run` / `approvals:decide` |
 | Importe | `import_preview`, `suggest_import_families`, `import_people`, `list_imports`, `rollback_import` | `import:write` |
 | Formulare | `list_forms`, `get_form_definition`, `get_person_forms`, `get_person_form` / `update_person_form` / `save_form_definition` | `people:read` / `people:write` / `settings:write` (vertrauliche Antworten: `health:read`, `health:write`) |
@@ -576,6 +595,7 @@ als REST; was REST anbietet und MCP absichtlich nicht (Dateien, Geheimnisse von 
 | Buchhaltung: Buchungen (eingeben, stornieren), Journal | ja | ja (Belegdatei in der Verwaltung) | ja (ohne Belegdatei) | REST und MCP: Belegdatei |
 | Buchhaltung: Bank- und Kassakonten, Berichte | ja | ja (JSON, CSV, XLSX, PDF) | ja (Tabelle) | n/a für MCP: Dateien |
 | Buchhaltung: Schalter (Kostenstellen, Fonds) | ja | ja | ja (`update_settings`) | – |
+| Auslagen, Vorschüsse | ja | ja (ohne Belegdateien; SEPA-Datei als Text) | ja (ohne SEPA-Datei, IBAN maskiert) | MCP: keine Dateien |
 | Mailvorlagen: lesen, Vorschau, ändern | ja | ja | ja | – |
 | Versionen von Mailvorlagen, wiederherstellen | ja | ja | ja | – |
 | Aussendungen: anlegen, vorbereiten, freigeben | ja | ja | ja | – |

@@ -14,7 +14,7 @@ each token was last used. Every write via the API is recorded in the audit log w
 |---|---|
 | `people:read` / `people:write` | read / create and change people, families, contact data, legal guardians, memberships, groups and membership types; read roles; list / merge duplicates; read / decide public submissions |
 | `events:read` / `events:write` | read events, participants, rounds, documents, templates, lists, groups and rooms, statistics and the dashboard / create and change events (incl. prices and payment plan), series, templates, rounds and documents, register, change participations, offer places, groups and rooms |
-| `finance:read` / `finance:write` | read invoices (incl. PDF), payments, refunds and the invoice archive and the costs of an event; read the accounting (accounts, cost centres, funds, periods, bookings, reports) / issue, send and cancel invoices, record and assign payments, settle refunds, change the costs of an event; book and reverse, close and reopen periods, change the chart of accounts, cost centres, funds and allocation keys |
+| `finance:read` / `finance:write` | read invoices (incl. PDF), payments, refunds, the invoice archive, expense claims, advances and the costs of an event; read the accounting (accounts, cost centres, funds, periods, bookings, reports) / issue, send and cancel invoices, record and assign payments, settle refunds, enter, approve, reject and pay out expense claims, hand out and settle advances, change the costs of an event; book and reverse, close and reopen periods, change the chart of accounts, cost centres, funds and allocation keys |
 | `mail:read` / `mail:write` | read mail templates and their versions, mailings, the mail log, bad addresses and sender profiles / change and restore templates, create, prepare and release mailings |
 | `automations:read` | read automations and runs, dry runs |
 | `automations:write` | change automations: active, mode, trigger, settings, approvers. It can switch an approval off – give it only to tokens a person controls. Via MCP, changes to an approval also need `approvals:decide` |
@@ -270,6 +270,23 @@ Scopes `finance:read` / `finance:write`; see [Accounting](accounting.md) for the
 Example: `POST /accounting/bookings` with `{"date": "2027-03-01", "text": "Shop", "lines": [{"account": "Food", "debit": 30},
 {"account": "Material", "debit": 12.5}, {"account": "Cash", "credit": 42.5}]}`.
 
+### Expense claims and advances
+
+Scopes `finance:read` / `finance:write`. See [Expense claims and advances](expenses.md). IBANs are only shown masked.
+
+- `GET /expense-claims` (`status` = `submitted`, `approved`, `rejected`, `paid`, `donated`, `settled`; `person`).
+- `POST /expense-claims` enters a claim for a person, as *Enter expense claim* does: `person`, `date`, `amount` and
+  `purpose`, or `flat_rate` (name from the settings) with `quantity`; optional `account`, `cost_center`, `event`,
+  `advance`, `waived` and `iban` (stored for the refunds of the person). Receipt files only in the interface.
+- `POST /expense-claims/{id}/approve` (optional `account`, `cost_center`), `POST /expense-claims/{id}/reject` with
+  `reason` (mailed to the person), `POST /expense-claims/{id}/donate` (the person waives the refund).
+- `POST /expense-claims/pay` with `claims` (ids), `account` (id, or `bank` / `cash`), `date` and `per_person`: books
+  the payout and mails the people. From a bank account the answer has the SEPA file in `sepa_xml` (not via MCP).
+- `GET /advances` (`settled`, `person`), `POST /advances` (`person`, `amount`, `account`, `date`, `purpose`),
+  `POST /advances/{id}/settle` (`returned` – exactly what is still open –, `account`, `date`).
+
+Example: `POST /expense-claims/pay` with `{"claims": [12, 13], "account": "bank", "date": "2027-07-20"}`.
+
 ### Mail
 
 Scopes `mail:read` / `mail:write`.
@@ -407,6 +424,7 @@ forgotten (`tests/Feature/Api/McpParityTest.php`).
 | Accounting: chart of accounts, cost centres, funds | `list_accounts`, `list_cost_centers`, `list_funds` / `create_account`, `update_account`, `delete_account`, `create_cost_center`, `update_cost_center`, `change_cost_center_kind`, `set_cost_center_active`, `make_default_cost_center`, `delete_cost_center`, `create_fund`, `update_fund`, `transfer_between_funds`, `delete_fund` | `finance:read` / `finance:write` |
 | Accounting: periods, keys, closing | `list_periods`, `get_allocation_keys`, `close_period_preview` / `create_period`, `update_period`, `save_allocation_key`, `close_period`, `reopen_period` | `finance:read` / `finance:write` |
 | Accounting: bookings, reports | `list_bookings`, `get_booking`, `get_report` / `create_booking`, `reverse_booking` | `finance:read` / `finance:write` |
+| Expense claims, advances | `list_expense_claims`, `list_advances` / `create_expense_claim`, `approve_expense_claim`, `reject_expense_claim`, `donate_expense_claim`, `pay_expense_claims`, `create_advance`, `settle_advance` | `finance:read` / `finance:write` |
 | Automations | `list_automations`, `get_automation`, `preview_automation`, `list_approvals`, `get_automation_run` / `create_automation`, `update_automation`, `delete_automation` / `request_automation_run` / `decide_approval` | `automations:read` / `automations:write` / `automations:run` / `approvals:decide` |
 | Imports | `import_preview`, `suggest_import_families`, `import_people`, `list_imports`, `rollback_import` | `import:write` |
 | Forms | `list_forms`, `get_form_definition`, `get_person_forms`, `get_person_form` / `update_person_form` / `save_form_definition` | `people:read` / `people:write` / `settings:write` (confidential answers: `health:read`, `health:write`) |
@@ -571,6 +589,7 @@ than REST; what REST offers and MCP deliberately does not (files, webhook secret
 | Accounting: bookings (type in, reverse), journal | yes | yes (receipt file in the interface) | yes (no receipt file) | REST and MCP: receipt file |
 | Accounting: bank and cash accounts, reports | yes | yes (JSON, CSV, XLSX, PDF) | yes (table) | n/a for MCP: files |
 | Accounting: switches (cost centres, funds) | yes | yes | yes (`update_settings`) | – |
+| Expense claims, advances | yes | yes (no receipt files; SEPA file as text) | yes (no SEPA file, IBAN masked) | MCP: no files |
 | Mail templates: read, preview, change | yes | yes | yes | – |
 | Mail template versions, restore | yes | yes | yes | – |
 | Mailings: create, prepare, release | yes | yes | yes | – |

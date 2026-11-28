@@ -80,6 +80,7 @@
                             <span class="block font-medium">{{ $claim->purpose }}</span>
                             <span class="text-kasmin-700">{{ $claim->date->isoFormat('L') }}@if ($claim->event) · {{ $claim->event->title }}@endif</span>
                             @if ($claim->receipt_path)<a class="ml-1 underline" href="{{ route('portal.expenses.receipt', $claim->id) }}">{{ __('accounting.expenses.portal.show_receipt') }}</a>@endif
+                            @if ($claim->waived && $claim->status === 'submitted')<span class="block text-kasmin-700" data-waived>{{ __('accounting.expenses.portal.waive_label') }}</span>@endif
                             @if ($claim->status === 'rejected' && $claim->reason)<span class="block text-red-800">{{ __('accounting.expenses.mail.reason') }} {{ $claim->reason }}</span>@endif
                         </span>
                         <span class="text-right">

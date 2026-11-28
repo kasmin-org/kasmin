@@ -90,6 +90,7 @@ class ExpensesPortalTest extends TestCase
         $this->assertFalse($other->refresh()->waived);
         $this->actingAs($this->kim)->post(route('portal.expenses.waive', $own->id))->assertRedirect(route('portal.expenses'));
         $this->assertTrue($own->refresh()->waived);
+        $this->actingAs($this->kim)->get('/portal/expenses')->assertSee('data-waived', false)->assertDontSee('Waive the refund (donation)');
 
         // Not for people without a role in the team, and not with a login link from a mail only.
         $guardian = $this->member('Alex', 'Ash', team: false);

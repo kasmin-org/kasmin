@@ -2,15 +2,17 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Support\Accounting\Accounting;
 use App\Support\Api\ApiContext;
 use App\Support\Audit\Audit;
 use App\Support\Settings;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 /**
- * Settings. Scope: settings:write. Bank data, public address, mail test mode, embedding and AI settings are not available here:
+ * Settings, also the switches of the accounting ("Use cost centres", "Use funds"). Scope: settings:write. Bank data, public address, mail test mode, embedding and AI settings are not available here:
  * they could be misused to redirect payments, logins or data.
  */
 class SettingsController extends ApiController
@@ -23,6 +25,7 @@ class SettingsController extends ApiController
         'max_guardians' => ['required', 'integer', 'min:1', 'max:20'], 'mailing_approval_above' => ['required', 'integer', 'min:0', 'max:100000'],
         'digest_time' => ['nullable', 'regex:/^([01]\d|2[0-3]):[0-5]\d$/'], 'approval_days' => ['nullable', 'integer', 'min:1', 'max:60'],
         'approval_summary_time' => ['nullable', 'regex:/^\s*(([01]\d|2[0-3]):[0-5]\d(\s*,\s*([01]\d|2[0-3]):[0-5]\d)*)?\s*$/'],
+        'use_cost_centers' => ['required', 'boolean'], 'use_funds' => ['required', 'boolean'],
     ];
 
     /** Settings that decide whether an approval is needed; via MCP they also need approvals:decide. */
@@ -54,11 +57,35 @@ class SettingsController extends ApiController
                 throw new AuthorizationException("Via MCP, changing {$key} needs the scope approvals:decide.");
             }
         }
+        $this->accountingSwitches($data);
         foreach ($data as $key => $value) {
             Settings::set($key, is_bool($value) ? ($value ? '1' : '0') : ($value === null ? null : (string) $value));
         }
         Audit::record('settings.updated', null, null, ['section' => 'api', 'keys' => array_keys($data)]);
 
         return $this->index();
+    }
+
+    /**
+     * The switches of the accounting follow the rules of the global settings (E1e.5, E1f.1, E1h.2): cost centres can
+     * be switched off only with one cost centre that carries its result and without funds; funds need cost centres
+     * and can be switched off only with the general fund alone.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    private function accountingSwitches(array $data): void
+    {
+        if (array_key_exists('use_cost_centers', $data) && ! $data['use_cost_centers'] && Accounting::costCenters() && ($why = Accounting::whyCostCentersStay()) !== null) {
+            throw ValidationException::withMessages(['use_cost_centers' => [$why]]);
+        }
+        if (! array_key_exists('use_funds', $data)) {
+            return;
+        }
+        if ($data['use_funds'] && ! (bool) ($data['use_cost_centers'] ?? Accounting::costCenters())) {
+            throw ValidationException::withMessages(['use_funds' => [(string) __('accounting.switch.cost_centers_first')]]);
+        }
+        if (! $data['use_funds'] && Accounting::funds() && ($why = Accounting::whyFundsStay()) !== null) {
+            throw ValidationException::withMessages(['use_funds' => [$why]]);
+        }
     }
 }

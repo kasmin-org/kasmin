@@ -60,7 +60,7 @@ class Invoices
                 return false; // nobody of the family has to pay anything: no invoice over 0
             }
 
-            return ! Invoice::query()->where('event_id', $event->id)->where('installment_key', $installment->key)->where('type', 'invoice')
+            return ! Invoice::query()->forInstallment($installment)->where('type', 'invoice')
                 ->whereNotIn('status', ['cancelled', 'corrected'])
                 ->where(fn ($q) => $household ? $q->where('household_id', $household->id) : $q->whereHas('lines', fn ($l) => $l->whereIn('person_id', $group->pluck('person_id'))))
                 ->exists();
@@ -77,7 +77,7 @@ class Invoices
         return DB::transaction(function () use ($event, $installment, $participations, $household, $payer) {
             $invoice = Invoice::query()->create([
                 'household_id' => $household?->id, 'payer_id' => $payer?->id, 'event_id' => $event->id,
-                'installment_key' => $installment->key, 'currency' => $event->currency, 'created_by_id' => auth()->id(),
+                'installment_id' => $installment->id, 'installment_key' => $installment->key, 'currency' => $event->currency, 'created_by_id' => auth()->id(),
                 'payer_name' => $payer?->fullName(), 'payer_address' => $household ? trim(implode("\n", array_filter([$household->getAttribute('street'), trim($household->getAttribute('postal_code').' '.$household->getAttribute('city'))]))) : null,
             ]);
             $total = 0;
@@ -130,7 +130,7 @@ class Invoices
             Settings::set($range, (string) ($next + 1));
             $number = str_replace(['{number}', '{year}'], [(string) $next, now()->format('Y')], (string) Settings::get('invoice_number_format'));
 
-            $installment = $invoice->event?->installments()->where('key', $invoice->installment_key)->first();
+            $installment = $invoice->installmentOfPlan();
             $due = $installment->due_date ?? now()->addDays($installment->due_days ?? Settings::int('invoice_due_days'));
             $invoice->forceFill([
                 'number' => $number, 'reference' => self::creditorReference($number), 'status' => $invoice->total_cents > 0 ? 'issued' : 'paid',

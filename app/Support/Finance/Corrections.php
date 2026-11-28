@@ -43,7 +43,7 @@ class Corrections
         $invoices = Invoice::query()->where('event_id', $event->id)->where('type', 'invoice')->whereIn('status', ['issued', 'partially_paid', 'paid'])
             ->with('lines', 'payer', 'household')->get();
         foreach ($invoices as $invoice) {
-            $installment = $event->installments->firstWhere('key', $invoice->installment_key);
+            $installment = $invoice->installmentAmong($event->installments);
             if ($installment === null) {
                 continue;
             }
@@ -64,7 +64,7 @@ class Corrections
         $event->load('roles', 'installments', 'prices');
         $changed = 0;
         foreach (Invoice::query()->where('event_id', $event->id)->where('type', 'invoice')->where('status', 'draft')->with('lines', 'payer')->get() as $invoice) {
-            $installment = $event->installments->firstWhere('key', $invoice->installment_key);
+            $installment = $invoice->installmentAmong($event->installments);
             if ($installment === null) {
                 continue;
             }

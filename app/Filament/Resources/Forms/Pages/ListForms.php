@@ -22,7 +22,7 @@ class ListForms extends ListRecords
         return [
             Action::make('import')->label(__('admin.form.import'))->icon('heroicon-o-arrow-up-tray')->color('gray')
                 ->visible(fn () => Permissions::current('forms', 'edit'))
-                ->modalDescription(__('admin.form.import_hint'))
+                ->modalDescription(__('admin.form.import_hint_name'))
                 ->schema([FileUpload::make('file')->label(__('admin.finance.file'))->acceptedFileTypes(['application/json', 'text/plain'])->maxSize(1024)->storeFiles(false)->required()])
                 ->action(function (array $data) {
                     $file = is_array($data['file']) ? reset($data['file']) : $data['file'];

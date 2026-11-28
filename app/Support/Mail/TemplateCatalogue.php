@@ -39,10 +39,36 @@ class TemplateCatalogue
                         $groups[$label]['{{ '.$group.'.'.$field.' }}'] = self::withExample(self::label($group.'.'.$field), $example);
                     }
                 }
+                foreach (self::answers($group, $value) as $expression => $answer) {
+                    $groups[$label]['{{ '.$expression.' }}'] = $answer;
+                }
             }
         }
 
         return $groups;
+    }
+
+    /**
+     * The answers to the questions of the event, listed by the label of the question (B8). The key of the field is in
+     * the placeholder; with "default" the mail also works for an event whose form does not have this question.
+     *
+     * @param  array<array-key, mixed>  $value
+     * @return array<string, string> expression => label
+     */
+    private static function answers(string $group, array $value): array
+    {
+        if ($group !== 'registration' || ! is_array($value['answers'] ?? null)) {
+            return [];
+        }
+        $labels = Placeholders::answerFields();
+        $answers = [];
+        foreach (array_map('strval', array_keys($value['answers'])) as $key) {
+            // Keys of older versions may hold a dash or start with a digit; Twig reads them in brackets.
+            $path = preg_match('/^[A-Za-z_][A-Za-z0-9_]*$/', $key) === 1 ? '.'.$key : "['".$key."']";
+            $answers[$group.'.answers'.$path."|default('')"] = (string) __('mail.placeholders.answer', ['field' => $labels[$key] ?? $key]);
+        }
+
+        return $answers;
     }
 
     /**
@@ -68,6 +94,9 @@ class TemplateCatalogue
                 if (is_scalar($example) || $example === null) {
                     $groups[$label][$group.'.'.$field] = self::label($group.'.'.$field);
                 }
+            }
+            foreach (self::answers($group, $value) as $expression => $answer) {
+                $groups[$label][$expression] = $answer;
             }
         }
 

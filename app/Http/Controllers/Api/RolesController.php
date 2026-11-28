@@ -6,6 +6,7 @@ use App\Models\Person;
 use App\Models\Role;
 use App\Models\RoleAssignment;
 use App\Support\Api\ApiContext;
+use App\Support\Records\Records;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -25,7 +26,7 @@ class RolesController extends ApiController
         $this->scope('people:read');
 
         return response()->json(['data' => Role::query()->orderBy('id')->get()->map(fn (Role $r) => [
-            'key' => $r->key, 'name' => $r->name, 'admin' => $r->is_admin, 'own_events_only' => $r->ownEventsOnly(), 'assignable' => $r->key !== 'administrator',
+            'id' => (int) $r->getKey(), 'name' => $r->label(), 'admin' => $r->is_admin, 'own_events_only' => $r->ownEventsOnly(), 'assignable' => $r->key !== 'administrator',
         ])->values()]);
     }
 
@@ -38,7 +39,7 @@ class RolesController extends ApiController
     }
 
     /**
-     * Gives a person a role: role is the key; event (id of an event) only for roles that count for the own events;
+     * Gives a person a role: role is the id or the name of the role; event (id of an event) only for roles that count for the own events;
      * starts_on defaults to today. A person who gets a role for the admin interface also gets a login for its
      * primary e-mail address. The role administrator is refused (403).
      */
@@ -48,10 +49,10 @@ class RolesController extends ApiController
         $this->protect();
         $model = $this->person($person);
         $data = $request->validate([
-            'role' => ['required', 'string', 'exists:roles,key'], 'event' => ['sometimes', 'nullable', 'string'],
+            'role' => ['required'], 'event' => ['sometimes', 'nullable', 'string'],
             'starts_on' => ['sometimes', 'nullable', 'date'], 'ends_on' => ['sometimes', 'nullable', 'date', 'after_or_equal:'.($request->input('starts_on') ? 'starts_on' : 'today')],
         ]);
-        $role = Role::query()->where('key', $data['role'])->firstOrFail();
+        $role = Records::require(Role::query(), $data['role'], 'role');
         $this->notAdministrator($role);
         $event = isset($data['event']) ? $this->event($data['event']) : null;
         if ($event !== null && ! $role->ownEventsOnly()) {
@@ -104,7 +105,7 @@ class RolesController extends ApiController
         $items = $person->roleAssignments()->with('role', 'event')->orderBy('id')->get();
 
         return response()->json(['data' => $items->map(fn (RoleAssignment $a) => [
-            'id' => (int) $a->getKey(), 'role' => $a->role?->key, 'name' => $a->role?->label(), 'event' => $a->event?->public_id,
+            'id' => (int) $a->getKey(), 'role' => $a->getAttribute('role_id'), 'name' => $a->role?->label(), 'event' => $a->event?->public_id,
             'starts_on' => $a->getAttribute('starts_on')?->toDateString(), 'ends_on' => $a->getAttribute('ends_on')?->toDateString(),
         ])->values()], $status);
     }

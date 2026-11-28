@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\Auditable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -16,6 +17,7 @@ use Illuminate\Support\Carbon;
  * @property int|null $payer_id
  * @property int|null $event_id
  * @property string|null $installment_key
+ * @property int|null $installment_id
  * @property string $status
  * @property string $currency
  * @property int $total_cents
@@ -36,7 +38,7 @@ class Invoice extends Model
     protected $guarded = ['id'];
 
     /** What an issued invoice says never changes; only status, payments and due date (IN10). */
-    private const FIXED = ['number', 'type', 'household_id', 'payer_id', 'event_id', 'installment_key', 'currency', 'total_cents', 'reference', 'issued_on', 'payer_name', 'payer_address', 'corrects_id', 'fee_for_id'];
+    private const FIXED = ['number', 'type', 'household_id', 'payer_id', 'event_id', 'installment_key', 'installment_id', 'currency', 'total_cents', 'reference', 'issued_on', 'payer_name', 'payer_address', 'corrects_id', 'fee_for_id'];
 
     protected static function booted(): void
     {
@@ -87,6 +89,66 @@ class Invoice extends Model
     public function event(): BelongsTo
     {
         return $this->belongsTo(Event::class);
+    }
+
+    /** @return BelongsTo<EventInstallment, $this> */
+    public function installment(): BelongsTo
+    {
+        return $this->belongsTo(EventInstallment::class);
+    }
+
+    /**
+     * The instalment of the payment plan the invoice is for: by its id; invoices of older versions whose instalment
+     * was removed and made again are found by the key (B8). Null for single invoices and membership fees.
+     */
+    public function installmentOfPlan(): ?EventInstallment
+    {
+        if ($this->event_id === null) {
+            return null;
+        }
+        if ($this->installment_id !== null) {
+            return $this->installment;
+        }
+
+        return $this->installment_key !== null ? EventInstallment::query()->where('event_id', $this->event_id)->where('key', $this->installment_key)->first() : null;
+    }
+
+    /**
+     * The same among instalments that are loaded already (the payment plan of the event).
+     *
+     * @param  iterable<EventInstallment>  $installments
+     */
+    public function installmentAmong(iterable $installments): ?EventInstallment
+    {
+        foreach ($installments as $installment) {
+            if ($this->installment_id !== null ? $installment->getKey() === $this->installment_id : ($this->installment_key !== null && $installment->key === $this->installment_key)) {
+                return $installment;
+            }
+        }
+
+        return null;
+    }
+
+    /** What the invoice is for, as it is shown: the name of the instalment, or the membership fee of a year. */
+    public function installmentName(): ?string
+    {
+        if (preg_match('/^membership-(\d{4})$/', (string) $this->installment_key, $year) === 1) {
+            return (string) __('finance.membership_fee', ['year' => $year[1]]);
+        }
+        $installment = $this->event !== null && $this->event->relationLoaded('installments') ? $this->installmentAmong($this->event->installments) : $this->installmentOfPlan();
+
+        return $installment?->labelText();
+    }
+
+    /**
+     * Invoices for this instalment; those of older versions without the id by its key.
+     *
+     * @param  Builder<Invoice>  $query
+     */
+    public function scopeForInstallment(Builder $query, EventInstallment $installment): void
+    {
+        $query->where('event_id', $installment->event_id)
+            ->where(fn (Builder $q) => $q->where('installment_id', $installment->getKey())->orWhere(fn (Builder $q) => $q->whereNull('installment_id')->where('installment_key', $installment->key)));
     }
 
     public function openCents(): int

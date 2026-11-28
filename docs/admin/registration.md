@@ -7,7 +7,8 @@
 2. *Events → edit → Roles*: choose the form under **Questions when registering**. Every role can have its own form.
 
 Answers can be changed until **Answers can be changed until** (default: start of the event). They appear on the list
-*Answers*, at the participant (*Answers*) and in mails as `{{ registration.answers.<key> }}`. Fields with the sensitivity
+*Answers*, at the participant (*Answers*) and in mails: *Insert placeholder* in the template editor lists every question
+by its label (*Answer: …*) and inserts it in the right form. Fields with the sensitivity
 *health* or *identity* are encrypted, visible only to the safety role and never part of mails or of that list. The text of
 a consent is stored as it was shown.
 

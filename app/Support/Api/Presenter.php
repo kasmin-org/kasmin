@@ -12,9 +12,10 @@ use App\Models\EventRole;
 use App\Models\Form;
 use App\Models\Household;
 use App\Models\Invoice;
-use App\Models\MembershipType;
+use App\Models\MailTemplate;
 use App\Models\Participation;
 use App\Models\Person;
+use App\Models\Role;
 use App\Support\Events\Bus;
 
 /**
@@ -72,18 +73,16 @@ class Presenter
                 'answers_until' => $e->answers_until?->toDateString(), 'reserve_reminder_on' => $e->reserve_reminder_on?->toDateString(),
             ];
             $data += ['bus_booked' => (bool) $e->getAttribute('bus_booked'), 'bus_seats' => $e->getAttribute('bus_seats'), 'bus' => Bus::status($e)];
-            $forms = Form::query()->where('kind', 'registration')->pluck('key', 'id');
             $data['roles'] = $e->roles->map(fn (EventRole $r) => [
                 'role' => $r->role_key, 'capacity' => $r->capacity, 'reserve_places' => $r->reserve_places, 'occupied' => $r->occupied(),
                 'bookable_left' => $r->bookableLeft(), 'waitlist' => $r->waitlistLength(), 'min_age' => $r->min_age, 'max_age' => $r->max_age,
                 'price' => $r->price_cents / 100, 'role_discount' => $r->role_discount_cents / 100, 'registered_by' => $r->registered_by,
                 'counts_as_sibling' => $r->counts_as_sibling, 'waitlist_order' => $r->waitlist_order ?? [],
-                'registration_form' => $r->registration_form_id !== null ? $forms->get($r->registration_form_id) : null,
+                'registration_form' => $r->registration_form_id,
             ])->values()->all();
-            $types = MembershipType::query()->pluck('key', 'id');
             $data['installments'] = $e->installments->map(fn (EventInstallment $i) => [
-                'key' => $i->key, 'label' => $i->label, 'kind' => $i->kind, 'amount' => $i->amount_cents !== null ? $i->amount_cents / 100 : null, 'due_date' => $i->due_date?->toDateString(),
-                'due_days' => $i->due_days, 'membership_type' => $i->membership_type_id !== null ? $types->get($i->membership_type_id) : null, 'refundable' => $i->refundable,
+                'id' => (int) $i->getKey(), 'label' => $i->label, 'kind' => $i->kind, 'amount' => $i->amount_cents !== null ? $i->amount_cents / 100 : null, 'due_date' => $i->due_date?->toDateString(),
+                'due_days' => $i->due_days, 'membership_type' => $i->membership_type_id, 'refundable' => $i->refundable,
                 'refund_until_days' => $i->refund_until_days, 'confirms_place' => $i->confirms_place, 'paid_add_group' => $i->paid_add_group_id, 'paid_remove_group' => $i->paid_remove_group_id,
                 'discounts_apply' => $i->discounts_apply,
             ])->values()->all();
@@ -117,7 +116,7 @@ class Presenter
             'id' => $i->id, 'number' => $i->number, 'type' => $i->type, 'status' => $i->isOverdue() ? 'overdue' : $i->status, 'currency' => $i->currency,
             'total' => $i->total_cents / 100, 'paid' => $i->paid_cents / 100, 'open' => $i->openCents() / 100,
             'reference' => $i->reference, 'issued_on' => $i->issued_on?->toDateString(), 'due_on' => $i->due_on?->toDateString(),
-            'payer' => $i->payer_name, 'event' => $i->event?->public_id, 'installment' => $i->installment_key,
+            'payer' => $i->payer_name, 'event' => $i->event?->public_id, 'installment' => $i->installment_id, 'installment_name' => $i->installmentName(),
         ];
         if ($details) {
             $data['lines'] = $i->lines->map(fn ($l) => ['description' => $l->description, 'amount' => $l->amount_cents / 100, 'gross' => ($l->amount_cents + $l->discount_cents) / 100,
@@ -131,18 +130,49 @@ class Presenter
     /** @return array<string, mixed> */
     public static function automation(Automation $a): array
     {
+        $roles = Role::query()->whereIn('key', $a->approverRoles())->pluck('id', 'key');
+
         return [
-            'key' => $a->key, 'name' => $a->label(), 'action' => $a->action, 'trigger' => $a->trigger, 'trigger_config' => $a->trigger_config,
-            'config' => $a->config, 'mode' => $a->mode, 'active' => $a->active, 'standard' => $a->is_standard, 'max_items' => $a->max_items,
-            'approvals_needed' => max(1, (int) $a->approvals_needed), 'approver_roles' => $a->approverRoles(), 'approver_roles_default' => ! $a->approver_roles, 'last_run_at' => $a->last_run_at?->toIso8601String(),
+            'id' => $a->id, 'name' => $a->label(), 'action' => $a->action, 'trigger' => $a->trigger, 'trigger_config' => $a->trigger_config,
+            'config' => self::automationConfig($a->config), 'mode' => $a->mode, 'active' => $a->active, 'standard' => $a->is_standard, 'max_items' => $a->max_items,
+            'approvals_needed' => max(1, (int) $a->approvals_needed), 'approver_roles' => array_values(array_filter(array_map(fn (string $key) => $roles->get($key), $a->approverRoles()))),
+            'approver_roles_default' => ! $a->approver_roles, 'last_run_at' => $a->last_run_at?->toIso8601String(),
         ];
+    }
+
+    /**
+     * The settings of an automation with the ids of the mail templates and the form they name; the automation itself
+     * stores their internal keys (B8).
+     *
+     * @param  array<string, mixed>|null  $config
+     * @return array<string, mixed>|null
+     */
+    private static function automationConfig(?array $config): ?array
+    {
+        if ($config === null) {
+            return null;
+        }
+        $templates = MailTemplate::query()->pluck('id', 'key');
+        if (is_string($config['template'] ?? null)) {
+            $config['template'] = $templates->get($config['template']);
+        }
+        if (is_string($config['form'] ?? null)) {
+            $config['form'] = Form::query()->where('key', $config['form'])->value('id');
+        }
+        foreach (is_array($config['steps'] ?? null) ? $config['steps'] : [] as $i => $step) {
+            if (is_array($step) && is_string($step['template'] ?? null)) {
+                $config['steps'][$i]['template'] = $templates->get($step['template']);
+            }
+        }
+
+        return $config;
     }
 
     /** @return array<string, mixed> */
     public static function run(AutomationRun $r): array
     {
         return [
-            'id' => $r->id, 'automation' => $r->automation?->key, 'status' => $r->status, 'trigger' => $r->trigger, 'event' => $r->event?->public_id,
+            'id' => $r->id, 'automation' => $r->automation_id, 'automation_name' => $r->automation?->label(), 'status' => $r->status, 'trigger' => $r->trigger, 'event' => $r->event?->public_id,
             'plan' => $r->plan, 'excluded' => $r->excluded ?? [], 'result' => $r->result, 'expires_at' => $r->expires_at?->toIso8601String(),
             'decided_by' => $r->decidedBy?->name, 'decided_at' => $r->decided_at?->toIso8601String(), 'comment' => $r->comment,
         ];

@@ -148,37 +148,47 @@ class ApiGapsTest extends TestCase
     {
         $token = $this->token(['people:read', 'people:write']);
         $before = MembershipType::query()->count();
-        $this->withToken($token)->postJson('/api/v1/membership-types', ['key' => 'supporter', 'name' => ['de' => 'Fördermitglied', 'en' => 'Supporter'], 'pays_fee' => true, 'fee' => 25.5])
-            ->assertCreated()->assertJsonPath('data.key', 'supporter')->assertJsonPath('data.fee', 25.5)->assertJsonPath('data.name', 'Supporter');
-        $this->assertSame(2550, MembershipType::query()->where('key', 'supporter')->firstOrFail()->fee_cents);
+        $id = $this->withToken($token)->postJson('/api/v1/membership-types', ['name' => ['de' => 'Fördermitglied', 'en' => 'Supporter'], 'pays_fee' => true, 'fee' => 25.5])
+            ->assertCreated()->assertJsonMissingPath('data.key')->assertJsonPath('data.fee', 25.5)->assertJsonPath('data.name', 'Supporter')->json('data.id');
+        $this->assertSame(2550, MembershipType::query()->findOrFail((int) $id)->fee_cents);
+        $this->assertSame('own_supporter', MembershipType::query()->findOrFail((int) $id)->key); // internal, made from the name
         $this->withToken($token)->getJson('/api/v1/membership-types')->assertOk()->assertJsonCount($before + 1, 'data');
 
         $this->withToken($token)->patchJson('/api/v1/membership-types/supporter', ['fee' => 30, 'name' => 'Förderer'])
-            ->assertOk()->assertJsonPath('data.fee', 30)->assertJsonPath('data.name', 'Förderer')->assertJsonPath('data.pays_fee', true);
+            ->assertOk()->assertJsonPath('data.id', $id)->assertJsonPath('data.fee', 30)->assertJsonPath('data.name', 'Förderer')->assertJsonPath('data.pays_fee', true);
+        $this->withToken($token)->patchJson("/api/v1/membership-types/{$id}", ['fee' => 31])->assertOk()->assertJsonPath('data.fee', 31);
+        $this->withToken($token)->patchJson('/api/v1/membership-types/own_supporter', ['fee' => 32])->assertOk()->assertJsonPath('data.fee', 32); // the key still works
+        $this->assertSame('own_supporter', MembershipType::query()->findOrFail((int) $id)->key); // a new name keeps the key
 
-        $this->withToken($token)->postJson('/api/v1/membership-types', ['key' => 'supporter', 'name' => ['de' => 'A', 'en' => 'B']])->assertUnprocessable()->assertJsonValidationErrors('key');
-        $this->withToken($token)->postJson('/api/v1/membership-types', ['key' => 'not a key', 'name' => ['de' => 'A', 'en' => 'B']])->assertUnprocessable()->assertJsonValidationErrors('key');
-        $this->withToken($token)->postJson('/api/v1/membership-types', ['key' => 'friend', 'name' => ''])->assertUnprocessable()->assertJsonValidationErrors('name');
-        $this->withToken($token)->patchJson('/api/v1/membership-types/supporter', ['key' => 'other'])->assertUnprocessable()->assertJsonValidationErrors('key');
-        $this->withToken($token)->patchJson('/api/v1/membership-types/supporter', ['fee' => -1])->assertUnprocessable();
+        $this->withToken($token)->postJson('/api/v1/membership-types', ['name' => 'FÖRDERER'])->assertUnprocessable()->assertJsonValidationErrors('name'); // names are unique
+        $this->withToken($token)->postJson('/api/v1/membership-types', ['name' => ''])->assertUnprocessable()->assertJsonValidationErrors('name');
+        $this->withToken($token)->patchJson("/api/v1/membership-types/{$id}", ['name' => MembershipType::query()->whereKeyNot($id)->firstOrFail()->label()])->assertUnprocessable()->assertJsonValidationErrors('name');
+        $this->withToken($token)->patchJson("/api/v1/membership-types/{$id}", ['name' => 'förderer', 'fee' => 33])->assertOk()->assertJsonPath('data.name', 'förderer'); // its own name
+        $this->withToken($token)->patchJson("/api/v1/membership-types/{$id}", ['fee' => -1])->assertUnprocessable();
         $this->withToken($token)->patchJson('/api/v1/membership-types/unknown', ['fee' => 1])->assertNotFound();
+        $this->withToken($token)->patchJson('/api/v1/membership-types/999999', ['fee' => 1])->assertNotFound();
     }
 
     public function test_standard_automation_can_be_set_but_stays_standard(): void
     {
         $token = $this->token(['automations:read', 'automations:write']);
         $automation = Automation::query()->where('action', 'invoice_run')->where('trigger', 'before_event')->firstOrFail();
-        $url = '/api/v1/automations/'.$automation->key;
+        $url = '/api/v1/automations/'.$automation->id;
+        $role = fn (string $key) => (int) Role::query()->where('key', $key)->value('id');
         $this->withToken($token)->getJson($url)->assertOk()->assertJsonPath('data.action', 'invoice_run')->assertJsonPath('data.standard', true)->assertJsonPath('data.trigger_config.days', 90)
-            ->assertJsonPath('data.approver_roles', ['board', 'administrator'])->assertJsonPath('data.approver_roles_default', true);
-        // The default roles sent on purpose are stored, an empty list goes back to the default.
-        $this->withToken($token)->patchJson($url, ['approver_roles' => ['board', 'administrator']])->assertOk()->assertJsonPath('data.approver_roles', ['board', 'administrator'])->assertJsonPath('data.approver_roles_default', false);
+            ->assertJsonPath('data.config.installment', 'pos:last')->assertJsonPath('data.approver_roles', [$role('board'), $role('administrator')])->assertJsonPath('data.approver_roles_default', true);
+        // The default roles sent on purpose are stored, an empty list goes back to the default. Roles by id, name or (old) key.
+        $this->withToken($token)->patchJson($url, ['approver_roles' => [$role('board'), 'administrator']])->assertOk()->assertJsonPath('data.approver_roles', [$role('board'), $role('administrator')])->assertJsonPath('data.approver_roles_default', false);
+        $this->assertSame(['board', 'administrator'], $automation->refresh()->approver_roles); // stored by their internal key
         $this->withToken($token)->patchJson($url, ['approver_roles' => []])->assertOk()->assertJsonPath('data.approver_roles_default', true);
 
-        $this->withToken($token)->patchJson($url, ['active' => true, 'mode' => 'manual', 'trigger_config' => ['days' => 60], 'config' => ['installment' => 'balance', 'send' => false],
-            'approver_roles' => ['treasurer'], 'approvals_needed' => 2, 'max_items' => 50])
-            ->assertOk()->assertJsonPath('data.active', true)->assertJsonPath('data.mode', 'manual')->assertJsonPath('data.trigger_config.days', 60)
-            ->assertJsonPath('data.config.send', false)->assertJsonPath('data.approver_roles', ['treasurer'])->assertJsonPath('data.approvals_needed', 2)->assertJsonPath('data.max_items', 50);
+        $treasurer = Role::query()->where('key', 'treasurer')->firstOrFail();
+        $this->withToken($token)->patchJson($url, ['active' => true, 'mode' => 'manual', 'trigger_config' => ['days' => 60], 'config' => ['installment' => 'pos:2', 'send' => false],
+            'approver_roles' => [$treasurer->label()], 'approvals_needed' => 2, 'max_items' => 50])
+            ->assertOk()->assertJsonPath('data.active', true)->assertJsonPath('data.mode', 'manual')->assertJsonPath('data.trigger_config.days', 60)->assertJsonPath('data.config.installment', 'pos:2')
+            ->assertJsonPath('data.config.send', false)->assertJsonPath('data.approver_roles', [$treasurer->id])->assertJsonPath('data.approvals_needed', 2)->assertJsonPath('data.max_items', 50);
+        $this->withToken($token)->patchJson($url, ['config' => ['installment' => 'pos:0']])->assertUnprocessable()->assertJsonValidationErrors('config.installment');
+        $this->withToken($token)->patchJson($url, ['config' => ['installment' => 'balance']])->assertOk()->assertJsonPath('data.config.installment', 'balance'); // a key of older versions
         $this->assertSame('api', AuditEvent::query()->where('action', 'Automation.updated')->latest('id')->firstOrFail()->actor_type);
 
         foreach ([['action' => 'custom'], ['key' => 'mine'], ['is_standard' => false], ['standard' => false]] as $fixed) {

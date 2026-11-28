@@ -100,7 +100,7 @@ Installed with the standard content, **switched off** except *Payment reminders*
 | Check the waitlist daily | the same, e.g. after the capacity was raised | daily 08:00 · approval |
 | Expire unanswered offers | after the deadline the offer is declined and the place goes to the next person | daily 07:30 · automatic |
 | Start season | children of the previous event of the same series are registered if their age still fits; those too old are proposed for the next role (e.g. junior counsellor) or for leaving – as a notice to the team. Children on the waitlist of the previous event stay on the waitlist of the new one, with the date of their first registration, so nobody loses the position | by button · manual |
-| Deposit invoices / Balance invoices | invoices of the instalment `deposit` / `balance` per family, issued and sent ([Invoices](invoices.md)) | by button / 90 days before · approval |
+| Deposit invoices / Balance invoices | invoices of the first / last instalment of the payment plan per family, issued and sent ([Invoices](invoices.md)) | by button / 90 days before · approval |
 | Registration rounds | offers in the rounds of an event ([Event planning](event-planning.md)); **active** | daily · approval |
 | Payment reminders | reminders before and after the due date as set under *Invoice settings* ([Invoices](invoices.md)); **active** | daily · approval |
 | Correct invoices | credit note and new invoice where an issued invoice no longer fits; **active** | daily · approval |
@@ -110,6 +110,12 @@ Installed with the standard content, **switched off** except *Payment reminders*
 | Information before the event | template *Event information* to all families | 14 days before · approval |
 | Close the event | registered participants become "attended" | 1 day after · approval |
 | Notice: child turns 14 | one notification per child to the team | daily 07:00 · automatic |
+
+An invoice run does not name one instalment, as it runs for whatever event it is started with: its setting
+*Instalment* is the position in the payment plan of that event – *1st instalment*, *2nd instalment*, *3rd instalment*
+or *Last instalment*, in the order of the plan. Installations from before 0.31 keep their setting (the key of an
+instalment, e.g. `deposit`) and it keeps working; it is offered as *Previous setting* until you choose a position.
+The safety sheet reminders choose their form by its name.
 
 ## Offers in the portal
 

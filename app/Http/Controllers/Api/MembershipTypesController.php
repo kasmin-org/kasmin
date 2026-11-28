@@ -4,11 +4,14 @@ namespace App\Http\Controllers\Api;
 
 use App\Casts\OneText;
 use App\Models\MembershipType;
+use App\Support\Records\Records;
+use App\Support\Records\UniqueName;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 /**
- * Membership types with their yearly fee. Scopes: people:read, people:write.
+ * Membership types with their yearly fee. Scopes: people:read, people:write. A type is addressed by its id or its exact
+ * name; names are unique.
  */
 class MembershipTypesController extends ApiController
 {
@@ -20,11 +23,11 @@ class MembershipTypesController extends ApiController
         return response()->json(['data' => MembershipType::query()->orderBy('sort')->orderBy('id')->get()->map(fn (MembershipType $t) => $this->present($t))->values()]);
     }
 
-    /** Creates a membership type. The key cannot be changed later. */
+    /** Creates a membership type. */
     public function store(Request $request): JsonResponse
     {
         $this->scope('people:write');
-        $type = MembershipType::query()->create($this->data($request, true));
+        $type = MembershipType::query()->create($this->data($request, null));
 
         return response()->json(['data' => $this->present($type)], 201);
     }
@@ -33,20 +36,19 @@ class MembershipTypesController extends ApiController
     public function update(Request $request, string $type): JsonResponse
     {
         $this->scope('people:write');
-        $model = MembershipType::query()->where('key', $type)->firstOrFail();
-        $model->update($this->data($request, false));
+        $model = Records::findOrFail(MembershipType::query(), $type, 'type');
+        $model->update($this->data($request, $model));
 
         return response()->json(['data' => $this->present($model)]);
     }
 
     /** @return array<string, mixed> */
-    private function data(Request $request, bool $new): array
+    private function data(Request $request, ?MembershipType $model): array
     {
-        $need = $new ? 'required' : 'sometimes';
+        $need = $model === null ? 'required' : 'sometimes';
         $request->merge(OneText::collapse($request->only('name'), ['name']));
         $data = $request->validate([
-            'key' => $new ? ['required', 'string', 'alpha_dash', 'max:64', 'unique:membership_types,key'] : ['prohibited'],
-            'name' => [$need, 'string', 'max:150'],
+            'name' => [$need, 'string', 'max:150', new UniqueName(MembershipType::query(), $model?->getKey())],
             'pays_fee' => ['sometimes', 'boolean'],
             'fee' => ['sometimes', 'numeric', 'min:0', 'max:100000'],
         ]);
@@ -60,6 +62,6 @@ class MembershipTypesController extends ApiController
     /** @return array<string, mixed> */
     private function present(MembershipType $t): array
     {
-        return ['key' => $t->key, 'name' => $t->name, 'pays_fee' => (bool) $t->getAttribute('pays_fee'), 'fee' => (int) $t->fee_cents / 100];
+        return ['id' => (int) $t->getKey(), 'name' => $t->name, 'pays_fee' => (bool) $t->getAttribute('pays_fee'), 'fee' => (int) $t->fee_cents / 100];
     }
 }

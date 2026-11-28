@@ -9,9 +9,10 @@ use App\Support\Api\ApiContext;
 use App\Support\Api\AutomationInput;
 use App\Support\Api\Presenter;
 use App\Support\Automations\Engine;
+use App\Support\Records\Records;
+use App\Support\Records\UniqueName;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
@@ -25,7 +26,7 @@ class AutomationsController extends ApiController
     {
         $this->scope('automations:read');
 
-        return response()->json(['data' => Automation::query()->orderBy('key')->get()->map(fn (Automation $a) => Presenter::automation($a))->values()]);
+        return response()->json(['data' => Automation::query()->orderBy('id')->get()->map(fn (Automation $a) => Presenter::automation($a))->values()]);
     }
 
     /** One automation with its trigger, settings, mode and approvers. */
@@ -33,20 +34,21 @@ class AutomationsController extends ApiController
     {
         $this->scope('automations:read');
 
-        return response()->json(['data' => Presenter::automation(Automation::query()->where('key', $automation)->firstOrFail())]);
+        return response()->json(['data' => Presenter::automation($this->automation($automation))]);
     }
 
     /**
      * Changes what the automation form allows: name, active, mode, max_items, approvals_needed, approver_roles,
-     * trigger, trigger_config and config (each of the two objects replaces the stored one). Key and action cannot
-     * be changed, so standard automations stay standard. Via MCP, changes that touch an approval also need the
+     * trigger, trigger_config and config (each of the two objects replaces the stored one). The action cannot be
+     * changed, so standard automations stay standard. Names are unique. Via MCP, changes that touch an approval also need the
      * scope approvals:decide (see AutomationInput::protect).
      */
     public function update(Request $request, string $automation): JsonResponse
     {
         $this->scope('automations:write');
-        $model = Automation::query()->where('key', $automation)->firstOrFail();
+        $model = $this->automation($automation);
         $model->fill(AutomationInput::check($model, $request->all()));
+        $this->uniqueName($model);
         AutomationInput::protect($model);
         $model->save();
 
@@ -66,9 +68,10 @@ class AutomationsController extends ApiController
         if ($missing !== [] || array_key_exists('active', $input)) {
             throw ValidationException::withMessages(array_fill_keys($missing, ['This field is required.']) + (array_key_exists('active', $input) ? ['active' => ['A new automation is switched off; switch it on with PATCH.']] : []));
         }
-        $model = new Automation(['key' => 'own_'.Str::lower(Str::random(10)), 'action' => 'custom', 'is_standard' => false, 'active' => false, 'trigger' => 'manual']);
+        $model = new Automation(['action' => 'custom', 'is_standard' => false, 'active' => false, 'trigger' => 'manual']);
         $model->syncOriginal();
         $model->fill(AutomationInput::check($model, $input));
+        $this->uniqueName($model);
         AutomationInput::protect($model);
         $model->save();
 
@@ -79,7 +82,7 @@ class AutomationsController extends ApiController
     public function destroy(string $automation): JsonResponse
     {
         $this->scope('automations:write');
-        $model = Automation::query()->where('key', $automation)->firstOrFail();
+        $model = $this->automation($automation);
         abort_if($model->is_standard, 403, 'Standard automations cannot be deleted. Switch them off instead.');
         $model->delete();
 
@@ -90,7 +93,7 @@ class AutomationsController extends ApiController
     public function preview(Request $request, string $automation): JsonResponse
     {
         $this->scope('automations:read');
-        $model = Automation::query()->where('key', $automation)->firstOrFail();
+        $model = $this->automation($automation);
         $event = $request->input('event') ? $this->event((string) $request->input('event')) : null;
 
         return response()->json(['data' => app(Engine::class)->preview($model, $event)]);
@@ -100,7 +103,7 @@ class AutomationsController extends ApiController
     public function run(Request $request, string $automation): JsonResponse
     {
         $this->scope('automations:run');
-        $model = Automation::query()->where('key', $automation)->firstOrFail();
+        $model = $this->automation($automation);
         $event = $request->input('event') ? $this->event((string) $request->input('event')) : null;
         /** @var User $user */
         $user = $request->user();
@@ -145,5 +148,19 @@ class AutomationsController extends ApiController
         }
 
         return response()->json(['data' => Presenter::run($model->load('automation', 'event', 'decidedBy'))]);
+    }
+
+    /** An automation by its id or exact name (or the key of older versions). */
+    private function automation(string $ref): Automation
+    {
+        return Records::findOrFail(Automation::query(), $ref, 'automation');
+    }
+
+    /** Names of automations are unique (B8); checked when the name is new or changes. */
+    private function uniqueName(Automation $model): void
+    {
+        if (! $model->exists || $model->isDirty('name')) {
+            validator(['name' => $model->name], ['name' => [new UniqueName(Automation::query(), $model->getKey())]])->validate();
+        }
     }
 }

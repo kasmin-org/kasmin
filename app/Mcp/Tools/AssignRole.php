@@ -32,7 +32,7 @@ class AssignRole extends ApiTool
     {
         return [
             'person' => $schema->string()->description('person id')->required(),
-            'role' => $schema->string()->description('key of the role, see list_roles')->required(),
+            'role' => $schema->string()->description('id or exact name of the role, see list_roles')->required(),
             'event' => $schema->string()->description('event id, only for roles that count for the own events'),
             'starts_on' => $schema->string()->description('first day YYYY-MM-DD, default today'),
             'ends_on' => $schema->string()->description('last day YYYY-MM-DD'),

@@ -4,8 +4,10 @@ namespace App\Models;
 
 use App\Casts\OneText;
 use App\Models\Concerns\Auditable;
+use App\Models\Concerns\HasInternalKey;
 use App\Support\Forms\ChoiceLists;
 use App\Support\Forms\SensitivityGuard;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -25,6 +27,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class FormField extends Model
 {
     use Auditable;
+    use HasInternalKey;
 
     public const TYPES = ['text', 'textarea', 'select', 'multiselect', 'yes_no', 'number', 'date', 'year_or_no', 'phone', 'email', 'none_or_text', 'repeater', 'person', 'consent'];
 
@@ -69,6 +72,21 @@ class FormField extends Model
     public function isConfidential(): bool
     {
         return in_array($this->sensitivity, ['health', 'identity'], true);
+    }
+
+    /** The key of a field is made from its label once; answers and placeholders refer to it. */
+    protected function internalKeySource(): string
+    {
+        return (string) $this->label;
+    }
+
+    /**
+     * @param  Builder<static>  $query
+     * @return Builder<static>
+     */
+    protected function internalKeyScope(Builder $query): Builder
+    {
+        return $query->where('form_id', $this->form_id);
     }
 
     public function labelText(): string
